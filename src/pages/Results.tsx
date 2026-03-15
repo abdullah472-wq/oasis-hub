@@ -4,12 +4,7 @@ import { Download } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
 
-const springIn = {
-  initial: { y: 40, opacity: 0 },
-  whileInView: { y: 0, opacity: 1 },
-  viewport: { once: true },
-  transition: { type: "spring", bounce: 0.3 },
-};
+import { springIn, springInDelay } from "@/lib/animations";
 
 const results = [
   { id: 1, exam: "বার্ষিক পরীক্ষা ২০২৫", examEn: "Annual Exam 2025", classes: ["৬ষ্ঠ", "৭ম", "৮ম", "৯ম", "১০ম"], classesEn: ["Class 6", "Class 7", "Class 8", "Class 9", "Class 10"], campus: "both" },

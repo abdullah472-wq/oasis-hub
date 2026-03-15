@@ -3,12 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
 import heroImg from "@/assets/hero-campus.jpg";
 
-const springIn = {
-  initial: { y: 40, opacity: 0 },
-  whileInView: { y: 0, opacity: 1 },
-  viewport: { once: true },
-  transition: { type: "spring", bounce: 0.3 },
-};
+import { springIn, springInDelay } from "@/lib/animations";
 
 const About = () => {
   const { t } = useLanguage();

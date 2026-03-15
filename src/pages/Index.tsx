@@ -7,12 +7,7 @@ import heroImg from "@/assets/hero-campus.jpg";
 import boysImg from "@/assets/boys-campus.jpg";
 import girlsImg from "@/assets/girls-campus.jpg";
 
-const springIn = {
-  initial: { y: 40, opacity: 0 },
-  whileInView: { y: 0, opacity: 1 },
-  viewport: { once: true },
-  transition: { type: "spring", bounce: 0.3 },
-};
+import { springIn, springInDelay } from "@/lib/animations";
 
 const Index = () => {
   const { t } = useLanguage();

@@ -3,12 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
 
-const springIn = {
-  initial: { y: 40, opacity: 0 },
-  whileInView: { y: 0, opacity: 1 },
-  viewport: { once: true },
-  transition: { type: "spring", bounce: 0.3 },
-};
+import { springIn, springInDelay } from "@/lib/animations";
 
 const steps = [
   { key: "info", titleBn: "ব্যক্তিগত তথ্য", titleEn: "Personal Info" },

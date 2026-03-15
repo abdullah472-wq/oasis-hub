@@ -4,12 +4,7 @@ import { Search } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
 
-const springIn = {
-  initial: { y: 40, opacity: 0 },
-  whileInView: { y: 0, opacity: 1 },
-  viewport: { once: true },
-  transition: { type: "spring", bounce: 0.3 },
-};
+import { springIn, springInDelay } from "@/lib/animations";
 
 const allNotices = [
   { id: 1, date: "2026-03-15", category: "exam", title: "বার্ষিক পরীক্ষার সময়সূচি প্রকাশিত", titleEn: "Annual Exam Schedule Published" },
