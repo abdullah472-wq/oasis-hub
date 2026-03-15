@@ -6,6 +6,7 @@ export const springIn = {
 };
 
 export const springInDelay = (delay: number) => ({
-  ...springIn,
-  transition: { ...springIn.transition, delay },
+  type: "spring" as const,
+  bounce: 0.3,
+  delay,
 });
