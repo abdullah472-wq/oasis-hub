@@ -138,7 +138,7 @@ const Index = () => {
               <motion.div
                 key={i}
                 {...springIn}
-                transition={{ ...springIn.transition, delay: i * 0.15 }}
+                transition={springInDelay(i * 0.15)}
                 whileHover={{ y: -8 }}
                 className="aspect-[4/5] rounded-[3rem] overflow-hidden relative group cursor-pointer"
               >
