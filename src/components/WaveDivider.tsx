@@ -6,12 +6,12 @@ const WaveDivider = ({
 
 
 
-}: {className?: string;flip?: boolean;color?: string;}) =>
-<div className={`relative w-full overflow-hidden h-16 md:h-24 ${flip ? "rotate-180" : ""} ${className}`}>
-    
+}: {className?: string;flip?: boolean;color?: string;}) => {};
 
-  
-  </div>;
+
+
+
+
 
 
 export default WaveDivider;
