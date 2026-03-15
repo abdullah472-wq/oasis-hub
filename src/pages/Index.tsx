@@ -79,7 +79,7 @@ const Index = () => {
         {/* Prayer Times floating widget */}
         <motion.div
           {...springIn}
-          transition={{ ...springIn.transition, delay: 0.3 }}
+          transition={springInDelay(0.3)}
           className="absolute top-8 right-4 md:right-8 bg-card/80 backdrop-blur-md rounded-[2rem] p-5 shadow-[var(--shadow-soft)] hidden md:block"
         >
           <h3 className="font-display text-sm font-bold text-foreground mb-3 text-center">
