@@ -89,7 +89,7 @@ const Admission = () => {
                 initial={{ x: 100, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -100, opacity: 0 }}
-                transition={{ type: "spring", bounce: 0.3 }}
+                transition={{ type: "spring" as const, bounce: 0.3 }}
               >
                 {step === 0 && (
                   <div className="grid md:grid-cols-2 gap-4">
