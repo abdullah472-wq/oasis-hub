@@ -49,21 +49,69 @@ const Admission = () => {
 
             <motion.div {...springIn} transition={springInDelay(0.15)} className="card-institutional p-8">
               <h2 className="font-bengali text-2xl font-bold text-foreground mb-4">{t("ফি কাঠামো", "Fee Structure")}</h2>
-              <div className="space-y-3">
-                {[
-                  { label: t("ভর্তি ফি", "Admission Fee"), amount: "৳ 5,000" },
-                  { label: t("মাসিক বেতন", "Monthly Tuition"), amount: "৳ 2,500" },
-                  { label: t("পরীক্ষা ফি (বার্ষিক)", "Exam Fee (Annual)"), amount: "৳ 1,500" },
-                  { label: t("উন্নয়ন ফি", "Development Fee"), amount: "৳ 2,000" },
-                ].map((fee, i) => (
-                  <div key={i} className="flex justify-between items-center py-2 border-b border-border/50">
-                    <span className="font-bengali text-muted-foreground">{fee.label}</span>
-                    <span className="font-display font-bold text-foreground">{fee.amount}</span>
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="font-bengali text-sm font-semibold text-foreground py-2 pr-2">{t("ফি ধরন", "Fee Type")}</th>
+                      <th className="font-bengali text-sm font-semibold text-foreground py-2 pr-2">{t("পরিমাণ", "Amount")}</th>
+                      <th className="font-bengali text-sm font-semibold text-foreground py-2">{t("মন্তব্য", "Note")}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="font-bengali text-muted-foreground">
+                    {[
+                      { type: t("মাসিক টিউশন (অনাবাসিক)", "Monthly Tuition (Non-residential)"), amount: "৳৫০০ — ৳২,৫০০", note: t("ক্লাস অনুযায়ী", "Varies by class") },
+                      { type: t("মাসিক টিউশন (আবাসিক)", "Monthly Tuition (Residential)"), amount: "৳৪,৫০০ — ৳৬,০০০", note: t("আবাসিক সুবিধাসহ", "With boarding facilities") },
+                      { type: t("ভর্তি ফি", "Admission Fee"), amount: "৳৩,০০০", note: t("এককালীন", "One-time") },
+                      { type: t("পরীক্ষা ফি", "Exam Fee"), amount: "৳৮০ — ৳৫০০", note: t("প্রতি পরীক্ষায়, ক্লাস অনুযায়ী", "Per exam, varies by class") },
+                      { type: t("অন্যান্য", "Others"), amount: t("প্রযোজ্য", "Applicable"), note: t("বই, ড্রেস, পরিবহন", "Books, Dress, Transport") },
+                    ].map((fee, i) => (
+                      <tr key={i} className="border-b border-border/50">
+                        <td className="py-2 pr-2">{fee.type}</td>
+                        <td className="py-2 pr-2 font-display font-bold text-foreground">{fee.amount}</td>
+                        <td className="py-2 text-sm">{fee.note}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </motion.div>
           </div>
+
+          {/* Academic Calendar */}
+          <motion.div {...springIn} transition={springInDelay(0.2)} className="card-institutional p-8 mb-16">
+            <h2 className="font-bengali text-2xl font-bold text-foreground mb-4">{t("একাডেমিক ক্যালেন্ডার", "Academic Calendar")}</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-bengali text-lg font-semibold text-foreground mb-3">{t("পরীক্ষা সমূহ", "Examinations")}</h3>
+                <ul className="space-y-2 font-bengali text-muted-foreground">
+                  {[
+                    t("মাসিক পরীক্ষা", "Monthly Exam"),
+                    t("ত্রৈমাসিক পরীক্ষা", "Quarterly Exam"),
+                    t("বার্ষিক পরীক্ষা", "Annual Exam"),
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-accent mt-1">●</span>{item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-bengali text-lg font-semibold text-foreground mb-3">{t("বার্ষিক ছুটি", "Annual Holidays")}</h3>
+                <ul className="space-y-2 font-bengali text-muted-foreground">
+                  {[
+                    t("ঈদুল ফিতর", "Eid ul-Fitr"),
+                    t("ঈদুল আযহা", "Eid ul-Adha"),
+                    t("শীতকালীন ছুটি", "Winter Vacation"),
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-accent mt-1">●</span>{item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </motion.div>
 
           {/* Multi-step form */}
           <motion.div {...springIn} className="card-institutional p-8">
