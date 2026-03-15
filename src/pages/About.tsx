@@ -38,7 +38,7 @@ const About = () => {
               { title: t("আমাদের লক্ষ্য", "Our Mission"), desc: t("ইসলামিক মূল্যবোধ ও আধুনিক শিক্ষার সমন্বয়ে প্রতিটি শিক্ষার্থীকে একজন আদর্শ মানুষ হিসেবে গড়ে তোলা।", "To develop each student as an ideal human being through the integration of Islamic values and modern education.") },
               { title: t("আমাদের দৃষ্টিভঙ্গি", "Our Vision"), desc: t("ইসলামিক শিক্ষায় বিশ্বমানের একটি প্রতিষ্ঠান হিসেবে পরিচিতি লাভ করা।", "To be recognized as a world-class institution in Islamic education.") },
             ].map((item, i) => (
-              <motion.div key={i} {...springIn} transition={{ ...springIn.transition, delay: i * 0.15 }} className="card-institutional p-8">
+              <motion.div key={i} {...springIn} transition={springInDelay(i * 0.15)} className="card-institutional p-8">
                 <h2 className="font-bengali text-2xl font-bold text-foreground mb-4">{item.title}</h2>
                 <p className="font-bengali text-muted-foreground leading-relaxed">{item.desc}</p>
               </motion.div>
