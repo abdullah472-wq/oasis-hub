@@ -106,7 +106,7 @@ const Index = () => {
               <motion.div
                 key={i}
                 {...springIn}
-                transition={{ ...springIn.transition, delay: i * 0.1 }}
+                transition={springInDelay(i * 0.1)}
                 className="card-institutional p-6 text-center"
               >
                 <stat.icon className="w-8 h-8 text-accent mx-auto mb-3" />
