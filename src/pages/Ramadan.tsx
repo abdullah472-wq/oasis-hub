@@ -113,7 +113,7 @@ const Ramadan = () => {
               </motion.a>
             </motion.div>
 
-            <motion.div {...springIn} transition={{ ...springIn.transition, delay: 0.15 }} className="card-institutional p-8">
+            <motion.div {...springIn} transition={springInDelay(0.15)} className="card-institutional p-8">
               <h3 className="font-bengali text-xl font-bold text-foreground mb-4">
                 {t("স্পন্সরশিপ ফর্ম", "Sponsorship Form")}
               </h3>

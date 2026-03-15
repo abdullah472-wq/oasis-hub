@@ -60,7 +60,7 @@ const About = () => {
             </svg>
             <div className="space-y-12">
               {milestones.map((m, i) => (
-                <motion.div key={i} {...springIn} transition={{ ...springIn.transition, delay: i * 0.1 }} className={`relative flex items-center gap-6 ${i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
+                <motion.div key={i} {...springIn} transition={springInDelay(i * 0.1)} className={`relative flex items-center gap-6 ${i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
                   <div className="absolute left-6 md:left-1/2 w-4 h-4 rounded-full bg-accent border-4 border-primary -translate-x-1/2 z-10" />
                   <div className={`ml-16 md:ml-0 md:w-1/2 ${i % 2 === 0 ? "md:pr-12 md:text-right" : "md:pl-12"}`}>
                     <div className="card-institutional p-6">

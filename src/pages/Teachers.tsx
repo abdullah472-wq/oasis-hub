@@ -59,7 +59,7 @@ const Teachers = () => {
               <motion.div
                 key={`${campus}-${i}`}
                 {...springIn}
-                transition={{ ...springIn.transition, delay: i * 0.08 }}
+                transition={springInDelay(i * 0.08)}
                 className="card-institutional p-6 text-center"
               >
                 <div className="w-20 h-20 rounded-full bg-secondary border-4 border-accent mx-auto mb-4 flex items-center justify-center">

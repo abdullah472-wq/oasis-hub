@@ -83,7 +83,7 @@ const NoticeBoard = () => {
               <motion.div
                 key={notice.id}
                 {...springIn}
-                transition={{ ...springIn.transition, delay: i * 0.06 }}
+                transition={springInDelay(i * 0.06)}
                 className="card-institutional p-6 border-l-4 border-accent cursor-pointer hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-start justify-between gap-4">

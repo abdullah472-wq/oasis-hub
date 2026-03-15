@@ -172,7 +172,7 @@ const Index = () => {
               <motion.div
                 key={i}
                 {...springIn}
-                transition={{ ...springIn.transition, delay: i * 0.1 }}
+                transition={springInDelay(i * 0.1)}
                 className="card-institutional p-6 flex items-center gap-4 hover:shadow-lg transition-shadow cursor-pointer"
               >
                 <div className="bg-accent/20 rounded-2xl px-4 py-2 text-center shrink-0">

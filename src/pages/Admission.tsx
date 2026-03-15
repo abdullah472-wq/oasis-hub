@@ -47,7 +47,7 @@ const Admission = () => {
               </ul>
             </motion.div>
 
-            <motion.div {...springIn} transition={{ ...springIn.transition, delay: 0.15 }} className="card-institutional p-8">
+            <motion.div {...springIn} transition={springInDelay(0.15)} className="card-institutional p-8">
               <h2 className="font-bengali text-2xl font-bold text-foreground mb-4">{t("ফি কাঠামো", "Fee Structure")}</h2>
               <div className="space-y-3">
                 {[

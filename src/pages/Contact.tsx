@@ -46,7 +46,7 @@ const Contact = () => {
             </motion.div>
 
             {/* Contact form */}
-            <motion.div {...springIn} transition={{ ...springIn.transition, delay: 0.15 }} className="card-institutional p-8">
+            <motion.div {...springIn} transition={springInDelay(0.15)} className="card-institutional p-8">
               <h2 className="font-bengali text-2xl font-bold text-foreground mb-6">{t("আমাদের লিখুন", "Write to Us")}</h2>
               <div className="space-y-4">
                 {[t("আপনার নাম", "Your Name"), t("ইমেইল", "Email"), t("মোবাইল", "Mobile")].map((label) => (
