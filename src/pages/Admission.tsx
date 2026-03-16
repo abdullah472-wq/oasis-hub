@@ -1,20 +1,13 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
+import { Link } from "react-router-dom";
 
 import { springIn, springInDelay } from "@/lib/animations";
 
-const steps = [
-  { key: "info", titleBn: "ব্যক্তিগত তথ্য", titleEn: "Personal Info" },
-  { key: "academic", titleBn: "শিক্ষাগত তথ্য", titleEn: "Academic Info" },
-  { key: "guardian", titleBn: "অভিভাবক তথ্য", titleEn: "Guardian Info" },
-  { key: "confirm", titleBn: "নিশ্চিতকরণ", titleEn: "Confirmation" },
-];
-
 const Admission = () => {
   const { t } = useLanguage();
-  const [step, setStep] = useState(0);
 
   return (
     <div>
@@ -113,90 +106,21 @@ const Admission = () => {
             </div>
           </motion.div>
 
-          {/* Multi-step form */}
-          <motion.div {...springIn} className="card-institutional p-8">
-            <h2 className="font-bengali text-2xl font-bold text-foreground mb-6">{t("অনলাইন ভর্তি ফর্ম", "Online Admission Form")}</h2>
-
-            {/* Step indicator */}
-            <div className="flex items-center justify-between mb-8 max-w-md mx-auto">
-              {steps.map((s, i) => (
-                <div key={s.key} className="flex items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
-                    i <= step ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-                  }`}>
-                    {i + 1}
-                  </div>
-                  {i < steps.length - 1 && <div className={`w-8 md:w-16 h-1 mx-1 rounded-full ${i < step ? "bg-primary" : "bg-secondary"}`} />}
-                </div>
-              ))}
-            </div>
-
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={step}
-                initial={{ x: 100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -100, opacity: 0 }}
-                transition={{ type: "spring" as const, bounce: 0.3 }}
-              >
-                {step === 0 && (
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {[t("শিক্ষার্থীর নাম", "Student Name"), t("জন্ম তারিখ", "Date of Birth"), t("শ্রেণি", "Class"), t("ক্যাম্পাস", "Campus")].map((label) => (
-                      <div key={label}>
-                        <label className="font-bengali text-sm font-medium text-foreground mb-1 block">{label}</label>
-                        <input className="w-full px-4 py-3 rounded-2xl bg-secondary border border-border font-bengali text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {step === 1 && (
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {[t("পূর্ববর্তী প্রতিষ্ঠান", "Previous Institution"), t("পূর্ববর্তী শ্রেণি", "Previous Class"), t("জিপিএ/ফলাফল", "GPA/Result"), t("বোর্ড/শিক্ষাবোর্ড", "Board")].map((label) => (
-                      <div key={label}>
-                        <label className="font-bengali text-sm font-medium text-foreground mb-1 block">{label}</label>
-                        <input className="w-full px-4 py-3 rounded-2xl bg-secondary border border-border font-bengali text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {step === 2 && (
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {[t("অভিভাবকের নাম", "Guardian Name"), t("সম্পর্ক", "Relation"), t("মোবাইল নম্বর", "Mobile Number"), t("ঠিকানা", "Address")].map((label) => (
-                      <div key={label}>
-                        <label className="font-bengali text-sm font-medium text-foreground mb-1 block">{label}</label>
-                        <input className="w-full px-4 py-3 rounded-2xl bg-secondary border border-border font-bengali text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {step === 3 && (
-                  <div className="text-center py-8">
-                    <div className="text-6xl mb-4">✅</div>
-                    <h3 className="font-bengali text-xl font-bold text-foreground mb-2">{t("তথ্য যাচাই করুন", "Review Your Information")}</h3>
-                    <p className="font-bengali text-muted-foreground">{t("সব তথ্য সঠিক থাকলে সাবমিট করুন।", "Submit if all information is correct.")}</p>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-
-            <div className="flex justify-between mt-8">
+          {/* Apply Button */}
+          <motion.div {...springIn} className="card-institutional p-8 text-center">
+            <h2 className="font-bengali text-2xl font-bold text-foreground mb-4">{t("অনলাইনে ভর্তির জন্য আবেদন করুন", "Apply Online for Admission")}</h2>
+            <p className="font-bengali text-muted-foreground mb-6">
+              {t("অনলাইন ভর্তি ফর্ম পূরণ করে সহজেই আবেদন করুন।", "Easily apply by filling out the online admission form.")}
+            </p>
+            <Link to="/admission-form">
               <motion.button
                 whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95, y: 4 }}
-                onClick={() => setStep(Math.max(0, step - 1))}
-                className={`squishy-button-outline font-bengali ${step === 0 ? "opacity-50 pointer-events-none" : ""}`}
+                whileTap={{ scale: 0.95 }}
+                className="squishy-button font-bengali px-8 py-3"
               >
-                {t("পূর্ববর্তী", "Previous")}
+                {t("অনলাইন ভর্তি ফর্ম", "Online Admission Form")}
               </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95, y: 4 }}
-                onClick={() => step < 3 ? setStep(step + 1) : null}
-                className="squishy-button font-bengali"
-              >
-                {step === 3 ? t("সাবমিট করুন", "Submit") : t("পরবর্তী", "Next")}
-              </motion.button>
-            </div>
+            </Link>
           </motion.div>
         </div>
       </section>

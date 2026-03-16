@@ -1,20 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Download } from "lucide-react";
+import { Download, Search, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
-
+import { getResults, Result } from "@/lib/results";
 import { springIn, springInDelay } from "@/lib/animations";
-
-const results = [
-  { id: 1, exam: "বার্ষিক পরীক্ষা ২০২৫", examEn: "Annual Exam 2025", classes: ["৬ষ্ঠ", "৭ম", "৮ম", "৯ম", "১০ম"], classesEn: ["Class 6", "Class 7", "Class 8", "Class 9", "Class 10"], campus: "both" },
-  { id: 2, exam: "অর্ধবার্ষিক পরীক্ষা ২০২৫", examEn: "Half-yearly Exam 2025", classes: ["৬ষ্ঠ", "৭ম", "৮ম", "৯ম", "১০ম"], classesEn: ["Class 6", "Class 7", "Class 8", "Class 9", "Class 10"], campus: "both" },
-  { id: 3, exam: "প্রথম সাময়িক ২০২৫", examEn: "1st Term 2025", classes: ["৬ষ্ঠ", "৭ম", "৮ম"], classesEn: ["Class 6", "Class 7", "Class 8"], campus: "both" },
-];
 
 const Results = () => {
   const { t, lang } = useLanguage();
   const [campus, setCampus] = useState<"boys" | "girls">("boys");
+  const [results, setResults] = useState<Result[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getResults()
+      .then(setResults)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filteredResults = results.filter((r) => r.campus === campus || r.campus === "both");
 
   return (
     <div>
@@ -27,6 +32,20 @@ const Results = () => {
 
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4 max-w-4xl">
+          {/* Search Result Button */}
+          <motion.div {...springIn} className="mb-8">
+            <a
+              href="https://eskooly.com/bb/searchexamresult.php"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-foreground rounded-xl font-bengali font-bold hover:bg-accent/80 transition-colors"
+            >
+              <Search className="w-5 h-5" />
+              {t("অনলাইন রেজাল্ট খুঁজুন", "Search Result Online")}
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </motion.div>
+
           <div className="flex justify-center gap-4 mb-10">
             {(["boys", "girls"] as const).map((c) => (
               <motion.button
@@ -42,37 +61,50 @@ const Results = () => {
           </div>
 
           <div className="card-institutional p-8">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b-2 border-border">
-                    <th className="text-left py-4 font-bengali font-bold text-foreground">{t("পরীক্ষা", "Exam")}</th>
-                    <th className="text-left py-4 font-bengali font-bold text-foreground">{t("শ্রেণি", "Class")}</th>
-                    <th className="text-right py-4 font-bengali font-bold text-foreground">{t("ডাউনলোড", "Download")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {results.map((r) =>
-                    (lang === "bn" ? r.classes : r.classesEn).map((cls, j) => (
-                      <tr key={`${r.id}-${j}`} className="border-b border-border/50 hover:bg-secondary/50 transition-colors">
-                        <td className="py-4 font-bengali text-foreground">{j === 0 ? (lang === "bn" ? r.exam : r.examEn) : ""}</td>
-                        <td className="py-4 font-bengali text-muted-foreground">{cls}</td>
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
+              </div>
+            ) : filteredResults.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8 font-bengali">
+                {t("কোনো ফলাফল পাওয়া যায়নি", "No results available")}
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b-2 border-border">
+                      <th className="text-left py-4 font-bengali font-bold text-foreground">{t("পরীক্ষা", "Exam")}</th>
+                      <th className="text-left py-4 font-bengali font-bold text-foreground">{t("শ্রেণি", "Class")}</th>
+                      <th className="text-right py-4 font-bengali font-bold text-foreground">{t("ডাউনলোড", "Download")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredResults.map((r, i) => (
+                      <tr key={r.id || i} className="border-b border-border/50 hover:bg-secondary/50 transition-colors">
+                        <td className="py-4 font-bengali text-foreground">{lang === "bn" ? r.exam : r.examEn}</td>
+                        <td className="py-4 font-bengali text-muted-foreground">{lang === "bn" ? r.className : r.classNameEn}</td>
                         <td className="py-4 text-right">
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-accent font-semibold text-sm hover:bg-accent/20 transition-colors"
-                          >
-                            <Download className="w-4 h-4" />
-                            PDF
-                          </motion.button>
+                          {r.pdfUrl ? (
+                            <a
+                              href={r.pdfUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-accent font-semibold text-sm hover:bg-accent/20 transition-colors"
+                            >
+                              <Download className="w-4 h-4" />
+                              PDF
+                            </a>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">{t("শীঘ্রই আসছে", "Coming soon")}</span>
+                          )}
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       </section>

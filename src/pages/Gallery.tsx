@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
-
-import { springIn, springInDelay } from "@/lib/animations";
+import { getGalleryImages, GalleryImage } from "@/lib/gallery";
+import { springIn } from "@/lib/animations";
 
 const categories = [
   { value: "all", bn: "সকল", en: "All" },
@@ -12,21 +12,39 @@ const categories = [
   { value: "activities", bn: "কার্যক্রম", en: "Activities" },
 ];
 
-const photos = [
-  { src: "https://images.unsplash.com/photo-1585036156171-384164a8c675?w=600", cat: "campus", titleBn: "মূল ভবন", titleEn: "Main Building" },
-  { src: "https://images.unsplash.com/photo-1577896851231-70ef18881754?w=600", cat: "activities", titleBn: "ক্লাসরুম", titleEn: "Classroom" },
-  { src: "https://images.unsplash.com/photo-1588072432836-e10032774350?w=600", cat: "events", titleBn: "বার্ষিক অনুষ্ঠান", titleEn: "Annual Event" },
-  { src: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600", cat: "campus", titleBn: "লাইব্রেরি", titleEn: "Library" },
-  { src: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=600", cat: "activities", titleBn: "খেলাধুলা", titleEn: "Sports" },
-  { src: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600", cat: "events", titleBn: "পুরস্কার বিতরণী", titleEn: "Award Ceremony" },
-  { src: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600", cat: "campus", titleBn: "ক্যাম্পাস প্রাঙ্গণ", titleEn: "Campus Ground" },
-  { src: "https://images.unsplash.com/photo-1523050854058-8df90110c476?w=600", cat: "activities", titleBn: "সাংস্কৃতিক কর্মকাণ্ড", titleEn: "Cultural Activity" },
+const defaultPhotos = [
+  { src: "https://images.unsplash.com/photo-1585036156171-384164a8c675?w=600", category: "campus", titleBn: "মূল ভবন", titleEn: "Main Building" },
+  { src: "https://images.unsplash.com/photo-1577896851231-70ef18881754?w=600", category: "activities", titleBn: "ক্লাসরুম", titleEn: "Classroom" },
+  { src: "https://images.unsplash.com/photo-1588072432836-e10032774350?w=600", category: "events", titleBn: "বার্ষিক অনুষ্ঠান", titleEn: "Annual Event" },
+  { src: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600", category: "campus", titleBn: "লাইব্রেরি", titleEn: "Library" },
+  { src: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=600", category: "activities", titleBn: "খেলাধুলা", titleEn: "Sports" },
+  { src: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600", category: "events", titleBn: "পুরস্কার বিতরণী", titleEn: "Award Ceremony" },
+  { src: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600", category: "campus", titleBn: "ক্যাম্পাস প্রাঙ্গণ", titleEn: "Campus Ground" },
+  { src: "https://images.unsplash.com/photo-1523050854058-8df90110c476?w=600", category: "activities", titleBn: "সাংস্কৃতিক কর্মকাণ্ড", titleEn: "Cultural Activity" },
 ];
 
 const Gallery = () => {
   const { t, lang } = useLanguage();
   const [filter, setFilter] = useState("all");
-  const filtered = filter === "all" ? photos : photos.filter((p) => p.cat === filter);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getGalleryImages()
+      .then(setGalleryImages)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const adminPhotos = galleryImages.map((g) => ({
+    src: g.src,
+    category: g.category,
+    titleBn: g.titleBn,
+    titleEn: g.titleEn,
+  }));
+
+  const allPhotos = [...adminPhotos, ...defaultPhotos];
+  const filtered = filter === "all" ? allPhotos : allPhotos.filter((p) => p.category === filter);
 
   return (
     <div>
