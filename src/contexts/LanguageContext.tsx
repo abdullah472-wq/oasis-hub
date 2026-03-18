@@ -5,7 +5,7 @@ type Language = "bn" | "en";
 interface LanguageContextType {
   lang: Language;
   setLang: (lang: Language) => void;
-  t: (bn: string, en: string) => string;
+  t: <T extends string | string[]>(bn: T, en: T) => T;
 }
 
 const LanguageContext = createContext<LanguageContextType>({
