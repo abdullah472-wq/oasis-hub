@@ -41,7 +41,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center overflow-hidden">
-            <img src="/src/assets/logo.png.png" alt="Logo" className="w-full h-full object-contain" />
+            <img src="/src/assets/logos/site-logo.png" alt="Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <h1 className="text-lg font-display font-bold text-foreground leading-tight">

@@ -12,7 +12,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <div className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center overflow-hidden">
-                <img src="/src/assets/logo.png.png" alt="Logo" className="w-full h-full object-cover" />
+                <img src="/src/assets/logos/site-logo.png" alt="Logo" className="w-full h-full object-cover" />
               </div>
               <div>
                 <h3 className="font-display text-xl font-bold">
