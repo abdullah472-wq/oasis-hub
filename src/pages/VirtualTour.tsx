@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
-import { getVirtualTours, VirtualTour } from "@/lib/virtualTour";
+import { getVirtualTours, VirtualTour as VirtualTourType } from "@/lib/virtualTour";
 import { springIn } from "@/lib/animations";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 
 const VirtualTour = () => {
   const { t, lang } = useLanguage();
-  const [tours, setTours] = useState<VirtualTour[]>([]);
+  const [tours, setTours] = useState<VirtualTourType[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
 

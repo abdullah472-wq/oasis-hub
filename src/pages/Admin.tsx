@@ -39,7 +39,7 @@ const Admin = () => {
   const [newEvent, setNewEvent] = useState({ titleBn: "", titleEn: "", startDate: "", endDate: "", type: "event" as const, descriptionBn: "", descriptionEn: "" });
 
   const [admissions, setAdmissions] = useState<AdmissionForm[]>([]);
-  const [activeTab, setActiveTab] = useState<"news" | "gallery" | "events" | "admissions" | "notices" | "results">("news");
+  const [activeTab, setActiveTab] = useState<"news" | "gallery" | "events" | "admissions" | "notices" | "results" | "reviews" | "teachers" | "tours">("news");
 
   const [notices, setNotices] = useState<Notice[]>([]);
   const [showNoticeForm, setShowNoticeForm] = useState(false);
@@ -588,7 +588,7 @@ const Admin = () => {
                       <div key={event.id} className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
                         <div className="flex-1 min-w-0">
                           <p className="font-bengali font-medium">{lang === "bn" ? event.titleBn : event.titleEn}</p>
-                          <p className="text-xs text-muted-foreground">{event.date} • {event.type}</p>
+                          <p className="text-xs text-muted-foreground">{event.startDate} • {event.type}</p>
                         </div>
                         <button onClick={() => handleDeleteEvent(event.id!)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg">
                           <Trash2 className="w-4 h-4" />
