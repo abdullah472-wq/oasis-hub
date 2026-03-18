@@ -39,7 +39,7 @@ const Admin = () => {
   const [newEvent, setNewEvent] = useState({ titleBn: "", titleEn: "", startDate: "", endDate: "", type: "event" as const, descriptionBn: "", descriptionEn: "" });
 
   const [admissions, setAdmissions] = useState<AdmissionForm[]>([]);
-  const [activeTab, setActiveTab] = useState<"news" | "gallery" | "events" | "admissions" | "notices" | "results">("news");
+  const [activeTab, setActiveTab] = useState<"news" | "gallery" | "events" | "admissions" | "notices" | "results" | "reviews" | "teachers" | "tours">("news");
 
   const [notices, setNotices] = useState<Notice[]>([]);
   const [showNoticeForm, setShowNoticeForm] = useState(false);
