@@ -484,53 +484,97 @@ const Index = () => {
           )}
 
           {/* Reviews Carousel */}
-          <div className="relative">
-            <div className="overflow-hidden">
-              <div 
-                className="flex transition-transform duration-500 ease-in-out"
-                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-              >
-                {Array.from({ length: Math.ceil((reviews.length > 0 ? reviews.length : 4) / 2) }).map((_, slideIndex) => (
-                  <div key={slideIndex} className="w-full flex-shrink-0">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-2">
-                      {(reviews.length > 0 ? reviews : [
-                        { name: t("মোঃ রহিম উদ্দিন", "Md. Rahim Uddin"), relation: t("অভিভাবক", "Guardian"), review: t("\"আমার সন্তান এই মাদরাসায় পড়ার পর খুবই ভালো পরিবর্তন দেখতে পাচ্ছি। সে এখন নামাজ পড়ে, কোরআন পড়ে এবং আগের চেয়ে অনেক বেশি মানসিকভাবে শান্তিপূর্ণ।\"", "\"I have seen great changes in my child since joining this madrasha. Now he prays, reads the Quran, and is much more mentally calm than before.\"") },
-                        { name: t("ফাতেমা বেগম", "Fatema Begum"), relation: t("অভিভাবক", "Guardian"), review: t("\"এই প্রতিষ্ঠানের শিক্ষকরা খুবই আদর স্নেহের সাথে পড়াশোনা করান। আমার মেয়ে এখানে খুবই ভালোভাবে লেখাপড়া শিখছে।\"", "\"The teachers here teach with great care and love. My daughter is learning very well at this institution.\"") },
-                        { name: t("আব্দুল করিম", "Abdul Karim"), relation: t("অভিভাবক", "Guardian"), review: t("\"মাদরাসার পরিবেশ খুবই ভালো। সন্তানকে এখানে রেখে আমি নিশ্চিত যে সে সঠিক ইসলামিক শিক্ষা পাচ্ছে।\"", "\"The environment of the madrasha is very good. I am confident that my child is receiving proper Islamic education here.\"") },
-                        { name: t("সালমা আক্তার", "Salma Akter"), relation: t("অভিভাবক", "Guardian"), review: t("\"আমার ছেলে এখানে পড়ে হাফেজ হয়েছে। শিক্ষকদের তত্ত্বাবধানে সে কোরআন মুখস্থ করেছে। আমরা খুবই গর্বিত।\"", "\"My son became a Hafez while studying here. He memorized the Quran under the supervision of the teachers. We are very proud.\"") },
-                      ]).slice(slideIndex * 2, (slideIndex + 1) * 2).map((item: any, i: number) => (
-                        <div key={i} className="bg-secondary/50 rounded-2xl p-6">
-                          <div className="flex items-start gap-3 mb-4">
-                            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
-                              {item.name.charAt(0)}
+          {(() => {
+            const allReviews = reviews.length > 0 ? reviews : [
+              { name: t("মোঃ রহিম উদ্দিন", "Md. Rahim Uddin"), relation: t("অভিভাবক", "Guardian"), review: t("\"আমার সন্তান এই মাদরাসায় পড়ার পর খুবই ভালো পরিবর্তন দেখতে পাচ্ছি। সে এখন নামাজ পড়ে, কোরআন পড়ে এবং আগের চেয়ে অনেক বেশি মানসিকভাবে শান্তিপূর্ণ।\"", "\"I have seen great changes in my child since joining this madrasha. Now he prays, reads the Quran, and is much more mentally calm than before.\"") },
+              { name: t("ফাতেমা বেগম", "Fatema Begum"), relation: t("অভিভাবক", "Guardian"), review: t("\"এই প্রতিষ্ঠানের শিক্ষকরা খুবই আদর স্নেহের সাথে পড়াশোনা করান। আমার মেয়ে এখানে খুবই ভালোভাবে লেখাপড়া শিখছে।\"", "\"The teachers here teach with great care and love. My daughter is learning very well at this institution.\"") },
+              { name: t("আব্দুল করিম", "Abdul Karim"), relation: t("অভিভাবক", "Guardian"), review: t("\"মাদরাসার পরিবেশ খুবই ভালো। সন্তানকে এখানে রেখে আমি নিশ্চিত যে সে সঠিক ইসলামিক শিক্ষা পাচ্ছে।\"", "\"The environment of the madrasha is very good. I am confident that my child is receiving proper Islamic education here.\"") },
+              { name: t("সালমা আক্তার", "Salma Akter"), relation: t("অভিভাবক", "Guardian"), review: t("\"আমার ছেলে এখানে পড়ে হাফেজ হয়েছে। শিক্ষকদের তত্ত্বাবধানে সে কোরআন মুখস্থ করেছে। আমরা খুবই গর্বিত।\"", "\"My son became a Hafez while studying here. He memorized the Quran under the supervision of the teachers. We are very proud.\"") },
+            ];
+            return (
+              <>
+                {/* Mobile: 1 card per slide */}
+                <div className="relative md:hidden">
+                  <div className="overflow-hidden">
+                    <div
+                      className="flex transition-transform duration-500 ease-in-out"
+                      style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                    >
+                      {allReviews.map((item: any, i: number) => (
+                        <div key={i} className="w-full flex-shrink-0 px-2">
+                          <div className="bg-secondary/50 rounded-2xl p-6">
+                            <div className="flex items-start gap-3 mb-4">
+                              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
+                                {item.name.charAt(0)}
+                              </div>
+                              <div>
+                                <h4 className="font-bengali font-bold text-foreground">{item.name}</h4>
+                                <p className="font-bengali text-sm text-muted-foreground">{item.relation}</p>
+                              </div>
                             </div>
-                            <div>
-                              <h4 className="font-bengali font-bold text-foreground">{item.name}</h4>
-                              <p className="font-bengali text-sm text-muted-foreground">{item.relation}</p>
-                            </div>
+                            <p className="font-bengali text-muted-foreground italic leading-relaxed">"{lang === "bn" ? item.review : item.reviewEn || item.review}"</p>
                           </div>
-                          <p className="font-bengali text-muted-foreground italic leading-relaxed">"{lang === "bn" ? item.review : item.reviewEn || item.review}"</p>
                         </div>
                       ))}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                  {allReviews.length > 1 && (
+                    <div className="flex justify-center gap-2 mt-6">
+                      {allReviews.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setCurrentSlide(i)}
+                          className={`h-2 rounded-full transition-all ${currentSlide === i ? "bg-primary w-8" : "bg-secondary w-2"}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-            {/* Navigation Dots */}
-            {Math.ceil((reviews.length > 0 ? reviews.length : 4) / 2) > 1 && (
-              <div className="flex justify-center gap-2 mt-6">
-                {Array.from({ length: Math.ceil((reviews.length > 0 ? reviews.length : 4) / 2) }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentSlide(i)}
-                    className={`h-2 rounded-full transition-all ${currentSlide === i ? "bg-primary w-8" : "bg-secondary w-2"}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+                {/* Desktop: 2 cards per slide */}
+                <div className="relative hidden md:block">
+                  <div className="overflow-hidden">
+                    <div
+                      className="flex transition-transform duration-500 ease-in-out"
+                      style={{ transform: `translateX(-${Math.min(currentSlide, Math.ceil(allReviews.length / 2) - 1) * 100}%)` }}
+                    >
+                      {Array.from({ length: Math.ceil(allReviews.length / 2) }).map((_, slideIndex) => (
+                        <div key={slideIndex} className="w-full flex-shrink-0">
+                          <div className="grid grid-cols-2 gap-6 px-2">
+                            {allReviews.slice(slideIndex * 2, (slideIndex + 1) * 2).map((item: any, i: number) => (
+                              <div key={i} className="bg-secondary/50 rounded-2xl p-6">
+                                <div className="flex items-start gap-3 mb-4">
+                                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
+                                    {item.name.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <h4 className="font-bengali font-bold text-foreground">{item.name}</h4>
+                                    <p className="font-bengali text-sm text-muted-foreground">{item.relation}</p>
+                                  </div>
+                                </div>
+                                <p className="font-bengali text-muted-foreground italic leading-relaxed">"{lang === "bn" ? item.review : item.reviewEn || item.review}"</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {Math.ceil(allReviews.length / 2) > 1 && (
+                    <div className="flex justify-center gap-2 mt-6">
+                      {Array.from({ length: Math.ceil(allReviews.length / 2) }).map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setCurrentSlide(i)}
+                          className={`h-2 rounded-full transition-all ${currentSlide === i ? "bg-primary w-8" : "bg-secondary w-2"}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            );
+          })()}
         </div>
       </section>
 
