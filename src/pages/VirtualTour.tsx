@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 
 const VirtualTour = () => {
   const { t, lang } = useLanguage();
-  const [tours, setTours] = useState<VirtualTour[]>([]);
+  const [tours, setTours] = useState<VirtualTourType[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
 
