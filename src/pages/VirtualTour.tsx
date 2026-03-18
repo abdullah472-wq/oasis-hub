@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
-import { getVirtualTours, VirtualTour } from "@/lib/virtualTour";
+import { getVirtualTours, VirtualTour as VirtualTourType } from "@/lib/virtualTour";
 import { springIn } from "@/lib/animations";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 
