@@ -26,12 +26,23 @@ const Index = () => {
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewLoading, setReviewLoading] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const isMobile = window.innerWidth < 768;
 
   useEffect(() => {
     getApprovedReviews()
       .then(setReviews)
       .catch(console.error);
   }, []);
+
+  // Auto-play slider every 5 seconds
+  useEffect(() => {
+    if (allReviews.length === 0) return;
+    const totalSlides = isMobile ? allReviews.length : Math.ceil(allReviews.length / 2);
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % totalSlides);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [allReviews.length, isMobile]);
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
