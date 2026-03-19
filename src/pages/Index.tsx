@@ -35,8 +35,10 @@ const Index = () => {
   }, []);
 
   const defaultReviews = [
-    { name: t("মোঃ রহিম উদ্দিন", "Md. Rahim Uddin"), relation: t("অভিভাবক", "Guardian"), review: t("\"আমার সন্তান এই মাদরাসায় পড়ার পর খুবই ভালো পরিবর্তন দেখতে পাচ্ছি।\"", "\"I have seen great changes in my child since joining this madrasha.\"") },
-    { name: t("ফাতেমা বেগম", "Fatema Begum"), relation: t("অভিভাবক", "Guardian"), review: t("\"এই প্রতিষ্ঠানের শিক্ষকরা খুবই আদর স্নেহের সাথে পড়াশোনা করান।\"", "\"The teachers here teach with great care and love.\"") },
+    { name: t("মোঃ রহিম উদ্দিন", "Md. Rahim Uddin"), relation: t("অভিভাবক", "Guardian"), review: t("\"আমার সন্তান এই মাদরাসায় পড়ার পর খুবই ভালো পরিবর্তন দেখতে পাচ্ছি। সে এখন নামাজ পড়ে, কোরআন পড়ে এবং আগের চেয়ে অনেক বেশি মানসিকভাবে শান্তিপূর্ণ।\"", "\"I have seen great changes in my child since joining this madrasha. Now he prays, reads the Quran, and is much more mentally calm than before.\"") },
+    { name: t("ফাতেমা বেগম", "Fatema Begum"), relation: t("অভিভাবক", "Guardian"), review: t("\"এই প্রতিষ্ঠানের শিক্ষকরা খুবই আদর স্নেহের সাথে পড়াশোনা করান। আমার মেয়ে এখানে খুবই ভালোভাবে লেখাপড়া শিখছে।\"", "\"The teachers here teach with great care and love. My daughter is learning very well at this institution.\"") },
+    { name: t("আব্দুল করিম", "Abdul Karim"), relation: t("অভিভাবক", "Guardian"), review: t("\"মাদরাসার পরিবেশ খুবই ভালো। সন্তানকে এখানে রেখে আমি নিশ্চিত যে সে সঠিক ইসলামিক শিক্ষা পাচ্ছে।\"", "\"The environment of the madrasha is very good. I am confident that my child is receiving proper Islamic education here.\"") },
+    { name: t("সালমা আক্তার", "Salma Akter"), relation: t("অভিভাবক", "Guardian"), review: t("\"আমার ছেলে এখানে পড়ে হাফেজ হয়েছে। শিক্ষকদের তত্ত্বাবধানে সে কোরআন মুখস্থ করেছে। আমরা খুবই গর্বিত।\"", "\"My son became a Hafez while studying here. He memorized the Quran under the supervision of the teachers. We are very proud.\"") },
   ];
   const allReviews = reviews.length > 0 ? reviews : defaultReviews;
 
