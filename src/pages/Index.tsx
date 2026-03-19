@@ -532,7 +532,7 @@ const Index = () => {
               <>
                 {/* Mobile: 1 card per slide */}
                 <div className="relative md:hidden">
-                  <div className="overflow-hidden">
+                  <div className="overflow-hidden" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
                     <div
                       className="flex transition-transform duration-500 ease-in-out"
                       style={{ transform: `translateX(-${currentSlide * 100}%)` }}
