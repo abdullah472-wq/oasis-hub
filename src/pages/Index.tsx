@@ -261,11 +261,16 @@ const Index = () => {
               <p className="font-bengali text-muted-foreground">
                 {t("আমরা একটি অনন্য চতুর্মাত্রিক শিক্ষা ব্যবস্থা প্রদান করি যেখানে ইসলামিক জ্ঞান ও সাধারণ শিক্ষা একসাথে এগিয়ে চলে।", "We offer a unique Quadruple Education System — where Islamic knowledge and General education grow hand in hand.")}
               </p>
-              <div className="flex flex-wrap justify-center gap-8 mt-6 items-center">
-                <img src={tahfizLogo} alt="Tahfiz Logo" className="h-16 w-auto object-contain" />
-                <img src={islamiaLogo} alt="Islamia Logo" className="h-16 w-auto object-contain" />
-                <img src={girlsHifzLogo} alt="Girls Hifz Logo" className="h-16 w-auto object-contain" />
-                <img src={girlsIslamiaLogo} alt="Girls Islamia Logo" className="h-16 w-auto object-contain" />
+              <div className="flex flex-wrap justify-center gap-4 mt-6">
+                <span className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-sm font-bengali text-foreground">
+                  🕌 4 {t("প্রতিষ্ঠান", "Institutions")}
+                </span>
+                <span className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-sm font-bengali text-foreground">
+                  👦 {t("ছেলে ও মেয়ে আলাদা", "Boys & Girls Separate")}
+                </span>
+                <span className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-sm font-bengali text-foreground">
+                  📍 {t("একই স্থান", "One Location")}
+                </span>
               </div>
             </div>
           </motion.div>
@@ -277,21 +282,25 @@ const Index = () => {
                 title: t("আননূর তাহফিজুল কোরআন মাদরাসা ও মডেল একাডেমি (বালক শাখা)", "Annoor Tahfizul Quran Madrasah & Model Academy"),
                 subtitle: t("বালক শাখা", "Boys Branch"),
                 depts: t(["নূরানী — সাধারণ শিক্ষা সহ", "নাজারা — সাধারণ শিক্ষা সহ", "হিফজুল কোরআন — (সাধারণ শিক্ষা ছাড়া)", "হিফজ রিভিশন + কিতাব শাখা — সাধারণ শিক্ষা সহ"], ["Noorani — with General Education", "Nazara — with General Education", "Hifzul Quran — (without General Education", "Hifz Revision + Kitab Section — with General Education"]),
+                logo: tahfizLogo,
               },
               {
                 title: t("আননূর ইসলামিয়া মডেল মাদরাসা", "Annoor Islamia Model Madrasah"),
                 subtitle: t("বালক শাখা", "Boys Branch"),
                 depts: t(["নূরানী — সাধারণ শিক্ষা সহ", "নাজারা — সাধারণ শিক্ষা সহ", "হিফজুল কোরআন — (সাধারণ শিক্ষা ছাড়া)", "হিফজ রিভিশন + কিতাব শাখা — সাধারণ শিক্ষা সহ"], ["Nurani — with General Education", "Nazara — with General Education", "Hifzul Quran — (without General Education)", "Hifz Revision + Kitab Section — with General Education"]),
+                logo: islamiaLogo,
               },
               {
                 title: t("আননূর গার্লস হিফজুল কোরআন মাদরাসা", "Annoor Girls Hifzul Quran Madrasah"),
                 subtitle: t("মেয়ে শাখা", "Girls Branch"),
                 depts: t(["নূরানী", "নাজারা", "হিফজুল কোরআন", "হিফজ রিভিশন ডিভিশন"], ["Nurani", "Nazara", "Hifzul Quran", "Hifz Revision Division"]),
+                logo: girlsHifzLogo,
               },
               {
                 title: t("আননূর ইসলামিয়া গার্লস মাদরাসা", "Annoor Islamia Girls Madrasah"),
                 subtitle: t("মেয়ে শাখা", "Girls Branch"),
                 depts: t(["নূরানী — সাধারণ শিক্ষা সহ", "নাজারা — সাধারণ শিক্ষা সহ", "কিতাব শাখা — সাধারণ শিক্ষা সহ"], ["Nurani — with General Education", "Nazara — with General Education", "Kitab Section — with General Education"]),
+                logo: girlsIslamiaLogo,
               },
             ].map((inst, i) => (
               <motion.div
@@ -300,8 +309,8 @@ const Index = () => {
                 transition={springInDelay(i * 0.1)}
                 className="card-institutional p-6"
               >
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-2xl">{i === 0 ? "🕌" : i === 1 ? "📚" : i === 2 ? "🌸" : "📖"}</span>
+                <div className="flex items-center gap-3 mb-3">
+                  <img src={inst.logo} alt={inst.title} className="h-12 w-auto object-contain shrink-0" />
                   <div>
                     <h3 className="font-bengali text-lg font-bold text-foreground">{inst.title}</h3>
                     <p className="font-bengali text-sm text-accent">{inst.subtitle}</p>
