@@ -34,6 +34,12 @@ const Index = () => {
       .catch(console.error);
   }, []);
 
+  const defaultReviews = [
+    { name: t("মোঃ রহিম উদ্দিন", "Md. Rahim Uddin"), relation: t("অভিভাবক", "Guardian"), review: t("\"আমার সন্তান এই মাদরাসায় পড়ার পর খুবই ভালো পরিবর্তন দেখতে পাচ্ছি।\"", "\"I have seen great changes in my child since joining this madrasha.\"") },
+    { name: t("ফাতেমা বেগম", "Fatema Begum"), relation: t("অভিভাবক", "Guardian"), review: t("\"এই প্রতিষ্ঠানের শিক্ষকরা খুবই আদর স্নেহের সাথে পড়াশোনা করান।\"", "\"The teachers here teach with great care and love.\"") },
+  ];
+  const allReviews = reviews.length > 0 ? reviews : defaultReviews;
+
   // Auto-play slider every 5 seconds
   useEffect(() => {
     if (allReviews.length === 0) return;
