@@ -61,6 +61,21 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [allReviews.length, isMobile]);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    const totalSlides = isMobile ? allReviews.length : Math.ceil(allReviews.length / 2);
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) setCurrentSlide((prev) => (prev + 1) % totalSlides);
+      else setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+    }
+  };
+
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setReviewLoading(true);
