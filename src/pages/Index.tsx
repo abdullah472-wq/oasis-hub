@@ -709,6 +709,89 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* FAQ Section */}
+      <section className="py-16 bg-card">
+        <div className="container mx-auto px-4">
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="font-bengali text-center text-foreground mb-10"
+            style={{ fontSize: "clamp(1.75rem, 5vw, 2.5rem)" }}>
+            {t("সচরাচর জিজ্ঞাসা", "Frequently Asked Questions")}
+          </motion.h2>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="max-w-3xl mx-auto"
+          >
+            <Accordion type="single" collapsible className="space-y-3">
+              {[
+                {
+                  q: t("ভর্তির প্রক্রিয়া কী?", "What is the admission process?"),
+                  a: t(
+                    "প্রতি বছর জানুয়ারি-মার্চ মাসে ভর্তি কার্যক্রম চলে। অনলাইনে বা সরাসরি ফরম সংগ্রহ করে পূরণ করতে হবে। ভর্তি পরীক্ষায় উত্তীর্ণ হলে ভর্তি নিশ্চিত করা হয়।",
+                    "Admissions run from January to March each year. Collect the form online or in person, fill it out, and pass the entrance test to confirm enrollment."
+                  ),
+                },
+                {
+                  q: t("মাসিক বেতন কত?", "What are the monthly fees?"),
+                  a: t(
+                    "বিভাগভেদে মাসিক বেতন ভিন্ন হয়। নূরানী ও নাজারা বিভাগে ৫০০-৮০০ টাকা এবং হিফজ বিভাগে ১০০০-১৫০০ টাকা। বিস্তারিত জানতে ভর্তি অফিসে যোগাযোগ করুন।",
+                    "Monthly fees vary by department. Noorani & Nazara: 500-800 BDT, Hifz: 1000-1500 BDT. Contact the admission office for details."
+                  ),
+                },
+                {
+                  q: t("ক্লাসের সময়সূচি কেমন?", "What is the class schedule?"),
+                  a: t(
+                    "সকাল ৮:০০ টা থেকে দুপুর ১:০০ টা পর্যন্ত সাধারণ শিক্ষা এবং বিকাল ২:৩০ টা থেকে ৫:০০ টা পর্যন্ত ইসলামিক শিক্ষা কার্যক্রম চলে। শুক্রবার ও শনিবার সাপ্তাহিক ছুটি।",
+                    "General education runs 8:00 AM – 1:00 PM and Islamic studies 2:30 PM – 5:00 PM. Friday and Saturday are weekly holidays."
+                  ),
+                },
+                {
+                  q: t("ছেলে ও মেয়ে কি আলাদা পড়ে?", "Are boys and girls taught separately?"),
+                  a: t(
+                    "হ্যাঁ, ছেলে ও মেয়ে সম্পূর্ণ আলাদা শাখায় পড়াশোনা করে। বালক শাখা ও বালিকা শাখা পৃথকভাবে পরিচালিত হয়।",
+                    "Yes, boys and girls study in completely separate branches. The boys' and girls' sections are managed independently."
+                  ),
+                },
+                {
+                  q: t("আবাসিক ব্যবস্থা আছে কি?", "Is there a residential facility?"),
+                  a: t(
+                    "হ্যাঁ, হিফজ বিভাগের ছাত্রদের জন্য আবাসিক ব্যবস্থা রয়েছে। থাকা-খাওয়া সহ সার্বক্ষণিক তত্ত্বাবধানে শিক্ষা কার্যক্রম পরিচালিত হয়।",
+                    "Yes, residential facilities are available for Hifz department students, including accommodation, meals, and round-the-clock supervision."
+                  ),
+                },
+                {
+                  q: t("পরীক্ষা পদ্ধতি কেমন?", "What is the examination system?"),
+                  a: t(
+                    "বছরে তিনটি পরীক্ষা অনুষ্ঠিত হয় — প্রথম সাময়িক, দ্বিতীয় সাময়িক ও বার্ষিক পরীক্ষা। এছাড়া মাসিক মূল্যায়ন ও দৈনিক সবক পরীক্ষা নেওয়া হয়।",
+                    "Three exams are held per year — First Term, Second Term, and Annual. Additionally, monthly assessments and daily lesson tests are conducted."
+                  ),
+                },
+              ].map((faq, i) => (
+                <AccordionItem
+                  key={i}
+                  value={`faq-${i}`}
+                  className="card-institutional border-none px-6"
+                >
+                  <AccordionTrigger className="font-bengali text-foreground text-left hover:no-underline py-5 text-base">
+                    {faq.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="font-bengali text-muted-foreground leading-relaxed">
+                    {faq.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </motion.div>
+        </div>
+      </section>
     </div>);
 
 };
