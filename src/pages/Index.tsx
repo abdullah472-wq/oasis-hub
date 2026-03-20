@@ -15,6 +15,48 @@ import girlsImg from "@/assets/girls-campus.jpg";
 import { springIn, springInDelay } from "@/lib/animations";
 import { getApprovedReviews, submitReview } from "@/lib/reviews";
 
+const AnimatedCounter = ({ value }: { value: string }) => {
+  const num = parseInt(value.replace(/[^0-9]/g, ""), 10);
+  const suffix = value.replace(/[0-9]/g, "");
+  const [count, setCount] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+          const duration = 2000;
+          const steps = 60;
+          const increment = num / steps;
+          let current = 0;
+          const timer = setInterval(() => {
+            current += increment;
+            if (current >= num) {
+              setCount(num);
+              clearInterval(timer);
+            } else {
+              setCount(Math.floor(current));
+            }
+          }, duration / steps);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [num, hasAnimated]);
+
+  return (
+    <div ref={ref} className="text-3xl font-display font-bold text-foreground tabular-nums">
+      {count}{suffix}
+    </div>
+  );
+};
+
 const Index = () => {
   const { t, lang } = useLanguage();
   const [showAllFeatures, setShowAllFeatures] = useState(false);
