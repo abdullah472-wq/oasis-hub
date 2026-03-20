@@ -197,12 +197,14 @@ const Index = () => {
             {stats.map((stat, i) =>
             <motion.div
               key={i}
-              {...springIn}
-              transition={springInDelay(i * 0.1)}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.6, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
               className="card-institutional p-6 text-center">
               
                 <stat.icon className="w-8 h-8 text-accent mx-auto mb-3" />
-                <div className="text-3xl font-display font-bold text-foreground">{stat.value}</div>
+                <AnimatedCounter value={stat.value} />
                 <div className="text-sm font-bengali text-muted-foreground mt-1">{stat.label}</div>
               </motion.div>
             )}
