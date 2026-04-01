@@ -7,6 +7,10 @@ vi.mock("firebase/storage", () => ({
   getStorage: vi.fn(() => ({})),
 }));
 
+vi.mock("firebase/firestore", () => ({
+  getFirestore: vi.fn(() => ({})),
+}));
+
 vi.mock("firebase/app", () => ({
   initializeApp: vi.fn(() => ({})),
 }));

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Facebook, Youtube, MapPin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import siteLogo from "@/assets/logos/site-logo.png";
 
 const FooterDivider = () => (
   <svg viewBox="0 0 1440 80" className="w-full h-20" preserveAspectRatio="none">
@@ -32,7 +33,13 @@ const Footer = () => {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center overflow-hidden">
-                  <img src="/logos/site-logo.png" alt="Logo" className="w-full h-full object-cover" />
+                  <img
+                    src={siteLogo}
+                    alt="Annoor Education Family logo"
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </div>
                 <div>
                   <h3 className="font-display text-xl font-bold">{t("আননূর শিক্ষা পরিবার", "Annoor Education Family")}</h3>

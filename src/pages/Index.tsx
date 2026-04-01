@@ -3,6 +3,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { BookOpen, Users, Award, GraduationCap, Send, CheckCircle } from "lucide-react";
+import type { Review } from "@/lib/reviews";
 const tahfizLogo = "/logos/tahfiz-logo.jpeg";
 const islamiaLogo = "/logos/islamia-logo.jpeg";
 const girlsHifzLogo = "/logos/girls-hifz-logo.jpeg";
@@ -14,7 +15,6 @@ import boysImg from "@/assets/boys-campus.jpg";
 import girlsImg from "@/assets/girls-campus.jpg";
 
 import { springIn, springInDelay } from "@/lib/animations";
-import { getApprovedReviews, submitReview } from "@/lib/reviews";
 
 const AnimatedCounter = ({ value }: { value: string }) => {
   const num = parseInt(value.replace(/[^0-9]/g, ""), 10);
@@ -61,7 +61,7 @@ const AnimatedCounter = ({ value }: { value: string }) => {
 const Index = () => {
   const { t, lang } = useLanguage();
   const [showAllFeatures, setShowAllFeatures] = useState(false);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewName, setReviewName] = useState("");
   const [reviewRelation, setReviewRelation] = useState("");
@@ -81,9 +81,20 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    getApprovedReviews()
-      .then(setReviews)
+    let isMounted = true;
+
+    import("@/lib/reviews")
+      .then(({ getApprovedReviews }) => getApprovedReviews())
+      .then((items) => {
+        if (isMounted) {
+          setReviews(items);
+        }
+      })
       .catch(console.error);
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const defaultReviews = [
@@ -123,6 +134,7 @@ const Index = () => {
     e.preventDefault();
     setReviewLoading(true);
     try {
+      const { submitReview } = await import("@/lib/reviews");
       await submitReview({
         name: reviewName,
         relation: reviewRelation,
@@ -165,7 +177,13 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative min-h-[85vh] overflow-hidden flex items-center justify-start">
         <div className="absolute inset-0">
-          <img src={heroImg} alt="Islamic Academy Campus" className="w-full h-full object-cover" />
+          <img
+            src={heroImg}
+            alt="Islamic Academy Campus"
+            className="w-full h-full object-cover"
+            fetchPriority="high"
+            decoding="async"
+          />
           <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/70 to-transparent" />
         </div>
 
@@ -591,7 +609,7 @@ const Index = () => {
                       className="flex transition-transform duration-500 ease-in-out"
                       style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                     >
-                      {allReviews.map((item: any, i: number) => (
+                      {allReviews.map((item, i) => (
                         <div key={i} className="w-full flex-shrink-0 px-2">
                           <div className="bg-secondary/50 rounded-2xl p-6">
                             <div className="flex items-start gap-3 mb-4">
@@ -632,7 +650,7 @@ const Index = () => {
                       {Array.from({ length: Math.ceil(allReviews.length / 2) }).map((_, slideIndex) => (
                         <div key={slideIndex} className="w-full flex-shrink-0">
                           <div className="grid grid-cols-2 gap-6 px-2">
-                            {allReviews.slice(slideIndex * 2, (slideIndex + 1) * 2).map((item: any, i: number) => (
+                            {allReviews.slice(slideIndex * 2, (slideIndex + 1) * 2).map((item, i) => (
                               <div key={i} className="bg-secondary/50 rounded-2xl p-6">
                                 <div className="flex items-start gap-3 mb-4">
                                   <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">

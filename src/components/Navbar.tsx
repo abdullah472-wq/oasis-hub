@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown, LogIn } from "lucide-react";
 import LanguageToggle from "./LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
+import siteLogo from "@/assets/logos/site-logo.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -41,7 +42,12 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center overflow-hidden">
-            <img src="/src/assets/logos/site-logo.png" alt="Logo" className="w-full h-full object-contain" />
+            <img
+              src={siteLogo}
+              alt="Annoor Education Family logo"
+              className="w-full h-full object-contain"
+              decoding="async"
+            />
           </div>
           <div>
             <h1 className="text-lg font-display font-bold text-foreground leading-tight">
