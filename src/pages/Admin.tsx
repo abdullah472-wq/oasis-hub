@@ -217,8 +217,9 @@ const Admin = () => {
       setNewNotice({ titleBn: "", titleEn: "", descriptionBn: "", descriptionEn: "" });
       setNoticePdf(null);
       setShowNoticeForm(false);
-    } catch {
-      setMessage({ type: "error", text: "Failed to publish notice" });
+    } catch (err) {
+      console.error("Notice publish error:", err);
+      setMessage({ type: "error", text: `Failed to publish notice: ${err instanceof Error ? err.message : String(err)}` });
     }
     setUploading(false);
   };
