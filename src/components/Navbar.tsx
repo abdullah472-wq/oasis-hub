@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown } from "lucide-react";
 import LanguageToggle from "./LanguageToggle";
+import UpdateAlertsManager from "./UpdateAlertsManager";
 import { useLanguage } from "@/contexts/LanguageContext";
 import siteLogo from "@/assets/logos/site-logo.png";
 
@@ -134,10 +135,12 @@ const Navbar = () => {
             </AnimatePresence>
           </div>
 
+          <UpdateAlertsManager className="h-10 w-10" />
           <LanguageToggle />
         </div>
 
         <div className="flex items-center gap-3">
+          <UpdateAlertsManager className="h-10 w-10 lg:hidden" />
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-foreground lg:hidden"
