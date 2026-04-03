@@ -5,7 +5,8 @@ import { Menu, X, ChevronDown } from "lucide-react";
 import LanguageToggle from "./LanguageToggle";
 import UpdateAlertsManager from "./UpdateAlertsManager";
 import { useLanguage } from "@/contexts/LanguageContext";
-import siteLogo from "@/assets/logos/site-logo.png";
+
+const siteLogo = "/site-logo.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);

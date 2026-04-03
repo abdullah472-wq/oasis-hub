@@ -16,7 +16,7 @@ export default defineConfig(() => ({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "robots.txt", "pwa-icon.svg", "mask-icon.svg"],
+      includeAssets: ["favicon.ico", "robots.txt", "site-logo.png"],
       manifest: {
         name: "Annoor Education Family",
         short_name: "Annoor",
@@ -30,15 +30,15 @@ export default defineConfig(() => ({
         dir: "ltr",
         icons: [
           {
-            src: "/pwa-icon.svg",
-            sizes: "any",
-            type: "image/svg+xml",
+            src: "/site-logo.png",
+            sizes: "521x479",
+            type: "image/png",
             purpose: "any",
           },
           {
-            src: "/mask-icon.svg",
-            sizes: "any",
-            type: "image/svg+xml",
+            src: "/site-logo.png",
+            sizes: "521x479",
+            type: "image/png",
             purpose: "maskable",
           },
         ],
