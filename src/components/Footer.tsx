@@ -3,6 +3,8 @@ import { Facebook, Youtube, MapPin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import siteLogo from "@/assets/logos/site-logo.png";
 
+const GOOGLE_MAPS_URL = "https://www.google.com/maps/place/%E0%A6%86%E0%A6%A8%E0%A6%A8%E0%A7%82%E0%A6%B0+%E0%A6%A4%E0%A6%BE%E0%A6%B9%E0%A6%AB%E0%A6%BF%E0%A6%9C%E0%A7%81%E0%A6%B2+%E0%A6%95%E0%A7%81%E0%A6%B0%E0%A6%86%E0%A6%A8+%E0%A6%AE%E0%A6%BE%E0%A6%A6%E0%A6%B0%E0%A6%BE%E0%A6%B8%E0%A6%BE+%E0%A6%93+%E0%A6%AE%E0%A6%A1%E0%A7%87%E0%A6%B2+%E0%A6%8F%E0%A6%95%E0%A6%BE%E0%A6%A1%E0%A7%87%E0%A6%AE%E0%A7%80/@24.1119189,90.5677945,21z/data=!4m6!3m5!1s0x3755d59d76b2ffd9:0xde5de9aa6b8378aa!8m2!3d24.1118467!4d90.5680587!16s%2Fg%2F11khdsnx7w?entry=ttu&g_ep=EgoyMDI2MDMzMS4wIKXMDSoASAFQAw%3D%3D";
+
 const Footer = () => {
   const { t } = useLanguage();
 
@@ -59,7 +61,17 @@ const Footer = () => {
             <div>
               <h4 className="mb-4 font-display text-lg font-semibold">{t("\u09af\u09cb\u0997\u09be\u09af\u09cb\u0997", "Contact")}</h4>
               <div className="space-y-3 text-sm font-bengali text-primary-foreground/80">
-                <p className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 flex-shrink-0" /><span>{t("\u09ae\u09c7\u0987\u09a8 \u09b0\u09cb\u09a1, \u0995\u09be\u09aa\u09be\u09b8\u09bf\u09df\u09be \u09ac\u09be\u099c\u09be\u09b0, \u0995\u09be\u09aa\u09be\u09b8\u09bf\u09df\u09be, \u0997\u09be\u099c\u09c0\u09aa\u09c1\u09b0", "Main Road, Kapasia Bazar, Kapasia, Gazipur")}</span></p>
+                <p className="flex items-start gap-2">
+                  <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                  <a
+                    href={GOOGLE_MAPS_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="transition-colors hover:text-accent hover:underline"
+                  >
+                    {t("\u09ae\u09c7\u0987\u09a8 \u09b0\u09cb\u09a1, \u0995\u09be\u09aa\u09be\u09b8\u09bf\u09df\u09be \u09ac\u09be\u099c\u09be\u09b0, \u0995\u09be\u09aa\u09be\u09b8\u09bf\u09df\u09be, \u0997\u09be\u099c\u09c0\u09aa\u09c1\u09b0", "Main Road, Kapasia Bazar, Kapasia, Gazipur")}
+                  </a>
+                </p>
                 <div className="mt-3 border-t border-primary-foreground/20 pt-3">
                   <p className="font-semibold text-primary-foreground">{t("\u09aa\u09cd\u09b0\u09a7\u09be\u09a8 \u09b6\u09bf\u0995\u09cd\u09b7\u0995", "Principal")}</p>
                   <p>{t("\u09b9\u09be\u09ab\u09c7\u099c \u0986\u09ae\u09be\u09a8\u09c1\u09b2\u09cd\u09b2\u09be\u09b9", "Hafez Amanullah")}</p>

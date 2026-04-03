@@ -6,6 +6,9 @@ import { MapPin, Phone, Mail, Send, CheckCircle } from "lucide-react";
 
 import { springIn, springInDelay } from "@/lib/animations";
 
+const GOOGLE_MAPS_URL = "https://www.google.com/maps/place/%E0%A6%86%E0%A6%A8%E0%A6%A8%E0%A7%82%E0%A6%B0+%E0%A6%A4%E0%A6%BE%E0%A6%B9%E0%A6%AB%E0%A6%BF%E0%A6%9C%E0%A7%81%E0%A6%B2+%E0%A6%95%E0%A7%81%E0%A6%B0%E0%A6%86%E0%A6%A8+%E0%A6%AE%E0%A6%BE%E0%A6%A6%E0%A6%B0%E0%A6%BE%E0%A6%B8%E0%A6%BE+%E0%A6%93+%E0%A6%AE%E0%A6%A1%E0%A7%87%E0%A6%B2+%E0%A6%8F%E0%A6%95%E0%A6%BE%E0%A6%A1%E0%A7%87%E0%A6%AE%E0%A7%80/@24.1119189,90.5677945,21z/data=!4m6!3m5!1s0x3755d59d76b2ffd9:0xde5de9aa6b8378aa!8m2!3d24.1118467!4d90.5680587!16s%2Fg%2F11khdsnx7w?entry=ttu&g_ep=EgoyMDI2MDMzMS4wIKXMDSoASAFQAw%3D%3D";
+const GOOGLE_MAPS_EMBED_URL = "https://www.google.com/maps?q=%E0%A6%86%E0%A6%A8%E0%A6%A8%E0%A7%82%E0%A6%B0%20%E0%A6%A4%E0%A6%BE%E0%A6%B9%E0%A6%AB%E0%A6%BF%E0%A6%9C%E0%A7%81%E0%A6%B2%20%E0%A6%95%E0%A7%81%E0%A6%B0%E0%A6%86%E0%A6%A8%20%E0%A6%AE%E0%A6%BE%E0%A6%A6%E0%A6%B0%E0%A6%BE%E0%A6%B8%E0%A6%BE%20%E0%A6%93%20%E0%A6%AE%E0%A6%A1%E0%A7%87%E0%A6%B2%20%E0%A6%8F%E0%A6%95%E0%A6%BE%E0%A6%A1%E0%A7%87%E0%A6%AE%E0%A7%80&ll=24.1118467,90.5680587&z=19&output=embed";
+
 const Contact = () => {
   const { t, lang } = useLanguage();
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" });
@@ -60,9 +63,14 @@ const Contact = () => {
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
                     <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                    <p className="font-bengali text-muted-foreground">
+                    <a
+                      href={GOOGLE_MAPS_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-bengali text-muted-foreground transition-colors hover:text-primary hover:underline"
+                    >
                       {lang === "bn" ? campus.address : campus.addressEn}
-                    </p>
+                    </a>
                   </div>
                   <div className="flex items-center gap-3">
                     <Phone className="w-5 h-5 text-primary flex-shrink-0" />
@@ -78,17 +86,27 @@ const Contact = () => {
           <div className="grid md:grid-cols-2 gap-8">
             {/* Map */}
             <motion.div {...springIn} className="space-y-6">
-              <div className="rounded-[2rem] overflow-hidden h-64 md:h-80 bg-secondary">
+              <div className="overflow-hidden rounded-[2rem] border border-border bg-secondary h-64 md:h-80">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3647.301768800869!2d90.25656731558386!3d23.99380098055383!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x375ae78e58d2d58d%3A0x5a4d4f4f4f4f4f4f!2sKapasia%2C%20Gazipur!5e0!3m2!1sen!2sbd!4v1700000000000"
+                  src={GOOGLE_MAPS_EMBED_URL}
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
                   allowFullScreen
                   loading="lazy"
-                  title="Location Map"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Annoor Tahfizul Quran Madrasa Location"
                 />
               </div>
+              <a
+                href={GOOGLE_MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 font-bengali text-primary hover:underline"
+              >
+                <MapPin className="h-4 w-4" />
+                {t("গুগল ম্যাপে পুরো লোকেশন খুলুন", "Open full location in Google Maps")}
+              </a>
 
               {/* General Contact */}
               <div className="card-institutional p-6">

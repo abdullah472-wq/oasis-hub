@@ -4,13 +4,14 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { BookOpen, Users, Award, GraduationCap, Send, CheckCircle } from "lucide-react";
 import type { Review } from "@/lib/reviews";
-const tahfizLogo = "/logos/tahfiz-logo.jpeg";
-const islamiaLogo = "/logos/islamia-logo.jpeg";
-const girlsHifzLogo = "/logos/girls-hifz-logo.jpeg";
-const girlsIslamiaLogo = "/logos/girls-islamia-logo.jpeg";
 import { useLanguage } from "@/contexts/LanguageContext";
+import PwaHomeCard from "@/components/PwaHomeCard";
 import WaveDivider from "@/components/WaveDivider";
 import heroImg from "@/assets/hero-campus.jpg";
+import tahfizLogo from "@/assets/logos/tahfiz-logo.jpeg";
+import islamiaLogo from "@/assets/logos/islamia-logo.jpeg";
+import girlsHifzLogo from "@/assets/logos/girls-hifz-logo.jpeg";
+import girlsIslamiaLogo from "@/assets/logos/girls-islamia-logo.jpeg";
 
 import { springIn, springInDelay } from "@/lib/animations";
 
@@ -222,6 +223,8 @@ const Index = () => {
 
         <WaveDivider className="absolute bottom-0 left-0 right-0" />
       </section>
+
+      <PwaHomeCard />
 
       {/* Stats */}
       <section className="py-16">
