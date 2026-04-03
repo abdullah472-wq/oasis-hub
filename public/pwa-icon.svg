@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Annoor Education Family App Icon</title>
+  <desc id="desc">A green and gold emblem with the letter A and a book motif.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#145648" />
+      <stop offset="100%" stop-color="#0c4a3e" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f1c76a" />
+      <stop offset="100%" stop-color="#d79d2b" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="url(#bg)" />
+  <circle cx="256" cy="256" r="174" fill="none" stroke="url(#gold)" stroke-width="22" />
+  <path d="M170 334L250 142L342 334H292L272 284H220L201 334H170Z" fill="#f7f2e8" />
+  <path d="M237 246H256L246 221L237 246Z" fill="#0c4a3e" />
+  <path d="M154 374C191 348 225 338 256 338C287 338 321 348 358 374" fill="none" stroke="url(#gold)" stroke-linecap="round" stroke-width="20" />
+</svg>

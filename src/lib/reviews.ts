@@ -23,12 +23,24 @@ export const submitReview = async (review: Omit<Review, "id" | "approved" | "cre
 };
 
 export const getApprovedReviews = async (): Promise<Review[]> => {
-  const q = query(collection(db, REVIEWS_COLLECTION), where("approved", "==", true), orderBy("createdAt", "desc"));
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Review[];
+  try {
+    const q = query(collection(db, REVIEWS_COLLECTION), where("approved", "==", true), orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Review[];
+  } catch (error) {
+    // Fallback when the composite Firestore index has not been created yet.
+    const snapshot = await getDocs(collection(db, REVIEWS_COLLECTION));
+    return snapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }) as Review)
+      .filter((review) => review.approved)
+      .sort((a, b) => b.createdAt - a.createdAt);
+  }
 };
 
 export const getAllReviews = async (): Promise<Review[]> => {

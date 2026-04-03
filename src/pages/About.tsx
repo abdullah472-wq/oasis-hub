@@ -49,7 +49,7 @@ const About = () => {
       </section>
 
       {/* Mission & Vision */}
-      <section className="py-16 bg-background">
+      <section className="py-16">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="grid md:grid-cols-2 gap-8">
             {[
@@ -66,7 +66,7 @@ const About = () => {
       </section>
 
       {/* Leadership */}
-      <section className="py-16 bg-background">
+      <section className="py-16">
         <div className="container mx-auto px-4 max-w-4xl">
           <motion.h2 {...springIn} className="font-bengali text-center text-foreground mb-12" style={{ fontSize: "clamp(2rem, 5vw, 2.5rem)" }}>
             {t("নেতৃত্ব", "Leadership")}
@@ -97,7 +97,7 @@ const About = () => {
       </section>
 
       {/* Teaching Methodology */}
-      <section className="py-16 bg-secondary">
+      <section className="py-16">
         <div className="container mx-auto px-4 max-w-5xl">
           <motion.h2
             {...springIn}
@@ -150,7 +150,7 @@ const About = () => {
       </section>
 
       {/* Timeline */}
-      <section className="py-16 bg-secondary">
+      <section className="py-16">
         <div className="container mx-auto px-4 max-w-3xl">
           <motion.h2 {...springIn} className="font-bengali text-center text-foreground mb-12" style={{ fontSize: "clamp(2rem, 5vw, 2.75rem)" }}>
             {t("আমাদের যাত্রা", "Our Journey")}

@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import NoticeTicker from "@/components/NoticeTicker";
 import ScrollToTop from "@/components/ScrollToTop";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
+import { isAdminEnabled } from "@/lib/admin";
 import Index from "./pages/Index";
 const About = lazy(() => import("./pages/About"));
 const Teachers = lazy(() => import("./pages/Teachers"));
@@ -72,7 +73,7 @@ const App = () => (
                 <Route path="/admission-form" element={<AdmissionForm />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/ramadan" element={<Ramadan />} />
-                <Route path="/admin" element={<Admin />} />
+                <Route path="/admin" element={isAdminEnabled ? <Admin /> : <NotFound />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

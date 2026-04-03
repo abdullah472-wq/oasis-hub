@@ -85,7 +85,7 @@ const Ramadan = () => {
   ];
 
   return (
-    <div className="bg-accent/5">
+    <div>
       {/* Hero */}
       <section className="relative py-20 md:py-32 bg-gradient-to-br from-primary via-forest-deep to-primary overflow-hidden">
         <div className="absolute inset-0 opacity-10">
@@ -107,7 +107,7 @@ const Ramadan = () => {
             </p>
           </motion.div>
         </div>
-        <WaveDivider className="absolute bottom-0" color="fill-[hsl(40,30%,98%)]" />
+        <WaveDivider className="absolute bottom-0" color="fill-[hsla(40,30%,98%,0.94)]" />
       </section>
 
       {/* Sponsorship Calendar */}
@@ -402,7 +402,6 @@ const Ramadan = () => {
         </div>
       </section>
 
-      <WaveDivider color="fill-primary" />
     </div>
   );
 };

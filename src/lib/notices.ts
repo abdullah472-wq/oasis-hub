@@ -1,6 +1,6 @@
-import { db, storage } from "./firebase";
+import { db } from "./firebase";
 import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { uploadDocument } from "./upload";
 
 export interface Notice {
   id?: string;
@@ -36,7 +36,5 @@ export const deleteNotice = async (id: string): Promise<void> => {
 };
 
 export const uploadPdf = async (file: File): Promise<string> => {
-  const storageRef = ref(storage, `notices/${Date.now()}_${file.name}`);
-  await uploadBytes(storageRef, file);
-  return getDownloadURL(storageRef);
+  return uploadDocument(file);
 };

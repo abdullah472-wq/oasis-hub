@@ -16,7 +16,7 @@ export default {
     extend: {
       fontFamily: {
         display: ["'Fraunces'", "serif"],
-        bengali: ["'Hind Siliguri'", "sans-serif"],
+        bengali: ["'Noto Sans Bengali'", "'Hind Siliguri'", "sans-serif"],
         body: ["'Plus Jakarta Sans'", "sans-serif"],
       },
       colors: {

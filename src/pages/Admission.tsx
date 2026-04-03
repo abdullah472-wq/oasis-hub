@@ -19,7 +19,7 @@ const Admission = () => {
       </section>
 
       {/* Rules & Fees */}
-      <section className="py-16 bg-background">
+      <section className="py-16">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="grid md:grid-cols-2 gap-8 mb-16">
             <motion.div {...springIn} className="card-institutional p-8">

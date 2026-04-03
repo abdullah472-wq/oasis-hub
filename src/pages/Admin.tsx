@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Loader2, Lock, Newspaper, Plus, Trash2, Calendar, Users, Image, FileText, Upload } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
-import { uploadImage } from "@/lib/upload";
+import { getDownloadUrl, uploadImage } from "@/lib/upload";
 import { saveNewsToFirestore, getNewsFromFirestore, deleteNewsFromFirestore, NewsPost } from "@/lib/news";
 import { saveGalleryImage, getGalleryImages, deleteGalleryImage, GalleryImage } from "@/lib/gallery";
 import { saveEvent, getEvents, deleteEvent, Event } from "@/lib/events";
@@ -13,8 +13,9 @@ import { saveResult, getResults, deleteResult, uploadResultPdf, Result } from "@
 import { getAllReviews, approveReview, deleteReview, Review } from "@/lib/reviews";
 import { addTeacher, getTeachers, deleteTeacher, uploadTeacherImage, Teacher } from "@/lib/teachers";
 import { addVirtualTour, getVirtualTours, deleteVirtualTour, VirtualTour } from "@/lib/virtualTour";
+import { isAdminEnabled, validateAdminPassword } from "@/lib/admin";
 
-const ADMIN_PASSWORD = "oasis2026";
+const ADMIN_SESSION_KEY = "oasis_admin_auth";
 
 const Admin = () => {
   const { t, lang } = useLanguage();
@@ -63,7 +64,11 @@ const Admin = () => {
   const [newTour, setNewTour] = useState({ title: "", titleEn: "", description: "", descriptionEn: "", videoUrl: "" });
 
   useEffect(() => {
-    const saved = localStorage.getItem("admin_auth");
+    if (!isAdminEnabled) {
+      return;
+    }
+
+    const saved = sessionStorage.getItem(ADMIN_SESSION_KEY);
     if (saved === "true") setIsAuthenticated(true);
   }, []);
 
@@ -83,9 +88,9 @@ const Admin = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
+    if (validateAdminPassword(password)) {
       setIsAuthenticated(true);
-      localStorage.setItem("admin_auth", "true");
+      sessionStorage.setItem(ADMIN_SESSION_KEY, "true");
       setError("");
     } else {
       setError(t("ভুল পাসওয়ার্ড", "Incorrect password"));
@@ -94,8 +99,33 @@ const Admin = () => {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem("admin_auth");
+    sessionStorage.removeItem(ADMIN_SESSION_KEY);
   };
+
+  if (!isAdminEnabled) {
+    return (
+      <div>
+        <section className="relative h-48 md:h-64 bg-primary overflow-hidden flex items-center justify-center">
+          <motion.h1 {...{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="font-bengali text-primary-foreground" style={{ fontSize: "clamp(2rem, 8vw, 3rem)" }}>
+            {t("অ্যাডমিন প্যানেল", "Admin Panel")}
+          </motion.h1>
+          <WaveDivider className="absolute bottom-0" />
+        </section>
+        <section className="py-16 bg-background">
+          <div className="container mx-auto px-4 max-w-2xl">
+            <div className="card-institutional p-8 text-center">
+              <h2 className="font-bengali text-2xl font-bold text-foreground mb-3">
+                {t("এই প্যানেল বর্তমানে বন্ধ আছে", "This panel is currently disabled")}
+              </h2>
+              <p className="font-bengali text-muted-foreground leading-relaxed">
+                {t("পাবলিক সাইটের নিরাপত্তার জন্য অ্যাডমিন প্যানেল আলাদা কনফিগারেশন ছাড়া চালু থাকে না।", "For public-site safety, the admin panel stays off unless it is explicitly enabled in configuration.")}
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   const handleNewsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -739,13 +769,13 @@ const Admin = () => {
                           <div>
                             <p className="font-bengali font-bold">{lang === "bn" ? notice.titleBn : notice.titleEn || notice.titleBn}</p>
                             {notice.descriptionBn || notice.descriptionEn ? (
-                              <p className="text-sm text-muted-foreground mt-1">
+                              <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line break-words">
                                 {lang === "bn" ? notice.descriptionBn : notice.descriptionEn || notice.descriptionBn}
                               </p>
                             ) : null}
                             {notice.pdfUrl && (
                               <a
-                                href={notice.pdfUrl}
+                                href={getDownloadUrl(notice.pdfUrl)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-2"
@@ -892,7 +922,7 @@ const Admin = () => {
                             </p>
                             {result.pdfUrl && (
                               <a
-                                href={result.pdfUrl}
+                                href={getDownloadUrl(result.pdfUrl)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-2"

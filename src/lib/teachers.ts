@@ -1,6 +1,6 @@
-import { db, storage } from "./firebase";
+import { db } from "./firebase";
 import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { uploadImage } from "./upload";
 
 export interface Teacher {
   id?: string;
@@ -37,7 +37,5 @@ export const deleteTeacher = async (id: string): Promise<void> => {
 };
 
 export const uploadTeacherImage = async (file: File): Promise<string> => {
-  const storageRef = ref(storage, `teachers/${Date.now()}_${file.name}`);
-  await uploadBytes(storageRef, file);
-  return getDownloadURL(storageRef);
+  return uploadImage(file);
 };

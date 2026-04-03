@@ -59,7 +59,7 @@ const AdmissionFormPage = () => {
           </motion.h1>
           <WaveDivider className="absolute bottom-0" />
         </section>
-        <section className="py-16 bg-background">
+        <section className="py-16">
           <div className="container mx-auto px-4 max-w-md text-center">
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="card-institutional p-12">
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
@@ -85,7 +85,7 @@ const AdmissionFormPage = () => {
         <WaveDivider className="absolute bottom-0" />
       </section>
 
-      <section className="py-16 bg-background">
+      <section className="py-16">
         <div className="container mx-auto px-4 max-w-3xl">
           <form onSubmit={handleSubmit} className="card-institutional p-8 space-y-8">
             <div>

@@ -88,7 +88,7 @@ const Calendar = () => {
         <WaveDivider className="absolute bottom-0" />
       </section>
 
-      <section className="py-16 bg-background">
+      <section className="py-16">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">

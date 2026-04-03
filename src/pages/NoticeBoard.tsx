@@ -4,6 +4,7 @@ import { Search, FileText, Download, ChevronDown, Calendar } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
 import { getNotices, Notice } from "@/lib/notices";
+import { getDownloadUrl } from "@/lib/upload";
 import { springIn, springInDelay } from "@/lib/animations";
 
 const NoticeBoard = () => {
@@ -38,7 +39,7 @@ const NoticeBoard = () => {
         <WaveDivider className="absolute bottom-0" />
       </section>
 
-      <section className="py-16 bg-background">
+      <section className="py-16">
         <div className="container mx-auto px-4 max-w-4xl">
           {/* Search */}
           <motion.div {...springIn} className="relative mb-6">
@@ -107,13 +108,13 @@ const NoticeBoard = () => {
                       >
                         <div className="p-6 pt-4">
                           {(notice.descriptionBn || notice.descriptionEn) && (
-                            <p className="font-bengali text-muted-foreground mb-4">
+                            <p className="font-bengali text-muted-foreground mb-5 whitespace-pre-line break-words leading-8 rounded-2xl border border-border bg-secondary/35 px-4 py-4 md:px-5">
                               {lang === "bn" ? notice.descriptionBn : notice.descriptionEn || notice.descriptionBn}
                             </p>
                           )}
                           {notice.pdfUrl && (
                             <a
-                              href={notice.pdfUrl}
+                              href={getDownloadUrl(notice.pdfUrl)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-bengali hover:bg-primary/90 transition-colors"

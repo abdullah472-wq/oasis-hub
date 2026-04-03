@@ -4,6 +4,7 @@ import { Download, Search, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
 import { getResults, Result } from "@/lib/results";
+import { getDownloadUrl } from "@/lib/upload";
 import { springIn, springInDelay } from "@/lib/animations";
 
 const Results = () => {
@@ -30,7 +31,7 @@ const Results = () => {
         <WaveDivider className="absolute bottom-0" />
       </section>
 
-      <section className="py-16 bg-background">
+      <section className="py-16">
         <div className="container mx-auto px-4 max-w-4xl">
           {/* Search Result Button */}
           <motion.div {...springIn} className="mb-8">
@@ -87,7 +88,7 @@ const Results = () => {
                         <td className="py-4 text-right">
                           {r.pdfUrl ? (
                             <a
-                              href={r.pdfUrl}
+                              href={getDownloadUrl(r.pdfUrl)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-accent font-semibold text-sm hover:bg-accent/20 transition-colors"

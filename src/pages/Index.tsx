@@ -11,8 +11,6 @@ const girlsIslamiaLogo = "/logos/girls-islamia-logo.jpeg";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
 import heroImg from "@/assets/hero-campus.jpg";
-import boysImg from "@/assets/boys-campus.jpg";
-import girlsImg from "@/assets/girls-campus.jpg";
 
 import { springIn, springInDelay } from "@/lib/animations";
 
@@ -164,14 +162,6 @@ const Index = () => {
   { date: "05 Mar 2026", title: t("অভিভাবক সভার তারিখ নির্ধারিত", "Parent Meeting Date Fixed") }];
 
 
-  const prayerTimes = [
-  { name: t("ফজর", "Fajr"), time: "5:15 AM" },
-  { name: t("যোহর", "Dhuhr"), time: "12:30 PM" },
-  { name: t("আসর", "Asr"), time: "4:15 PM" },
-  { name: t("মাগরিব", "Maghrib"), time: "6:05 PM" },
-  { name: t("ইশা", "Isha"), time: "7:30 PM" }];
-
-
   return (
     <div>
       {/* Hero Section */}
@@ -181,7 +171,8 @@ const Index = () => {
             src={heroImg}
             alt="Islamic Academy Campus"
             className="w-full h-full object-cover"
-            fetchPriority="high"
+            fetchpriority="high"
+            sizes="100vw"
             decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/70 to-transparent" />
@@ -190,7 +181,7 @@ const Index = () => {
         <div className="relative container mx-auto px-4 py-20">
           <motion.div {...springIn} className="max-w-2xl">
             <h1 className="font-bengali text-4xl md:text-6xl font-bold text-primary-foreground leading-tight mb-4" style={{ fontSize: "clamp(2.5rem, 8vw, 4rem)" }}>
-              {t("ঈমান ও শ্রেষ্ঠত্বের ভিত্তি গড়ি", "Building Foundations of Faith & Excellence")}
+              {t("একই স্থানে, একই খরচে, সকল শিক্ষা একইসাথে", "Building Foundations of Faith & Excellence")}
             </h1>
             <p className="font-bengali text-lg md:text-xl text-primary-foreground/90 mb-8 leading-relaxed">
               {t(
@@ -229,30 +220,11 @@ const Index = () => {
           </motion.div>
         </div>
 
-        {/* Prayer Times floating widget */}
-        <motion.div
-          {...springIn}
-          transition={springInDelay(0.3)}
-          className="absolute top-8 right-4 md:right-8 bg-card/80 backdrop-blur-md rounded-[2rem] p-5 shadow-[var(--shadow-soft)] hidden md:block">
-          
-          <h3 className="font-display text-sm font-bold text-foreground mb-3 text-center">
-            🕌 {t("নামাজের সময়", "Prayer Times")}
-          </h3>
-          <div className="space-y-2">
-            {prayerTimes.map((p) =>
-            <div key={p.name} className="flex justify-between gap-6 text-sm font-bengali">
-                <span className="text-muted-foreground">{p.name}</span>
-                <span className="font-semibold text-foreground">{p.time}</span>
-              </div>
-            )}
-          </div>
-        </motion.div>
-
         <WaveDivider className="absolute bottom-0 left-0 right-0" />
       </section>
 
       {/* Stats */}
-      <section className="py-16 bg-background">
+      <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {stats.map((stat, i) =>
@@ -274,7 +246,7 @@ const Index = () => {
       </section>
 
       {/* Religious Education Message */}
-      <section className="py-16 bg-card">
+      <section className="py-16">
         <div className="container mx-auto px-4 max-w-4xl">
           <motion.div
             {...springIn}
@@ -296,8 +268,7 @@ const Index = () => {
       </section>
 
       {/* We Are At Your Service */}
-      <section className="bg-secondary py-16">
-        <WaveDivider flip color="fill-background" className="absolute -top-16 md:-top-24" />
+      <section className="py-16">
         <div className="container mx-auto px-4">
           <motion.h2
             {...springIn}
@@ -373,7 +344,14 @@ const Index = () => {
                 className="card-institutional p-6"
               >
                 <div className="flex items-center gap-3 mb-3">
-                  <img src={inst.logo} alt={inst.title} className="h-12 w-auto object-contain shrink-0" />
+                  <img
+                    src={inst.logo}
+                    alt={inst.title}
+                    className="h-12 w-auto object-contain shrink-0"
+                    loading="lazy"
+                    sizes="48px"
+                    decoding="async"
+                  />
                   <div>
                     <h3 className="font-bengali text-lg font-bold text-foreground">{inst.title}</h3>
                     <p className="font-bengali text-sm text-accent">{inst.subtitle}</p>
@@ -394,7 +372,7 @@ const Index = () => {
       </section>
 
       {/* Students Future */}
-      <section className="py-16 bg-card">
+      <section className="py-16">
         <div className="container mx-auto px-4 max-w-4xl">
           <motion.div
             {...springIn}
@@ -416,7 +394,7 @@ const Index = () => {
       </section>
 
       {/* Madrasha Features */}
-      <section className="py-16 bg-secondary">
+      <section className="py-16">
         <div className="container mx-auto px-4 max-w-5xl">
           <motion.h2
             {...springIn}
@@ -511,7 +489,7 @@ const Index = () => {
       </section>
 
       {/* Guardians Speech */}
-      <section className="py-16 bg-card">
+      <section className="py-16">
         <div className="container mx-auto px-4 max-w-5xl">
           <motion.h2
             {...springIn}
@@ -688,7 +666,7 @@ const Index = () => {
       </section>
 
       {/* Notices */}
-      <section className="py-16 bg-background">
+      <section className="py-16">
         <div className="container mx-auto px-4">
           <motion.h2
             {...springIn}
@@ -730,7 +708,7 @@ const Index = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-16 bg-card">
+      <section className="py-16">
         <div className="container mx-auto px-4">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}

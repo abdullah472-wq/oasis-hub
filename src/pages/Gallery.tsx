@@ -55,7 +55,7 @@ const Gallery = () => {
         <WaveDivider className="absolute bottom-0" />
       </section>
 
-      <section className="py-16 bg-background">
+      <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="flex justify-center flex-wrap gap-2 mb-10">
             {categories.map((cat) => (
