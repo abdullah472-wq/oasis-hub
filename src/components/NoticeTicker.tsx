@@ -1,27 +1,102 @@
+﻿import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { doc, onSnapshot } from "firebase/firestore";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { db } from "@/lib/firebase";
+import {
+  getRunningNoticeSettings,
+  type RunningNoticeSettings,
+} from "@/lib/runningNoticeSettings";
 
 const NoticeTicker = () => {
   const { t } = useLanguage();
-  const notices = [
-    t("📢 ভর্তি চলছে ২০২৬ শিক্ষাবর্ষের জন্য!", "📢 Admission Open for 2026 Academic Year!"),
-    t("🌙 রমজান ইফতার স্পন্সরশিপ প্রোগ্রাম চালু!", "🌙 Ramadan Iftar Sponsorship Program Active!"),
-    t("📋 বার্ষিক পরীক্ষার ফলাফল প্রকাশিত", "📋 Annual Exam Results Published"),
-    t("🎉 বার্ষিক ক্রীড়া প্রতিযোগিতা আসছে শীঘ্রই", "🎉 Annual Sports Competition Coming Soon"),
-  ];
+  const [settings, setSettings] = useState<RunningNoticeSettings | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const settingsDoc = doc(db, "site_settings", "running_notice_bar");
+
+    getRunningNoticeSettings()
+      .then((data) => {
+        if (mounted) setSettings(data);
+      })
+      .catch((error) => {
+        console.error("Failed to load running notice settings:", error);
+      });
+
+    const unsubscribe = onSnapshot(
+      settingsDoc,
+      (snapshot) => {
+        if (!snapshot.exists()) return;
+
+        getRunningNoticeSettings()
+          .then((data) => {
+            if (mounted) setSettings(data);
+          })
+          .catch((error) => {
+            console.error("Failed to sync running notice settings:", error);
+          });
+      },
+      (error) => {
+        console.error("Running notice listener failed:", error);
+      },
+    );
+
+    const syncSettings = (event: Event) => {
+      const customEvent = event as CustomEvent<RunningNoticeSettings>;
+      if (customEvent.detail) setSettings(customEvent.detail);
+    };
+
+    window.addEventListener("running-notice-settings-updated", syncSettings as EventListener);
+
+    return () => {
+      mounted = false;
+      unsubscribe();
+      window.removeEventListener("running-notice-settings-updated", syncSettings as EventListener);
+    };
+  }, []);
+
+  const notices = useMemo(
+    () =>
+      (settings?.runningNotices ?? [])
+        .filter((item) => item.active)
+        .filter((item) => !item.publishDate || item.publishDate <= new Date().toISOString().slice(0, 10))
+        .sort((a, b) => a.priority - b.priority || a.publishDate.localeCompare(b.publishDate))
+        .map((item) => ({
+          key: item.id,
+          text: t(item.textBn, item.textEn),
+          link: item.link?.trim() || "",
+        }))
+        .filter((item) => item.text.trim().length > 0),
+    [settings, t],
+  );
+
+  if (!settings || !settings.runningNoticeEnabled || notices.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="notice-ticker overflow-hidden relative">
+    <div className="notice-ticker relative overflow-hidden border-b border-primary/10 bg-primary/5">
       <motion.div
-        className="flex gap-16 whitespace-nowrap"
+        className="flex gap-16 whitespace-nowrap py-2"
         animate={{ x: ["100%", "-100%"] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: Math.max(18, notices.length * 8), repeat: Infinity, ease: "linear" }}
       >
-        {notices.map((notice, i) => (
-          <span key={i} className="font-bengali text-sm md:text-base cursor-pointer hover:underline">
-            {notice}
-          </span>
-        ))}
+        {notices.concat(notices).map((notice, index) =>
+          notice.link ? (
+            <a
+              key={`${notice.key}-${index}`}
+              href={notice.link}
+              className="font-bengali text-sm font-medium text-primary transition hover:text-primary/80 hover:underline md:text-base"
+            >
+              {notice.text}
+            </a>
+          ) : (
+            <span key={`${notice.key}-${index}`} className="font-bengali text-sm font-medium text-primary md:text-base">
+              {notice.text}
+            </span>
+          ),
+        )}
       </motion.div>
     </div>
   );

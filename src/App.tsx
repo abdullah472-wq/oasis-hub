@@ -1,10 +1,12 @@
 import { Suspense, lazy } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/ui/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import NoticeTicker from "@/components/NoticeTicker";
@@ -13,7 +15,8 @@ import WhatsAppFAB from "@/components/WhatsAppFAB";
 import { isAdminEnabled } from "@/lib/admin";
 import Index from "./pages/Index";
 const About = lazy(() => import("./pages/About"));
-const Teachers = lazy(() => import("./pages/Teachers"));
+const GuardianRegisterPage = lazy(() => import("./pages/GuardianRegisterPage"));
+const GuardianPortal = lazy(() => import("./pages/GuardianPortal"));
 const NoticeBoard = lazy(() => import("./pages/NoticeBoard"));
 const Results = lazy(() => import("./pages/Results"));
 const VirtualTour = lazy(() => import("./pages/VirtualTour"));
@@ -21,7 +24,7 @@ const Admission = lazy(() => import("./pages/Admission"));
 const Gallery = lazy(() => import("./pages/Gallery"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Ramadan = lazy(() => import("./pages/Ramadan"));
-const Admin = lazy(() => import("./pages/Admin"));
+const AdminPortal = lazy(() => import("./pages/AdminPortal"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const News = lazy(() => import("./pages/News"));
 const Events = lazy(() => import("./pages/Events"));
@@ -47,42 +50,60 @@ const RouteFallback = () => (
   </div>
 );
 
+const AppShell = () => {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
+  const isGuardianRoute = location.pathname.startsWith("/guardian");
+  const isPortalRoute = isAdminRoute || isGuardianRoute;
+
+  return (
+    <>
+      <ScrollToTop />
+      {!isPortalRoute && <NoticeTicker />}
+      {!isPortalRoute && <Navbar />}
+      <main>
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/guardian-register" element={<GuardianRegisterPage />} />
+            <Route path="/guardian/*" element={<GuardianPortal />} />
+            <Route path="/notices" element={<NoticeBoard />} />
+            <Route path="/results" element={<Results />} />
+            <Route path="/virtual-tour" element={<VirtualTour />} />
+            <Route path="/admission" element={<Admission />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/news" element={<News />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/admission-form" element={<AdmissionForm />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/ramadan" element={<Ramadan />} />
+            <Route path="/admin/*" element={isAdminEnabled ? <AdminPortal /> : <NotFound />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </main>
+      {!isPortalRoute && <Footer />}
+      {!isPortalRoute && <WhatsAppFAB />}
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <LanguageProvider>
-        <BrowserRouter>
-          <ScrollToTop />
-          <NoticeTicker />
-          <Navbar />
-          <main>
-            <Suspense fallback={<RouteFallback />}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/teachers" element={<Teachers />} />
-                <Route path="/notices" element={<NoticeBoard />} />
-                <Route path="/results" element={<Results />} />
-                <Route path="/virtual-tour" element={<VirtualTour />} />
-                <Route path="/admission" element={<Admission />} />
-                <Route path="/gallery" element={<Gallery />} />
-                <Route path="/news" element={<News />} />
-                <Route path="/events" element={<Events />} />
-                <Route path="/admission-form" element={<AdmissionForm />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/ramadan" element={<Ramadan />} />
-                <Route path="/admin" element={isAdminEnabled ? <Admin /> : <NotFound />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </main>
-          <Footer />
-          <WhatsAppFAB />
-        </BrowserRouter>
-      </LanguageProvider>
-    </TooltipProvider>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <LanguageProvider>
+          <AuthProvider>
+            <BrowserRouter>
+              <AppShell />
+            </BrowserRouter>
+          </AuthProvider>
+        </LanguageProvider>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

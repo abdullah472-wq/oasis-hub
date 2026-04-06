@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown } from "lucide-react";
@@ -18,24 +18,23 @@ const Navbar = () => {
   const location = useLocation();
 
   const mainLinks = [
-    { to: "/", label: t("\u09b9\u09cb\u09ae", "Home") },
-    { to: "/about", label: t("\u0986\u09ae\u09be\u09a6\u09c7\u09b0 \u09b8\u09ae\u09cd\u09aa\u09b0\u09cd\u0995\u09c7", "About") },
-    { to: "/news", label: t("\u09b8\u0982\u09ac\u09be\u09a6", "News") },
-    { to: "/contact", label: t("\u09af\u09cb\u0997\u09be\u09af\u09cb\u0997", "Contact") },
-    { to: "/ramadan", label: t("\u09b0\u09ae\u099c\u09be\u09a8", "Ramadan") },
+    { to: "/", label: t("হোম", "Home") },
+    { to: "/about", label: t("আমাদের সম্পর্কে", "About") },
+    { to: "/news", label: t("সংবাদ", "News") },
+    { to: "/contact", label: t("যোগাযোগ", "Contact") },
+    { to: "/ramadan", label: t("রমজান", "Ramadan") },
   ];
 
   const admissionLinks = [
-    { to: "/admission", label: t("\u09ad\u09b0\u09cd\u09a4\u09bf \u09a4\u09a5\u09cd\u09af", "Admission Info") },
-    { to: "/admission-form", label: t("\u0985\u09a8\u09b2\u09be\u0987\u09a8 \u09ad\u09b0\u09cd\u09a4\u09bf", "Online Admission") },
+    { to: "/admission", label: t("ভর্তি তথ্য", "Admission Info") },
+    { to: "/admission-form", label: t("অনলাইন ভর্তি", "Online Admission") },
   ];
 
   const academicLinks = [
-    { to: "/teachers", label: t("\u09b6\u09bf\u0995\u09cd\u09b7\u0995\u09ac\u09c3\u09a8\u09cd\u09a6", "Teachers") },
-    { to: "/notices", label: t("\u09a8\u09cb\u099f\u09bf\u09b6 \u09ac\u09cb\u09b0\u09cd\u09a1", "Notice") },
-    { to: "/results", label: t("\u09aa\u09b0\u09c0\u0995\u09cd\u09b7\u09be\u09b0 \u09ab\u09b2\u09be\u09ab\u09b2", "Results") },
-    { to: "/gallery", label: t("\u0997\u09cd\u09af\u09be\u09b2\u09be\u09b0\u09bf", "Gallery") },
-    { to: "/events", label: t("\u0987\u09ad\u09c7\u09a8\u09cd\u099f \u0995\u09cd\u09af\u09be\u09b2\u09c7\u09a8\u09cd\u09a1\u09be\u09b0", "Events") },
+    { to: "/notices", label: t("নোটিশ বোর্ড", "Notice") },
+    { to: "/results", label: t("পরীক্ষার ফলাফল", "Results") },
+    { to: "/gallery", label: t("গ্যালারি", "Gallery") },
+    { to: "/events", label: t("ইভেন্ট ক্যালেন্ডার", "Events") },
   ];
 
   return (
@@ -43,17 +42,11 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between px-4 py-3">
         <Link to="/" className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary">
-            <img
-              src={siteLogo}
-              alt="Annoor Education Family logo"
-              className="h-full w-full object-contain"
-              sizes="40px"
-              decoding="async"
-            />
+            <img src={siteLogo} alt="Annoor Education Family logo" className="h-full w-full object-contain" sizes="40px" decoding="async" />
           </div>
           <div>
             <h1 className="text-lg font-display font-bold leading-tight text-foreground">
-              {t("\u0986\u09a8\u09cd\u09a8\u09c2\u09b0 \u09b6\u09bf\u0995\u09cd\u09b7\u09be \u09aa\u09b0\u09bf\u09ac\u09be\u09b0", "Annoor Education Family")}
+              {t("আননূর শিক্ষা পরিবার", "Annoor Education Family")}
             </h1>
             <p className="text-xs font-display text-muted-foreground">EMIS Code: 307030265</p>
           </div>
@@ -65,9 +58,7 @@ const Navbar = () => {
               key={link.to}
               to={link.to}
               className={`rounded-xl px-3 py-2 text-sm font-medium font-bengali transition-all ${
-                location.pathname === link.to
-                  ? "bg-primary text-primary-foreground"
-                  : "text-foreground hover:scale-105 hover:bg-secondary"
+                location.pathname === link.to ? "bg-primary text-primary-foreground" : "text-foreground hover:scale-105 hover:bg-secondary"
               }`}
             >
               {link.label}
@@ -79,7 +70,7 @@ const Navbar = () => {
               onMouseEnter={() => setAdmissionOpen(true)}
               className="flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-medium font-bengali text-foreground transition-all hover:scale-105 hover:bg-secondary"
             >
-              {t("\u09ad\u09b0\u09cd\u09a4\u09bf", "Admission")}
+              {t("ভর্তি", "Admission")}
               <ChevronDown className="h-4 w-4" />
             </button>
             <AnimatePresence>
@@ -92,11 +83,7 @@ const Navbar = () => {
                   className="absolute left-0 top-full mt-1 min-w-[160px] rounded-xl border border-border bg-card py-2 shadow-lg"
                 >
                   {admissionLinks.map((link) => (
-                    <Link
-                      key={link.to}
-                      to={link.to}
-                      className="block px-4 py-2 text-sm font-medium font-bengali text-foreground hover:bg-secondary"
-                    >
+                    <Link key={link.to} to={link.to} className="block px-4 py-2 text-sm font-medium font-bengali text-foreground hover:bg-secondary">
                       {link.label}
                     </Link>
                   ))}
@@ -110,7 +97,7 @@ const Navbar = () => {
               onMouseEnter={() => setAcademicOpen(true)}
               className="flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-medium font-bengali text-foreground transition-all hover:scale-105 hover:bg-secondary"
             >
-              {t("\u098f\u0995\u09be\u09a1\u09c7\u09ae\u09bf\u0995", "Academic")}
+              {t("একাডেমিক", "Academic")}
               <ChevronDown className="h-4 w-4" />
             </button>
             <AnimatePresence>
@@ -123,11 +110,7 @@ const Navbar = () => {
                   className="absolute left-0 top-full mt-1 min-w-[180px] rounded-xl border border-border bg-card py-2 shadow-lg"
                 >
                   {academicLinks.map((link) => (
-                    <Link
-                      key={link.to}
-                      to={link.to}
-                      className="block px-4 py-2 text-sm font-medium font-bengali text-foreground hover:bg-secondary"
-                    >
+                    <Link key={link.to} to={link.to} className="block px-4 py-2 text-sm font-medium font-bengali text-foreground hover:bg-secondary">
                       {link.label}
                     </Link>
                   ))}
@@ -136,16 +119,16 @@ const Navbar = () => {
             </AnimatePresence>
           </div>
 
+          <Link to="/guardian-register" className="ml-2 inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold font-bengali text-primary-foreground transition-opacity hover:opacity-90">
+            {t("গার্ডিয়ান রেজিস্ট্রেশন", "Guardian Registration")}
+          </Link>
           <UpdateAlertsManager className="h-10 w-10" />
           <LanguageToggle />
         </div>
 
         <div className="flex items-center gap-3">
           <UpdateAlertsManager className="h-10 w-10 lg:hidden" />
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-foreground lg:hidden"
-          >
+          <button onClick={() => setIsOpen(!isOpen)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-foreground lg:hidden">
             {isOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
@@ -170,9 +153,7 @@ const Navbar = () => {
                   to={link.to}
                   onClick={() => setIsOpen(false)}
                   className={`rounded-xl px-4 py-3 font-bengali font-medium transition-colors ${
-                    location.pathname === link.to
-                      ? "bg-primary text-primary-foreground"
-                      : "text-foreground hover:bg-secondary"
+                    location.pathname === link.to ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary"
                   }`}
                 >
                   {link.label}
@@ -183,17 +164,12 @@ const Navbar = () => {
                 onClick={() => setMobileAdmissionOpen(!mobileAdmissionOpen)}
                 className="flex items-center justify-between rounded-xl px-4 py-3 font-bengali font-medium text-foreground hover:bg-secondary"
               >
-                <span>{t("\u09ad\u09b0\u09cd\u09a4\u09bf", "Admission")}</span>
+                <span>{t("ভর্তি", "Admission")}</span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${mobileAdmissionOpen ? "rotate-180" : ""}`} />
               </button>
               <AnimatePresence>
                 {mobileAdmissionOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                  >
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                     {admissionLinks.map((link) => (
                       <Link
                         key={link.to}
@@ -215,17 +191,12 @@ const Navbar = () => {
                 onClick={() => setMobileAcademicOpen(!mobileAcademicOpen)}
                 className="flex items-center justify-between rounded-xl px-4 py-3 font-bengali font-medium text-foreground hover:bg-secondary"
               >
-                <span>{t("\u098f\u0995\u09be\u09a1\u09c7\u09ae\u09bf\u0995", "Academic")}</span>
+                <span>{t("একাডেমিক", "Academic")}</span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${mobileAcademicOpen ? "rotate-180" : ""}`} />
               </button>
               <AnimatePresence>
                 {mobileAcademicOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                  >
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                     {academicLinks.map((link) => (
                       <Link
                         key={link.to}
@@ -242,6 +213,14 @@ const Navbar = () => {
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              <Link
+                to="/guardian-register"
+                onClick={() => setIsOpen(false)}
+                className="mt-2 inline-flex items-center justify-center rounded-xl bg-primary px-4 py-3 font-bengali font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                {t("গার্ডিয়ান রেজিস্ট্রেশন", "Guardian Registration")}
+              </Link>
             </div>
           </motion.div>
         )}
@@ -251,3 +230,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

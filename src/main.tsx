@@ -1,20 +1,17 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { registerSW } from "virtual:pwa-register";
 
-registerSW({
-  immediate: true,
-  onNeedRefresh() {
-    window.location.reload();
-  },
-  onRegisteredSW(_swUrl, registration) {
-    registration?.update();
-
-    window.setInterval(() => {
-      registration?.update();
-    }, 60 * 60 * 1000);
-  },
-});
+// Clean up any previously registered service workers so old cached bundles
+// cannot keep serving a stale app shell after a cPanel deployment.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => {
+        void registration.unregister();
+      });
+    });
+  });
+}
 
 createRoot(document.getElementById("root")!).render(<App />);

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { Facebook, Youtube, MapPin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -32,7 +32,7 @@ const Footer = () => {
                   />
                 </div>
                 <div>
-                  <h3 className="font-display text-xl font-bold">{t("\u0986\u09a8\u09cd\u09a8\u09c2\u09b0 \u09b6\u09bf\u0995\u09cd\u09b7\u09be \u09aa\u09b0\u09bf\u09ac\u09be\u09b0", "Annoor Education Family")}</h3>
+                  <h3 className="font-display text-xl font-bold">{t("আননূর শিক্ষা পরিবার", "Annoor Education Family")}</h3>
                   <p className="font-bengali text-sm text-primary-foreground/60">{t("\u09aa\u09cd\u09b0\u09a4\u09bf\u09b7\u09cd\u09a0\u09bf\u09a4 \u09e8\u09e6\u09e7\u09e9", "Founded 2013")}</p>
                 </div>
               </div>
@@ -92,7 +92,7 @@ const Footer = () => {
             </div>
           </div>
           <div className="mt-8 border-t border-primary-foreground/20 pt-6 text-center text-sm font-bengali text-primary-foreground/60">
-            &copy; 2026 {t("\u0986\u09a8\u09cd\u09a8\u09c2\u09b0 \u09b6\u09bf\u0995\u09cd\u09b7\u09be \u09aa\u09b0\u09bf\u09ac\u09be\u09b0\u0964 \u09b8\u09b0\u09cd\u09ac\u09b8\u09cd\u09ac\u09a4\u09cd\u09ac \u09b8\u0982\u09b0\u0995\u09cd\u09b7\u09bf\u09a4\u0964", "Annoor Education Family. All rights reserved.")}
+            &copy; 2026 {t("আননূর শিক্ষা পরিবার। সর্বস্বত্ব সংরক্ষিত।", "Annoor Education Family. All rights reserved.")}
           </div>
         </div>
       </footer>
@@ -101,3 +101,4 @@ const Footer = () => {
 };
 
 export default Footer;
+

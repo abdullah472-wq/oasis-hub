@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
 type Language = "bn" | "en";
 
@@ -17,7 +17,17 @@ const LanguageContext = createContext<LanguageContextType>({
 export const useLanguage = () => useContext(LanguageContext);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [lang, setLang] = useState<Language>("bn");
+  const [lang, setLang] = useState<Language>(() => {
+    if (typeof window === "undefined") return "bn";
+    const saved = window.localStorage.getItem("oasis_language");
+    return saved === "en" ? "en" : "bn";
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("oasis_language", lang);
+  }, [lang]);
+
   const t = <T extends string | string[]>(bn: T, en: T): T => (lang === "bn" ? bn : en);
   return (
     <LanguageContext.Provider value={{ lang, setLang, t }}>

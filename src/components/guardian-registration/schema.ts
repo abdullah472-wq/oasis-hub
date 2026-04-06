@@ -1,0 +1,27 @@
+﻿import { z } from "zod";
+import type { GuardianRelationship } from "@/lib/guardianRegistration";
+
+export const guardianRelationships: Array<{ value: GuardianRelationship; labelBn: string; labelEn: string }> = [
+  { value: "Father", labelBn: "পিতা", labelEn: "Father" },
+  { value: "Mother", labelBn: "মাতা", labelEn: "Mother" },
+  { value: "Guardian", labelBn: "অভিভাবক", labelEn: "Guardian" },
+];
+
+export const guardianRegisterSchema = z.object({
+  fullName: z.string().min(2, "পূর্ণ নাম লিখুন"),
+  phone: z.string().min(6, "ফোন নম্বর লিখুন"),
+  email: z.string().email("সঠিক ইমেইল দিন"),
+  password: z.string().min(6, "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে"),
+  relationship: z.enum(["Father", "Mother", "Guardian"], {
+    required_error: "সম্পর্ক নির্বাচন করুন",
+  }),
+  address: z.string().optional(),
+  nid: z.string().optional(),
+  studentId: z.string().min(1, "শিক্ষার্থী আইডি দিন"),
+  studentName: z.string().min(2, "শিক্ষার্থীর নাম লিখুন"),
+  className: z.string().min(1, "শ্রেণি লিখুন"),
+  section: z.string().min(1, "সেকশন লিখুন"),
+  roll: z.coerce.number().min(1, "রোল ১ বা তার বেশি হতে হবে"),
+});
+
+export type GuardianRegisterValues = z.infer<typeof guardianRegisterSchema>;

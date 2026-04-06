@@ -1,0 +1,37 @@
+DirectoryIndex index.html
+Options -MultiViews
+
+<IfModule mod_mime.c>
+  AddType application/javascript .js
+  AddType application/javascript .mjs
+  AddType text/css .css
+  AddType application/manifest+json .webmanifest
+  AddType image/svg+xml .svg
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "^(index\.html|manifest\.webmanifest|sw\.js)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  RewriteRule ^index\.html$ - [L]
+
+  # Never rewrite real files or directories.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Never rewrite direct asset/module requests to index.html.
+  RewriteCond %{REQUEST_URI} \.(?:js|mjs|css|map|json|webmanifest|png|jpe?g|gif|svg|ico|webp|avif|txt|xml|woff2?|ttf|eot|pdf)$ [NC]
+  RewriteRule ^ - [L]
+
+  # BrowserRouter SPA fallback.
+  RewriteRule ^ index.html [L]
+</IfModule>

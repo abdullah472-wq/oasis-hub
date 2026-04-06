@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -39,51 +39,61 @@
     --shadow-soft: 0 10px 30px -10px rgba(6, 78, 59, 0.12);
     --shadow-squish: 0 6px 0 0 #042f24;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 40 24% 97%;
+    --sidebar-foreground: 165 50% 16%;
+    --sidebar-primary: 165 85% 15%;
+    --sidebar-primary-foreground: 40 30% 98%;
+    --sidebar-accent: 165 18% 93%;
+    --sidebar-accent-foreground: 165 55% 12%;
+    --sidebar-border: 165 16% 86%;
+    --sidebar-ring: 45 70% 50%;
   }
 
   .dark {
-    --background: 165 85% 5%;
+    --background: 165 38% 8%;
     --foreground: 40 30% 98%;
-    --card: 165 85% 8%;
+    --card: 165 32% 11%;
     --card-foreground: 40 30% 98%;
-    --popover: 165 85% 8%;
+    --popover: 165 32% 11%;
     --popover-foreground: 40 30% 98%;
     --primary: 45 70% 50%;
     --primary-foreground: 165 85% 10%;
-    --secondary: 165 40% 15%;
+    --secondary: 165 28% 16%;
     --secondary-foreground: 40 30% 98%;
-    --muted: 165 40% 15%;
-    --muted-foreground: 165 20% 65%;
+    --muted: 165 22% 15%;
+    --muted-foreground: 165 10% 72%;
     --accent: 45 70% 50%;
     --accent-foreground: 165 85% 10%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 165 40% 15%;
-    --input: 165 40% 15%;
+    --border: 165 22% 20%;
+    --input: 165 22% 20%;
     --ring: 45 70% 50%;
+
+    --sidebar-background: 165 34% 10%;
+    --sidebar-foreground: 40 30% 96%;
+    --sidebar-primary: 45 70% 50%;
+    --sidebar-primary-foreground: 165 85% 10%;
+    --sidebar-accent: 165 25% 16%;
+    --sidebar-accent-foreground: 40 30% 96%;
+    --sidebar-border: 165 22% 20%;
+    --sidebar-ring: 45 70% 50%;
   }
 
-  body {
-    background-color: hsl(var(--background));
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%2306422c' stroke-width='0.6' opacity='0.07'%3E%3C!-- 8-pointed star --%3E%3Cpolygon points='40,8 46,20 58,14 52,26 64,32 52,34 58,46 46,40 40,52 34,40 22,46 28,34 16,32 28,26 22,14 34,20'/%3E%3C!-- inner octagon --%3E%3Cpolygon points='40,18 48,24 52,32 48,40 40,44 32,40 28,32 32,24'/%3E%3C!-- connecting lines to edges --%3E%3Cline x1='40' y1='0' x2='40' y2='8'/%3E%3Cline x1='40' y1='52' x2='40' y2='80'/%3E%3Cline x1='0' y1='32' x2='16' y2='32'/%3E%3Cline x1='64' y1='32' x2='80' y2='32'/%3E%3Cline x1='8' y1='8' x2='22' y2='14'/%3E%3Cline x1='58' y1='14' x2='72' y2='8'/%3E%3Cline x1='8' y1='56' x2='22' y2='46'/%3E%3Cline x1='58' y1='46' x2='72' y2='56'/%3E%3C!-- corner quarter-stars --%3E%3Cpath d='M0,0 L8,8 M80,0 L72,8 M0,80 L8,56 M80,80 L72,56'/%3E%3C!-- diamond accents --%3E%3Cpolygon points='40,26 44,32 40,38 36,32'/%3E%3C/g%3E%3C/svg%3E");
-    background-attachment: fixed;
-    background-size: 80px 80px;
-  }
-  
   * {
     @apply border-border;
   }
 
   body {
+    background-color: hsl(var(--background));
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%2306422c' stroke-width='0.6' opacity='0.07'%3E%3Cpolygon points='40,8 46,20 58,14 52,26 64,32 52,34 58,46 46,40 40,52 34,40 22,46 28,34 16,32 28,26 22,14 34,20'/%3E%3Cpolygon points='40,18 48,24 52,32 48,40 40,44 32,40 28,32 32,24'/%3E%3Cline x1='40' y1='0' x2='40' y2='8'/%3E%3Cline x1='40' y1='52' x2='40' y2='80'/%3E%3Cline x1='0' y1='32' x2='16' y2='32'/%3E%3Cline x1='64' y1='32' x2='80' y2='32'/%3E%3Cline x1='8' y1='8' x2='22' y2='14'/%3E%3Cline x1='58' y1='14' x2='72' y2='8'/%3E%3Cline x1='8' y1='56' x2='22' y2='46'/%3E%3Cline x1='58' y1='46' x2='72' y2='56'/%3E%3Cpath d='M0,0 L8,8 M80,0 L72,8 M0,80 L8,56 M80,80 L72,56'/%3E%3Cpolygon points='40,26 44,32 40,38 36,32'/%3E%3C/g%3E%3C/svg%3E");
+    background-attachment: fixed;
+    background-size: 80px 80px;
     @apply bg-background text-foreground font-body antialiased;
+  }
+
+  .dark body {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23f5e6b3' stroke-width='0.6' opacity='0.045'%3E%3Cpolygon points='40,8 46,20 58,14 52,26 64,32 52,34 58,46 46,40 40,52 34,40 22,46 28,34 16,32 28,26 22,14 34,20'/%3E%3Cpolygon points='40,18 48,24 52,32 48,40 40,44 32,40 28,32 32,24'/%3E%3Cline x1='40' y1='0' x2='40' y2='8'/%3E%3Cline x1='40' y1='52' x2='40' y2='80'/%3E%3Cline x1='0' y1='32' x2='16' y2='32'/%3E%3Cline x1='64' y1='32' x2='80' y2='32'/%3E%3Cline x1='8' y1='8' x2='22' y2='14'/%3E%3Cline x1='58' y1='14' x2='72' y2='8'/%3E%3Cline x1='8' y1='56' x2='22' y2='46'/%3E%3Cline x1='58' y1='46' x2='72' y2='56'/%3E%3Cpath d='M0,0 L8,8 M80,0 L72,8 M0,80 L8,56 M80,80 L72,56'/%3E%3Cpolygon points='40,26 44,32 40,38 36,32'/%3E%3C/g%3E%3C/svg%3E");
   }
 
   h1, h2, h3, h4, h5, h6 {

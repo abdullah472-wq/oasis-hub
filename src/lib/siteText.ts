@@ -1,4 +1,4 @@
-export type LocalizedText = {
+﻿export type LocalizedText = {
   bn: string;
   en: string;
 };
@@ -8,7 +8,7 @@ export const pickLocalizedText = (text: LocalizedText, lang: "bn" | "en") =>
 
 export const siteBrand = {
   name: {
-    bn: "আন্নূর শিক্ষা পরিবার",
+    bn: "আননূর শিক্ষা পরিবার",
     en: "Annoor Education Family",
   },
   founded: {
@@ -16,11 +16,11 @@ export const siteBrand = {
     en: "Founded 2013",
   },
   mission: {
-    bn: "ঈমান ও শ্রেষ্ঠত্বের ভিত্তি গড়ি। আমাদের লক্ষ্য হলো ইসলামী মূল্যবোধের আলোকে আধুনিক শিক্ষা প্রদান।",
+    bn: "ঈমান ও শ্রেষ্ঠত্বের ভিত্তি গড়ি। আমাদের লক্ষ্য হলো ইসলামি মূল্যবোধের আলোকে আধুনিক শিক্ষা প্রদান।",
     en: "Building foundations of faith and excellence. Our mission is to provide modern education in the light of Islamic values.",
   },
   copyright: {
-    bn: "আন্নূর শিক্ষা পরিবার। সর্বস্বত্ব সংরক্ষিত।",
+    bn: "আননূর শিক্ষা পরিবার। সর্বস্বত্ব সংরক্ষিত।",
     en: "Annoor Education Family. All rights reserved.",
   },
 } as const;
