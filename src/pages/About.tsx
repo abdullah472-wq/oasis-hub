@@ -21,8 +21,8 @@ const About = () => {
     },
     {
       year: "2017",
-      title: t("১০০০+ শিক্ষার্থী", "1000+ Students"),
-      desc: t("শিক্ষার্থীর সংখ্যা এক হাজার ছাড়িয়ে যায়", "The student count crossed one thousand"),
+      title: t("২৫০+ শিক্ষার্থী", "250+ Students"),
+      desc: t("শিক্ষার্থীর সংখ্যা ২৫০+ অতিক্রম করে ", "The student count crossed two hundred and fifty"),
     },
     {
       year: "2020",
@@ -31,8 +31,8 @@ const About = () => {
     },
     {
       year: "2024",
-      title: t("জাতীয় স্বীকৃতি", "National Recognition"),
-      desc: t("ইসলামি শিক্ষায় অবদানের জন্য বিশেষ স্বীকৃতি অর্জন", "Received notable recognition for contribution to Islamic education"),
+      title: t("জাতীয় শিক্ষাক্রমে অন্তভূক্তি", "National Recognition"),
+      desc: t("ইসলামি শিক্ষায় অবদানের জন্য বিশেষ স্বীকৃতি অর্জন", "Received notable recognition for contribution to Islamic education"),
     },
   ];
 

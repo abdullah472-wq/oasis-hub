@@ -5,6 +5,10 @@ import type { AdmissionForm } from "@/lib/admission";
 import type { Teacher } from "@/lib/teachers";
 import type { VirtualTour } from "@/lib/virtualTour";
 import type { AttendanceRecord, DashboardSettings, FeeRecord, GuardianRequest } from "@/lib/adminDashboard";
+import type { GuardianRegistrationInput, GuardianRelationship } from "@/lib/guardianRegistration";
+import { createClientId } from "@/lib/uuid";
+import LanguageToggle from "@/components/LanguageToggle";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -166,6 +170,14 @@ export const AdmissionsManagerPage = ({
   const { t } = useLanguage();
   const [selectedItem, setSelectedItem] = useState<AdmissionForm | null>(null);
 
+  const escapeHtml = (value: string) =>
+    value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
   const buildAdmissionSummary = (item: AdmissionForm) =>
     [
       t("আবেদন সারাংশ", "Admission Summary"),
@@ -177,6 +189,15 @@ export const AdmissionsManagerPage = ({
       `${t("ধর্ম", "Religion")}: ${item.religion || "-"}`,
       `${t("শ্রেণি", "Class")}: ${item.class || "-"}`,
       `${t("ক্যাম্পাস", "Campus")}: ${item.campus || "-"}`,
+      `${t("আসন ধরন", "Seat type")}: ${
+        item.residencyType === "residential"
+          ? t("আবাসিক", "Residential")
+          : item.residencyType === "non-residential"
+            ? t("অনাবাসিক", "Non-residential")
+            : item.residencyType === "day-care"
+              ? t("ডে-কেয়ার", "Day care")
+              : "-"
+      }`,
       "",
       `${t("পিতার নাম", "Father's name")}: ${item.fatherNameBn || item.fatherName}`,
       `${t("পিতার ফোন", "Father's phone")}: ${item.fatherPhone || "-"}`,
@@ -186,18 +207,550 @@ export const AdmissionsManagerPage = ({
       `${t("বর্তমান ঠিকানা", "Present address")}: ${item.presentAddressBn || item.presentAddress || "-"}`,
       `${t("স্থায়ী ঠিকানা", "Permanent address")}: ${item.permanentAddressBn || item.permanentAddress || "-"}`,
       "",
+      `${t("সাক্ষাৎপ্রার্থী / রেফারেন্স", "Interview candidate / references")}:`,
+      ...(item.interviewReferences?.length
+        ? item.interviewReferences.map(
+            (reference, index) =>
+              `${index + 1}. ${reference.name || "-"} • ${reference.relation || "-"} • ${reference.mobile || "-"}`,
+          )
+        : ["-"]),
+      "",
       `${t("স্ট্যাটাস", "Status")}: ${item.status}`,
       `${t("জমার সময়", "Submitted at")}: ${new Date(item.createdAt).toLocaleString("bn-BD")}`,
     ].join("\n");
 
+  const buildAdmissionPrintHtml = (item: AdmissionForm) => {
+    const studentName = item.studentNameBn || item.studentName || "-";
+    const fatherName = item.fatherNameBn || item.fatherName || "-";
+    const motherName = item.motherNameBn || item.motherName || "-";
+    const presentAddress = item.presentAddressBn || item.presentAddress || "-";
+    const permanentAddress = item.permanentAddressBn || item.permanentAddress || "-";
+    const residencyTypeLabel =
+      item.residencyType === "residential"
+        ? t("আবাসিক", "Residential")
+        : item.residencyType === "non-residential"
+          ? t("অনাবাসিক", "Non-residential")
+          : item.residencyType === "day-care"
+            ? t("ডে-কেয়ার", "Day care")
+            : "-";
+    const rawApplicationDigits = `${item.id ?? ""}`.replace(/\D/g, "");
+    const applicationNo = (rawApplicationDigits || String(item.createdAt)).slice(-8);
+    const serialNo = String(new Date(item.createdAt).getTime()).slice(-6);
+    const submittedAt = new Date(item.createdAt).toLocaleString("bn-BD");
+    const ruleItems = [
+      t("আবেদন ফর্মে প্রদত্ত সকল তথ্য সঠিক ও যাচাইযোগ্য হতে হবে।", "All information in the application form must be accurate and verifiable."),
+      t("প্রয়োজনীয় কাগজপত্র অফিসে জমা দেওয়ার পরই ভর্তি প্রক্রিয়া সম্পন্ন বলে গণ্য হবে।", "The admission process will be considered complete only after required documents are submitted to the office."),
+      t("শৃঙ্খলা, ফি, এবং প্রতিষ্ঠানের নিয়মাবলি মেনে চলা বাধ্যতামূলক।", "Compliance with discipline, fees, and institutional rules is mandatory."),
+      t("ভর্তি সংক্রান্ত চূড়ান্ত সিদ্ধান্ত কর্তৃপক্ষের বিবেচনার উপর নির্ভরশীল।", "The final admission decision depends on the authority's review."),
+      t("প্রয়োজনে অভিভাবকের সাথে দ্রুত যোগাযোগের জন্য মোবাইল নম্বর সচল রাখতে হবে।", "Guardians must keep their mobile numbers active for urgent communication."),
+      t("অফিস যাচাই ছাড়া কোনো তথ্য চূড়ান্ত বলে গণ্য হবে না।", "No information will be considered final without office verification."),
+    ];
+    const photoMarkup = item.imageUrl
+      ? `<img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(studentName)}" class="photo" />`
+      : `<div class="photo photo-placeholder">${escapeHtml(t("ছবি", "Photo"))}</div>`;
+
+    return `
+      <!DOCTYPE html>
+      <html lang="bn">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>${escapeHtml(studentName)} - ${escapeHtml(t("ভর্তি আবেদন", "Admission Application"))}</title>
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 5mm;
+            }
+            @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
+            * { box-sizing: border-box; }
+            body {
+              margin: 0;
+              background: #dbe8b7;
+              color: #16332b;
+              font-family: 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            .page {
+              width: 210mm;
+              min-height: 297mm;
+              max-width: 210mm;
+              margin: 18px auto;
+              background: #fffdf8;
+              border: 1px solid #8bc6e8;
+              border-radius: 24px;
+              overflow: hidden;
+              box-shadow: 0 18px 40px rgba(22, 51, 43, 0.08);
+              position: relative;
+              page-break-after: always;
+            }
+            .page:last-child { page-break-after: auto; }
+            .top-band {
+              height: 11mm;
+              background: linear-gradient(180deg, #0d89cc 0%, #0a6eab 100%);
+            }
+            .top-band.light {
+              background: linear-gradient(180deg, #d6f0ff 0%, #bfe4fb 100%);
+            }
+            .header {
+              padding: 11px 18px 10px;
+              background: linear-gradient(180deg, #f6fcff 0%, #ebf7fe 100%);
+              color: #0d3f66;
+              border-bottom: 1px solid #8bc6e8;
+            }
+            .header-top {
+              display: flex;
+              align-items: center;
+              gap: 14px;
+            }
+            .logo {
+              width: 62px;
+              height: 62px;
+              border-radius: 14px;
+              background: #ffffff;
+              border: 1px solid #8bc6e8;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              overflow: hidden;
+              flex-shrink: 0;
+            }
+            .logo img {
+              width: 48px;
+              height: 48px;
+              object-fit: contain;
+            }
+            .header h1 {
+              margin: 0;
+              font-size: 22px;
+              line-height: 1.25;
+              font-weight: 700;
+            }
+            .header p {
+              margin: 4px 0 0;
+              font-size: 12px;
+              color: #48718c;
+            }
+            .subhead {
+              margin-top: 14px;
+              display: flex;
+              flex-wrap: wrap;
+              gap: 8px;
+            }
+            .subhead-grid {
+              margin-top: 12px;
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 8px;
+            }
+            .chip {
+              border: 1px solid #8bc6e8;
+              border-radius: 999px;
+              padding: 6px 12px;
+              font-size: 12px;
+              background: #fafdff;
+            }
+            .chip-box {
+              border: 1px solid #8bc6e8;
+              border-radius: 14px;
+              padding: 8px 10px;
+              background: #fafdff;
+            }
+            .chip-box small {
+              display: block;
+              font-size: 10px;
+              color: #48718c;
+              margin-bottom: 3px;
+            }
+            .chip-box strong {
+              font-size: 13px;
+            }
+            .content {
+              padding: 12px 18px 14px;
+            }
+            .hero {
+              display: grid;
+              grid-template-columns: minmax(0, 1fr) 136px;
+              gap: 14px;
+              align-items: start;
+              margin-bottom: 14px;
+            }
+            .hero-card {
+              border: 1px solid #cfe8f4;
+              border-radius: 12px;
+              background: rgba(255,255,255,0.95);
+              padding: 12px 14px;
+            }
+            .hero-card h2 {
+              margin: 0 0 8px;
+              font-size: 21px;
+              line-height: 1.2;
+            }
+            .hero-grid {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 6px 10px;
+            }
+            .field small {
+              display: block;
+              color: #7a6b52;
+              font-size: 11px;
+              margin-bottom: 2px;
+            }
+            .field strong {
+              font-size: 13px;
+              line-height: 1.35;
+            }
+            .photo {
+              width: 136px;
+              height: 164px;
+              border-radius: 10px;
+              border: 1px solid #8bc6e8;
+              background: #f4fbff;
+              object-fit: cover;
+            }
+            .photo-placeholder {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #7a6b52;
+              font-size: 14px;
+              text-align: center;
+              padding: 16px;
+            }
+            .section-grid {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 10px;
+            }
+            .section {
+              border: 1px solid #cfe8f4;
+              border-radius: 12px;
+              background: rgba(255,255,255,0.95);
+              padding: 12px 14px;
+            }
+            .section h3 {
+              margin: 0 0 8px;
+              font-size: 16px;
+              color: #0f4f3d;
+            }
+            .row {
+              display: flex;
+              gap: 8px;
+              margin-bottom: 6px;
+              line-height: 1.35;
+            }
+            .row:last-child {
+              margin-bottom: 0;
+            }
+            .label {
+              min-width: 102px;
+              color: #7a6b52;
+              font-size: 12px;
+            }
+            .value {
+              font-size: 12px;
+              color: #16332b;
+              font-weight: 600;
+              word-break: break-word;
+            }
+            .section-full {
+              margin-top: 10px;
+            }
+            .reference-box {
+              margin-top: 8px;
+              border: 1px solid #cfe8f4;
+              border-radius: 12px;
+              background: rgba(255,255,255,0.95);
+              padding: 10px 12px;
+            }
+            .reference-box h3 {
+              margin: 0 0 8px;
+              font-size: 15px;
+              color: #0f4f3d;
+            }
+            .reference-header,
+            .reference-row {
+              display: grid;
+              grid-template-columns: 1.3fr 0.9fr 1fr;
+              gap: 10px;
+              align-items: end;
+            }
+            .reference-header {
+              margin-bottom: 4px;
+              color: #7a6b52;
+              font-size: 10px;
+            }
+            .reference-row {
+              margin-bottom: 6px;
+            }
+            .reference-row:last-child {
+              margin-bottom: 0;
+            }
+            .reference-line {
+              min-height: 18px;
+              border-bottom: 1px solid #b8a57f;
+            }
+            .bottom-grid {
+              margin-top: 10px;
+              display: grid;
+              grid-template-columns: 1.15fr 0.85fr;
+              gap: 10px;
+              align-items: start;
+            }
+            .footer-note {
+              margin-top: 10px;
+              border-top: 1px dashed #d7c9a8;
+              padding-top: 8px;
+              color: #7a6b52;
+              font-size: 11px;
+              line-height: 1.35;
+            }
+            .office-box {
+              margin-top: 10px;
+              border: 1.5px dashed #8bbbd6;
+              border-radius: 12px;
+              background: #fbfeff;
+              padding: 11px 14px;
+            }
+            .office-box h3 {
+              margin: 0 0 8px;
+              font-size: 15px;
+              color: #0f4f3d;
+            }
+            .office-grid {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 8px 12px;
+            }
+            .office-field {
+              border-bottom: 1px dashed #ccb98e;
+              min-height: 24px;
+              padding-bottom: 2px;
+            }
+            .office-field small {
+              display: block;
+              font-size: 10px;
+              color: #7a6b52;
+              margin-bottom: 4px;
+            }
+            .signature-row {
+              margin-top: 12px;
+              display: grid;
+              grid-template-columns: repeat(3, minmax(0, 1fr));
+              gap: 12px;
+            }
+            .signature-box {
+              padding-top: 18px;
+              border-top: 1.5px solid #8f7c54;
+              text-align: center;
+              font-size: 11px;
+              color: #5e5135;
+            }
+            .rule-box {
+              margin-top: 10px;
+              border: 1px solid #8bc6e8;
+              border-radius: 12px;
+              background: #fbfeff;
+              padding: 10px 14px;
+            }
+            .rule-box h3 {
+              margin: 0 0 8px;
+              font-size: 15px;
+              color: #0f4f7b;
+            }
+            .rule-list {
+              margin: 0;
+              padding-left: 18px;
+              line-height: 1.4;
+              font-size: 11px;
+              color: #294b5d;
+            }
+            .footer-band {
+              position: absolute;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              height: 10mm;
+              background: linear-gradient(180deg, #0d89cc 0%, #0a6eab 100%);
+            }
+            @media print {
+              body { background: rgba(255,255,255,0.95); }
+              .page {
+                margin: 0;
+                width: 100%;
+                min-height: 287mm;
+                max-width: 100%;
+                border: none;
+                border-radius: 0;
+                box-shadow: none;
+              }
+            }
+            @media screen and (max-width: 720px) {
+              .hero,
+              .section-grid,
+              .reference-header,
+              .reference-row,
+              .bottom-grid,
+              .office-grid,
+              .signature-row,
+              .subhead-grid {
+                grid-template-columns: 1fr;
+              }
+              .photo {
+                width: 100%;
+                max-width: 220px;
+              }
+              .hero-grid {
+                grid-template-columns: 1fr;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="page">
+            <div class="top-band"></div>
+            <div class="header">
+              <div class="header-top">
+                <div class="logo">
+                  <img src="/site-logo.png" alt="Site logo" />
+                </div>
+                <div>
+                  <h1>${escapeHtml(t("আননূর শিক্ষা পরিবার ভর্তি আবেদন ফর্ম", "Annoor Education Family Admission Form"))}</h1>
+                  <p>${escapeHtml(t("সঠিক তথ্য যাচাই করে অফিস কপির জন্য সংরক্ষণ করুন", "Verify the information and keep this as the office copy"))}</p>
+                </div>
+              </div>
+              <div class="subhead">
+                <span class="chip">${escapeHtml(t("আবেদনের অবস্থা", "Application status"))}: ${escapeHtml(item.status)}</span>
+                <span class="chip">${escapeHtml(t("জমার সময়", "Submitted at"))}: ${escapeHtml(submittedAt)}</span>
+                <span class="chip">${escapeHtml(t("আসন ধরন", "Seat type"))}: ${escapeHtml(residencyTypeLabel)}</span>
+              </div>
+              <div class="subhead-grid">
+                <div class="chip-box">
+                  <small>${escapeHtml(t("সিরিয়াল নং", "Serial no"))}</small>
+                  <strong>${escapeHtml(serialNo)}</strong>
+                </div>
+                <div class="chip-box">
+                  <small>${escapeHtml(t("অ্যাপ্লিকেশন নং", "Application no"))}</small>
+                  <strong>${escapeHtml(applicationNo)}</strong>
+                </div>
+              </div>
+            </div>
+            <div class="content">
+              <div class="hero">
+                <div class="hero-card">
+                  <h2>${escapeHtml(studentName)}</h2>
+                  <div class="hero-grid">
+                    <div class="field">
+                      <small>${escapeHtml(t("নাম (ইংরেজি)", "Name (English)"))}</small>
+                      <strong>${escapeHtml(item.studentName || "-")}</strong>
+                    </div>
+                    <div class="field">
+                      <small>${escapeHtml(t("শ্রেণি", "Class"))}</small>
+                      <strong>${escapeHtml(item.class || "-")}</strong>
+                    </div>
+                    <div class="field">
+                      <small>${escapeHtml(t("ক্যাম্পাস", "Campus"))}</small>
+                      <strong>${escapeHtml(item.campus || "-")}</strong>
+                    </div>
+                    <div class="field">
+                      <small>${escapeHtml(t("জন্ম তারিখ", "Birth date"))}</small>
+                      <strong>${escapeHtml(item.birthDate || "-")}</strong>
+                    </div>
+                  </div>
+                </div>
+                <div>${photoMarkup}</div>
+              </div>
+
+              <div class="section-grid">
+                <div class="section">
+                  <h3>${escapeHtml(t("শিক্ষার্থীর তথ্য", "Student information"))}</h3>
+                  <div class="row"><span class="label">${escapeHtml(t("লিঙ্গ", "Gender"))}</span><span class="value">${escapeHtml(item.gender || "-")}</span></div>
+                  <div class="row"><span class="label">${escapeHtml(t("ধর্ম", "Religion"))}</span><span class="value">${escapeHtml(item.religion || "-")}</span></div>
+                  <div class="row"><span class="label">${escapeHtml(t("শ্রেণি", "Class"))}</span><span class="value">${escapeHtml(item.class || "-")}</span></div>
+                  <div class="row"><span class="label">${escapeHtml(t("ক্যাম্পাস", "Campus"))}</span><span class="value">${escapeHtml(item.campus || "-")}</span></div>
+                </div>
+                <div class="section">
+                  <h3>${escapeHtml(t("অভিভাবকের তথ্য", "Guardian information"))}</h3>
+                  <div class="row"><span class="label">${escapeHtml(t("পিতার নাম", "Father's name"))}</span><span class="value">${escapeHtml(fatherName)}</span></div>
+                  <div class="row"><span class="label">${escapeHtml(t("পিতার ফোন", "Father's phone"))}</span><span class="value">${escapeHtml(item.fatherPhone || "-")}</span></div>
+                  <div class="row"><span class="label">${escapeHtml(t("মাতার নাম", "Mother's name"))}</span><span class="value">${escapeHtml(motherName)}</span></div>
+                  <div class="row"><span class="label">${escapeHtml(t("মাতার ফোন", "Mother's phone"))}</span><span class="value">${escapeHtml(item.motherPhone || "-")}</span></div>
+                </div>
+              </div>
+
+              <div class="section section-full">
+                <h3>${escapeHtml(t("ঠিকানা", "Address"))}</h3>
+                <div class="row"><span class="label">${escapeHtml(t("বর্তমান ঠিকানা", "Present address"))}</span><span class="value">${escapeHtml(presentAddress)}</span></div>
+                <div class="row"><span class="label">${escapeHtml(t("স্থায়ী ঠিকানা", "Permanent address"))}</span><span class="value">${escapeHtml(permanentAddress)}</span></div>
+              </div>
+
+              <div class="reference-box">
+                <h3>${escapeHtml(t("অভিভাবক/সাক্ষাৎপ্রার্থী তথ্য", "Guardian / Reference details"))}</h3>
+                <div class="reference-header">
+                  <span>${escapeHtml(t("নাম", "Name"))}</span>
+                  <span>${escapeHtml(t("সম্পর্ক", "Relation"))}</span>
+                  <span>${escapeHtml(t("মোবাইল", "Mobile"))}</span>
+                </div>
+                ${(item.interviewReferences?.length ? item.interviewReferences : Array.from({ length: 3 }, () => ({ name: "", relation: "", mobile: "" })))
+                  .slice(0, 3)
+                  .map(
+                    (reference) => `
+                      <div class="reference-row">
+                        <span class="reference-line">${escapeHtml(reference.name || "")}</span>
+                        <span class="reference-line">${escapeHtml(reference.relation || "")}</span>
+                        <span class="reference-line">${escapeHtml(reference.mobile || "")}</span>
+                      </div>
+                    `,
+                  )
+                  .join("")}
+              </div>
+
+              <div class="bottom-grid">
+                <div>
+                  <div class="rule-box">
+                    <h3>${escapeHtml(t("নির্দেশনা", "Instructions"))}</h3>
+                    <ol class="rule-list">
+                      ${ruleItems.map((rule) => `<li>${escapeHtml(rule)}</li>`).join("")}
+                    </ol>
+                  </div>
+                  <div class="footer-note">
+                    ${escapeHtml(t("অভিভাবক ও আবেদনকারী উপরের তথ্য ও শর্তাবলি ভালোভাবে পড়ে অফিস কপিতে প্রয়োজনীয় স্বাক্ষর সম্পন্ন করবেন।", "Guardians and applicants should read the above information and complete the required signatures on the office copy."))}
+                  </div>
+                </div>
+                <div class="office-box">
+                  <h3>${escapeHtml(t("অফিস ব্যবহারের জন্য", "Office use only"))}</h3>
+                  <div class="office-grid">
+                    <div class="office-field"><small>${escapeHtml(t("ভর্তি যোগ্যতা যাচাই", "Eligibility check"))}</small></div>
+                    <div class="office-field"><small>${escapeHtml(t("ডকুমেন্ট যাচাই", "Document verification"))}</small></div>
+                    <div class="office-field"><small>${escapeHtml(t("শ্রেণি নিশ্চিতকরণ", "Class confirmation"))}</small></div>
+                    <div class="office-field"><small>${escapeHtml(t("ফি/রসিদ নোট", "Fee/receipt note"))}</small></div>
+                    <div class="office-field"><small>${escapeHtml(t("মন্তব্য", "Remarks"))}</small></div>
+                    <div class="office-field"><small>${escapeHtml(t("চূড়ান্ত সিদ্ধান্ত", "Final decision"))}</small></div>
+                  </div>
+                  <div class="signature-row">
+                    <div class="signature-box">${escapeHtml(t("প্রস্তুতকারীর স্বাক্ষর", "Prepared by"))}</div>
+                    <div class="signature-box">${escapeHtml(t("যাচাইকারীর স্বাক্ষর", "Verified by"))}</div>
+                    <div class="signature-box">${escapeHtml(t("অনুমোদনকারীর স্বাক্ষর", "Approved by"))}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="footer-band"></div>
+          </div>
+        </body>
+      </html>
+    `;
+  };
+
   const selectedSummary = useMemo(() => (selectedItem ? buildAdmissionSummary(selectedItem) : ""), [selectedItem]);
 
   const downloadSummary = (item: AdmissionForm) => {
-    const blob = new Blob([buildAdmissionSummary(item)], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([buildAdmissionPrintHtml(item)], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${(item.studentName || "admission").replace(/\s+/g, "-").toLowerCase()}-summary.txt`;
+    link.download = `${(item.studentName || "admission").replace(/\s+/g, "-").toLowerCase()}-form.html`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -205,34 +758,22 @@ export const AdmissionsManagerPage = ({
   const printSummary = (item: AdmissionForm) => {
     const printWindow = window.open("", "_blank", "width=900,height=700");
     if (!printWindow) return;
-
-    const summary = buildAdmissionSummary(item)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/\n/g, "<br />");
-
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>${item.studentName} - Admission Summary</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 32px; color: #111827; }
-            h1 { margin-bottom: 8px; }
-            .meta { color: #4b5563; margin-bottom: 24px; }
-            .card { border: 1px solid #d1d5db; border-radius: 16px; padding: 24px; line-height: 1.8; }
-          </style>
-        </head>
-        <body>
-          <h1>${t("ভর্তি আবেদন", "Admission Application")}</h1>
-          <div class="meta">${item.studentNameBn || item.studentName}</div>
-          <div class="card">${summary}</div>
-        </body>
-      </html>
-    `);
+    printWindow.document.write(buildAdmissionPrintHtml(item));
     printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
+    const runPrint = () => {
+      printWindow.focus();
+      printWindow.print();
+    };
+
+    if ("fonts" in printWindow.document) {
+      void (printWindow.document as Document & { fonts?: FontFaceSet }).fonts?.ready.then(() => {
+        printWindow.addEventListener("load", () => setTimeout(runPrint, 250), { once: true });
+        setTimeout(runPrint, 600);
+      });
+    } else {
+      printWindow.addEventListener("load", () => setTimeout(runPrint, 250), { once: true });
+      setTimeout(runPrint, 600);
+    }
   };
 
   return (
@@ -298,6 +839,16 @@ export const AdmissionsManagerPage = ({
                     <p><span className="font-medium text-foreground">{t("ধর্ম", "Religion")}:</span> {selectedItem.religion || "-"}</p>
                     <p><span className="font-medium text-foreground">{t("শ্রেণি", "Class")}:</span> {selectedItem.class || "-"}</p>
                     <p><span className="font-medium text-foreground">{t("ক্যাম্পাস", "Campus")}:</span> {selectedItem.campus || "-"}</p>
+                    <p>
+                      <span className="font-medium text-foreground">{t("আসন ধরন", "Seat type")}:</span>{" "}
+                      {selectedItem.residencyType === "residential"
+                        ? t("আবাসিক", "Residential")
+                        : selectedItem.residencyType === "non-residential"
+                          ? t("অনাবাসিক", "Non-residential")
+                          : selectedItem.residencyType === "day-care"
+                            ? t("ডে-কেয়ার", "Day care")
+                            : "-"}
+                    </p>
                   </div>
                 </div>
 
@@ -317,6 +868,19 @@ export const AdmissionsManagerPage = ({
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p><span className="font-medium text-foreground">{t("বর্তমান ঠিকানা", "Present address")}:</span> {selectedItem.presentAddressBn || selectedItem.presentAddress || "-"}</p>
                   <p><span className="font-medium text-foreground">{t("স্থায়ী ঠিকানা", "Permanent address")}:</span> {selectedItem.permanentAddressBn || selectedItem.permanentAddress || "-"}</p>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-border/70 bg-muted/20 p-5">
+                <h3 className="mb-3 font-bengali text-base font-semibold">{t("সাক্ষাৎপ্রার্থী / রেফারেন্স", "Interview candidate / references")}</h3>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  {(selectedItem.interviewReferences?.length ? selectedItem.interviewReferences : Array.from({ length: 3 }, () => ({ name: "", relation: "", mobile: "" })))
+                    .slice(0, 3)
+                    .map((reference, index) => (
+                      <p key={index}>
+                        <span className="font-medium text-foreground">{index + 1}.</span> {reference.name || "-"} • {reference.relation || "-"} • {reference.mobile || "-"}
+                      </p>
+                    ))}
                 </div>
               </div>
 
@@ -352,7 +916,7 @@ export const FeesManagerPage = ({
 }) => {
   const { t } = useLanguage();
   const [form, setForm] = useState<FeeRecord>({
-    id: crypto.randomUUID(),
+    id: createClientId(),
     title: "",
     amount: 0,
     dueDate: new Date().toISOString().slice(0, 10),
@@ -365,7 +929,7 @@ export const FeesManagerPage = ({
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     onSave(form);
-    setForm({ id: crypto.randomUUID(), title: "", amount: 0, dueDate: new Date().toISOString().slice(0, 10), campus: "both", status: "draft", note: "", createdAt: Date.now() });
+    setForm({ id: createClientId(), title: "", amount: 0, dueDate: new Date().toISOString().slice(0, 10), campus: "both", status: "draft", note: "", createdAt: Date.now() });
   };
 
   return (
@@ -410,7 +974,7 @@ export const AttendanceManagerPage = ({
 }) => {
   const { t } = useLanguage();
   const [form, setForm] = useState<AttendanceRecord>({
-    id: crypto.randomUUID(),
+    id: createClientId(),
     label: "",
     date: new Date().toISOString().slice(0, 10),
     campus: "both",
@@ -422,7 +986,7 @@ export const AttendanceManagerPage = ({
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     onSave(form);
-    setForm({ id: crypto.randomUUID(), label: "", date: new Date().toISOString().slice(0, 10), campus: "both", presentCount: 0, absentCount: 0, createdAt: Date.now() });
+    setForm({ id: createClientId(), label: "", date: new Date().toISOString().slice(0, 10), campus: "both", presentCount: 0, absentCount: 0, createdAt: Date.now() });
   };
 
   return (
@@ -455,22 +1019,249 @@ export const AttendanceManagerPage = ({
 export const GuardianRequestsPage = ({
   items,
   onSave,
+  onCreateGuardianAccount,
   onDelete,
 }: {
   items: GuardianRequest[];
   onSave: (record: GuardianRequest) => void;
+  onCreateGuardianAccount: (payload: GuardianRegistrationInput) => Promise<void>;
   onDelete: (id: string) => void;
 }) => {
   const { t } = useLanguage();
+  const [showForm, setShowForm] = useState(false);
+  const [showAccountForm, setShowAccountForm] = useState(false);
+  const [accountSaving, setAccountSaving] = useState(false);
+  const [accountError, setAccountError] = useState("");
+  const [accountSuccess, setAccountSuccess] = useState("");
+  const [form, setForm] = useState<GuardianRequest>({
+    id: createClientId(),
+    guardianName: "",
+    studentName: "",
+    topic: "",
+    message: "",
+    status: "pending",
+    createdAt: Date.now(),
+  });
+  const [accountForm, setAccountForm] = useState<GuardianRegistrationInput>({
+    fullName: "",
+    phone: "",
+    email: "",
+    password: "",
+    relationship: "Father",
+    address: "",
+    nid: "",
+    studentId: "",
+    studentName: "",
+    className: "",
+    section: "",
+    roll: 1,
+  });
+
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    onSave({
+      ...form,
+      guardianName: form.guardianName.trim(),
+      studentName: form.studentName.trim(),
+      topic: form.topic.trim(),
+      message: form.message.trim(),
+    });
+    setForm({
+      id: createClientId(),
+      guardianName: "",
+      studentName: "",
+      topic: "",
+      message: "",
+      status: "pending",
+      createdAt: Date.now(),
+    });
+    setShowForm(false);
+  };
+
+  const submitGuardianAccount = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setAccountSaving(true);
+    setAccountError("");
+    setAccountSuccess("");
+
+    try {
+      await onCreateGuardianAccount(accountForm);
+      setAccountForm({
+        fullName: "",
+        phone: "",
+        email: "",
+        password: "",
+        relationship: "Father",
+        address: "",
+        nid: "",
+        studentId: "",
+        studentName: "",
+        className: "",
+        section: "",
+        roll: 1,
+      });
+      setAccountSuccess(t("গার্ডিয়ান অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে", "Guardian account created successfully"));
+      setShowAccountForm(false);
+    } catch (error) {
+      const code =
+        typeof error === "object" && error !== null && "code" in error
+          ? String((error as { code?: string }).code)
+          : "";
+      const message = error instanceof Error ? error.message : "";
+
+      if (message === "student-already-linked") {
+        setAccountError(t("এই স্টুডেন্ট আইডির সাথে আগে থেকেই একটি গার্ডিয়ান যুক্ত আছে", "This student ID is already linked to a guardian"));
+      } else if (code === "auth/email-already-in-use") {
+        setAccountError(t("এই ইমেইল দিয়ে আগেই একটি অ্যাকাউন্ট আছে", "An account already exists with this email"));
+      } else {
+        setAccountError(t("গার্ডিয়ান অ্যাকাউন্ট তৈরি করা যায়নি", "Could not create guardian account"));
+      }
+    } finally {
+      setAccountSaving(false);
+    }
+  };
 
   return (
-    <ModuleShell title={t("à¦—à¦¾à¦°à§à¦¡à¦¿à§Ÿà¦¾à¦¨ à¦°à¦¿à¦•à§‹à§Ÿà§‡à¦¸à§à¦Ÿ", "Guardian Requests")} description={t("à¦—à¦¾à¦°à§à¦¡à¦¿à§Ÿà¦¾à¦¨à¦¦à§‡à¦° à¦¸à¦¾à¦ªà§‹à¦°à§à¦Ÿ, à¦«à¦²à¦¾à¦«à¦², à¦«à¦¿ à¦“ à¦…à¦¨à§à¦¯à¦¾à¦¨à§à¦¯ à¦…à¦¨à§à¦°à§‹à¦§à¦—à§à¦²à§‹ à¦…à¦¨à§à¦¸à¦°à¦£ à¦•à¦°à§à¦¨", "Track guardian support and service requests")} icon={<Users className="h-5 w-5" />}>
+    <ModuleShell
+      title={t("গার্ডিয়ান রিকোয়েস্ট", "Guardian Requests")}
+      description={t(
+        "গার্ডিয়ানদের সাপোর্ট, ফলাফল, ফি ও অন্যান্য অনুরোধগুলো এখান থেকে ট্র্যাক ও ম্যানেজ করুন",
+        "Track and manage guardian support, results, fee, and other requests from here",
+      )}
+      actionLabel={t("নতুন গার্ডিয়ান", "New Guardian")}
+      onAction={() => setShowAccountForm((current) => !current)}
+      icon={<Users className="h-5 w-5" />}
+    >
+      {showAccountForm && (
+        <FormCard onSubmit={submitGuardianAccount} submitLabel={accountSaving ? t("তৈরি হচ্ছে...", "Creating...") : t("গার্ডিয়ান অ্যাকাউন্ট তৈরি করুন", "Create guardian account")} saving={accountSaving}>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label={t("গার্ডিয়ানের নাম", "Guardian name")}>
+              <Input value={accountForm.fullName} onChange={(event) => setAccountForm((current) => ({ ...current, fullName: event.target.value }))} className="rounded-2xl" />
+            </Field>
+            <Field label={t("মোবাইল নম্বর", "Phone number")}>
+              <Input value={accountForm.phone} onChange={(event) => setAccountForm((current) => ({ ...current, phone: event.target.value }))} className="rounded-2xl" />
+            </Field>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label={t("ইমেইল", "Email")}>
+              <Input type="email" value={accountForm.email} onChange={(event) => setAccountForm((current) => ({ ...current, email: event.target.value }))} className="rounded-2xl" />
+            </Field>
+            <Field label={t("পাসওয়ার্ড", "Password")}>
+              <Input type="password" value={accountForm.password} onChange={(event) => setAccountForm((current) => ({ ...current, password: event.target.value }))} className="rounded-2xl" />
+            </Field>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label={t("সম্পর্ক", "Relationship")}>
+              <select
+                value={accountForm.relationship}
+                onChange={(event) =>
+                  setAccountForm((current) => ({
+                    ...current,
+                    relationship: event.target.value as GuardianRelationship,
+                  }))
+                }
+                className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+              >
+                <option value="Father">{t("পিতা", "Father")}</option>
+                <option value="Mother">{t("মাতা", "Mother")}</option>
+                <option value="Guardian">{t("অভিভাবক", "Guardian")}</option>
+              </select>
+            </Field>
+            <Field label={t("এনআইডি", "NID")}>
+              <Input value={accountForm.nid} onChange={(event) => setAccountForm((current) => ({ ...current, nid: event.target.value }))} className="rounded-2xl" />
+            </Field>
+          </div>
+          <Field label={t("ঠিকানা", "Address")}>
+            <Textarea value={accountForm.address} onChange={(event) => setAccountForm((current) => ({ ...current, address: event.target.value }))} className="rounded-2xl" rows={3} />
+          </Field>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label={t("স্টুডেন্ট আইডি", "Student ID")}>
+              <Input value={accountForm.studentId} onChange={(event) => setAccountForm((current) => ({ ...current, studentId: event.target.value }))} className="rounded-2xl" />
+            </Field>
+            <Field label={t("শিক্ষার্থীর নাম", "Student name")}>
+              <Input value={accountForm.studentName} onChange={(event) => setAccountForm((current) => ({ ...current, studentName: event.target.value }))} className="rounded-2xl" />
+            </Field>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Field label={t("শ্রেণি", "Class")}>
+              <Input value={accountForm.className} onChange={(event) => setAccountForm((current) => ({ ...current, className: event.target.value }))} className="rounded-2xl" />
+            </Field>
+            <Field label={t("সেকশন", "Section")}>
+              <Input value={accountForm.section} onChange={(event) => setAccountForm((current) => ({ ...current, section: event.target.value }))} className="rounded-2xl" />
+            </Field>
+            <Field label={t("রোল", "Roll")}>
+              <Input type="number" min={1} value={accountForm.roll} onChange={(event) => setAccountForm((current) => ({ ...current, roll: Number(event.target.value) || 1 }))} className="rounded-2xl" />
+            </Field>
+          </div>
+          {accountError ? <p className="font-bengali text-sm text-red-600">{accountError}</p> : null}
+          {accountSuccess ? <p className="font-bengali text-sm text-emerald-600">{accountSuccess}</p> : null}
+        </FormCard>
+      )}
+
+      {showForm && (
+        <FormCard onSubmit={submit} submitLabel={t("রিকোয়েস্ট সংরক্ষণ", "Save Request")}>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label={t("গার্ডিয়ানের নাম", "Guardian name")}>
+              <Input
+                value={form.guardianName}
+                onChange={(event) => setForm((current) => ({ ...current, guardianName: event.target.value }))}
+                className="rounded-2xl"
+              />
+            </Field>
+            <Field label={t("শিক্ষার্থীর নাম", "Student name")}>
+              <Input
+                value={form.studentName}
+                onChange={(event) => setForm((current) => ({ ...current, studentName: event.target.value }))}
+                className="rounded-2xl"
+              />
+            </Field>
+          </div>
+          <Field label={t("রিকোয়েস্ট বিষয়", "Request topic")}>
+            <Input
+              value={form.topic}
+              onChange={(event) => setForm((current) => ({ ...current, topic: event.target.value }))}
+              className="rounded-2xl"
+            />
+          </Field>
+          <Field label={t("বার্তা", "Message")}>
+            <Textarea
+              value={form.message}
+              onChange={(event) => setForm((current) => ({ ...current, message: event.target.value }))}
+              className="rounded-2xl"
+              rows={4}
+            />
+          </Field>
+          <Field label={t("স্ট্যাটাস", "Status")}>
+            <select
+              value={form.status}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  status: event.target.value as GuardianRequest["status"],
+                }))
+              }
+              className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+            >
+              <option value="pending">{t("পেন্ডিং", "Pending")}</option>
+              <option value="in-review">{t("রিভিউতে", "In Review")}</option>
+              <option value="resolved">{t("সমাধান", "Resolved")}</option>
+            </select>
+          </Field>
+        </FormCard>
+      )}
+
+      <div className="flex justify-end">
+        <Button variant="outline" className="rounded-2xl font-bengali" onClick={() => setShowForm((current) => !current)}>
+          {showForm ? t("রিকোয়েস্ট ফর্ম লুকান", "Hide request form") : t("ম্যানুয়াল রিকোয়েস্ট", "Manual Request")}
+        </Button>
+      </div>
+
       <Card className={shellCardClass}>
         <CardContent className="space-y-4 p-6">
-          {items.length === 0 ? <EmptyState text={t("à¦•à§‹à¦¨à§‹ à¦—à¦¾à¦°à§à¦¡à¦¿à§Ÿà¦¾à¦¨ à¦°à¦¿à¦•à§‹à§Ÿà§‡à¦¸à§à¦Ÿ à¦¨à§‡à¦‡", "No guardian requests")} /> : items.map((item) => (
+          {items.length === 0 ? <EmptyState text={t("কোনো গার্ডিয়ান রিকোয়েস্ট নেই", "No guardian requests")} /> : items.map((item) => (
             <ItemCard
               key={item.id}
-              title={`${item.guardianName} â€¢ ${item.studentName}`}
+              title={`${item.guardianName} • ${item.studentName}`}
               meta={item.topic}
               onDelete={() => onDelete(item.id)}
               trailing={
@@ -479,9 +1270,9 @@ export const GuardianRequestsPage = ({
                   onChange={(event) => onSave({ ...item, status: event.target.value as GuardianRequest["status"] })}
                   className="h-9 rounded-xl border border-input bg-background px-3 text-xs outline-none"
                 >
-                  <option value="pending">{t("à¦ªà§‡à¦¨à§à¦¡à¦¿à¦‚", "Pending")}</option>
-                  <option value="in-review">{t("à¦°à¦¿à¦­à¦¿à¦‰à¦¤à§‡", "In review")}</option>
-                  <option value="resolved">{t("à¦¸à¦®à¦¾à¦§à¦¾à¦¨", "Resolved")}</option>
+                  <option value="pending">{t("পেন্ডিং", "Pending")}</option>
+                  <option value="in-review">{t("রিভিউতে", "In Review")}</option>
+                  <option value="resolved">{t("সমাধান", "Resolved")}</option>
                 </select>
               }
             >
@@ -529,10 +1320,23 @@ export const SettingsPage = ({
           <ToggleRow label={t("ম্যানেজার ইমেইল নোটিফিকেশন", "Manager email notifications")} checked={draft.notifyManagersByEmail} onCheckedChange={(checked) => setDraft((current) => ({ ...current, notifyManagersByEmail: checked }))} />
           <ToggleRow label={t("ভর্তি চালু", "Admissions open")} checked={draft.admissionsOpen} onCheckedChange={(checked) => setDraft((current) => ({ ...current, admissionsOpen: checked }))} />
         </div>
+
+        <div className="rounded-3xl border border-border/70 bg-muted/20 p-5">
+          <h3 className="font-bengali text-base font-semibold text-foreground">{t("ডিসপ্লে পছন্দ", "Display preferences")}</h3>
+          <p className="mt-1 font-bengali text-sm text-muted-foreground">
+            {t("ড্যাশবোর্ডের ভাষা ও থিম এখান থেকে পরিবর্তন করুন", "Change the dashboard language and theme from here")}
+          </p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <LanguageToggle />
+            <ThemeToggle />
+          </div>
+        </div>
       </FormCard>
     </ModuleShell>
   );
 };
+
+
 
 
 

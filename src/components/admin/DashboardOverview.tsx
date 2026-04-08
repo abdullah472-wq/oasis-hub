@@ -1,14 +1,12 @@
-﻿import { ArrowDownToLine, ArrowRight, BellRing, BookCopy, BookOpenCheck, CreditCard, UserCheck, Users } from "lucide-react";
+﻿import { ArrowDownToLine, ArrowRight, BellRing, BookCopy, CalendarDays, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import type { ActivityItem, AdmissionForm, Event, GuardianRequest, Notice, Review } from "@/lib/adminDashboard";
+import type { ActivityItem, Event, Notice, Review } from "@/lib/adminDashboard";
 import type { AdminUser } from "@/lib/adminDashboard";
 import { canAccessPermission } from "@/lib/adminDashboard";
-import type { FeeEntry } from "@/lib/feeEntries";
-import type { FeeSummary } from "@/lib/feeHelpers";
 import { buildDashboardSummaryText, downloadDashboardSummary } from "@/lib/dashboardSummary";
 
 interface DashboardOverviewProps {
@@ -17,34 +15,15 @@ interface DashboardOverviewProps {
     totalNews: number;
     totalNotices: number;
     pendingReviews: number;
-    pendingAdmissions: number;
     activeManagers: number;
-    pendingGuardianRequests: number;
-    monthlyFees: number;
-    attendanceRate: number;
   };
   notices: Notice[];
   events: Event[];
-  admissions: AdmissionForm[];
   reviews: Review[];
-  guardianRequests: GuardianRequest[];
-  feeEntries: FeeEntry[];
-  feeSummary: FeeSummary;
   activityFeed: ActivityItem[];
 }
 
-const DashboardOverview = ({
-  user,
-  stats,
-  notices,
-  events,
-  admissions,
-  reviews,
-  guardianRequests,
-  feeEntries,
-  feeSummary,
-  activityFeed,
-}: DashboardOverviewProps) => {
+const DashboardOverview = ({ user, stats, notices, events, reviews, activityFeed }: DashboardOverviewProps) => {
   const { t, lang } = useLanguage();
 
   const statCards = [
@@ -58,47 +37,44 @@ const DashboardOverview = ({
       icon: BellRing,
     },
     {
-      key: "fees",
-      titleBn: "মোট বকেয়া",
-      titleEn: "Total Due",
-      value: `৳${stats.monthlyFees.toLocaleString("en-US")}`,
-      descriptionBn: "সব শিক্ষার্থীর মোট বকেয়া",
-      descriptionEn: "Total due across students",
-      icon: CreditCard,
+      key: "news",
+      titleBn: "মোট সংবাদ",
+      titleEn: "Total News",
+      value: stats.totalNews,
+      descriptionBn: "প্রকাশিত সংবাদ পোস্ট",
+      descriptionEn: "Published news posts",
+      icon: BookCopy,
     },
     {
-      key: "attendance",
-      titleBn: "উপস্থিতির হার",
-      titleEn: "Attendance Rate",
-      value: `${stats.attendanceRate}%`,
-      descriptionBn: "সর্বশেষ রেকর্ডের উপর ভিত্তি করে",
-      descriptionEn: "Based on latest records",
-      icon: UserCheck,
+      key: "reviews",
+      titleBn: "অপেক্ষমান রিভিউ",
+      titleEn: "Pending Reviews",
+      value: stats.pendingReviews,
+      descriptionBn: "অনুমোদনের অপেক্ষায় রিভিউ",
+      descriptionEn: "Reviews waiting for approval",
+      icon: ShieldCheck,
     },
     {
-      key: "requests",
-      titleBn: "অপেক্ষমান অনুরোধ",
-      titleEn: "Pending Requests",
-      value: stats.pendingGuardianRequests,
-      descriptionBn: "গার্ডিয়ান সাপোর্ট ইনবক্স",
-      descriptionEn: "Guardian support inbox",
-      icon: Users,
+      key: "events",
+      titleBn: "আসন্ন ইভেন্ট",
+      titleEn: "Upcoming Events",
+      value: events.length,
+      descriptionBn: "তালিকাভুক্ত ইভেন্ট",
+      descriptionEn: "Listed upcoming events",
+      icon: CalendarDays,
     },
   ];
 
   const quickActions = [
     { key: "notice", labelBn: "নোটিশ প্রকাশ", labelEn: "Publish Notice", to: "/admin/notices", permission: "notices.manage" as const },
-    { key: "admission", labelBn: "ভর্তি আবেদন দেখুন", labelEn: "Review Admissions", to: "/admin/admissions", permission: "admissions.manage" as const },
+    { key: "news", labelBn: "সংবাদ যোগ করুন", labelEn: "Add News", to: "/admin/news", permission: "news.manage" as const },
     { key: "managers", labelBn: "ম্যানেজার অনুমতি", labelEn: "Manager Permissions", to: "/admin/managers", permission: "managers.manage" as const },
-    { key: "fees", labelBn: "ফি মডিউল", labelEn: "Fees Module", to: "/admin/fees", permission: "fees.manage" as const },
+    { key: "ramadan", labelBn: "রমাদান মডিউল", labelEn: "Ramadan Module", to: "/admin/ramadan", permission: "ramadan.manage" as const },
   ].filter((action) => canAccessPermission(user, action.permission));
 
   const latestNotices = notices.slice(0, 4);
   const latestEvents = events.slice(0, 4);
-  const pendingAdmissions = admissions.filter((item) => item.status === "pending").slice(0, 4);
   const pendingReviews = reviews.filter((item) => !item.approved).slice(0, 4);
-  const pendingRequests = guardianRequests.filter((item) => item.status !== "resolved").slice(0, 4);
-  const latestFees = feeEntries.slice(0, 4);
 
   const handleDownloadSummary = () => {
     const summaryText = buildDashboardSummaryText({
@@ -106,11 +82,7 @@ const DashboardOverview = ({
       stats,
       notices,
       events,
-      admissions,
       reviews,
-      guardianRequests,
-      feeEntries,
-      feeSummary,
       activityFeed,
       t,
       lang,
@@ -172,13 +144,13 @@ const DashboardOverview = ({
         <Card className="rounded-3xl border-border/60 bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-[0_20px_60px_-40px_rgba(13,87,73,0.65)]">
           <CardHeader>
             <CardTitle className="font-bengali text-xl">{t("অপারেশন স্ন্যাপশট", "Operation Snapshot")}</CardTitle>
-            <CardDescription className="font-bengali text-primary-foreground/75">{t("ম্যানেজার, ভর্তি, রিভিউ এবং ফি-এর বর্তমান অবস্থা", "Live status of managers, admissions, reviews, and fees")}</CardDescription>
+            <CardDescription className="font-bengali text-primary-foreground/75">{t("ম্যানেজার, রিভিউ এবং কনটেন্ট অপারেশনের বর্তমান অবস্থা", "Live status of managers, reviews, and content operations")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <SnapshotRow label={t("সক্রিয় ম্যানেজার", "Active Managers")} value={String(stats.activeManagers)} />
-            <SnapshotRow label={t("অপেক্ষমান ভর্তি", "Pending Admissions")} value={String(stats.pendingAdmissions)} />
             <SnapshotRow label={t("অপেক্ষমান রিভিউ", "Pending Reviews")} value={String(stats.pendingReviews)} />
-            <SnapshotRow label={t("মোট পরিশোধ", "Fees Paid")} value={`৳${feeSummary.totalPaid.toLocaleString("en-US")}`} />
+            <SnapshotRow label={t("প্রকাশিত নোটিশ", "Published Notices")} value={String(stats.totalNotices)} />
+            <SnapshotRow label={t("প্রকাশিত সংবাদ", "Published News")} value={String(stats.totalNews)} />
           </CardContent>
         </Card>
       </div>
@@ -229,11 +201,9 @@ const DashboardOverview = ({
             <CardTitle className="font-bengali text-lg">{t("অপেক্ষমান কিউ", "Pending Queue")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <QueueBlock title={t("গার্ডিয়ান অনুরোধ", "Guardian Requests")} items={pendingRequests.map((item) => item.topic)} icon={<Users className="h-4 w-4" />} />
-            <QueueBlock title={t("ভর্তি আবেদন", "Admissions")} items={pendingAdmissions.map((item) => item.studentNameBn || item.studentName)} icon={<BookOpenCheck className="h-4 w-4" />} />
             <QueueBlock title={t("রিভিউ অনুমোদন", "Review Approval")} items={pendingReviews.map((item) => item.name)} icon={<BookCopy className="h-4 w-4" />} />
-            <QueueBlock title={t("ফি সারাংশ", "Fee Summary")} items={latestFees.map((item) => `${item.studentName} - ${item.title} - ৳${item.dueAmount}`)} icon={<CreditCard className="h-4 w-4" />} />
-            <QueueBlock title={t("আসন্ন ইভেন্ট", "Upcoming Events")} items={latestEvents.map((item) => item.titleBn)} icon={<BellRing className="h-4 w-4" />} />
+            <QueueBlock title={t("আসন্ন ইভেন্ট", "Upcoming Events")} items={latestEvents.map((item) => item.titleBn)} icon={<CalendarDays className="h-4 w-4" />} />
+            <QueueBlock title={t("সাম্প্রতিক নোটিশ", "Recent Notices")} items={latestNotices.map((item) => item.titleBn)} icon={<BellRing className="h-4 w-4" />} />
           </CardContent>
         </Card>
       </div>

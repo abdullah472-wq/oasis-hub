@@ -3,6 +3,7 @@ import type { FeeSummary } from "@/lib/feeHelpers";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatGuardianFeeStatus } from "@/lib/guardianText";
 
 interface GuardianFeeSummaryProps {
   summary: FeeSummary;
@@ -38,7 +39,9 @@ const GuardianFeeSummary = ({ summary, entries, compact = false }: GuardianFeeSu
                 </div>
                 <div className="text-right">
                   <p className="font-bengali text-sm font-semibold">৳{item.dueAmount.toLocaleString("en-US")}</p>
-                  <Badge variant={item.status === "paid" ? "secondary" : item.status === "partial" ? "outline" : "destructive"} className="rounded-full capitalize">{item.status}</Badge>
+                  <Badge variant={item.status === "paid" ? "secondary" : item.status === "partial" ? "outline" : "destructive"} className="rounded-full font-bengali">
+                    {formatGuardianFeeStatus(t, item.status)}
+                  </Badge>
                 </div>
               </div>
             ))

@@ -3,8 +3,6 @@ import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { AdminUser, SidebarGroup } from "@/lib/adminDashboard";
 import { canAccessPermission } from "@/lib/adminDashboard";
-import LanguageToggle from "@/components/LanguageToggle";
-import ThemeToggle from "@/components/ThemeToggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -124,40 +122,103 @@ const AdminLayout = ({
           })}
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-sidebar-border/60 p-3">
-          <div className="flex items-center gap-3 rounded-2xl bg-sidebar-accent/50 p-3">
-            <Avatar className="h-10 w-10 border border-sidebar-border/60">
-              <AvatarFallback className="bg-primary/10 font-semibold text-primary">
-                {user.fullName
-                  .split(" ")
-                  .slice(0, 2)
-                  .map((part) => part[0])
-                  .join("")
-                  .toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-              <p className="truncate font-bengali text-sm font-medium text-sidebar-foreground">{user.fullName}</p>
-              <p className="truncate text-xs text-sidebar-foreground/70">{user.email}</p>
-            </div>
-          </div>
-        </SidebarFooter>
+        <SidebarFooter className="border-t border-sidebar-border/60 p-3" />
         <SidebarRail />
       </Sidebar>
 
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-20 border-b border-border/70 bg-background/90 backdrop-blur">
-          <div className="flex flex-col gap-4 px-4 py-4 md:px-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-start gap-3">
-              <SidebarTrigger className="mt-1 h-9 w-9 rounded-xl border border-border bg-card text-foreground" />
-              <div>
-                <h1 className="font-bengali text-2xl font-semibold tracking-tight text-foreground">{pageTitle}</h1>
-                <p className="font-bengali text-sm text-muted-foreground">{pageDescription}</p>
+          <div className="flex flex-col gap-4 px-3 py-3 sm:px-4 md:px-6">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-start gap-3">
+                <SidebarTrigger className="mt-1 h-9 w-9 shrink-0 rounded-xl border border-border bg-card text-foreground" />
+                <div className="min-w-0">
+                  <h1 className="truncate font-bengali text-lg font-semibold tracking-tight text-foreground sm:text-xl md:text-2xl">{pageTitle}</h1>
+                  {pageDescription ? (
+                    <p className="line-clamp-2 font-bengali text-[11px] text-muted-foreground sm:text-sm">{pageDescription}</p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" className="relative h-11 w-11 rounded-2xl border-border/70 bg-card shadow-sm">
+                      <Bell className="h-5 w-5" />
+                      {notificationCount > 0 && (
+                        <span className="absolute right-1 top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+                          {notificationCount}
+                        </span>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-80 max-w-[calc(100vw-1.5rem)] rounded-2xl">
+                    <DropdownMenuLabel className="font-bengali">
+                      {t("ড্যাশবোর্ড নোটিফিকেশন", "Dashboard Notifications")}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <div className="space-y-1 p-2">
+                      <div className="rounded-2xl bg-muted/40 px-3 py-2 text-sm">
+                        <p className="font-bengali font-medium text-foreground">
+                          {t("পেন্ডিং আপডেট", "Pending Updates")}: {notificationCount}
+                        </p>
+                        <p className="mt-1 font-bengali text-xs text-muted-foreground">
+                          {t("নতুন রিভিউ, গার্ডিয়ান রিকোয়েস্ট, বা ভর্তি আবেদন থাকলে এখানে summary দেখাবে।", "Review, guardian request, and admission summaries appear here.")}
+                        </p>
+                      </div>
+                      {notifications.map((item) => (
+                        <DropdownMenuItem key={item.id} className="items-start rounded-xl px-3 py-3 font-bengali text-sm">
+                          <div className="space-y-1">
+                            <p className="text-foreground">{item.label}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {item.tone === "primary"
+                                ? t("এখনই দেখে নেওয়া ভালো", "Worth checking now")
+                                : t("সিস্টেম reminder", "System reminder")}
+                            </p>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="h-11 rounded-2xl border-border/70 bg-card px-3 shadow-sm">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <Avatar className="h-8 w-8">
+                          <img src="/site-logo.png" alt="Admin avatar" className="h-full w-full object-cover" />
+                          <AvatarFallback className="bg-primary/10 text-primary">{user.fullName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="hidden text-left md:block">
+                          <p className="max-w-[140px] truncate font-bengali text-sm font-medium">{user.fullName}</p>
+                          <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                        </div>
+                      </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-60 rounded-2xl">
+                    <DropdownMenuLabel className="font-bengali">
+                      <div className="flex flex-col gap-1">
+                        <span>{user.fullName}</span>
+                        <span className="text-xs font-normal text-muted-foreground">{user.email}</span>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="font-bengali">
+                      <Badge variant="secondary" className="mr-2 capitalize">{user.role}</Badge>
+                      {user.status === "active" ? t("সক্রিয়", "Active") : t("নিষ্ক্রিয়", "Inactive")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="font-bengali text-red-600 focus:text-red-600" onClick={onLogout}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      {t("লগআউট", "Logout")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 md:flex-row md:items-center">
-              <div className="relative min-w-[220px] md:min-w-[280px]">
+            <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={searchValue}
@@ -165,84 +226,6 @@ const AdminLayout = ({
                   className="h-11 rounded-2xl border-border/70 bg-card pl-10 shadow-sm"
                   placeholder={t("সেকশন সার্চ করুন", "Search sections")}
                 />
-              </div>
-
-              <LanguageToggle />
-              <ThemeToggle />
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="relative h-11 w-11 rounded-2xl border-border/70 bg-card shadow-sm">
-                    <Bell className="h-5 w-5" />
-                    {notificationCount > 0 && (
-                      <span className="absolute right-1 top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
-                        {notificationCount}
-                      </span>
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-80 rounded-2xl">
-                  <DropdownMenuLabel className="font-bengali">
-                    {t("ড্যাশবোর্ড নোটিফিকেশন", "Dashboard Notifications")}
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <div className="space-y-1 p-2">
-                    <div className="rounded-2xl bg-muted/40 px-3 py-2 text-sm">
-                      <p className="font-bengali font-medium text-foreground">
-                        {t("পেন্ডিং আপডেট", "Pending Updates")}: {notificationCount}
-                      </p>
-                      <p className="mt-1 font-bengali text-xs text-muted-foreground">
-                        {t("নতুন রিভিউ, গার্ডিয়ান রিকোয়েস্ট, বা ভর্তি আবেদন থাকলে এখানে summary দেখাবে।", "Review, guardian request, and admission summaries appear here.")}
-                      </p>
-                    </div>
-                    {notifications.map((item) => (
-                      <DropdownMenuItem key={item.id} className="items-start rounded-xl px-3 py-3 font-bengali text-sm">
-                        <div className="space-y-1">
-                          <p className="text-foreground">{item.label}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {item.tone === "primary"
-                              ? t("এখনই দেখে নেওয়া ভালো", "Worth checking now")
-                              : t("সিস্টেম reminder", "System reminder")}
-                          </p>
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="h-11 justify-between gap-3 rounded-2xl border-border/70 bg-card px-3 shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-primary/10 text-primary">{user.fullName.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="text-left">
-                        <p className="font-bengali text-sm font-medium">{user.fullName}</p>
-                        <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
-                      </div>
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-60 rounded-2xl">
-                  <DropdownMenuLabel className="font-bengali">
-                    <div className="flex flex-col gap-1">
-                      <span>{user.fullName}</span>
-                      <span className="text-xs font-normal text-muted-foreground">{user.email}</span>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="font-bengali">
-                    <Badge variant="secondary" className="mr-2 capitalize">{user.role}</Badge>
-                    {user.status === "active" ? t("সক্রিয়", "Active") : t("নিষ্ক্রিয়", "Inactive")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="font-bengali text-red-600 focus:text-red-600" onClick={onLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    {t("লগআউট", "Logout")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           </div>
         </header>

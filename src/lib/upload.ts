@@ -43,9 +43,27 @@ export const uploadDocument = async (file: File): Promise<string> => {
 };
 
 export const getDownloadUrl = (url: string): string => {
+  if (url.toLowerCase().includes(".pdf")) {
+    return url;
+  }
+
   if (!url.includes("/res.cloudinary.com/") || !url.includes("/upload/")) {
     return url;
   }
 
   return url.replace("/upload/", "/upload/fl_attachment/");
+};
+
+const sanitizeFilename = (value: string, fallback: string) => {
+  const cleaned = value.trim().replace(/[<>:"/\\|?*\u0000-\u001F]+/g, "-");
+  return cleaned.length > 0 ? cleaned : fallback;
+};
+
+export const downloadFile = async (url: string, filename: string) => {
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = sanitizeFilename(filename, "document.pdf");
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
 };

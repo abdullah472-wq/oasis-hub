@@ -20,6 +20,12 @@ export interface AdmissionForm {
   permanentAddressBn: string;
   class: string;
   campus: string;
+  residencyType?: "residential" | "non-residential" | "day-care" | "";
+  interviewReferences?: Array<{
+    name: string;
+    relation: string;
+    mobile: string;
+  }>;
   imageUrl?: string;
   status: "pending" | "approved" | "rejected";
   createdAt: number;

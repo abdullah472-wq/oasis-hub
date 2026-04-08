@@ -1,10 +1,9 @@
 ﻿import type { LucideIcon } from "lucide-react";
 import {
-  BarChart3,
+  Award,
   BellRing,
   BookOpen,
   CalendarDays,
-  CreditCard,
   FileCheck2,
   FileText,
   GraduationCap,
@@ -16,6 +15,7 @@ import {
   Users,
   Video,
 } from "lucide-react";
+import { createClientId } from "./uuid";
 
 export type AdminRole = "admin" | "manager" | "guardian";
 export type AdminStatus = "pending" | "active" | "inactive";
@@ -28,6 +28,7 @@ export const ADMIN_PERMISSION_KEYS = [
   "notices.manage",
   "results.manage",
   "reviews.manage",
+  "achievements.manage",
   "teachers.manage",
   "virtualTours.manage",
   "admissions.manage",
@@ -83,6 +84,8 @@ export interface AttendanceRecord {
 
 export interface GuardianRequest {
   id: string;
+  guardianUid?: string;
+  studentId?: string;
   guardianName: string;
   studentName: string;
   topic: string;
@@ -167,6 +170,7 @@ export const permissionCatalog: Array<{
       { key: "notices.manage", labelBn: "নোটিশ", labelEn: "Notices" },
       { key: "results.manage", labelBn: "ফলাফল", labelEn: "Results" },
       { key: "reviews.manage", labelBn: "রিভিউ", labelEn: "Reviews" },
+      { key: "achievements.manage", labelBn: "অর্জন", labelEn: "Achievements" },
       { key: "teachers.manage", labelBn: "শিক্ষক", labelEn: "Teachers" },
       { key: "virtualTours.manage", labelBn: "ভার্চুয়াল ট্যুর", labelEn: "Virtual Tours" },
       { key: "admissions.manage", labelBn: "ভর্তি", labelEn: "Admissions" },
@@ -174,20 +178,10 @@ export const permissionCatalog: Array<{
     ],
   },
   {
-    groupKey: "operations",
-    groupLabelBn: "অপারেশনস",
-    groupLabelEn: "Operations",
-    items: [
-      { key: "fees.manage", labelBn: "ফি", labelEn: "Fees" },
-      { key: "attendance.manage", labelBn: "উপস্থিতি", labelEn: "Attendance" },
-    ],
-  },
-  {
     groupKey: "users",
     groupLabelBn: "ইউজার ম্যানেজমেন্ট",
     groupLabelEn: "User Management",
     items: [
-      { key: "guardianRequests.manage", labelBn: "গার্ডিয়ান রিকোয়েস্ট", labelEn: "Guardian Requests" },
       { key: "managers.manage", labelBn: "ম্যানেজারস", labelEn: "Managers" },
       { key: "settings.manage", labelBn: "সেটিংস", labelEn: "Settings" },
     ],
@@ -214,6 +208,7 @@ export const sidebarGroups: SidebarGroup[] = [
       { key: "notices", labelBn: "নোটিশ", labelEn: "Notices", path: "/admin/notices", permission: "notices.manage", icon: BellRing },
       { key: "results", labelBn: "ফলাফল", labelEn: "Results", path: "/admin/results", permission: "results.manage", icon: FileCheck2 },
       { key: "reviews", labelBn: "রিভিউ", labelEn: "Reviews", path: "/admin/reviews", permission: "reviews.manage", icon: MessageSquareQuote },
+      { key: "achievements", labelBn: "অর্জন", labelEn: "Achievements", path: "/admin/achievements", permission: "achievements.manage", icon: Award },
       { key: "teachers", labelBn: "শিক্ষক", labelEn: "Teachers", path: "/admin/teachers", permission: "teachers.manage", icon: GraduationCap },
       { key: "virtual-tours", labelBn: "ভার্চুয়াল ট্যুর", labelEn: "Virtual Tours", path: "/admin/virtual-tours", permission: "virtualTours.manage", icon: Video },
       { key: "admissions", labelBn: "ভর্তি", labelEn: "Admissions", path: "/admin/admissions", permission: "admissions.manage", icon: BookOpen },
@@ -221,20 +216,10 @@ export const sidebarGroups: SidebarGroup[] = [
     ],
   },
   {
-    key: "operations",
-    labelBn: "অপারেশনস",
-    labelEn: "Operations",
-    items: [
-      { key: "fees", labelBn: "ফি", labelEn: "Fees", path: "/admin/fees", permission: "fees.manage", icon: CreditCard },
-      { key: "attendance", labelBn: "উপস্থিতি", labelEn: "Attendance", path: "/admin/attendance", permission: "attendance.manage", icon: BarChart3 },
-    ],
-  },
-  {
     key: "users",
     labelBn: "ইউজার ম্যানেজমেন্ট",
     labelEn: "User Management",
     items: [
-      { key: "guardian-requests", labelBn: "গার্ডিয়ান রিকোয়েস্ট", labelEn: "Guardian Requests", path: "/admin/guardian-requests", permission: "guardianRequests.manage", icon: Users },
       { key: "managers", labelBn: "ম্যানেজারস", labelEn: "Managers", path: "/admin/managers", permission: "managers.manage", icon: ShieldCheck },
     ],
   },
@@ -284,7 +269,7 @@ const writeStorage = <T,>(key: string, value: T) => {
 
 const createDefaultRunningNotices = (): RunningNoticeItem[] => [
   {
-    id: crypto.randomUUID(),
+    id: createClientId(),
     textBn: "ভর্তি চলছে ২০২৬ শিক্ষাবর্ষের জন্য। বিস্তারিত জানতে অফিসে যোগাযোগ করুন।",
     textEn: "Admissions are now open for the 2026 academic year. Contact the office for details.",
     link: "/admission",
@@ -300,7 +285,7 @@ const normalizeDashboardSettings = (settings: DashboardSettings): DashboardSetti
     : settings.runningNoticeBn || settings.runningNoticeEn
       ? [
           {
-            id: crypto.randomUUID(),
+            id: createClientId(),
             textBn: settings.runningNoticeBn,
             textEn: settings.runningNoticeEn,
             link: "",
@@ -314,7 +299,7 @@ const normalizeDashboardSettings = (settings: DashboardSettings): DashboardSetti
   return {
     ...settings,
     runningNotices: fallbackItems.map((item, index) => ({
-      id: item.id || crypto.randomUUID(),
+      id: item.id || createClientId(),
       textBn: item.textBn || "",
       textEn: item.textEn || "",
       link: item.link || "",
@@ -337,7 +322,7 @@ export const createManagerDraft = (): ManagerDraft => ({
 export const getFeeRecords = (): FeeRecord[] =>
   readStorage<FeeRecord[]>(FEES_STORAGE_KEY, [
     {
-      id: crypto.randomUUID(),
+      id: createClientId(),
       title: "এপ্রিল মাসিক বেতন",
       amount: 1800,
       dueDate: new Date().toISOString().slice(0, 10),
@@ -353,7 +338,7 @@ export const saveFeeRecords = (records: FeeRecord[]) => writeStorage(FEES_STORAG
 export const getAttendanceRecords = (): AttendanceRecord[] =>
   readStorage<AttendanceRecord[]>(ATTENDANCE_STORAGE_KEY, [
     {
-      id: crypto.randomUUID(),
+      id: createClientId(),
       label: "আজকের উপস্থিতি",
       date: new Date().toISOString().slice(0, 10),
       campus: "both",
@@ -368,7 +353,7 @@ export const saveAttendanceRecords = (records: AttendanceRecord[]) => writeStora
 export const getGuardianRequests = (): GuardianRequest[] =>
   readStorage<GuardianRequest[]>(GUARDIAN_REQUESTS_STORAGE_KEY, [
     {
-      id: crypto.randomUUID(),
+      id: createClientId(),
       guardianName: "মোঃ রহমান",
       studentName: "আব্দুল্লাহ",
       topic: "বকেয়া বেতন",
@@ -377,7 +362,7 @@ export const getGuardianRequests = (): GuardianRequest[] =>
       createdAt: Date.now() - 7_200_000,
     },
     {
-      id: crypto.randomUUID(),
+      id: createClientId(),
       guardianName: "ফাতেমা বেগম",
       studentName: "আয়েশা",
       topic: "ফলাফল কপি",
@@ -417,7 +402,7 @@ export const logActivity = (item: Omit<ActivityItem, "id" | "createdAt">) => {
   const nextActivity = [
     {
       ...item,
-      id: crypto.randomUUID(),
+      id: createClientId(),
       createdAt: Date.now(),
     },
     ...getActivityFeed(),

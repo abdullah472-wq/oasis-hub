@@ -19,9 +19,14 @@ import { submitAdmission } from "@/lib/admission";
 import { uploadImage } from "@/lib/upload";
 
 const classOptions = Array.from({ length: 10 }, (_, index) => index + 1);
+const defaultInterviewReferences = Array.from({ length: 3 }, () => ({
+  name: "",
+  relation: "",
+  mobile: "",
+}));
 
 const fieldClass =
-  "w-full rounded-2xl border border-border/80 bg-background/90 px-4 py-3 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
+  "w-full rounded-xl border border-sky-200 bg-white px-4 py-3 text-sm text-foreground shadow-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/15";
 
 const textAreaClass = `${fieldClass} min-h-[104px] resize-none`;
 
@@ -36,14 +41,14 @@ const SectionCard = ({
   description: string;
   children: React.ReactNode;
 }) => (
-  <section className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_24px_80px_-48px_rgba(15,23,42,0.55)] md:p-8">
-    <div className="mb-6 flex items-start gap-4">
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+  <section className="rounded-[1.75rem] border border-sky-100 bg-white p-6 shadow-[0_22px_70px_-52px_rgba(14,116,144,0.38)] md:p-7">
+    <div className="mb-5 flex items-start gap-4 border-b border-sky-100 pb-5">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
         <Icon className="h-6 w-6" />
       </div>
       <div>
-        <h2 className="font-bengali text-xl font-bold text-foreground md:text-2xl">{title}</h2>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+        <h2 className="font-bengali text-xl font-bold text-slate-900 md:text-[1.65rem]">{title}</h2>
+        <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
       </div>
     </div>
     {children}
@@ -89,6 +94,8 @@ const AdmissionFormPage = () => {
     permanentAddressBn: "",
     class: "",
     campus: "",
+    residencyType: "" as "" | "residential" | "non-residential" | "day-care",
+    interviewReferences: defaultInterviewReferences,
   });
   const [photo, setPhoto] = useState<File | null>(null);
 
@@ -190,33 +197,53 @@ const AdmissionFormPage = () => {
   }
 
   return (
-    <div className="bg-transparent">
-      <section className="relative overflow-hidden bg-primary px-4 pb-24 pt-16 text-primary-foreground md:pb-28 md:pt-20">
+    <div className="bg-gradient-to-b from-sky-50 via-white to-white">
+      <section className="relative overflow-hidden px-4 pb-20 pt-10 md:pb-24 md:pt-14">
         <div className="mx-auto max-w-6xl">
-          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl">
-            <span className="inline-flex rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white">
-              {t("অনলাইন ভর্তি", "Online admission")}
-            </span>
-            <h1 className="mt-5 font-bengali text-4xl font-bold leading-tight md:text-6xl">
-              {t("নতুন শিক্ষার্থীর ভর্তি আবেদন অনলাইনে জমা দিন", "Submit a new student admission application online")}
-            </h1>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-white/85 md:text-lg">
-              {t(
-                "প্রয়োজনীয় তথ্য পূরণ করে ছবি সংযুক্ত করুন। আপনার আবেদন জমা হওয়ার পর মাদ্রাসা অফিস যাচাই করে দ্রুত যোগাযোগ করবে।",
-                "Complete the required information and attach a photo. After submission, the madrasa office will review the application and contact you promptly.",
-              )}
-            </p>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              {[
-                t("শিক্ষার্থী তথ্য", "Student details"),
-                t("অভিভাবক তথ্য", "Guardian details"),
-                t("ক্যাম্পাস নির্বাচন", "Campus selection"),
-              ].map((tag) => (
-                <span key={tag} className="rounded-full bg-white/14 px-4 py-2 text-sm text-white">
-                  {tag}
+          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="overflow-hidden rounded-[2rem] border border-sky-200 bg-white shadow-[0_30px_90px_-55px_rgba(14,116,144,0.45)]">
+            <div className="h-4 bg-gradient-to-r from-sky-700 via-sky-500 to-sky-700" />
+            <div className="grid gap-8 p-6 md:grid-cols-[auto_1fr] md:p-8">
+              <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-sky-100 bg-sky-50/70 px-6 py-5 text-center">
+                <img src="/site-logo.png" alt="Site logo" className="h-20 w-20 object-contain md:h-24 md:w-24" />
+                <span className="mt-4 rounded-full border border-sky-200 bg-white px-4 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">
+                  {t("অনলাইন ভর্তি", "Online admission")}
                 </span>
-              ))}
+              </div>
+
+              <div>
+                <h1 className="font-bengali text-3xl font-bold leading-[1.24] text-slate-900 md:text-5xl">
+                  {t("আননূর শিক্ষা পরিবার ভর্তি আবেদন ফর্ম", "Annoor Education Family Admission Form")}
+                </h1>
+                <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600 md:text-lg">
+                  {t(
+                    "প্রিন্ট করা অফিসিয়াল ভর্তি ফর্মের ধরন অনুসরণ করে প্রয়োজনীয় তথ্য পূরণ করুন। আপনার আবেদন জমা হওয়ার পর মাদ্রাসা অফিস তথ্য যাচাই করে যোগাযোগ করবে।",
+                    "Complete the required details following our official admission form structure. After submission, the madrasa office will verify the information and contact you.",
+                  )}
+                </p>
+
+                <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-sky-100 bg-sky-50/60 px-4 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-700">{t("ফরম ধাপ", "Form stage")}</p>
+                    <p className="mt-1 font-bengali text-lg font-bold text-slate-900">{t("প্রাথমিক আবেদন", "Initial application")}</p>
+                  </div>
+                  <div className="rounded-2xl border border-sky-100 bg-sky-50/60 px-4 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-700">{t("আবেদনের অগ্রগতি", "Progress")}</p>
+                    <p className="mt-1 font-display text-2xl font-bold text-slate-900">{completionPercent}%</p>
+                  </div>
+                  <div className="rounded-2xl border border-sky-100 bg-sky-50/60 px-4 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-700">{t("আসন ধরন", "Seat type")}</p>
+                    <p className="mt-1 font-bengali text-lg font-bold text-slate-900">
+                      {formData.residencyType === "residential"
+                        ? t("আবাসিক", "Residential")
+                        : formData.residencyType === "non-residential"
+                          ? t("অনাবাসিক", "Non-residential")
+                          : formData.residencyType === "day-care"
+                            ? t("ডে-কেয়ার", "Day care")
+                            : t("আবাসিক / অনাবাসিক / ডে-কেয়ার", "Residential / Non-residential / Day care")}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -229,17 +256,17 @@ const AdmissionFormPage = () => {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="rounded-[1.75rem] border border-border/70 bg-card/95 p-5 shadow-[0_22px_70px_-50px_rgba(15,23,42,0.6)]"
+            className="rounded-[1.5rem] border border-sky-100 bg-white p-5 shadow-[0_22px_70px_-55px_rgba(14,116,144,0.28)]"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">{t("ফর্ম সম্পন্ন", "Form progress")}</p>
-                <h2 className="font-display text-3xl font-bold text-foreground">{completionPercent}%</h2>
+                <p className="text-sm text-slate-500">{t("ফর্ম সম্পন্ন", "Form progress")}</p>
+                <h2 className="font-display text-3xl font-bold text-slate-900">{completionPercent}%</h2>
               </div>
-              <GraduationCap className="h-8 w-8 text-primary" />
+              <GraduationCap className="h-8 w-8 text-sky-700" />
             </div>
-            <div className="mt-4 h-3 overflow-hidden rounded-full bg-primary/10">
-              <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${completionPercent}%` }} />
+            <div className="mt-4 h-3 overflow-hidden rounded-full bg-sky-100">
+              <div className="h-full rounded-full bg-sky-600 transition-all duration-300" style={{ width: `${completionPercent}%` }} />
             </div>
           </motion.div>
 
@@ -253,17 +280,17 @@ const AdmissionFormPage = () => {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.08 + index * 0.04 }}
-              className="rounded-[1.75rem] border border-border/70 bg-card/95 p-5 shadow-[0_22px_70px_-50px_rgba(15,23,42,0.6)]"
+              className="rounded-[1.5rem] border border-sky-100 bg-white p-5 shadow-[0_22px_70px_-55px_rgba(14,116,144,0.28)]"
             >
-              <div className="flex items-start gap-3 text-sm text-muted-foreground">
-                <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <div className="flex items-start gap-3 text-sm text-slate-600">
+                <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-sky-700" />
                 <span>{item}</span>
               </div>
             </motion.div>
           ))}
         </div>
 
-        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1fr_320px]">
+        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1fr_330px]">
           <form onSubmit={handleSubmit} className="space-y-6">
             <SectionCard
               icon={GraduationCap}
@@ -353,17 +380,35 @@ const AdmissionFormPage = () => {
                     <option value="girls">{t("বালিকা ক্যাম্পাস", "Girls campus")}</option>
                   </select>
                 </Field>
+                <Field label={t("আবাসিক / অনাবাসিক / ডে-কেয়ার", "Residential / Non-residential / Day care")} required>
+                  <select
+                    value={formData.residencyType}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        residencyType: e.target.value as "" | "residential" | "non-residential" | "day-care",
+                      })
+                    }
+                    className={fieldClass}
+                    required
+                  >
+                    <option value="">{t("নির্বাচন করুন", "Select one")}</option>
+                    <option value="residential">{t("আবাসিক", "Residential")}</option>
+                    <option value="non-residential">{t("অনাবাসিক", "Non-residential")}</option>
+                    <option value="day-care">{t("ডে-কেয়ার", "Day care")}</option>
+                  </select>
+                </Field>
               </div>
 
-              <div className="mt-5 rounded-[1.5rem] border border-dashed border-primary/30 bg-primary/5 p-4">
+              <div className="mt-5 rounded-[1.25rem] border border-dashed border-sky-300 bg-sky-50/70 p-4">
                 <Field label={t("শিক্ষার্থীর ছবি", "Student photo")}>
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+                    <div className="flex items-center gap-3 text-sm text-slate-600">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
                         <ImagePlus className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">
+                        <p className="font-medium text-slate-900">
                           {photo ? photo.name : t("ছবি আপলোড করুন", "Upload an image")}
                         </p>
                         <p>{t("JPG, PNG বা মোবাইল ক্যামেরার ছবি দেওয়া যাবে", "JPG, PNG, or camera photo is allowed")}</p>
@@ -373,7 +418,7 @@ const AdmissionFormPage = () => {
                       type="file"
                       accept="image/*"
                       onChange={(e) => setPhoto(e.target.files?.[0] || null)}
-                      className="block w-full text-sm file:mr-4 file:rounded-full file:border-0 file:bg-primary file:px-4 file:py-2 file:font-medium file:text-primary-foreground md:w-auto"
+                      className="block w-full text-sm file:mr-4 file:rounded-full file:border-0 file:bg-sky-700 file:px-4 file:py-2 file:font-medium file:text-white md:w-auto"
                     />
                   </div>
                 </Field>
@@ -484,6 +529,73 @@ const AdmissionFormPage = () => {
                   />
                 </Field>
               </div>
+
+              <div className="mt-6 rounded-[1.25rem] border border-sky-100 bg-sky-50/45 p-4 md:p-5">
+                <div className="mb-4">
+                  <h3 className="font-bengali text-lg font-bold text-slate-900">{t("সাক্ষাৎপ্রার্থী / রেফারেন্স", "Interview candidate / reference")}</h3>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                    {t(
+                      "এই অংশটি ঐচ্ছিক। প্রয়োজন হলে ৩ জনের নাম, সম্পর্ক ও মোবাইল নম্বর দিন।",
+                      "This section is optional. Add up to 3 names, relations, and mobile numbers if needed.",
+                    )}
+                  </p>
+                </div>
+
+                <div className="grid gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-700 md:grid-cols-[1.3fr_0.9fr_1fr]">
+                  <span>{t("নাম", "Name")}</span>
+                  <span>{t("সম্পর্ক", "Relation")}</span>
+                  <span>{t("মোবাইল", "Mobile")}</span>
+                </div>
+
+                <div className="mt-3 space-y-3">
+                  {formData.interviewReferences.map((reference, index) => (
+                    <div key={index} className="grid gap-3 md:grid-cols-[1.3fr_0.9fr_1fr]">
+                      <input
+                        type="text"
+                        value={reference.name}
+                        onChange={(e) =>
+                          setFormData((current) => ({
+                            ...current,
+                            interviewReferences: current.interviewReferences.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, name: e.target.value } : item,
+                            ),
+                          }))
+                        }
+                        className={fieldClass}
+                        placeholder={t("পূর্ণ নাম", "Full name")}
+                      />
+                      <input
+                        type="text"
+                        value={reference.relation}
+                        onChange={(e) =>
+                          setFormData((current) => ({
+                            ...current,
+                            interviewReferences: current.interviewReferences.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, relation: e.target.value } : item,
+                            ),
+                          }))
+                        }
+                        className={fieldClass}
+                        placeholder={t("সম্পর্ক", "Relation")}
+                      />
+                      <input
+                        type="tel"
+                        value={reference.mobile}
+                        onChange={(e) =>
+                          setFormData((current) => ({
+                            ...current,
+                            interviewReferences: current.interviewReferences.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, mobile: e.target.value } : item,
+                            ),
+                          }))
+                        }
+                        className={fieldClass}
+                        placeholder={t("মোবাইল নম্বর", "Mobile number")}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </SectionCard>
 
             <motion.button
@@ -491,7 +603,7 @@ const AdmissionFormPage = () => {
               whileTap={{ scale: 0.99 }}
               type="submit"
               disabled={submitting}
-              className="flex w-full items-center justify-center gap-3 rounded-[1.6rem] bg-primary px-6 py-4 font-bengali text-base font-semibold text-primary-foreground shadow-[0_18px_45px_-22px_hsl(var(--primary)/0.75)] transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-3 rounded-[1.35rem] bg-sky-700 px-6 py-4 font-bengali text-base font-semibold text-white shadow-[0_18px_45px_-22px_rgba(3,105,161,0.72)] transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
               {t("ভর্তি আবেদন জমা দিন", "Submit admission application")}
@@ -499,33 +611,34 @@ const AdmissionFormPage = () => {
           </form>
 
           <aside className="space-y-5 lg:sticky lg:top-24 lg:h-fit">
-            <div className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_24px_80px_-48px_rgba(15,23,42,0.55)]">
+            <div className="rounded-[1.75rem] border border-sky-100 bg-white p-6 shadow-[0_24px_80px_-52px_rgba(14,116,144,0.32)]">
               <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
                   <BookOpen className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="font-bengali text-lg font-bold text-foreground">{t("আবেদনের নির্দেশনা", "Application guide")}</h2>
-                  <p className="text-sm text-muted-foreground">{t("জমা দেওয়ার আগে একবার মিলিয়ে নিন", "Review before submitting")}</p>
+                  <h2 className="font-bengali text-lg font-bold text-slate-900">{t("আবেদনের নির্দেশনা", "Application guide")}</h2>
+                  <p className="text-sm text-slate-500">{t("জমা দেওয়ার আগে একবার মিলিয়ে নিন", "Review before submitting")}</p>
                 </div>
               </div>
 
-              <div className="space-y-4 text-sm text-muted-foreground">
+              <div className="space-y-4 text-sm text-slate-600">
                 {[
                   t("ইংরেজি নাম ও মোবাইল নম্বর অবশ্যই সঠিকভাবে লিখুন।", "Please enter the English name and mobile numbers accurately."),
                   t("ভর্তি নিশ্চিতকরণের জন্য অফিস থেকে কল আসতে পারে।", "The office may call for admission confirmation."),
                   t("ছবি ছাড়া আবেদন করা যাবে, তবে ছবি দিলে যাচাই সহজ হবে।", "Applications can be submitted without a photo, but adding one helps verification."),
+                  t("আবাসিক, অনাবাসিক বা ডে-কেয়ার অপশন এখান থেকেই নির্বাচন করুন।", "Select residential, non-residential, or day-care from the form itself."),
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-3">
-                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-sky-700" />
                     <span>{item}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-border/70 bg-card/95 p-6 shadow-[0_24px_80px_-48px_rgba(15,23,42,0.55)]">
-              <h2 className="font-bengali text-lg font-bold text-foreground">{t("যা প্রয়োজন হতে পারে", "What you may need")}</h2>
+            <div className="rounded-[1.75rem] border border-sky-100 bg-white p-6 shadow-[0_24px_80px_-52px_rgba(14,116,144,0.32)]">
+              <h2 className="font-bengali text-lg font-bold text-slate-900">{t("যা প্রয়োজন হতে পারে", "What you may need")}</h2>
               <div className="mt-4 grid gap-3">
                 {[
                   {
@@ -543,15 +656,20 @@ const AdmissionFormPage = () => {
                     title: t("ছবি", "Photo"),
                     text: t("সাম্প্রতিক একটি ছবি", "A recent student photo"),
                   },
+                  {
+                    icon: ShieldCheck,
+                    title: t("অফিস যাচাই", "Office verification"),
+                    text: t("সিরিয়াল ও অফিস অনুমোদন পরে নির্ধারিত হবে", "Serial and office approval will be assigned later"),
+                  },
                 ].map((item) => (
-                  <div key={item.title} className="rounded-2xl border border-border/60 bg-background/70 p-4">
+                  <div key={item.title} className="rounded-2xl border border-sky-100 bg-sky-50/45 p-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
                         <item.icon className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">{item.title}</p>
-                        <p className="text-sm text-muted-foreground">{item.text}</p>
+                        <p className="font-medium text-slate-900">{item.title}</p>
+                        <p className="text-sm text-slate-600">{item.text}</p>
                       </div>
                     </div>
                   </div>

@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Download, Search, ExternalLink } from "lucide-react";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
 import { getResults, Result } from "@/lib/results";
-import { getDownloadUrl } from "@/lib/upload";
-import { springIn, springInDelay } from "@/lib/animations";
+import { downloadFile } from "@/lib/upload";
+import { springIn } from "@/lib/animations";
 
 const Results = () => {
   const { t, lang } = useLanguage();
@@ -20,11 +21,23 @@ const Results = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const filteredResults = results.filter((r) => r.campus === campus || r.campus === "both");
+  const filteredResults = results.filter((result) => result.campus === campus || result.campus === "both");
+
+  const handleDownload = async (result: Result) => {
+    if (!result.pdfUrl) return;
+
+    try {
+      await downloadFile(result.pdfUrl, `${result.examEn || result.exam || "result"}.pdf`);
+      toast.success(t("পিডিএফ ডাউনলোড শুরু হয়েছে", "PDF download started"));
+    } catch (error) {
+      console.error("Result PDF download failed:", error);
+      toast.error(t("পিডিএফ ডাউনলোড করা যায়নি", "Could not download PDF"));
+    }
+  };
 
   return (
     <div>
-      <section className="relative h-48 md:h-64 bg-primary overflow-hidden flex items-center justify-center">
+      <section className="relative flex h-48 items-center justify-center overflow-hidden bg-primary md:h-64">
         <motion.h1 {...springIn} className="font-bengali text-primary-foreground" style={{ fontSize: "clamp(2.5rem, 8vw, 4rem)" }}>
           {t("পরীক্ষার ফলাফল", "Exam Results")}
         </motion.h1>
@@ -32,70 +45,70 @@ const Results = () => {
       </section>
 
       <section className="py-16">
-        <div className="container mx-auto px-4 max-w-4xl">
-          {/* Search Result Button */}
+        <div className="container mx-auto max-w-4xl px-4">
           <motion.div {...springIn} className="mb-8">
             <a
               href="https://eskooly.com/bb/searchexamresult.php"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-foreground rounded-xl font-bengali font-bold hover:bg-accent/80 transition-colors"
+              className="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3 font-bengali font-bold text-foreground transition-colors hover:bg-accent/80"
             >
-              <Search className="w-5 h-5" />
+              <Search className="h-5 w-5" />
               {t("অনলাইন রেজাল্ট খুঁজুন", "Search Result Online")}
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink className="h-4 w-4" />
             </a>
           </motion.div>
 
-          <div className="flex justify-center gap-4 mb-10">
-            {(["boys", "girls"] as const).map((c) => (
+          <div className="mb-10 flex justify-center gap-4">
+            {(["boys", "girls"] as const).map((currentCampus) => (
               <motion.button
-                key={c}
+                key={currentCampus}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95, y: 4 }}
-                onClick={() => setCampus(c)}
-                className={`font-bengali ${campus === c ? "squishy-button" : "squishy-button-outline"}`}
+                onClick={() => setCampus(currentCampus)}
+                className={`font-bengali ${campus === currentCampus ? "squishy-button" : "squishy-button-outline"}`}
               >
-                {c === "boys" ? t("বালক ক্যাম্পাস", "Boys Campus") : t("বালিকা ক্যাম্পাস", "Girls Campus")}
+                {currentCampus === "boys"
+                  ? t("বালক ক্যাম্পাস", "Boys Campus")
+                  : t("বালিকা ক্যাম্পাস", "Girls Campus")}
               </motion.button>
             ))}
           </div>
 
           <div className="card-institutional p-8">
             {loading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
+              <div className="py-12 text-center">
+                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
               </div>
             ) : filteredResults.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8 font-bengali">
-                {t("কোনো ফলাফল পাওয়া যায়নি", "No results available")}
+              <p className="py-8 text-center font-bengali text-muted-foreground">
+                {t("কোনো ফলাফল পাওয়া যায়নি", "No results available")}
               </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b-2 border-border">
-                      <th className="text-left py-4 font-bengali font-bold text-foreground">{t("পরীক্ষা", "Exam")}</th>
-                      <th className="text-left py-4 font-bengali font-bold text-foreground">{t("শ্রেণি", "Class")}</th>
-                      <th className="text-right py-4 font-bengali font-bold text-foreground">{t("ডাউনলোড", "Download")}</th>
+                      <th className="py-4 text-left font-bengali font-bold text-foreground">{t("পরীক্ষা", "Exam")}</th>
+                      <th className="py-4 text-left font-bengali font-bold text-foreground">{t("শ্রেণি", "Class")}</th>
+                      <th className="py-4 text-right font-bengali font-bold text-foreground">{t("ডাউনলোড", "Download")}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredResults.map((r, i) => (
-                      <tr key={r.id || i} className="border-b border-border/50 hover:bg-secondary/50 transition-colors">
-                        <td className="py-4 font-bengali text-foreground">{lang === "bn" ? r.exam : r.examEn}</td>
-                        <td className="py-4 font-bengali text-muted-foreground">{lang === "bn" ? r.className : r.classNameEn}</td>
+                    {filteredResults.map((result, index) => (
+                      <tr key={result.id || index} className="border-b border-border/50 transition-colors hover:bg-secondary/50">
+                        <td className="py-4 font-bengali text-foreground">{lang === "bn" ? result.exam : result.examEn}</td>
+                        <td className="py-4 font-bengali text-muted-foreground">{lang === "bn" ? result.className : result.classNameEn}</td>
                         <td className="py-4 text-right">
-                          {r.pdfUrl ? (
-                            <a
-                              href={getDownloadUrl(r.pdfUrl)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-accent font-semibold text-sm hover:bg-accent/20 transition-colors"
+                          {result.pdfUrl ? (
+                            <button
+                              type="button"
+                              onClick={() => void handleDownload(result)}
+                              className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent/20"
                             >
-                              <Download className="w-4 h-4" />
+                              <Download className="h-4 w-4" />
                               PDF
-                            </a>
+                            </button>
                           ) : (
                             <span className="text-sm text-muted-foreground">{t("শীঘ্রই আসছে", "Coming soon")}</span>
                           )}

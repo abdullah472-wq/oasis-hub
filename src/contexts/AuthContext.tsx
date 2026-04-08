@@ -16,6 +16,12 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const isPermissionDenied = (error: unknown) =>
+  typeof error === "object" &&
+  error !== null &&
+  "code" in error &&
+  (error as { code?: string }).code === "permission-denied";
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
@@ -29,7 +35,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     setFirebaseUser(user);
-    const profile = await getUserProfile(user.uid);
+    let profile: AdminUser | null = null;
+
+    try {
+      profile = await getUserProfile(user.uid);
+    } catch (error) {
+      if (isPermissionDenied(error)) {
+        await signOut(auth);
+        setFirebaseUser(null);
+        setCurrentUser(null);
+        return;
+      }
+
+      throw error;
+    }
 
     if (!profile) {
       await signOut(auth);
@@ -45,6 +64,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
         await loadProfile(user);
+      } catch (error) {
+        console.error("Failed to load auth profile:", error);
+        setFirebaseUser(null);
+        setCurrentUser(null);
       } finally {
         setLoading(false);
       }
@@ -55,7 +78,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     const credentials = await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
-    const profile = await getUserProfile(credentials.user.uid);
+    let profile: AdminUser | null = null;
+
+    try {
+      profile = await getUserProfile(credentials.user.uid);
+    } catch (error) {
+      if (isPermissionDenied(error)) {
+        await signOut(auth);
+        throw new Error("permission-denied");
+      }
+
+      throw error;
+    }
 
     if (!profile) {
       await signOut(auth);
@@ -75,8 +109,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshProfile = async () => {
     if (!auth.currentUser) return;
-    const profile = await getUserProfile(auth.currentUser.uid);
-    setCurrentUser(profile);
+    try {
+      const profile = await getUserProfile(auth.currentUser.uid);
+      setCurrentUser(profile);
+    } catch (error) {
+      if (isPermissionDenied(error)) {
+        await signOut(auth);
+        setFirebaseUser(null);
+        setCurrentUser(null);
+        return;
+      }
+
+      throw error;
+    }
   };
 
   const value = useMemo<AuthContextValue>(

@@ -15,7 +15,7 @@ import WhatsAppFAB from "@/components/WhatsAppFAB";
 import { isAdminEnabled } from "@/lib/admin";
 import Index from "./pages/Index";
 const About = lazy(() => import("./pages/About"));
-const GuardianRegisterPage = lazy(() => import("./pages/GuardianRegisterPage"));
+const Achievements = lazy(() => import("./pages/Achievements"));
 const GuardianPortal = lazy(() => import("./pages/GuardianPortal"));
 const NoticeBoard = lazy(() => import("./pages/NoticeBoard"));
 const Results = lazy(() => import("./pages/Results"));
@@ -66,7 +66,7 @@ const AppShell = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
-            <Route path="/guardian-register" element={<GuardianRegisterPage />} />
+            <Route path="/achievements" element={<Achievements />} />
             <Route path="/guardian/*" element={<GuardianPortal />} />
             <Route path="/notices" element={<NoticeBoard />} />
             <Route path="/results" element={<Results />} />

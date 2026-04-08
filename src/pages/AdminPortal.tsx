@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import {
+  AchievementsManagerPage,
   EventsManagerPage,
   GalleryManagerPage,
   NewsManagerPage,
@@ -24,13 +25,10 @@ import {
 } from "@/components/admin/AdminContentPages";
 import {
   AdmissionsManagerPage,
-  GuardianRequestsPage,
   SettingsPage,
   TeachersManagerPage,
   VirtualToursManagerPage,
 } from "@/components/admin/AdminOperationsPages";
-import FeesPage from "@/components/admin/fees/FeesPage";
-import AttendancePage from "@/components/admin/attendance/AttendancePage";
 import GuardianAttendanceCard from "@/components/admin/attendance/GuardianAttendanceCard";
 import RamadanManagerPage from "@/components/admin/ramadan/RamadanManagerPage";
 
@@ -118,13 +116,10 @@ const AdminPortalPage = () => {
   const currentItem = findSidebarItem(location.pathname);
   const pageTitle = currentItem ? t(currentItem.labelBn, currentItem.labelEn) : t("ড্যাশবোর্ড", "Dashboard");
   const pageDescription = currentItem
-    ? t("এই সেকশন থেকে সংশ্লিষ্ট তথ্য ও অপারেশন ম্যানেজ করুন", "Manage related information and operations in this section")
+    ? ""
     : t("সমস্ত অ্যাডমিন অপারেশন এক জায়গায়", "All admin operations in one place");
 
-  const notificationCount =
-    data.dashboardStats.pendingAdmissions +
-    data.dashboardStats.pendingGuardianRequests +
-    data.dashboardStats.pendingReviews;
+  const notificationCount = data.dashboardStats.pendingReviews + data.dashboardStats.pendingAdmissions;
 
   const renderCurrentPage = () => {
     switch (location.pathname) {
@@ -135,16 +130,12 @@ const AdminPortalPage = () => {
             stats={data.dashboardStats}
             notices={data.notices}
             events={data.events}
-            admissions={data.admissions}
             reviews={data.reviews}
-            guardianRequests={data.guardianRequests}
-            feeEntries={data.feeEntries}
-            feeSummary={data.feeSummary}
             activityFeed={data.activityFeed}
           />
         );
       case "/admin/news":
-        return <NewsManagerPage items={data.newsPosts} onCreate={data.actions.addNews} onDelete={data.actions.removeNews} />;
+        return <NewsManagerPage items={data.newsPosts} onSave={data.actions.saveNewsItem} onDelete={data.actions.removeNews} />;
       case "/admin/gallery":
         return <GalleryManagerPage items={data.galleryImages} onCreate={data.actions.addGalleryItem} onDelete={data.actions.removeGalleryItem} />;
       case "/admin/events":
@@ -163,6 +154,8 @@ const AdminPortalPage = () => {
         return <ResultsManagerPage items={data.results} onCreate={data.actions.addResultItem} onDelete={data.actions.removeResultItem} />;
       case "/admin/reviews":
         return <ReviewsManagerPage items={data.reviews} onApprove={data.actions.approveReviewItem} onDelete={data.actions.removeReviewItem} />;
+      case "/admin/achievements":
+        return <AchievementsManagerPage items={data.achievements} onCreate={data.actions.addAchievementItem} onDelete={data.actions.removeAchievementItem} />;
       case "/admin/teachers":
         return <TeachersManagerPage items={data.teachers} onCreate={data.actions.addTeacherItem} onDelete={data.actions.removeTeacherItem} />;
       case "/admin/virtual-tours":
@@ -179,27 +172,6 @@ const AdminPortalPage = () => {
             onDeleteRequest={data.actions.removeRamadanRequestItem}
           />
         );
-      case "/admin/fees":
-        return (
-          <FeesPage
-            entries={data.feeEntries}
-            students={data.feeStudents}
-            onCreateBatch={(draft) => data.actions.addFeeBatchItems(draft, currentUser!.uid)}
-            onUpdateEntry={data.actions.updateFeeEntryItem}
-            onUpdatePayment={data.actions.updateFeePaymentItem}
-            onDeleteEntry={data.actions.removeFeeEntryItem}
-          />
-        );
-      case "/admin/attendance":
-        return (
-          <AttendancePage
-            students={data.attendanceStudents}
-            records={data.attendanceRecords}
-            onSaveSheet={(rows) => data.actions.saveAttendanceSheetItems(rows, currentUser!.uid)}
-          />
-        );
-      case "/admin/guardian-requests":
-        return <GuardianRequestsPage items={data.guardianRequests} onSave={data.actions.saveGuardianRequestItem} onDelete={data.actions.removeGuardianRequestItem} />;
       case "/admin/managers":
         return <ManagersPage managers={data.managers} onSave={data.actions.saveManagerItem} onDelete={data.actions.removeManagerItem} />;
       case "/admin/settings":
@@ -296,13 +268,6 @@ const AdminPortalPage = () => {
                 {error && <p className="font-bengali text-sm text-red-600">{error}</p>}
 
                 <Button type="submit" className="h-11 w-full rounded-2xl font-bengali">{t("লগইন করুন", "Login")}</Button>
-
-                <div className="rounded-2xl border border-dashed border-border/70 bg-muted/20 px-4 py-4 text-center">
-                  <p className="font-bengali text-sm text-muted-foreground">{t("নতুন গার্ডিয়ান অ্যাকাউন্ট প্রয়োজন?", "Need a new guardian account?")}</p>
-                  <Link to="/guardian-register" className="mt-2 inline-flex font-bengali text-sm font-semibold text-primary hover:underline">
-                    {t("গার্ডিয়ান রেজিস্ট্রেশন করুন", "Register as Guardian")}
-                  </Link>
-                </div>
               </form>
             </CardContent>
           </Card>

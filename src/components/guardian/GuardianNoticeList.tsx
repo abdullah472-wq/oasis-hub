@@ -3,6 +3,7 @@ import type { Notice } from "@/lib/notices";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { formatGuardianDateTime, pickGuardianText } from "@/lib/guardianText";
 
 interface GuardianNoticeListProps {
   notices: Notice[];
@@ -29,9 +30,17 @@ const GuardianNoticeList = ({ notices, compact = false }: GuardianNoticeListProp
         ) : (
           visibleNotices.map((notice) => (
             <div key={notice.id} className="rounded-2xl border border-border/60 bg-background px-4 py-3">
-              <p className="font-bengali text-sm font-semibold text-foreground">{notice.titleBn}</p>
-              {notice.descriptionBn && <p className="mt-1 font-bengali text-xs text-muted-foreground">{notice.descriptionBn}</p>}
-              <p className="mt-2 text-[11px] text-muted-foreground">{new Date(notice.createdAt).toLocaleString("bn-BD")}</p>
+              <p className="font-bengali text-sm font-semibold text-foreground">
+                {pickGuardianText(t, notice.titleBn, notice.titleEn, t("নোটিশ", "Notice"))}
+              </p>
+              {(notice.descriptionBn || notice.descriptionEn) && (
+                <p className="mt-1 font-bengali text-xs text-muted-foreground">
+                  {pickGuardianText(t, notice.descriptionBn, notice.descriptionEn)}
+                </p>
+              )}
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                {formatGuardianDateTime(notice.createdAt, t("bn-BD", "en-US") as "bn-BD" | "en-US")}
+              </p>
             </div>
           ))
         )}

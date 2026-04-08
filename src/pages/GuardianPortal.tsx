@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { BellRing, CreditCard, FileCheck2, Loader2, LogOut, UserCheck2 } from "lucide-react";
+import { BellRing, CreditCard, FileCheck2, Loader2, LogOut, MessageSquare, UserCheck2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getGuardianDashboardData, type GuardianDashboardData } from "@/lib/guardianDashboardService";
@@ -12,6 +12,10 @@ import GuardianNoticeList from "@/components/guardian/GuardianNoticeList";
 import GuardianFeeSummary from "@/components/guardian/GuardianFeeSummary";
 import GuardianAttendanceCard from "@/components/guardian/GuardianAttendanceCard";
 import GuardianPendingPage from "@/components/guardian/GuardianPendingPage";
+import GuardianRequestsPage from "@/components/guardian/GuardianRequestsPage";
+import LanguageToggle from "@/components/LanguageToggle";
+import { pickGuardianText } from "@/lib/guardianText";
+import { subscribeGuardianRequestsByGuardian } from "@/lib/guardianRequests";
 
 const GuardianPortal = () => {
   const { currentUser, loading: authLoading, logout } = useAuth();
@@ -42,6 +46,18 @@ const GuardianPortal = () => {
     return () => {
       active = false;
     };
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== "guardian" || currentUser.status !== "active") {
+      return;
+    }
+
+    const unsubscribe = subscribeGuardianRequestsByGuardian(currentUser.uid, (items) => {
+      setData((current) => (current ? { ...current, requests: items } : current));
+    });
+
+    return unsubscribe;
   }, [currentUser]);
 
   if (authLoading) {
@@ -88,6 +104,7 @@ const GuardianPortal = () => {
     { to: "/guardian/results", labelBn: "ফলাফল", labelEn: "Results", icon: FileCheck2 },
     { to: "/guardian/fees", labelBn: "পেমেন্ট", labelEn: "Payment", icon: CreditCard },
     { to: "/guardian/attendance", labelBn: "উপস্থিতি", labelEn: "Attendance", icon: UserCheck2 },
+    { to: "/guardian/requests", labelBn: "রিকোয়েস্ট", labelEn: "Requests", icon: MessageSquare },
   ];
 
   const pageTitle = useMemo(() => {
@@ -112,8 +129,12 @@ const GuardianPortal = () => {
               ) : (
                 data.results.map((result) => (
                   <div key={result.id} className="rounded-2xl border border-border/60 bg-background px-4 py-3">
-                    <p className="font-bengali text-sm font-semibold text-foreground">{result.exam}</p>
-                    <p className="font-bengali text-xs text-muted-foreground">{result.className}</p>
+                    <p className="font-bengali text-sm font-semibold text-foreground">
+                      {pickGuardianText(t, result.exam, result.examEn, result.exam)}
+                    </p>
+                    <p className="font-bengali text-xs text-muted-foreground">
+                      {pickGuardianText(t, result.className, result.classNameEn, result.className)}
+                    </p>
                     {result.pdfUrl && (
                       <a href={result.pdfUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex font-bengali text-xs font-semibold text-primary hover:underline">
                         {t("ফলাফল দেখুন", "Open Result")}
@@ -135,6 +156,23 @@ const GuardianPortal = () => {
             recentAttendance={data.recentAttendance}
           />
         );
+      case "/guardian/requests":
+        return (
+          <GuardianRequestsPage
+            guardian={data.guardianProfile}
+            requests={data.requests}
+            onCreated={(request) =>
+              setData((current) =>
+                current
+                  ? {
+                      ...current,
+                      requests: [request, ...current.requests],
+                    }
+                  : current,
+              )
+            }
+          />
+        );
       case "/guardian":
       default:
         return <GuardianDashboardPage data={data} />;
@@ -153,6 +191,7 @@ const GuardianPortal = () => {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageToggle />
             <Button variant="outline" className="rounded-2xl font-bengali" onClick={() => navigate("/")}>{t("হোম", "Home")}</Button>
             <Button className="rounded-2xl font-bengali" onClick={() => void logout()}>
               <LogOut className="mr-2 h-4 w-4" />

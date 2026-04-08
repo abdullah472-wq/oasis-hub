@@ -1,31 +1,22 @@
-import { useState, useEffect } from "react";
+﻿import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
-import { getGalleryImages, GalleryImage } from "@/lib/gallery";
+import { getGalleryImages, type GalleryImage } from "@/lib/gallery";
 import { springIn } from "@/lib/animations";
 
-const categories = [
+type GalleryCategory = "all" | "campus" | "events" | "activities";
+
+const categories: Array<{ value: GalleryCategory; bn: string; en: string }> = [
   { value: "all", bn: "সকল", en: "All" },
   { value: "campus", bn: "ক্যাম্পাস", en: "Campus" },
   { value: "events", bn: "অনুষ্ঠান", en: "Events" },
   { value: "activities", bn: "কার্যক্রম", en: "Activities" },
 ];
 
-const defaultPhotos = [
-  { src: "https://images.unsplash.com/photo-1585036156171-384164a8c675?w=600", category: "campus", titleBn: "মূল ভবন", titleEn: "Main Building" },
-  { src: "https://images.unsplash.com/photo-1577896851231-70ef18881754?w=600", category: "activities", titleBn: "ক্লাসরুম", titleEn: "Classroom" },
-  { src: "https://images.unsplash.com/photo-1588072432836-e10032774350?w=600", category: "events", titleBn: "বার্ষিক অনুষ্ঠান", titleEn: "Annual Event" },
-  { src: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600", category: "campus", titleBn: "লাইব্রেরি", titleEn: "Library" },
-  { src: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=600", category: "activities", titleBn: "খেলাধুলা", titleEn: "Sports" },
-  { src: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600", category: "events", titleBn: "পুরস্কার বিতরণী", titleEn: "Award Ceremony" },
-  { src: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600", category: "campus", titleBn: "ক্যাম্পাস প্রাঙ্গণ", titleEn: "Campus Ground" },
-  { src: "https://images.unsplash.com/photo-1523050854058-8df90110c476?w=600", category: "activities", titleBn: "সাংস্কৃতিক কর্মকাণ্ড", titleEn: "Cultural Activity" },
-];
-
 const Gallery = () => {
   const { t, lang } = useLanguage();
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState<GalleryCategory>("all");
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,20 +27,24 @@ const Gallery = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const adminPhotos = galleryImages.map((g) => ({
-    src: g.src,
-    category: g.category,
-    titleBn: g.titleBn,
-    titleEn: g.titleEn,
+  const normalizedPhotos = galleryImages.map((item) => ({
+    src: item.src,
+    category: item.category === "event" ? "events" : item.category === "activity" ? "activities" : "campus",
+    titleBn: item.titleBn,
+    titleEn: item.titleEn,
   }));
 
-  const allPhotos = [...adminPhotos, ...defaultPhotos];
-  const filtered = filter === "all" ? allPhotos : allPhotos.filter((p) => p.category === filter);
+  const filteredPhotos =
+    filter === "all" ? normalizedPhotos : normalizedPhotos.filter((photo) => photo.category === filter);
 
   return (
     <div>
-      <section className="relative h-48 md:h-64 bg-primary overflow-hidden flex items-center justify-center">
-        <motion.h1 {...springIn} className="font-bengali text-primary-foreground" style={{ fontSize: "clamp(2.5rem, 8vw, 4rem)" }}>
+      <section className="relative flex h-48 items-center justify-center overflow-hidden bg-primary md:h-64">
+        <motion.h1
+          {...springIn}
+          className="font-bengali text-primary-foreground"
+          style={{ fontSize: "clamp(2.5rem, 8vw, 4rem)" }}
+        >
           {t("গ্যালারি", "Gallery")}
         </motion.h1>
         <WaveDivider className="absolute bottom-0" />
@@ -57,40 +52,57 @@ const Gallery = () => {
 
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="flex justify-center flex-wrap gap-2 mb-10">
-            {categories.map((cat) => (
+          <div className="mb-10 flex flex-wrap justify-center gap-2">
+            {categories.map((category) => (
               <button
-                key={cat.value}
-                onClick={() => setFilter(cat.value)}
-                className={`px-5 py-2 rounded-full font-bengali text-sm font-medium transition-all ${
-                  filter === cat.value
+                key={category.value}
+                onClick={() => setFilter(category.value)}
+                className={`rounded-full px-5 py-2 font-bengali text-sm font-medium transition-all ${
+                  filter === category.value
                     ? "bg-primary text-primary-foreground shadow-[0_4px_0_0_#042f24]"
                     : "bg-secondary text-foreground hover:bg-accent/20"
                 }`}
               >
-                {lang === "bn" ? cat.bn : cat.en}
+                {lang === "bn" ? category.bn : category.en}
               </button>
             ))}
           </div>
 
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 max-w-6xl mx-auto">
-            {filtered.map((photo, i) => (
-              <motion.div
-                key={`${photo.src}-${filter}`}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.05 }}
-                className="mb-6 break-inside-avoid"
-              >
-                <div className="rounded-[2rem] overflow-hidden group cursor-pointer relative">
-                  <img src={photo.src} alt={lang === "bn" ? photo.titleBn : photo.titleEn} className="w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
-                    <span className="font-bengali text-primary-foreground font-bold">{lang === "bn" ? photo.titleBn : photo.titleEn}</span>
+          {loading ? (
+            <div className="py-12 text-center">
+              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            </div>
+          ) : filteredPhotos.length === 0 ? (
+            <p className="py-12 text-center font-bengali text-muted-foreground">
+              {t("এখনও কোনো গ্যালারি ছবি প্রকাশ করা হয়নি", "No gallery images have been published yet")}
+            </p>
+          ) : (
+            <div className="mx-auto columns-1 gap-6 sm:columns-2 lg:max-w-6xl lg:columns-3">
+              {filteredPhotos.map((photo, index) => (
+                <motion.div
+                  key={`${photo.src}-${filter}`}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="mb-6 break-inside-avoid"
+                >
+                  <div className="group relative cursor-pointer overflow-hidden rounded-[2rem]">
+                    <img
+                      src={photo.src}
+                      alt={lang === "bn" ? photo.titleBn : photo.titleEn}
+                      className="w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 flex items-end bg-gradient-to-t from-primary/60 to-transparent p-6 opacity-0 transition-opacity group-hover:opacity-100">
+                      <span className="font-bengali font-bold text-primary-foreground">
+                        {lang === "bn" ? photo.titleBn : photo.titleEn}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

@@ -1,6 +1,7 @@
 ﻿import type { Event } from "@/lib/events";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { pickGuardianText } from "@/lib/guardianText";
 
 interface GuardianUpcomingExamCardProps {
   exam: Event | null;
@@ -17,9 +18,15 @@ const GuardianUpcomingExamCard = ({ exam }: GuardianUpcomingExamCardProps) => {
       <CardContent>
         {exam ? (
           <div className="space-y-2 rounded-2xl border border-border/60 bg-background px-4 py-4">
-            <p className="font-bengali text-base font-semibold text-foreground">{exam.titleBn}</p>
+            <p className="font-bengali text-base font-semibold text-foreground">
+              {pickGuardianText(t, exam.titleBn, exam.titleEn, t("পরীক্ষা", "Exam"))}
+            </p>
             <p className="font-bengali text-sm text-muted-foreground">{exam.startDate}</p>
-            {exam.descriptionBn && <p className="font-bengali text-sm text-muted-foreground">{exam.descriptionBn}</p>}
+            {(exam.descriptionBn || exam.descriptionEn) && (
+              <p className="font-bengali text-sm text-muted-foreground">
+                {pickGuardianText(t, exam.descriptionBn, exam.descriptionEn)}
+              </p>
+            )}
           </div>
         ) : (
           <p className="font-bengali text-sm text-muted-foreground">{t("কোনো আসন্ন পরীক্ষা পাওয়া যায়নি", "No upcoming exam found")}</p>

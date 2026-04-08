@@ -8,6 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import PwaHomeCard from "@/components/PwaHomeCard";
 import WaveDivider from "@/components/WaveDivider";
 import heroImg from "@/assets/hero-campus.jpg";
+import { getNotices, type Notice } from "@/lib/notices";
 
 import { springIn, springInDelay } from "@/lib/animations";
 
@@ -60,7 +61,6 @@ const AnimatedCounter = ({ value }: { value: string }) => {
 
 const Index = () => {
   const { t, lang } = useLanguage();
-  const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewName, setReviewName] = useState("");
@@ -70,6 +70,7 @@ const Index = () => {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [homeNotices, setHomeNotices] = useState<Notice[]>([]);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
@@ -94,6 +95,22 @@ const Index = () => {
 
     return () => {
       isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    getNotices()
+      .then((items) => {
+        if (active) {
+          setHomeNotices(items.slice(0, 3));
+        }
+      })
+      .catch(console.error);
+
+    return () => {
+      active = false;
     };
   }, []);
 
@@ -152,16 +169,113 @@ const Index = () => {
   };
 
   const stats = [
-  { icon: Users, value: "1200+", label: t("শিক্ষার্থী", "Students") },
-  { icon: BookOpen, value: "50+", label: t("শিক্ষক", "Teachers") },
-  { icon: Award, value: "15+", label: t("বছরের অভিজ্ঞতা", "Years Experience") },
+  { icon: Users, value: "250+", label: t("শিক্ষার্থী", "Students") },
+  { icon: BookOpen, value: "30+", label: t("শিক্ষক", "Teachers") },
+  { icon: Award, value: "13+", label: t("বছরের অভিজ্ঞতা", "Years Experience") },
   { icon: GraduationCap, value: "98%", label: t("পাশের হার", "Pass Rate") }];
 
 
-  const notices = [
-  { date: "15 Mar 2026", title: t("বার্ষিক পরীক্ষার সময়সূচি প্রকাশিত", "Annual Exam Schedule Published") },
-  { date: "10 Mar 2026", title: t("বসন্তকালীন ছুটির নোটিশ", "Spring Break Notice") },
-  { date: "05 Mar 2026", title: t("অভিভাবক সভার তারিখ নির্ধারিত", "Parent Meeting Date Fixed") }];
+  const featureGroups = [
+    {
+      id: "academic",
+      title: t("একাডেমিক শ্রেষ্ঠত্ব", "Academic Excellence"),
+      points: t(
+        [
+          "দেশবরেণ্য আলেম-উলামাদের সার্বিক তত্ত্বাবধানে পরিচালিত।",
+          "প্রশিক্ষণপ্রাপ্ত অভিজ্ঞ শিক্ষকমণ্ডলী ও আদর-স্নেহের মাধ্যমে আনন্দঘন পরিবেশে পাঠদান।",
+          "ইংরেজি ও আরবি ভাষায় সাবলীল কথোপকথনের (Spoken) বিশেষ ক্লাসের ব্যবস্থা।",
+          "ক্লাসের পড়া ক্লাসেই আদায় করা হয়, তাই আলাদা কোনো প্রাইভেট বা টিউশনির প্রয়োজন নেই।",
+          "হাতের লেখা সুন্দরকরণে নিয়মিত বিশেষ হ্যান্ডরাইটিং প্রশিক্ষণ।",
+        ],
+        [
+          "Operated under the supervision of renowned Islamic scholars.",
+          "Experienced trained teachers create a joyful and caring learning environment.",
+          "Special spoken English and Arabic conversation classes are arranged.",
+          "Lessons are completed in class, so no separate private tutoring is needed.",
+          "Regular handwriting development sessions help students improve presentation.",
+        ],
+      ),
+    },
+    {
+      id: "tarbiya",
+      title: t("তারবিয়াত ও মানসিক বিকাশ", "Tarbiya and Character Building"),
+      points: t(
+        [
+          "তালিমের সাথে তারবিয়াতের (আদব-কায়দা) সমান গুরুত্ব ও বাস্তব অনুশীলন।",
+          "কোমলমতি শিশুদের সহজ-সরল ও মনস্তাত্ত্বিক উপায়ে পাঠদান।",
+          "সম্পূর্ণ শারীরিক ও মানসিক নির্যাতনমুক্ত আধুনিক মাদরাসা।",
+          "সুপ্ত প্রতিভা বিকাশে নিয়মিত সাংস্কৃতিক প্রশিক্ষণ ও উন্মুক্ত পাঠাগার।",
+          "বার্ষিক শিক্ষাসফর, ইসলামী সংস্কৃতি চর্চা ও সুস্থ বিনোদনের সুব্যবস্থা।",
+        ],
+        [
+          "Equal emphasis is placed on tarbiya, manners, and real-life practice alongside learning.",
+          "Young children are taught through simple, gentle, and age-sensitive methods.",
+          "A modern madrasha environment free from physical and mental abuse.",
+          "Regular cultural training and an open library help nurture hidden talents.",
+          "Educational tours, Islamic cultural practice, and healthy recreation are arranged annually.",
+        ],
+      ),
+    },
+    {
+      id: "security",
+      title: t("নিরাপত্তা ও পর্যবেক্ষণ", "Security and Monitoring"),
+      points: t(
+        [
+          "সার্বক্ষণিক সিসিটিভি ক্যামেরা পর্যবেক্ষণ ও ২৪ ঘণ্টা গেটলক ব্যবস্থা।",
+          "নিরাপত্তার জন্য দক্ষ সিকিউরিটি গার্ড ও ছোট শিক্ষার্থীদের জন্য নিবেদিত খাদেম।",
+          "প্রবাসী ও ব্যস্ত অভিভাবকদের সন্তানদের জন্য বিশেষ নিরাপত্তা ও অভিভাবকত্বের দায়িত্ব গ্রহণ।",
+          "স্বচ্ছতা, জবাবদিহিতা ও দায়িত্বশীলতার দৃঢ় প্রতিশ্রুতি।",
+        ],
+        [
+          "Round-the-clock CCTV coverage and a 24-hour gate-lock system ensure safety.",
+          "Trained security guards and dedicated caretakers support younger students.",
+          "Special protection and guardianship support are provided for children of expatriate and busy parents.",
+          "The institution remains committed to transparency, accountability, and responsibility.",
+        ],
+      ),
+    },
+    {
+      id: "facilities",
+      title: t("উন্নত আবাসন ও জীবনমান", "Facilities and Comfort"),
+      points: t(
+        [
+          "কোলাহলমুক্ত নিরিবিলি ও মনোরম পরিবেশ এবং সার্বক্ষণিক বিদ্যুৎ (জেনারেটর) ব্যবস্থা।",
+          "নিজস্ব ব্যবস্থাপনায় স্বাস্থ্যসম্মত ও সুস্বাদু ঘরোয়া খাবার পরিবেশন।",
+          "শীতকালে গরম পানির সুবিধা ও নিয়মিত সুস্বাস্থ্য পরিচর্যায় নিজস্ব চিকিৎসক।",
+          "শিক্ষকের সরাসরি তত্ত্বাবধানে প্রতিদিন বিকেলে খেলাধুলার ব্যবস্থা।",
+        ],
+        [
+          "Students enjoy a peaceful campus atmosphere with uninterrupted electricity and generator backup.",
+          "Healthy and delicious homestyle meals are served under in-house management.",
+          "Hot water in winter and regular health care support from an in-house doctor are available.",
+          "Daily supervised afternoon sports help students stay healthy and active.",
+        ],
+      ),
+    },
+  ];
+
+  const displayedNotices = homeNotices.length > 0
+    ? homeNotices
+    : [
+        {
+          id: "fallback-1",
+          createdAt: Date.parse("2026-03-15"),
+          titleBn: "বার্ষিক পরীক্ষার সময়সূচি প্রকাশিত",
+          titleEn: "Annual Exam Schedule Published",
+        },
+        {
+          id: "fallback-2",
+          createdAt: Date.parse("2026-03-10"),
+          titleBn: "বসন্তকালীন ছুটির নোটিশ",
+          titleEn: "Spring Break Notice",
+        },
+        {
+          id: "fallback-3",
+          createdAt: Date.parse("2026-03-05"),
+          titleBn: "অভিভাবক সভার তারিখ নির্ধারিত",
+          titleEn: "Parent Meeting Date Fixed",
+        },
+      ];
 
 
   return (
@@ -182,10 +296,10 @@ const Index = () => {
 
         <div className="relative container mx-auto px-4 py-20">
           <motion.div {...springIn} className="max-w-2xl">
-            <h1 className="font-bengali text-4xl md:text-6xl font-bold text-primary-foreground leading-tight mb-4" style={{ fontSize: "clamp(2.5rem, 8vw, 4rem)" }}>
+            <h1 className="font-display text-4xl md:text-6xl font-bold text-primary-foreground leading-[1.28] md:leading-[1.32] mb-4" style={{ fontSize: "clamp(2.5rem, 8vw, 4rem)" }}>
               {t("একই স্থানে, একই খরচে, সকল শিক্ষা একইসাথে", "Building Foundations of Faith & Excellence")}
             </h1>
-            <p className="font-bengali text-lg md:text-xl text-primary-foreground/90 mb-8 leading-relaxed">
+            <p className="font-display text-lg md:text-xl text-primary-foreground/90 mb-8 leading-[1.7]">
               {t(
                 "আমাদের দুইটি ক্যাম্পাসে ইসলামিক মূল্যবোধের আলোকে আধুনিক শিক্ষা প্রদান করা হয়।",
                 "We provide modern education grounded in Islamic values across our two campuses."
@@ -209,13 +323,13 @@ const Index = () => {
                   🎥 {t("ভার্চুয়াল ট্যুর", "Virtual Tour")}
                 </motion.button>
               </Link>
-              <Link to="/about">
+              <Link to="/achievements">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95, y: 4 }}
                   className="squishy-button-outline border-primary-foreground text-primary-foreground shadow-[0_6px_0_0_rgba(255,255,255,0.3)] font-bengali">
                   
-                  {t("আমাদের সম্পর্কে", "About Us")}
+                  {t("আমাদের অর্জন", "Our Achievements")}
                 </motion.button>
               </Link>
             </div>
@@ -256,14 +370,28 @@ const Index = () => {
             {...springIn}
             className="text-center"
           >
-            <h2 className="font-bengali text-2xl md:text-3xl font-bold text-foreground mb-6">
-              {t("দ্বীনি শিক্ষা পিতা-মাতার কর্তব্য", "Religious Education is the Duty of Parents")}
-            </h2>
-            <div className="bg-secondary/50 rounded-2xl p-6 md:p-8">
-              <p className="font-bengali text-muted-foreground leading-relaxed mb-6">
+            <div className="rounded-[2rem] border border-border/60 bg-card/90 p-6 shadow-[0_20px_60px_-40px_rgba(16,24,40,0.35)] md:p-10">
+              <div className="mx-auto mb-6 inline-flex rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">
+                {t("পবিত্র আমানত", "A Sacred Trust")}
+              </div>
+              <h2 className="mb-5 font-bengali text-2xl font-bold text-foreground md:text-4xl leading-tight">
                 {t(
-                  "রাসুল (সা.) ইরশাদ করেন 'তোমাদের মধ্যে সর্বোত্তম ঐ ব্যক্তি যে কোরআন কারীমের ইলম নিজে শিখে এবং অন্যকে শিখায়'। (সহীহ বুখারী-২/৭৫২) অন্য হাদীসে এসেছে, যেব্যক্তি কুরআন শিখে সে অনুযায়ী আমল করে, কিয়ামতের দিন তার পিতা-মাতাকে নূরের তাজ (মুকুট) পরানো হবে। সূর্যের আলোয় তোমাদের ঘর যেমন ঝলমল করে ওঠে, সে মুকুটের জ্যোতি তার চেয়েও অধিক সুন্দর ও মনোরম হবে। (পিতা-মাতার সম্মানই যদি এই হয় তবে) যে ব্যাক্তি নিজে কুরআন অনুযায়ী আমল করে তার ব্যপারে তোমাদের কী ধারণা? (নিশ্চই তার সম্মান হবে আরও বেশি)। (সুনানে আবু দাউদ১/২০৫) সন্তানকে কুরআনের শিক্ষায় শিক্ষিত করে পিতা-মাতা কেমন সৌভাগ্যের অধিকারী হন, বর্ণিত হাদীস দুটি থেকে তা সহজেই অনুধাবন করা যায়। কুরআন শিক্ষা অর্জনের মাধ্যমে এই সন্তান যেন দুনিয়া-আখেরাতে চিরসম্মানের অধিকারী হয়।",
-                  "The Prophet (peace be upon him) said, 'The best among you is the one who learns the Quran and teaches it to others.' (Sahih Bukhari, 2/752) In another hadith, it is said that the person who learns the Quran and acts upon it, on the Day of Resurrection his parents will be crowned with a crown of light. The light of that crown will be more beautiful and pleasant than the light of your house shining in the sun. (If this is the honor of parents, then) what do you think about the person who acts upon the Quran? (Surely his honor will be greater). (Sunan Abu Dawud, 1/205) The two hadiths mentioned above clearly show how fortunate parents are to educate their children in the teachings of the Quran. By acquiring Quranic education, this child will be worthy of eternal honor in this world and the hereafter."
+                  "সন্তানকে দ্বীনি শিক্ষায় গড়ে তোলা প্রতিটি অভিভাবকের পবিত্র আমানত",
+                  "Nurturing a child with Deeni education is a sacred trust for every parent",
+                )}
+              </h2>
+              <div className="mx-auto mb-6 max-w-3xl rounded-3xl bg-primary/5 px-5 py-5">
+                <p className="font-bengali text-base font-medium leading-8 text-foreground md:text-lg">
+                  {t(
+                    'রাসূল (সা.) ইরশাদ করেন: "তোমাদের মধ্যে সর্বোত্তম ঐ ব্যক্তি, যে নিজে কুরআন শিখে এবং অন্যকে শেখায়।" (সহীহ বুখারী)',
+                    'The Prophet (peace be upon him) said: "The best among you is the one who learns the Quran and teaches it to others." (Sahih Bukhari)',
+                  )}
+                </p>
+              </div>
+              <p className="mx-auto max-w-3xl font-bengali text-muted-foreground leading-8 md:text-lg">
+                {t(
+                  "পবিত্র কোরআনের শিক্ষায় শিক্ষিত সন্তান কেবল নিজের জন্য নয়, বরং কিয়ামতের কঠিন দিনে তার পিতা-মাতার জন্যও হবে সম্মানের মুকুট। পরকালীন মুক্তি এবং দুনিয়াবী জীবনে আদর্শ সন্তান উপহার দিতে আমরা আপনার পাশে আছি। আপনার সন্তানকে কোরআনের আলোয় আলোকিত করে দুনিয়া ও আখেরাতের চিরস্থায়ী সফলতার পথে এগিয়ে দিন।",
+                  "A child educated in the light of the Holy Quran becomes not only a source of goodness for himself, but also a crown of honor for his parents on the Day of Judgment. We stand beside you in helping your child grow into an ideal child for this world and a means of success in the hereafter. Illuminate your child with the light of the Quran and guide them toward lasting success in both worlds.",
                 )}
               </p>
             </div>
@@ -407,87 +535,104 @@ const Index = () => {
             {t("মাদরাসার বৈশিষ্ট্য", "Features of the Madrasha")}
           </motion.h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {t(
-              [
-                "দেশবরেণ্য আলেম-উলমার সার্বিক তত্ত্বাবধানে পরিচালিত।",
-                "প্রশিক্ষণপ্রাপ্ত অভিজ্ঞ শিক্ষকমন্ডলী দ্বারা পাঠদান।",
-                "কোমলমতি শিশুদের সহজ-সরল উপায়ে পাঠদান।",
-                "শারীরিক ও মানসিক নির্যাতনমুক্ত মাদরাসা।",
-                "নিরাপত্তার জন্য সিকিউরিটি গার্ড ও শিক্ষার্থীদের জন্য খাদেমের ব্যবস্থা।",
-                "কোলাহলমুক্ত নিরিবিলি মনোরম পরিবেশ।",
-                "সার্বক্ষণিক সিসি ক্যামেরায় পর্যবেক্ষণ।",
-                "অমনোযোগী শিক্ষার্থীদের জন্য বিশেষ ব্যবস্থা।",
-                "তালিমের সাথে তারবিয়াতের সমান গুরুত্বসহ বাস্তব অনুশীলন।",
-                "বার্ষিক শিক্ষাসফর, ইসলামী সাংস্কৃতি প্রশিক্ষণ ও বিনোদনের সুব্যবস্থা।",
-                "ইংরেজি ও আরবি ভাষায় কথোপকথোনের যোগ্যতা অর্জন।",
-                "নিজস্ব চিকিৎসকের মাধ্যমে নিয়মিত সুস্বাস্থ্য পরিচর্যা।",
-                "স্বচ্ছতা, জবাবদিহিতা ও দায়িত্বশীলতার প্রতিশ্রুতি।",
-                "বিভিন্ন বিষয়ে অধ্যায়নের জন্য উন্মুক্ত পাঠাগার।",
-                "ক্লাসের পড়া ক্লাসেই আদায়, তাই শিক্ষার্থীদের প্রাইভেট পড়তে হয় না।",
-                "সুপ্ত প্রতিভা বিকাশে নিয়মিত সাংস্কৃতিক প্রশিক্ষণ।",
-                "হাতের লেখা সুন্দরকরণে নিয়মিত হ্যান্ডরাইটিং প্রশিক্ষণ।",
-                "নিজস্ব ব্যবস্থাপনায় সার্বক্ষণিক বিদ্যুৎ ব্যবস্থা।",
-                "শিক্ষার্থীদের প্রাথমিক চিকিৎসার ব্যবস্থা।",
-                "শীতকালে গরম পানির ব্যবস্থা।",
-                "শিক্ষকের তত্ত্বাবধানে বিকালে খেলাধুলার ব্যবস্থা।",
-                "প্রবাসী পিতামাতার সন্তানের বিশেষ নিরাপত্তা ও অভিভাবকের দায়িত্ব গ্রহণ।",
-                "সিকিউরিটির মাধ্যমে বিশেষ নিরাপত্তা ও ২৪ ঘণ্টা গেটলক।",
-                "প্রশিক্ষণপ্রাপ্ত শিক্ষকমণ্ডলী ও আদর স্নেহের মাধ্যমে পড়াশোনার আনন্দঘন পরিবেশ।",
-                "রুটিন অনুযায়ী স্বাস্থ্যসম্মত ঘরোয়া পরিবেশে পাকানো সু-স্বাদু খানা পরিবেশন।",
-                "স্পোকেন ইংলিশ এর বিশেষ ক্লাসের ব্যবস্থা।"
-              ],
-              [
-                "Operated under the overall supervision of nationally renowned Islamic scholars.",
-                "Teaching conducted by trained and experienced faculty.",
-                "Child-friendly teaching methods for young and tender-minded students.",
-                "A madrasha completely free from physical and mental abuse.",
-                "Security guards for safety and dedicated caretakers for students.",
-                "A peaceful, noise-free, and pleasant learning environment.",
-                "Round-the-clock CCTV surveillance.",
-                "Special arrangements for inattentive or struggling students.",
-                "Equal emphasis on Taleem (education) and Tarbiyah (character building) with practical training.",
-                "Annual educational trips, Islamic cultural training, and recreational facilities.",
-                "Opportunity to develop conversational skills in English and Arabic.",
-                "Regular health care through a dedicated in-house physician.",
-                "Commitment to transparency, accountability, and responsibility.",
-                "An open library for study across various subjects.",
-                "Classwork completed in class — no private tutoring required.",
-                "Regular cultural training to nurture hidden talents.",
-                "Regular handwriting improvement sessions.",
-                "Uninterrupted electricity through own power management system.",
-                "First aid facilities available for students at all times.",
-                "Hot water facilities during winter.",
-                "Supervised outdoor sports and play sessions in the afternoon.",
-                "Special care and guardianship responsibilities accepted for children of expatriate parents.",
-                "24-hour gate lock and special security through dedicated security personnel.",
-                "A joyful and loving learning environment created by trained and caring teachers.",
-                "Nutritious, homestyle, hygienic meals served according to a fixed routine.",
-                "Special Spoken English classes available."
-              ]
-            ).filter((_, i) => showAllFeatures || i < 10).map((point, i) => (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {featureGroups.map((group, groupIndex) => (
               <motion.div
-                key={i}
+                key={group.id}
                 {...springIn}
-                transition={springInDelay(i * 0.05)}
-                className="flex items-start gap-3 p-4 bg-card rounded-xl"
+                transition={springInDelay(groupIndex * 0.08)}
+                className="card-institutional h-full p-6 md:p-8"
               >
-                <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shrink-0">
-                  {i + 1}
-                </span>
-                <p className="font-bengali text-muted-foreground text-sm leading-relaxed">{point}</p>
+                <div className="mb-6 flex items-start gap-4">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-base font-bold text-primary-foreground shadow-sm">
+                    {groupIndex + 1}
+                  </span>
+                  <div>
+                    <h3 className="font-bengali text-xl font-bold text-foreground md:text-2xl">{group.title}</h3>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {group.points.map((point, pointIndex) => (
+                    <div key={`${group.id}-${pointIndex}`} className="flex items-start gap-3 rounded-2xl bg-secondary/35 px-4 py-4">
+                      <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-accent" />
+                      <p className="font-bengali text-sm leading-7 text-muted-foreground md:text-[15px]">{point}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Achievements Preview */}
+      <section className="py-16">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <motion.div {...springIn} className="mb-10 text-center">
+            <h2
+              className="font-bengali text-center text-foreground mb-4"
+              style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)" }}
+            >
+              {t("আমাদের অর্জন", "Our Achievements")}
+            </h2>
+            <p className="mx-auto max-w-3xl font-bengali text-muted-foreground leading-7">
+              {t(
+                "প্রতিষ্ঠানের বিভিন্ন সনদ, সম্মাননা ও শিক্ষার্থীদের কৃতিত্ব আমাদের মানসম্মত শিক্ষার ধারাবাহিকতার সাক্ষ্য বহন করে।",
+                "Our certificates, recognitions, and student achievements reflect the continuity of our quality education.",
+              )}
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {[
+              {
+                title: t("সনদ", "Certificates"),
+                description: t(
+                  "হিফজ, কিরাআত, প্রশিক্ষণ ও বিভিন্ন শিক্ষা কার্যক্রমে অর্জিত সনদসমূহ।",
+                  "Certificates earned through Hifz, Qirat, training, and educational programs.",
+                ),
+              },
+              {
+                title: t("সম্মাননা", "Recognition"),
+                description: t(
+                  "প্রতিষ্ঠানের মান, শৃঙ্খলা ও ধারাবাহিক উন্নয়নের জন্য প্রাপ্ত স্বীকৃতি ও সম্মাননা।",
+                  "Recognition received for institutional quality, discipline, and continuous growth.",
+                ),
+              },
+              {
+                title: t("প্রতিযোগিতায় সাফল্য", "Competition Success"),
+                description: t(
+                  "তিলাওয়াত, হামদ-নাত, সাধারণ জ্ঞান ও একাডেমিক প্রতিযোগিতায় শিক্ষার্থীদের কৃতিত্ব।",
+                  "Student achievements in tilawat, hamd-naat, general knowledge, and academic competitions.",
+                ),
+              },
+            ].map((item, index) => (
+              <motion.div
+                key={item.title}
+                {...springIn}
+                transition={springInDelay(index * 0.08)}
+                className="card-institutional h-full p-6 md:p-8"
+              >
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <Award className="h-6 w-6" />
+                </div>
+                <h3 className="font-bengali text-xl font-bold text-foreground">{item.title}</h3>
+                <p className="mt-3 font-bengali text-sm leading-7 text-muted-foreground">{item.description}</p>
               </motion.div>
             ))}
           </div>
 
-          {/* Show More Button */}
-          <div className="text-center mt-8">
-            <button
-              onClick={() => setShowAllFeatures(!showAllFeatures)}
-              className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bengali font-medium hover:bg-primary/90 transition-colors"
-            >
-              {showAllFeatures ? t("কম দেখুন", "Show Less") : t("আরও দেখুন", "Show More")}
-            </button>
+          <div className="mt-8 text-center">
+            <Link to="/achievements">
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="squishy-button font-bengali"
+              >
+                {t("বিস্তারিত দেখুন", "View Details")}
+              </motion.button>
+            </Link>
           </div>
         </div>
       </section>
@@ -681,20 +826,24 @@ const Index = () => {
           </motion.h2>
 
           <div className="max-w-3xl mx-auto space-y-4">
-            {notices.map((notice, i) =>
-            <motion.div
-              key={i}
+            {displayedNotices.map((notice, i) => {
+            const noticeDate = new Date(notice.createdAt);
+            const dayLabel = noticeDate.toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US", { day: "2-digit" });
+            const monthLabel = noticeDate.toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US", { month: "short" });
+            const noticeTitle = lang === "bn" ? notice.titleBn : notice.titleEn || notice.titleBn;
+            return <motion.div
+              key={notice.id || i}
               {...springIn}
               transition={springInDelay(i * 0.1)}
               className="card-institutional p-6 flex items-center gap-4 hover:shadow-lg transition-shadow cursor-pointer">
               
                 <div className="bg-accent/20 rounded-2xl px-4 py-2 text-center shrink-0">
-                  <div className="text-xs font-semibold text-accent">{notice.date.split(" ")[1]}</div>
-                  <div className="text-xl font-display font-bold text-foreground">{notice.date.split(" ")[0]}</div>
+                  <div className="text-xs font-semibold text-accent">{monthLabel}</div>
+                  <div className="text-xl font-display font-bold text-foreground">{dayLabel}</div>
                 </div>
-                <p className="font-bengali text-foreground font-medium">{notice.title}</p>
+                <p className="font-bengali text-foreground font-medium">{noticeTitle}</p>
               </motion.div>
-            )}
+            })}
           </div>
 
           <div className="text-center mt-8">
@@ -750,8 +899,8 @@ const Index = () => {
                 {
                   q: t("ক্লাসের সময়সূচি কেমন?", "What is the class schedule?"),
                   a: t(
-                    "সকাল ৮:০০ টা থেকে দুপুর ১:০০ টা পর্যন্ত সাধারণ শিক্ষা এবং বিকাল ২:৩০ টা থেকে ৫:০০ টা পর্যন্ত ইসলামিক শিক্ষা কার্যক্রম চলে। শুক্রবার ও শনিবার সাপ্তাহিক ছুটি।",
-                    "General education runs 8:00 AM – 1:00 PM and Islamic studies 2:30 PM – 5:00 PM. Friday and Saturday are weekly holidays."
+                    "সকাল ৮:০০ টা থেকে দুপুর ১:০০ টা পর্যন্ত সাধারণ শিক্ষা এবং সকাল ৬:০০ টা থেকে ৮:০০ টা পর্যন্ত ইসলামিক শিক্ষা কার্যক্রম চলে। শুক্রবার সাপ্তাহিক ছুটি।",
+                    "General education runs 8:00 AM – 1:00 PM and Islamic studies 6:00 AM – 8:00 AM. Friday is a weekly holiday."
                   ),
                 },
                 {

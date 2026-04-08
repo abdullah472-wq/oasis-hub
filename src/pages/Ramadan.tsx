@@ -238,7 +238,6 @@ const Ramadan = () => {
                 { labelBn: "মোট দিন", labelEn: "Total Days", value: TOTAL_DAYS },
                 { labelBn: "আংশিক বা পূর্ণ স্পন্সর", labelEn: "Covered Days", value: totalSponsoredDays },
                 { labelBn: "পূর্ণ স্পন্সর হয়েছে", labelEn: "Fully Covered", value: fullySponsoredDays },
-                { labelBn: "মোট সংগৃহীত", labelEn: "Total Raised", value: `৳${totalRaised}` },
               ].map((item) => (
                 <div key={item.labelEn} className="rounded-3xl border border-white/15 bg-white/10 p-5 text-center shadow-lg backdrop-blur">
                   <p className="font-bengali text-sm text-primary-foreground/75">{t(item.labelBn, item.labelEn)}</p>

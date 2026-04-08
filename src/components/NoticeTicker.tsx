@@ -8,6 +8,12 @@ import {
   type RunningNoticeSettings,
 } from "@/lib/runningNoticeSettings";
 
+const isPermissionDenied = (error: unknown) =>
+  typeof error === "object" &&
+  error !== null &&
+  "code" in error &&
+  (error as { code?: string }).code === "permission-denied";
+
 const NoticeTicker = () => {
   const { t } = useLanguage();
   const [settings, setSettings] = useState<RunningNoticeSettings | null>(null);
@@ -21,6 +27,10 @@ const NoticeTicker = () => {
         if (mounted) setSettings(data);
       })
       .catch((error) => {
+        if (isPermissionDenied(error)) {
+          if (mounted) setSettings(null);
+          return;
+        }
         console.error("Failed to load running notice settings:", error);
       });
 
@@ -34,10 +44,18 @@ const NoticeTicker = () => {
             if (mounted) setSettings(data);
           })
           .catch((error) => {
+            if (isPermissionDenied(error)) {
+              if (mounted) setSettings(null);
+              return;
+            }
             console.error("Failed to sync running notice settings:", error);
           });
       },
       (error) => {
+        if (isPermissionDenied(error)) {
+          if (mounted) setSettings(null);
+          return;
+        }
         console.error("Running notice listener failed:", error);
       },
     );

@@ -1,5 +1,5 @@
 import { db } from "./firebase";
-import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "firebase/firestore";
+import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, updateDoc } from "firebase/firestore";
 
 export interface NewsPost {
   id?: string;
@@ -33,4 +33,14 @@ export const getNewsFromFirestore = async (): Promise<NewsPost[]> => {
 
 export const deleteNewsFromFirestore = async (id: string): Promise<void> => {
   await deleteDoc(doc(db, NEWS_COLLECTION, id));
+};
+
+export const updateNewsInFirestore = async (
+  id: string,
+  payload: Partial<Omit<NewsPost, "id" | "createdAt">>,
+): Promise<void> => {
+  await updateDoc(doc(db, NEWS_COLLECTION, id), {
+    ...payload,
+    createdAt: Date.now(),
+  });
 };

@@ -79,6 +79,17 @@ const GuardianRegisterForm = ({ onSuccess }: GuardianRegisterFormProps) => {
         return;
       }
 
+      if (message === "permission-denied") {
+        form.setError("root", {
+          type: "manual",
+          message: t(
+            "রেজিস্ট্রেশন এখনো Firebase rules এ অনুমোদিত নয়। Firestore rules আপডেট করতে হবে।",
+            "Guardian registration is currently blocked by Firestore rules. Update your Firestore rules first.",
+          ),
+        });
+        return;
+      }
+
       form.setError("root", {
         type: "manual",
         message: t("রেজিস্ট্রেশন জমা হয়নি। আবার চেষ্টা করুন।", "Registration failed. Please try again."),

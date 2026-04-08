@@ -8,6 +8,8 @@ import { calculateFeeSummary, type FeeSummary } from "@/lib/feeHelpers";
 import { listGuardianAttendanceRecords, type AttendanceRecord } from "@/lib/attendanceService";
 import { calculateAttendanceMonthlySummary, getRecentAttendanceFromRecords, type AttendanceMonthlySummary } from "@/lib/attendanceHelpers";
 import { getResults, type Result } from "@/lib/results";
+import { listGuardianRequestsByGuardian } from "@/lib/guardianRequests";
+import type { GuardianRequest } from "@/lib/adminDashboard";
 
 const GUARDIANS_COLLECTION = "guardians";
 
@@ -41,6 +43,7 @@ export interface GuardianDashboardData {
   todayAttendance: AttendanceRecord | null;
   results: Result[];
   upcomingExam: Event | null;
+  requests: GuardianRequest[];
 }
 
 const toGuardianProfile = (uid: string, data: Record<string, unknown>): GuardianProfile => ({
@@ -96,12 +99,13 @@ export const getGuardianDashboardData = async (uid: string): Promise<GuardianDas
   const guardianProfile = await getGuardianProfile(uid);
   if (!guardianProfile) return null;
 
-  const [notices, feeEntries, attendanceRecords, results, events] = await Promise.all([
+  const [notices, feeEntries, attendanceRecords, results, events, requests] = await Promise.all([
     getNotices().catch(() => []),
     listGuardianFeeEntries(uid).catch(() => []),
     listGuardianAttendanceRecords(uid).catch(() => []),
     getResults().catch(() => []),
     getEvents().catch(() => []),
+    listGuardianRequestsByGuardian(uid).catch(() => []),
   ]);
 
   const currentMonth = new Date().toISOString().slice(0, 7);
@@ -132,5 +136,6 @@ export const getGuardianDashboardData = async (uid: string): Promise<GuardianDas
     todayAttendance,
     results: filteredResults,
     upcomingExam,
+    requests,
   };
 };

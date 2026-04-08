@@ -8,6 +8,7 @@ import GuardianNoticeList from "./GuardianNoticeList";
 import GuardianFeeSummary from "./GuardianFeeSummary";
 import GuardianAttendanceCard from "./GuardianAttendanceCard";
 import GuardianUpcomingExamCard from "./GuardianUpcomingExamCard";
+import { pickGuardianText } from "@/lib/guardianText";
 
 interface GuardianDashboardPageProps {
   data: GuardianDashboardData;
@@ -36,8 +37,16 @@ const GuardianDashboardPage = ({ data }: GuardianDashboardPageProps) => {
         totalDue={data.feeSummary.totalDue}
         unpaidItems={data.feeSummary.unpaidItems}
         attendancePercent={data.attendanceSummary.attendancePercent}
-        upcomingExamLabel={data.upcomingExam ? data.upcomingExam.titleBn : t("নাই", "None")}
-        todaysNoticeLabel={data.todaysNotice ? data.todaysNotice.titleBn : t("নাই", "None")}
+        upcomingExamLabel={
+          data.upcomingExam
+            ? pickGuardianText(t, data.upcomingExam.titleBn, data.upcomingExam.titleEn, t("নাই", "None"))
+            : t("নাই", "None")
+        }
+        todaysNoticeLabel={
+          data.todaysNotice
+            ? pickGuardianText(t, data.todaysNotice.titleBn, data.todaysNotice.titleEn, t("নাই", "None"))
+            : t("নাই", "None")
+        }
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -66,8 +75,12 @@ const GuardianDashboardPage = ({ data }: GuardianDashboardPageProps) => {
           <CardContent className="space-y-3">
             {data.results.slice(0, 4).map((result) => (
               <div key={result.id} className="rounded-2xl border border-border/60 bg-background px-4 py-3">
-                <p className="font-bengali text-sm font-semibold text-foreground">{result.exam}</p>
-                <p className="font-bengali text-xs text-muted-foreground">{result.className}</p>
+                <p className="font-bengali text-sm font-semibold text-foreground">
+                  {pickGuardianText(t, result.exam, result.examEn, result.exam)}
+                </p>
+                <p className="font-bengali text-xs text-muted-foreground">
+                  {pickGuardianText(t, result.className, result.classNameEn, result.className)}
+                </p>
               </div>
             ))}
           </CardContent>

@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { CalendarDays, FileText, ImageIcon, MessageSquareQuote, Trash2 } from "lucide-react";
+import { Award, CalendarDays, FileText, ImageIcon, MessageSquareQuote, Pencil, Trash2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getDownloadUrl } from "@/lib/upload";
 import type { NewsPost } from "@/lib/news";
@@ -9,6 +9,8 @@ import type { Notice } from "@/lib/notices";
 import type { Result } from "@/lib/results";
 import type { Review } from "@/lib/reviews";
 import type { RunningNoticeSettings } from "@/lib/runningNoticeSettings";
+import type { AchievementItem } from "@/lib/achievements";
+import { createClientId } from "@/lib/uuid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,49 +30,99 @@ import {
 
 export const NewsManagerPage = ({
   items,
-  onCreate,
+  onSave,
   onDelete,
 }: {
   items: NewsPost[];
-  onCreate: (payload: Omit<NewsPost, "id" | "createdAt" | "date">, image: File | null) => Promise<void>;
+  onSave: (payload: Omit<NewsPost, "createdAt" | "date">, image: File | null) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }) => {
   const { t } = useLanguage();
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);
   const [form, setForm] = useState({ titleBn: "", titleEn: "", excerptBn: "", excerptEn: "" });
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSaving(true);
-    await onCreate(form, image);
+    const existing = items.find((item) => item.id === editingId);
+    await onSave(
+      {
+        id: editingId || undefined,
+        titleBn: form.titleBn,
+        titleEn: form.titleEn,
+        excerptBn: form.excerptBn,
+        excerptEn: form.excerptEn,
+        imageUrl: existing?.imageUrl,
+      },
+      image,
+    );
     setForm({ titleBn: "", titleEn: "", excerptBn: "", excerptEn: "" });
     setImage(null);
+    setEditingId(null);
     setShowForm(false);
     setSaving(false);
+  };
+
+  const startEditing = (item: NewsPost) => {
+    setForm({
+      titleBn: item.titleBn,
+      titleEn: item.titleEn,
+      excerptBn: item.excerptBn,
+      excerptEn: item.excerptEn,
+    });
+    setImage(null);
+    setEditingId(item.id || null);
+    setShowForm(true);
+  };
+
+  const resetForm = () => {
+    setForm({ titleBn: "", titleEn: "", excerptBn: "", excerptEn: "" });
+    setImage(null);
+    setEditingId(null);
+    setShowForm(false);
   };
 
   return (
     <ModuleShell
       title={t("সংবাদ ম্যানেজমেন্ট", "News Management")}
       description={t("সাইটের সর্বশেষ সংবাদ ও আপডেট এখান থেকে প্রকাশ করুন", "Publish the latest news and updates here")}
-      actionLabel={t("নতুন সংবাদ", "New News")}
-      onAction={() => setShowForm((current) => !current)}
+      actionLabel={showForm ? t("ফর্ম বন্ধ করুন", "Close form") : t("নতুন সংবাদ", "New News")}
+      onAction={() => (showForm ? resetForm() : setShowForm(true))}
       icon={<FileText className="h-5 w-5" />}
     >
       {showForm && (
-        <FormCard onSubmit={submit} saving={saving}>
+        <FormCard onSubmit={submit} saving={saving} submitLabel={editingId ? t("আপডেট ও রিপাবলিশ করুন", "Update and republish") : t("সংরক্ষণ করুন", "Save")}>
           <BilingualInput labelBn="শিরোনাম" labelEn="Title" valueBn={form.titleBn} valueEn={form.titleEn} onBnChange={(value) => setForm((current) => ({ ...current, titleBn: value }))} onEnChange={(value) => setForm((current) => ({ ...current, titleEn: value }))} />
           <BilingualTextarea labelBn="সারাংশ" labelEn="Excerpt" valueBn={form.excerptBn} valueEn={form.excerptEn} onBnChange={(value) => setForm((current) => ({ ...current, excerptBn: value }))} onEnChange={(value) => setForm((current) => ({ ...current, excerptEn: value }))} />
           <FilePicker label={t("কভার ছবি", "Cover image")} file={image} onFileChange={setImage} accept="image/*" />
+          {editingId ? (
+            <div className="flex justify-end">
+              <Button type="button" variant="ghost" className="rounded-2xl font-bengali" onClick={resetForm}>
+                {t("এডিট বাতিল", "Cancel edit")}
+              </Button>
+            </div>
+          ) : null}
         </FormCard>
       )}
 
       <Card className={shellCardClass}>
         <CardContent className="space-y-4 p-6">
           {items.length === 0 ? <EmptyState text={t("এখনও কোনো সংবাদ প্রকাশ করা হয়নি", "No news has been published yet")} /> : items.map((item) => (
-            <ItemCard key={item.id} title={item.titleBn} meta={item.date} onDelete={() => item.id && void onDelete(item.id)}>
+            <ItemCard
+              key={item.id}
+              title={item.titleBn}
+              meta={item.date}
+              onDelete={() => item.id && void onDelete(item.id)}
+              trailing={
+                <Button type="button" variant="outline" className="rounded-2xl font-bengali" onClick={() => startEditing(item)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  {t("এডিট", "Edit")}
+                </Button>
+              }
+            >
               <p className="font-bengali text-sm text-muted-foreground">{item.excerptBn}</p>
             </ItemCard>
           ))}
@@ -261,7 +313,7 @@ export const NoticesManagerPage = ({
       runningNotices: [
         ...current.runningNotices,
         {
-          id: crypto.randomUUID(),
+          id: createClientId(),
           textBn: "",
           textEn: "",
           link: "",
@@ -528,6 +580,114 @@ export const ReviewsManagerPage = ({
               <Badge variant={item.approved ? "default" : "secondary"} className="mt-3 rounded-full">{item.approved ? t("অনুমোদিত", "Approved") : t("অপেক্ষায়", "Pending")}</Badge>
             </ItemCard>
           ))}
+        </CardContent>
+      </Card>
+    </ModuleShell>
+  );
+};
+
+export const AchievementsManagerPage = ({
+  items,
+  onCreate,
+  onDelete,
+}: {
+  items: AchievementItem[];
+  onCreate: (payload: Omit<AchievementItem, "id" | "createdAt">) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}) => {
+  const { t } = useLanguage();
+  const [saving, setSaving] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({
+    titleBn: "",
+    titleEn: "",
+    descriptionBn: "",
+    descriptionEn: "",
+    year: new Date().getFullYear().toString(),
+    categoryBn: "",
+    categoryEn: "",
+  });
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    await onCreate(form);
+    setForm({
+      titleBn: "",
+      titleEn: "",
+      descriptionBn: "",
+      descriptionEn: "",
+      year: new Date().getFullYear().toString(),
+      categoryBn: "",
+      categoryEn: "",
+    });
+    setShowForm(false);
+    setSaving(false);
+  };
+
+  return (
+    <ModuleShell
+      title={t("অর্জন ম্যানেজমেন্ট", "Achievements Management")}
+      description={t("সার্টিফিকেট, স্বীকৃতি ও প্রতিষ্ঠানের গুরুত্বপূর্ণ অর্জন এখান থেকে প্রকাশ করুন", "Publish certificates, recognitions, and major institutional achievements from here")}
+      actionLabel={t("নতুন অর্জন", "New Achievement")}
+      onAction={() => setShowForm((current) => !current)}
+      icon={<Award className="h-5 w-5" />}
+    >
+      {showForm && (
+        <FormCard onSubmit={submit} saving={saving}>
+          <BilingualInput
+            labelBn="অর্জনের শিরোনাম"
+            labelEn="Achievement title"
+            valueBn={form.titleBn}
+            valueEn={form.titleEn}
+            onBnChange={(value) => setForm((current) => ({ ...current, titleBn: value }))}
+            onEnChange={(value) => setForm((current) => ({ ...current, titleEn: value }))}
+          />
+          <BilingualInput
+            labelBn="ক্যাটাগরি"
+            labelEn="Category"
+            valueBn={form.categoryBn}
+            valueEn={form.categoryEn}
+            onBnChange={(value) => setForm((current) => ({ ...current, categoryBn: value }))}
+            onEnChange={(value) => setForm((current) => ({ ...current, categoryEn: value }))}
+          />
+          <Field label={t("বছর", "Year")}>
+            <input
+              value={form.year}
+              onChange={(event) => setForm((current) => ({ ...current, year: event.target.value }))}
+              className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+              placeholder="2026"
+            />
+          </Field>
+          <BilingualTextarea
+            labelBn="বিবরণ"
+            labelEn="Description"
+            valueBn={form.descriptionBn}
+            valueEn={form.descriptionEn}
+            onBnChange={(value) => setForm((current) => ({ ...current, descriptionBn: value }))}
+            onEnChange={(value) => setForm((current) => ({ ...current, descriptionEn: value }))}
+          />
+        </FormCard>
+      )}
+
+      <Card className={shellCardClass}>
+        <CardContent className="space-y-4 p-6">
+          {items.length === 0 ? (
+            <EmptyState text={t("এখনও কোনো অর্জন প্রকাশ করা হয়নি", "No achievements have been published yet")} />
+          ) : (
+            items.map((item) => (
+              <ItemCard key={item.id} title={item.titleBn} meta={item.year} onDelete={() => item.id && void onDelete(item.id)}>
+                <div className="space-y-2">
+                  {item.categoryBn ? (
+                    <Badge variant="secondary" className="rounded-full">
+                      {item.categoryBn}
+                    </Badge>
+                  ) : null}
+                  <p className="font-bengali text-sm leading-7 text-muted-foreground">{item.descriptionBn}</p>
+                </div>
+              </ItemCard>
+            ))
+          )}
         </CardContent>
       </Card>
     </ModuleShell>

@@ -1,6 +1,7 @@
 ﻿import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { uploadImage } from "@/lib/upload";
-import { saveNewsToFirestore, getNewsFromFirestore, deleteNewsFromFirestore, type NewsPost } from "@/lib/news";
+import { saveNewsToFirestore, getNewsFromFirestore, deleteNewsFromFirestore, updateNewsInFirestore, type NewsPost } from "@/lib/news";
 import { saveGalleryImage, getGalleryImages, deleteGalleryImage, type GalleryImage } from "@/lib/gallery";
 import { saveEvent, getEvents, deleteEvent, type Event } from "@/lib/events";
 import { getAdmissions, deleteAdmission, type AdmissionForm } from "@/lib/admission";
@@ -12,10 +13,8 @@ import { addVirtualTour, getVirtualTours, deleteVirtualTour, type VirtualTour } 
 import {
   getActivityFeed,
   getDashboardSettings,
-  getGuardianRequests,
   logActivity,
   saveDashboardSettings,
-  saveGuardianRequests,
   type ActivityItem,
   type DashboardSettings,
   type GuardianRequest,
@@ -55,6 +54,15 @@ import {
   saveRunningNoticeSettings,
   type RunningNoticeSettings,
 } from "@/lib/runningNoticeSettings";
+import {
+  createGuardianRequestByAdmin,
+  deleteGuardianRequest,
+  listGuardianRequests,
+  subscribeGuardianRequests,
+  updateGuardianRequest,
+} from "@/lib/guardianRequests";
+import { createGuardianAccountByAdmin, type GuardianRegistrationInput } from "@/lib/guardianRegistration";
+import { deleteAchievement, getAchievements, saveAchievement, type AchievementItem } from "@/lib/achievements";
 
 const mergeAttendanceRecords = (current: AttendanceRecord[], nextItems: AttendanceRecord[]) => {
   const map = new Map(current.map((item) => [item.id, item] as const));
@@ -74,6 +82,7 @@ export const useAdminDashboardData = (enabled = true) => {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [results, setResults] = useState<Result[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [achievements, setAchievements] = useState<AchievementItem[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [virtualTours, setVirtualTours] = useState<VirtualTour[]>([]);
   const [managers, setManagers] = useState<FirestoreUserProfile[]>([]);
@@ -112,12 +121,14 @@ export const useAdminDashboardData = (enabled = true) => {
           nextNotices,
           nextResults,
           nextReviews,
+          nextAchievements,
           nextTeachers,
           nextTours,
           nextManagers,
           nextFeeEntries,
           nextStudents,
           nextAttendanceRecords,
+          nextGuardianRequests,
           nextRamadanRequests,
           nextRamadanSettings,
           nextRunningNoticeSettings,
@@ -129,12 +140,14 @@ export const useAdminDashboardData = (enabled = true) => {
           getNotices().catch(() => []),
           getResults().catch(() => []),
           getAllReviews().catch(() => []),
+          getAchievements().catch(() => []),
           getTeachers().catch(() => []),
           getVirtualTours().catch(() => []),
           listUsersByRole("manager").catch(() => []),
           listFeeEntries().catch(() => []),
           listStudents().catch(() => []),
           listAttendanceRecords().catch(() => []),
+          listGuardianRequests().catch(() => []),
           listRamadanSponsorRequests().catch(() => []),
           getRamadanSettings().catch(() => ({ isPublic: true, updatedAt: Date.now() })),
           getRunningNoticeSettings().catch(() => ({ runningNoticeEnabled: true, runningNotices: [], updatedAt: Date.now() })),
@@ -149,16 +162,17 @@ export const useAdminDashboardData = (enabled = true) => {
         setNotices(nextNotices);
         setResults(nextResults);
         setReviews(nextReviews);
+        setAchievements(nextAchievements);
         setTeachers(nextTeachers);
         setVirtualTours(nextTours);
         setManagers(nextManagers);
         setFeeEntries(nextFeeEntries);
         setAttendanceStudents(nextStudents);
         setAttendanceRecords(nextAttendanceRecords);
+        setGuardianRequests(nextGuardianRequests);
         setRamadanRequests(nextRamadanRequests);
         setRamadanSettings(nextRamadanSettings);
         setRunningNoticeSettings(nextRunningNoticeSettings);
-        setGuardianRequests(getGuardianRequests());
         setSettings(getDashboardSettings());
         setActivityFeed(getActivityFeed());
       } finally {
@@ -175,11 +189,25 @@ export const useAdminDashboardData = (enabled = true) => {
     };
   }, [enabled]);
 
+  useEffect(() => {
+    if (!enabled) return;
+
+    const unsubscribe = subscribeGuardianRequests((items) => {
+      setGuardianRequests(items);
+    });
+
+    return unsubscribe;
+  }, [enabled]);
+
   const refreshActivity = () => setActivityFeed(getActivityFeed());
 
   const appendActivity = (title: string, detail: string, module: string) => {
     logActivity({ title, detail, module });
     refreshActivity();
+  };
+
+  const notifySaved = (bn: string, en: string) => {
+    toast.success(`${bn} / ${en}`);
   };
 
   const addNews = async (payload: Omit<NewsPost, "id" | "createdAt" | "date">, imageFile: File | null) => {
@@ -193,7 +221,51 @@ export const useAdminDashboardData = (enabled = true) => {
     });
     setNewsPosts((current) => [saved, ...current]);
     appendActivity("News published", payload.titleBn, "news");
+    notifySaved("সংবাদ সংরক্ষণ হয়েছে", "News saved");
     return saved;
+  };
+
+  const saveNewsItem = async (
+    payload: Omit<NewsPost, "createdAt" | "date">,
+    imageFile: File | null,
+  ) => {
+    if (!payload.id) {
+      return addNews(payload, imageFile);
+    }
+
+    let imageUrl = payload.imageUrl || "";
+    if (imageFile) imageUrl = await uploadImage(imageFile);
+
+    const nextDate = new Date().toLocaleDateString("bn-BD", { day: "numeric", month: "long", year: "numeric" });
+    await updateNewsInFirestore(payload.id, {
+      titleBn: payload.titleBn,
+      titleEn: payload.titleEn,
+      excerptBn: payload.excerptBn,
+      excerptEn: payload.excerptEn,
+      imageUrl,
+      date: nextDate,
+    });
+
+    setNewsPosts((current) =>
+      current
+        .map((item) =>
+          item.id === payload.id
+            ? {
+                ...item,
+                titleBn: payload.titleBn,
+                titleEn: payload.titleEn,
+                excerptBn: payload.excerptBn,
+                excerptEn: payload.excerptEn,
+                imageUrl,
+                date: nextDate,
+                createdAt: Date.now(),
+              }
+            : item,
+        )
+        .sort((a, b) => b.createdAt - a.createdAt),
+    );
+    appendActivity("News updated", payload.titleBn, "news");
+    notifySaved("সংবাদ আপডেট হয়েছে", "News updated");
   };
 
   const removeNews = async (id: string) => {
@@ -207,6 +279,7 @@ export const useAdminDashboardData = (enabled = true) => {
     const saved = await saveGalleryImage({ ...payload, src: imageUrl });
     setGalleryImages((current) => [saved, ...current]);
     appendActivity("Gallery image added", payload.titleBn, "gallery");
+    notifySaved("গ্যালারি সংরক্ষণ হয়েছে", "Gallery saved");
     return saved;
   };
 
@@ -220,6 +293,7 @@ export const useAdminDashboardData = (enabled = true) => {
     const saved = await saveEvent(payload);
     setEvents((current) => [...current, saved].sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()));
     appendActivity("Event added", payload.titleBn, "events");
+    notifySaved("ইভেন্ট সংরক্ষণ হয়েছে", "Event saved");
     return saved;
   };
 
@@ -234,6 +308,7 @@ export const useAdminDashboardData = (enabled = true) => {
     const saved = await saveNotice({ ...payload, pdfUrl });
     setNotices((current) => [saved, ...current]);
     appendActivity("Notice published", payload.titleBn, "notices");
+    notifySaved("নোটিশ সংরক্ষণ হয়েছে", "Notice saved");
     return saved;
   };
 
@@ -248,6 +323,7 @@ export const useAdminDashboardData = (enabled = true) => {
     const saved = await saveResult({ ...payload, pdfUrl });
     setResults((current) => [saved, ...current]);
     appendActivity("Result published", `${payload.exam} - ${payload.className}`, "results");
+    notifySaved("ফলাফল সংরক্ষণ হয়েছে", "Result saved");
     return saved;
   };
 
@@ -261,6 +337,21 @@ export const useAdminDashboardData = (enabled = true) => {
     await approveReview(id);
     setReviews((current) => current.map((item) => (item.id === id ? { ...item, approved: true } : item)));
     appendActivity("Review approved", "A review is now visible", "reviews");
+    notifySaved("রিভিউ অনুমোদন করা হয়েছে", "Review approved");
+  };
+
+  const addAchievementItem = async (payload: Omit<AchievementItem, "id" | "createdAt">) => {
+    const saved = await saveAchievement(payload);
+    setAchievements((current) => [saved, ...current]);
+    appendActivity("Achievement published", payload.titleBn, "achievements");
+    notifySaved("অর্জন সংরক্ষণ হয়েছে", "Achievement saved");
+    return saved;
+  };
+
+  const removeAchievementItem = async (id: string) => {
+    await deleteAchievement(id);
+    setAchievements((current) => current.filter((item) => item.id !== id));
+    appendActivity("Achievement removed", "An achievement item was deleted", "achievements");
   };
 
   const removeReviewItem = async (id: string) => {
@@ -274,6 +365,7 @@ export const useAdminDashboardData = (enabled = true) => {
     const saved = await addTeacher({ ...payload, imageUrl });
     setTeachers((current) => [saved, ...current]);
     appendActivity("Teacher added", payload.name, "teachers");
+    notifySaved("শিক্ষক তথ্য সংরক্ষণ হয়েছে", "Teacher saved");
     return saved;
   };
 
@@ -287,6 +379,7 @@ export const useAdminDashboardData = (enabled = true) => {
     const saved = await addVirtualTour(payload);
     setVirtualTours((current) => [saved, ...current]);
     appendActivity("Virtual tour added", payload.title, "virtualTours");
+    notifySaved("ভার্চুয়াল ট্যুর সংরক্ষণ হয়েছে", "Virtual tour saved");
     return saved;
   };
 
@@ -330,6 +423,7 @@ export const useAdminDashboardData = (enabled = true) => {
       setManagers((current) => [created, ...current]);
     }
     appendActivity("Manager updated", manager.fullName, "managers");
+    notifySaved("ম্যানেজার তথ্য সংরক্ষণ হয়েছে", "Manager saved");
   };
 
   const removeManagerItem = async (uid: string) => {
@@ -342,6 +436,7 @@ export const useAdminDashboardData = (enabled = true) => {
     const created = await createFeeEntriesBatch(draft, createdBy);
     setFeeEntries((current) => [...created, ...current]);
     appendActivity("Fee batch added", `${draft.studentName} - ${created.length}`, "fees");
+    notifySaved("ফি তথ্য সংরক্ষণ হয়েছে", "Fee entries saved");
   };
 
   const updateFeeEntryItem = async (id: string, payload: FeeEntryUpdateInput) => {
@@ -359,6 +454,7 @@ export const useAdminDashboardData = (enabled = true) => {
       ),
     );
     appendActivity("Fee updated", nextPayload.title, "fees");
+    notifySaved("ফি তথ্য আপডেট হয়েছে", "Fee updated");
   };
 
   const updateFeePaymentItem = async (id: string, paidAmount: number) => {
@@ -394,6 +490,7 @@ export const useAdminDashboardData = (enabled = true) => {
       ),
     );
     appendActivity("Fee payment updated", currentEntry.title, "fees");
+    notifySaved("পেমেন্ট আপডেট হয়েছে", "Payment updated");
   };
 
   const removeFeeEntryItem = async (id: string) => {
@@ -406,21 +503,50 @@ export const useAdminDashboardData = (enabled = true) => {
     const saved = await saveAttendanceSheet(rows, markedBy);
     setAttendanceRecords((current) => mergeAttendanceRecords(current, saved));
     appendActivity("Attendance saved", `${rows.length} students updated`, "attendance");
+    notifySaved("উপস্থিতি সংরক্ষণ হয়েছে", "Attendance saved");
   };
 
-  const saveGuardianRequestItem = (request: GuardianRequest) => {
-    const next = guardianRequests.some((item) => item.id === request.id)
-      ? guardianRequests.map((item) => (item.id === request.id ? request : item))
-      : [request, ...guardianRequests];
-    setGuardianRequests(next);
-    saveGuardianRequests(next);
-    appendActivity("Guardian request updated", request.topic, "guardianRequests");
+  const saveGuardianRequestItem = async (request: GuardianRequest) => {
+    const exists = guardianRequests.some((item) => item.id === request.id);
+
+    if (exists) {
+      await updateGuardianRequest(request.id, {
+        topic: request.topic,
+        message: request.message,
+        status: request.status,
+      });
+
+      setGuardianRequests((current) => current.map((item) => (item.id === request.id ? request : item)));
+      appendActivity("Guardian request updated", request.topic, "guardianRequests");
+      notifySaved("গার্ডিয়ান রিকোয়েস্ট আপডেট হয়েছে", "Guardian request updated");
+      return;
+    }
+
+    const created = await createGuardianRequestByAdmin({
+      guardianUid: request.guardianUid,
+      studentId: request.studentId,
+      guardianName: request.guardianName,
+      studentName: request.studentName,
+      topic: request.topic,
+      message: request.message,
+      status: request.status,
+    });
+
+    setGuardianRequests((current) => [created, ...current]);
+    appendActivity("Guardian request added", created.topic, "guardianRequests");
+    notifySaved("গার্ডিয়ান রিকোয়েস্ট সংরক্ষণ হয়েছে", "Guardian request saved");
   };
 
-  const removeGuardianRequestItem = (id: string) => {
+  const createGuardianAccountItem = async (payload: GuardianRegistrationInput) => {
+    await createGuardianAccountByAdmin(payload, "active");
+    appendActivity("Guardian account created", payload.fullName, "guardianRequests");
+    notifySaved("গার্ডিয়ান অ্যাকাউন্ট তৈরি হয়েছে", "Guardian account created");
+  };
+
+  const removeGuardianRequestItem = async (id: string) => {
+    await deleteGuardianRequest(id);
     const next = guardianRequests.filter((item) => item.id !== id);
     setGuardianRequests(next);
-    saveGuardianRequests(next);
     appendActivity("Guardian request removed", "A guardian request was deleted", "guardianRequests");
   };
 
@@ -428,12 +554,14 @@ export const useAdminDashboardData = (enabled = true) => {
     setSettings(nextSettings);
     saveDashboardSettings(nextSettings);
     appendActivity("Settings saved", nextSettings.institutionName, "settings");
+    notifySaved("সেটিংস সংরক্ষণ হয়েছে", "Settings saved");
   };
 
   const saveRamadanSettingsItem = async (nextSettings: Pick<RamadanSettings, "isPublic">) => {
     const saved = await saveRamadanSettings(nextSettings);
     setRamadanSettings(saved);
     appendActivity("Ramadan settings saved", saved.isPublic ? "Public page enabled" : "Public page hidden", "ramadan");
+    notifySaved("রমাদান সেটিংস সংরক্ষণ হয়েছে", "Ramadan settings saved");
   };
 
   const saveRunningNoticeSettingsItem = async (
@@ -451,12 +579,14 @@ export const useAdminDashboardData = (enabled = true) => {
       saved.runningNoticeEnabled ? "Running notice bar visible" : "Running notice bar hidden",
       "notices",
     );
+    notifySaved("রানিং নোটিশ সংরক্ষণ হয়েছে", "Running notice saved");
   };
 
   const saveRamadanRequestItem = async (id: string, payload: RamadanSponsorUpdateInput) => {
     const saved = await updateRamadanSponsor(id, payload);
     setRamadanRequests((current) => current.map((item) => (item.id === id ? saved : item)));
     appendActivity("Ramadan request updated", payload.name, "ramadan");
+    notifySaved("রমাদান রিকোয়েস্ট সংরক্ষণ হয়েছে", "Ramadan request saved");
   };
 
   const removeRamadanRequestItem = async (id: string) => {
@@ -496,6 +626,7 @@ export const useAdminDashboardData = (enabled = true) => {
     notices,
     results,
     reviews,
+    achievements,
     teachers,
     virtualTours,
     managers,
@@ -513,6 +644,7 @@ export const useAdminDashboardData = (enabled = true) => {
     dashboardStats,
     actions: {
       addNews,
+      saveNewsItem,
       removeNews,
       addGalleryItem,
       removeGalleryItem,
@@ -523,6 +655,8 @@ export const useAdminDashboardData = (enabled = true) => {
       addResultItem,
       removeResultItem,
       approveReviewItem,
+      addAchievementItem,
+      removeAchievementItem,
       removeReviewItem,
       addTeacherItem,
       removeTeacherItem,
@@ -537,6 +671,7 @@ export const useAdminDashboardData = (enabled = true) => {
       removeFeeEntryItem,
       saveAttendanceSheetItems,
       saveGuardianRequestItem,
+      createGuardianAccountItem,
       removeGuardianRequestItem,
       saveRamadanSettingsItem,
       saveRunningNoticeSettingsItem,
@@ -546,4 +681,8 @@ export const useAdminDashboardData = (enabled = true) => {
     },
   };
 };
+
+
+
+
 

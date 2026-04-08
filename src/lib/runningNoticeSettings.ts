@@ -1,6 +1,7 @@
 import { db } from "./firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import type { RunningNoticeItem } from "./adminDashboard";
+import { createClientId } from "./uuid";
 
 export interface RunningNoticeSettings {
   runningNoticeEnabled: boolean;
@@ -12,7 +13,7 @@ const SETTINGS_DOC = doc(db, "site_settings", "running_notice_bar");
 
 const createDefaultRunningNotices = (): RunningNoticeItem[] => [
   {
-    id: crypto.randomUUID(),
+    id: createClientId(),
     textBn: "ভর্তি চলছে ২০২৬ শিক্ষাবর্ষের জন্য। বিস্তারিত জানতে অফিসে যোগাযোগ করুন।",
     textEn: "Admissions are now open for the 2026 academic year. Contact the office for details.",
     link: "/admission",
@@ -27,7 +28,7 @@ const normalizeRunningNoticeSettings = (
 ): RunningNoticeSettings => {
   const items = (data?.runningNotices?.length ? data.runningNotices : createDefaultRunningNotices()).map(
     (item, index) => ({
-      id: item.id || crypto.randomUUID(),
+      id: item.id || createClientId(),
       textBn: item.textBn || "",
       textEn: item.textEn || "",
       link: item.link || "",
@@ -48,9 +49,7 @@ export const getRunningNoticeSettings = async (): Promise<RunningNoticeSettings>
   const snapshot = await getDoc(SETTINGS_DOC);
 
   if (!snapshot.exists()) {
-    const initial = normalizeRunningNoticeSettings();
-    await setDoc(SETTINGS_DOC, initial, { merge: true });
-    return initial;
+    return normalizeRunningNoticeSettings();
   }
 
   return normalizeRunningNoticeSettings(snapshot.data() as Partial<RunningNoticeSettings>);
