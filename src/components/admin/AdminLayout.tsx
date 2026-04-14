@@ -25,6 +25,15 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
+interface AdminNotificationItem {
+  id: string;
+  title: string;
+  detail: string;
+  href?: string;
+  createdAt: number;
+  tone?: "primary" | "muted";
+}
+
 interface AdminLayoutProps {
   user: AdminUser;
   pageTitle: string;
@@ -34,6 +43,8 @@ interface AdminLayoutProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
   notificationCount: number;
+  notifications: AdminNotificationItem[];
+  onNotificationsOpen?: () => void;
   onLogout: () => void;
   children: React.ReactNode;
 }
@@ -47,23 +58,12 @@ const AdminLayout = ({
   searchValue,
   onSearchChange,
   notificationCount,
+  notifications,
+  onNotificationsOpen,
   onLogout,
   children,
 }: AdminLayoutProps) => {
   const { t } = useLanguage();
-
-  const notifications = [
-    {
-      id: "pending-reviews",
-      label: t("রিভিউ ও রিকোয়েস্ট নিয়মিত চেক করুন", "Check reviews and requests regularly"),
-      tone: notificationCount > 0 ? "primary" : "muted",
-    },
-    {
-      id: "role-security",
-      label: t("ম্যানেজার permission update-এর পর access যাচাই করুন", "Verify access after manager permission updates"),
-      tone: "muted",
-    },
-  ];
 
   return (
     <SidebarProvider defaultOpen>
@@ -141,7 +141,7 @@ const AdminLayout = ({
               </div>
 
               <div className="flex shrink-0 items-center gap-2">
-                <DropdownMenu>
+                <DropdownMenu onOpenChange={(open) => open && onNotificationsOpen?.()}>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="icon" className="relative h-11 w-11 rounded-2xl border-border/70 bg-card shadow-sm">
                       <Bell className="h-5 w-5" />
@@ -158,26 +158,45 @@ const AdminLayout = ({
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <div className="space-y-1 p-2">
-                      <div className="rounded-2xl bg-muted/40 px-3 py-2 text-sm">
-                        <p className="font-bengali font-medium text-foreground">
-                          {t("পেন্ডিং আপডেট", "Pending Updates")}: {notificationCount}
-                        </p>
-                        <p className="mt-1 font-bengali text-xs text-muted-foreground">
-                          {t("নতুন রিভিউ, গার্ডিয়ান রিকোয়েস্ট, বা ভর্তি আবেদন থাকলে এখানে summary দেখাবে।", "Review, guardian request, and admission summaries appear here.")}
-                        </p>
-                      </div>
-                      {notifications.map((item) => (
-                        <DropdownMenuItem key={item.id} className="items-start rounded-xl px-3 py-3 font-bengali text-sm">
-                          <div className="space-y-1">
-                            <p className="text-foreground">{item.label}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {item.tone === "primary"
-                                ? t("এখনই দেখে নেওয়া ভালো", "Worth checking now")
-                                : t("সিস্টেম reminder", "System reminder")}
-                            </p>
-                          </div>
-                        </DropdownMenuItem>
-                      ))}
+                      {notifications.length === 0 ? (
+                        <div className="rounded-2xl border border-dashed border-border/60 px-3 py-4 text-center text-sm text-muted-foreground">
+                          {t("এখন কোনো নতুন নোটিফিকেশন নেই", "No new notifications right now")}
+                        </div>
+                      ) : (
+                        notifications.map((item) => (
+                          <DropdownMenuItem
+                            key={item.id}
+                            asChild={Boolean(item.href)}
+                            className="items-start rounded-xl px-3 py-3 font-bengali text-sm"
+                          >
+                            {item.href ? (
+                              <Link to={item.href} className="flex w-full items-start gap-3">
+                                <div className="space-y-1">
+                                  <p className="text-foreground">{item.title}</p>
+                                  <p className="text-xs text-muted-foreground">{item.detail}</p>
+                                </div>
+                                {item.tone === "primary" && (
+                                  <Badge className="ml-auto rounded-full" variant="secondary">
+                                    {t("নতুন", "New")}
+                                  </Badge>
+                                )}
+                              </Link>
+                            ) : (
+                              <div className="flex w-full items-start gap-3">
+                                <div className="space-y-1">
+                                  <p className="text-foreground">{item.title}</p>
+                                  <p className="text-xs text-muted-foreground">{item.detail}</p>
+                                </div>
+                                {item.tone === "primary" && (
+                                  <Badge className="ml-auto rounded-full" variant="secondary">
+                                    {t("নতুন", "New")}
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
+                          </DropdownMenuItem>
+                        ))
+                      )}
                     </div>
                   </DropdownMenuContent>
                 </DropdownMenu>

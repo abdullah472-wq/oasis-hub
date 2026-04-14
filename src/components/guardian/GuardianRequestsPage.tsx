@@ -38,6 +38,9 @@ const GuardianRequestsPage = ({ guardian, requests, onCreated }: GuardianRequest
       const created = await createGuardianRequest({
         guardianUid: guardian.uid,
         studentId: guardian.studentId,
+        guardianPhone: guardian.phone,
+        className: guardian.className,
+        section: guardian.section,
         guardianName: guardian.fullName,
         studentName: guardian.studentName,
         topic,

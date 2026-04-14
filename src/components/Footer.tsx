@@ -92,7 +92,15 @@ const Footer = () => {
             </div>
           </div>
           <div className="mt-8 border-t border-primary-foreground/20 pt-6 text-center text-sm font-bengali text-primary-foreground/60">
-            &copy; 2026 {t("আননূর শিক্ষা পরিবার। সর্বস্বত্ব সংরক্ষিত।", "Annoor Education Family. All rights reserved.")}
+            <a
+              href="https://codbot.pro.bd/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-primary-foreground"
+            >
+              codbot
+            </a>
+            <span> &copy; 2026 {t("আননূর শিক্ষা পরিবার। সর্বস্বত্ব সংরক্ষিত।", "Annoor Education Family. All rights reserved.")}</span>
           </div>
         </div>
       </footer>
@@ -101,4 +109,3 @@ const Footer = () => {
 };
 
 export default Footer;
-

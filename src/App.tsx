@@ -17,6 +17,8 @@ import Index from "./pages/Index";
 const About = lazy(() => import("./pages/About"));
 const Achievements = lazy(() => import("./pages/Achievements"));
 const GuardianPortal = lazy(() => import("./pages/GuardianPortal"));
+const GuardianRegisterPage = lazy(() => import("./pages/GuardianRegisterPage"));
+const GuardianLogin = lazy(() => import("./pages/GuardianLogin"));
 const NoticeBoard = lazy(() => import("./pages/NoticeBoard"));
 const Results = lazy(() => import("./pages/Results"));
 const VirtualTour = lazy(() => import("./pages/VirtualTour"));
@@ -67,6 +69,8 @@ const AppShell = () => {
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
             <Route path="/achievements" element={<Achievements />} />
+            <Route path="/guardian-register" element={<GuardianRegisterPage />} />
+            <Route path="/guardian-login" element={<GuardianLogin />} />
             <Route path="/guardian/*" element={<GuardianPortal />} />
             <Route path="/notices" element={<NoticeBoard />} />
             <Route path="/results" element={<Results />} />

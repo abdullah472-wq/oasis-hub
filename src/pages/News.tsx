@@ -1,11 +1,26 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Calendar, CheckCircle, Mail, Send } from "lucide-react";
+import { Calendar, CheckCircle, Copy, Mail, MessageCircle, Send } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
 import { getNewsFromFirestore, type NewsPost } from "@/lib/news";
 import { subscribeToNews } from "@/lib/subscribers";
+import { toast } from "sonner";
+
+const FacebookIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M22 12.07C22 6.5 17.52 2 11.93 2C6.35 2 1.86 6.5 1.86 12.07C1.86 17.1 5.53 21.26 10.33 22v-7.05H7.7v-2.88h2.63V9.85c0-2.6 1.55-4.04 3.93-4.04c1.14 0 2.33.2 2.33.2v2.56h-1.31c-1.29 0-1.69.8-1.69 1.62v1.95h2.88l-.46 2.88h-2.42V22c4.8-.74 8.47-4.9 8.47-9.93Z" />
+  </svg>
+);
+
+const InstagramIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M16.5 2.75h-9A4.75 4.75 0 0 0 2.75 7.5v9A4.75 4.75 0 0 0 7.5 21.25h9A4.75 4.75 0 0 0 21.25 16.5v-9A4.75 4.75 0 0 0 16.5 2.75Zm3.25 13.75A3.25 3.25 0 0 1 16.5 19.75h-9a3.25 3.25 0 0 1-3.25-3.25v-9A3.25 3.25 0 0 1 7.5 4.25h9a3.25 3.25 0 0 1 3.25 3.25v9Z" />
+    <path d="M12 7.25A4.75 4.75 0 1 0 16.75 12A4.76 4.76 0 0 0 12 7.25Zm0 7.98A3.23 3.23 0 1 1 15.23 12 3.23 3.23 0 0 1 12 15.23Z" />
+    <circle cx="17.25" cy="6.75" r="0.9" />
+  </svg>
+);
 
 const News = () => {
   const { t, lang } = useLanguage();
@@ -74,6 +89,30 @@ const News = () => {
       setSubLoading(false);
     }
   };
+
+  const buildShareUrl = (newsId: string) => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+    return `${window.location.origin}/news#news-${newsId}`;
+  };
+
+  const handleCopyLink = async (newsId: string) => {
+    const url = buildShareUrl(newsId);
+    if (!url) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success(t("লিংক কপি হয়েছে", "Link copied"));
+    } catch {
+      toast.error(t("লিংক কপি করা যায়নি", "Could not copy link"));
+    }
+  };
+
+  const shareButtonClass =
+    "inline-flex items-center gap-2 rounded-full border border-border/60 bg-background px-3 py-2 font-bengali text-xs font-semibold text-foreground transition hover:border-primary/50 hover:text-primary";
 
   return (
     <div>
@@ -189,6 +228,7 @@ const News = () => {
               {orderedPosts.map((news, index) => (
                 <motion.article
                   key={news.id}
+                  id={`news-${news.id}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.08 }}
@@ -215,6 +255,56 @@ const News = () => {
                       <p className="mt-3 whitespace-pre-line font-bengali leading-8 text-muted-foreground">
                         {lang === "bn" ? news.excerptBn : news.excerptEn}
                       </p>
+                      <div className="mt-5 flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleCopyLink(news.id)}
+                          className={shareButtonClass}
+                        >
+                          <Copy className="h-4 w-4" />
+                          {t("কপি লিংক", "Copy link")}
+                        </button>
+                        <a
+                          href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(buildShareUrl(news.id))}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={shareButtonClass}
+                        >
+                          <FacebookIcon className="h-4 w-4" />
+                          Facebook
+                        </a>
+                        <a
+                          href="https://m.me/"
+                          target="_blank"
+                          rel="noreferrer"
+                          className={shareButtonClass}
+                          onClick={() => handleCopyLink(news.id)}
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          Messenger
+                        </a>
+                        <a
+                          href={`https://wa.me/?text=${encodeURIComponent(
+                            `${lang === "bn" ? news.titleBn : news.titleEn} - ${buildShareUrl(news.id)}`,
+                          )}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={shareButtonClass}
+                        >
+                          <Send className="h-4 w-4" />
+                          WhatsApp
+                        </a>
+                        <a
+                          href="https://www.instagram.com/"
+                          target="_blank"
+                          rel="noreferrer"
+                          className={shareButtonClass}
+                          onClick={() => handleCopyLink(news.id)}
+                        >
+                          <InstagramIcon className="h-4 w-4" />
+                          Instagram
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </motion.article>

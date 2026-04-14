@@ -34,7 +34,11 @@ export interface AttendanceRecord {
   updatedAt: number;
 }
 
-export interface AttendanceSheetRowInput extends Pick<StudentRecord, "studentId" | "guardianUid" | "studentName" | "className" | "section" | "roll"> {
+export interface AttendanceSheetRowInput
+  extends Pick<
+    StudentRecord,
+    "studentId" | "guardianUid" | "studentName" | "className" | "section" | "roll" | "guardianName" | "guardianPhone"
+  > {
   recordId?: string;
   date: string;
   status: AttendanceStatus;
@@ -93,9 +97,10 @@ export const saveAttendanceSheet = async (rows: AttendanceSheetRowInput[], marke
   const sanitizedRows = rows.map((row) => {
     const id = row.recordId || buildAttendanceRecordId(row.studentId, row.date);
     const docRef = doc(db, ATTENDANCE_COLLECTION, id);
+    const guardianUid = String(row.guardianUid ?? "").trim();
     const payload = {
       studentId: row.studentId,
-      guardianUid: row.guardianUid.trim(),
+      guardianUid,
       studentName: row.studentName.trim(),
       className: row.className.trim(),
       section: row.section.trim(),

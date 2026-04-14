@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { Award, CalendarDays, FileText, ImageIcon, MessageSquareQuote, Pencil, Trash2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { toast } from "sonner";
 import { getDownloadUrl } from "@/lib/upload";
 import type { NewsPost } from "@/lib/news";
 import type { GalleryImage } from "@/lib/gallery";
@@ -47,23 +48,29 @@ export const NewsManagerPage = ({
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSaving(true);
-    const existing = items.find((item) => item.id === editingId);
-    await onSave(
-      {
-        id: editingId || undefined,
-        titleBn: form.titleBn,
-        titleEn: form.titleEn,
-        excerptBn: form.excerptBn,
-        excerptEn: form.excerptEn,
-        imageUrl: existing?.imageUrl,
-      },
-      image,
-    );
-    setForm({ titleBn: "", titleEn: "", excerptBn: "", excerptEn: "" });
-    setImage(null);
-    setEditingId(null);
-    setShowForm(false);
-    setSaving(false);
+    try {
+      const existing = items.find((item) => item.id === editingId);
+      await onSave(
+        {
+          id: editingId || undefined,
+          titleBn: form.titleBn,
+          titleEn: form.titleEn,
+          excerptBn: form.excerptBn,
+          excerptEn: form.excerptEn,
+          imageUrl: existing?.imageUrl,
+        },
+        image,
+      );
+      setForm({ titleBn: "", titleEn: "", excerptBn: "", excerptEn: "" });
+      setImage(null);
+      setEditingId(null);
+      setShowForm(false);
+    } catch (error) {
+      console.error("News publish failed:", error);
+      toast.error(t("সংবাদ প্রকাশ করা যায়নি", "Could not publish news"));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const startEditing = (item: NewsPost) => {
@@ -292,6 +299,7 @@ export const NoticesManagerPage = ({
   const [form, setForm] = useState({ titleBn: "", titleEn: "", descriptionBn: "", descriptionEn: "" });
   const [noticeDraft, setNoticeDraft] = useState(noticeSettings);
   const [savingNoticeBar, setSavingNoticeBar] = useState(false);
+  const [expandedNotices, setExpandedNotices] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setNoticeDraft(noticeSettings);
@@ -341,6 +349,10 @@ export const NoticesManagerPage = ({
       ...current,
       runningNotices: current.runningNotices.filter((item) => item.id !== id),
     }));
+  };
+
+  const toggleNoticeExpanded = (id: string) => {
+    setExpandedNotices((current) => ({ ...current, [id]: !(current[id] ?? true) }));
   };
 
   const saveRunningNoticeBar = async (event: React.FormEvent) => {
@@ -402,6 +414,9 @@ export const NoticesManagerPage = ({
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
+                        <Button type="button" variant="outline" className="rounded-2xl font-bengali" onClick={() => toggleNoticeExpanded(item.id)}>
+                          {(expandedNotices[item.id] ?? true) ? t("লুকান", "Collapse") : t("দেখুন", "Expand")}
+                        </Button>
                         <ToggleRow
                           label={t("সক্রিয়", "Active")}
                           checked={item.active}
@@ -413,50 +428,54 @@ export const NoticesManagerPage = ({
                       </div>
                     </div>
 
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <Field label={t("নোটিশ টেক্সট (বাংলা)", "Notice text (Bangla)")}>
-                        <textarea
-                          value={item.textBn}
-                          onChange={(event) => updateRunningNotice(item.id, "textBn", event.target.value)}
-                          className="min-h-[110px] w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm outline-none"
-                        />
-                      </Field>
-                      <Field label={t("Notice text (English)", "Notice text (English)")}>
-                        <textarea
-                          value={item.textEn}
-                          onChange={(event) => updateRunningNotice(item.id, "textEn", event.target.value)}
-                          className="min-h-[110px] w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm outline-none"
-                        />
-                      </Field>
-                    </div>
+                    {(expandedNotices[item.id] ?? true) && (
+                      <>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <Field label={t("নোটিশ টেক্সট (বাংলা)", "Notice text (Bangla)")}>
+                            <textarea
+                              value={item.textBn}
+                              onChange={(event) => updateRunningNotice(item.id, "textBn", event.target.value)}
+                              className="min-h-[110px] w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm outline-none"
+                            />
+                          </Field>
+                          <Field label={t("Notice text (English)", "Notice text (English)")}>
+                            <textarea
+                              value={item.textEn}
+                              onChange={(event) => updateRunningNotice(item.id, "textEn", event.target.value)}
+                              className="min-h-[110px] w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm outline-none"
+                            />
+                          </Field>
+                        </div>
 
-                    <div className="grid gap-4 md:grid-cols-3">
-                      <Field label={t("লিংক", "Link")}>
-                        <input
-                          value={item.link || ""}
-                          onChange={(event) => updateRunningNotice(item.id, "link", event.target.value)}
-                          className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
-                          placeholder="/notices অথবা https://..."
-                        />
-                      </Field>
-                      <Field label={t("প্রকাশের তারিখ", "Publish date")}>
-                        <input
-                          type="date"
-                          value={item.publishDate}
-                          onChange={(event) => updateRunningNotice(item.id, "publishDate", event.target.value)}
-                          className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
-                        />
-                      </Field>
-                      <Field label={t("Priority", "Priority")}>
-                        <input
-                          type="number"
-                          min={1}
-                          value={item.priority}
-                          onChange={(event) => updateRunningNotice(item.id, "priority", Number(event.target.value) || 1)}
-                          className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
-                        />
-                      </Field>
-                    </div>
+                        <div className="grid gap-4 md:grid-cols-3">
+                          <Field label={t("লিংক", "Link")}>
+                            <input
+                              value={item.link || ""}
+                              onChange={(event) => updateRunningNotice(item.id, "link", event.target.value)}
+                              className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+                              placeholder="/notices অথবা https://..."
+                            />
+                          </Field>
+                          <Field label={t("প্রকাশের তারিখ", "Publish date")}>
+                            <input
+                              type="date"
+                              value={item.publishDate}
+                              onChange={(event) => updateRunningNotice(item.id, "publishDate", event.target.value)}
+                              className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+                            />
+                          </Field>
+                          <Field label={t("Priority", "Priority")}>
+                            <input
+                              type="number"
+                              min={1}
+                              value={item.priority}
+                              onChange={(event) => updateRunningNotice(item.id, "priority", Number(event.target.value) || 1)}
+                              className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+                            />
+                          </Field>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))
             )}
@@ -693,5 +712,7 @@ export const AchievementsManagerPage = ({
     </ModuleShell>
   );
 };
+
+
 
 

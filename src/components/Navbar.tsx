@@ -34,6 +34,7 @@ const Navbar = () => {
 
   const academicLinks = [
     { to: "/achievements", label: t("আমাদের অর্জন", "Our Achievements") },
+    { to: "/guardian-register", label: t("গার্ডিয়ান রেজিস্ট্রেশন", "Guardian Registration") },
     { to: "/notices", label: t("নোটিশ বোর্ড", "Notice") },
     { to: "/results", label: t("পরীক্ষার ফলাফল", "Results") },
     { to: "/gallery", label: t("গ্যালারি", "Gallery") },

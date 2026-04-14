@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { FeeBatchDraft, FeeEntry, FeeEntryUpdateInput, FeeStudentOption } from "@/lib/feeEntries";
@@ -24,6 +24,7 @@ const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCrea
   const { t } = useLanguage();
   const [saving, setSaving] = useState(false);
   const [batchDraft, setBatchDraft] = useState<FeeBatchDraft>(createEmptyFeeBatchDraft());
+  const [studentSearch, setStudentSearch] = useState("");
   const [editDraft, setEditDraft] = useState<FeeEntryUpdateInput>({
     title: "",
     category: "monthly",
@@ -54,6 +55,15 @@ const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCrea
   }, [initialEntry, mode, open]);
 
   const selectedStudent = useMemo(() => students.find((item) => item.studentId === batchDraft.studentId), [batchDraft.studentId, students]);
+  const filteredStudents = useMemo(() => {
+    const query = studentSearch.trim().toLowerCase();
+    if (!query) return students;
+    return students.filter((student) =>
+      [student.studentId, student.studentName, student.className, student.guardianName]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query)),
+    );
+  }, [studentSearch, students]);
 
   useEffect(() => {
     if (!selectedStudent) return;
@@ -105,6 +115,12 @@ const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCrea
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <div className="space-y-2 xl:col-span-2">
                 <Label className="font-bengali">{t("শিক্ষার্থী নির্বাচন", "Select student")}</Label>
+                <Input
+                  value={studentSearch}
+                  onChange={(event) => setStudentSearch(event.target.value)}
+                  className="mb-2 rounded-2xl"
+                  placeholder={t("স্টুডেন্ট আইডি দিয়ে খুঁজুন", "Search by student ID")}
+                />
                 <select
                   value={batchDraft.studentId}
                   onChange={(event) => {
@@ -122,9 +138,9 @@ const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCrea
                   className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
                 >
                   <option value="">{t("শিক্ষার্থী নির্বাচন করুন", "Choose a student")}</option>
-                  {students.map((student) => (
+                  {filteredStudents.map((student) => (
                     <option key={student.studentId} value={student.studentId}>
-                      {student.studentName} - {student.className}
+                      {student.studentId} - {student.studentName} - {student.className} - {student.guardianName || t("গার্ডিয়ান নেই", "No guardian")}
                     </option>
                   ))}
                 </select>
@@ -137,7 +153,7 @@ const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCrea
 
               <div className="space-y-2">
                 <Label className="font-bengali">{t("গার্ডিয়ান UID", "Guardian UID")}</Label>
-                <Input value={batchDraft.guardianUid} onChange={(event) => setBatchDraft((current) => ({ ...current, guardianUid: event.target.value }))} className="rounded-2xl" placeholder={t("ভবিষ্যৎ লগইনের জন্য", "For future guardian login")} />
+                <Input value={batchDraft.guardianUid} onChange={(event) => setBatchDraft((current) => ({ ...current, guardianUid: event.target.value }))} className="rounded-2xl" placeholder={t("লগইন লিংকের জন্য", "Used for guardian login mapping")} />
               </div>
 
               <div className="space-y-2">

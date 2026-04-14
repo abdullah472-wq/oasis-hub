@@ -1,5 +1,32 @@
-﻿import type { StudentRecord } from "@/lib/students";
+import type { StudentRecord } from "@/lib/students";
 import type { AttendanceRecord, AttendanceSheetRowInput, AttendanceStatus } from "@/lib/attendanceService";
+
+const ATTENDANCE_CLASS_SEQUENCE = ["Play", "Nursery", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"] as const;
+
+const normalizeClassName = (value: string) => {
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return "";
+
+  if (normalized === "play" || normalized === "pre-play" || normalized === "pre play" || normalized === "play group") {
+    return "Play";
+  }
+
+  if (normalized === "nursery") {
+    return "Nursery";
+  }
+
+  const digitMatch = normalized.match(/\d+/);
+  if (digitMatch) {
+    const digit = digitMatch[0];
+    if (ATTENDANCE_CLASS_SEQUENCE.includes(digit as (typeof ATTENDANCE_CLASS_SEQUENCE)[number])) {
+      return digit;
+    }
+  }
+
+  return value.trim();
+};
+
+const hasRegisteredGuardian = (student: StudentRecord) => Boolean(student.guardianUid?.trim());
 
 export interface AttendanceMonthlySummary {
   totalDays: number;
@@ -22,7 +49,7 @@ export const attendanceStatusOptions: Array<{
 }> = [
   { value: "present", labelBn: "উপস্থিত", labelEn: "Present", tone: "border-emerald-200 bg-emerald-50 text-emerald-700" },
   { value: "absent", labelBn: "অনুপস্থিত", labelEn: "Absent", tone: "border-rose-200 bg-rose-50 text-rose-700" },
-  { value: "late", labelBn: "বিলম্ব", labelEn: "Late", tone: "border-amber-200 bg-amber-50 text-amber-700" },
+  { value: "late", labelBn: "বিলম্বিত", labelEn: "Late", tone: "border-amber-200 bg-amber-50 text-amber-700" },
   { value: "leave", labelBn: "ছুটি", labelEn: "Leave", tone: "border-sky-200 bg-sky-50 text-sky-700" },
 ];
 
@@ -34,6 +61,8 @@ export const createAttendanceRow = (
   recordId: record?.id,
   studentId: student.studentId,
   guardianUid: student.guardianUid,
+  guardianName: student.guardianName,
+  guardianPhone: student.guardianPhone,
   studentName: student.studentName,
   className: student.className,
   section: student.section,
@@ -61,7 +90,8 @@ export const buildAttendanceSheetRows = ({
 
   return students
     .filter((student) => {
-      if (className && className !== "all" && student.className !== className) return false;
+      if (!hasRegisteredGuardian(student)) return false;
+      if (className && className !== "all" && normalizeClassName(student.className) !== normalizeClassName(className)) return false;
       if (section && section !== "all" && student.section !== section) return false;
       return true;
     })
@@ -122,13 +152,14 @@ export const calculateAttendanceSheetSummary = (rows: AttendanceSheetRowInput[])
   };
 };
 
-export const buildClassOptions = (students: StudentRecord[]) => Array.from(new Set(students.map((item) => item.className).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+export const buildClassOptions = (_students: StudentRecord[]) => [...ATTENDANCE_CLASS_SEQUENCE];
 
 export const buildSectionOptions = (students: StudentRecord[], className: string) =>
   Array.from(
     new Set(
       students
-        .filter((item) => !className || className === "all" || item.className === className)
+        .filter((item) => hasRegisteredGuardian(item))
+        .filter((item) => !className || className === "all" || normalizeClassName(item.className) === normalizeClassName(className))
         .map((item) => item.section)
         .filter(Boolean),
     ),
@@ -136,3 +167,4 @@ export const buildSectionOptions = (students: StudentRecord[], className: string
 
 export const getRecentAttendanceFromRecords = (records: AttendanceRecord[], limit = 7) =>
   [...records].sort((a, b) => b.date.localeCompare(a.date) || b.updatedAt - a.updatedAt).slice(0, limit);
+

@@ -42,6 +42,23 @@ const GuardianRegisterPage = () => {
               <p className="mx-auto mt-4 max-w-2xl font-bengali text-base text-muted-foreground">
                 {t("আপনার রেজিস্ট্রেশন গ্রহণ করা হয়েছে। অ্যাডমিন অনুমোদনের পর আপনি লগইন করতে পারবেন।", "Your registration has been received. You will be able to log in after admin approval.")}
               </p>
+              <div className="mx-auto mt-6 max-w-xl rounded-3xl border border-primary/15 bg-primary/5 p-5 text-left">
+                <p className="font-bengali text-sm font-semibold text-foreground">
+                  {t("এখনই Official Annoor App ডাউনলোড করুন", "Download Official Annoor App now")}
+                </p>
+                <p className="mt-2 font-bengali text-sm text-muted-foreground">
+                  {t("অ্যাপ ডাউনলোড করে ইন্সটল করুন, অনুমোদনের পর সেখান থেকে লগইন করতে পারবেন।", "Download and install the app; after approval you can log in from there.")}
+                </p>
+                <div className="mt-4">
+                  <a
+                    href="/guardian-app.apk"
+                    download
+                    className="inline-flex rounded-2xl bg-primary px-5 py-3 font-bengali text-primary-foreground transition-opacity hover:opacity-90"
+                  >
+                    {t("Official Annoor App ডাউনলোড", "Download Official Annoor App")}
+                  </a>
+                </div>
+              </div>
               <div className="mt-6">
                 <Link to="/admin" className="inline-flex rounded-2xl bg-primary px-5 py-3 font-bengali text-primary-foreground transition-opacity hover:opacity-90">
                   {t("লগইনে যান", "Go to Login")}

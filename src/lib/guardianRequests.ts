@@ -34,6 +34,9 @@ const toGuardianRequest = (snapshot: QueryDocumentSnapshot<DocumentData>): Guard
     id: snapshot.id,
     guardianUid: data.guardianUid ? String(data.guardianUid) : undefined,
     studentId: data.studentId ? String(data.studentId) : undefined,
+    guardianPhone: data.guardianPhone ? String(data.guardianPhone) : undefined,
+    className: data.className ? String(data.className) : undefined,
+    section: data.section ? String(data.section) : undefined,
     guardianName: String(data.guardianName ?? ""),
     studentName: String(data.studentName ?? ""),
     topic: String(data.topic ?? ""),
@@ -46,6 +49,9 @@ const toGuardianRequest = (snapshot: QueryDocumentSnapshot<DocumentData>): Guard
 export interface CreateGuardianRequestInput {
   guardianUid: string;
   studentId: string;
+  guardianPhone?: string;
+  className?: string;
+  section?: string;
   guardianName: string;
   studentName: string;
   topic: string;
@@ -55,6 +61,9 @@ export interface CreateGuardianRequestInput {
 export interface CreateGuardianRequestByAdminInput {
   guardianUid?: string;
   studentId?: string;
+  guardianPhone?: string;
+  className?: string;
+  section?: string;
   guardianName: string;
   studentName: string;
   topic: string;
@@ -100,6 +109,9 @@ export const createGuardianRequest = async (
   const request = {
     guardianUid: payload.guardianUid,
     studentId: payload.studentId,
+    guardianPhone: payload.guardianPhone?.trim() || null,
+    className: payload.className?.trim() || null,
+    section: payload.section?.trim() || null,
     guardianName: payload.guardianName.trim(),
     studentName: payload.studentName.trim(),
     topic: payload.topic.trim(),
@@ -123,6 +135,9 @@ export const createGuardianRequestByAdmin = async (
   const request = {
     guardianUid: payload.guardianUid?.trim() || null,
     studentId: payload.studentId?.trim() || null,
+    guardianPhone: payload.guardianPhone?.trim() || null,
+    className: payload.className?.trim() || null,
+    section: payload.section?.trim() || null,
     guardianName: payload.guardianName.trim(),
     studentName: payload.studentName.trim(),
     topic: payload.topic.trim(),
@@ -137,6 +152,9 @@ export const createGuardianRequestByAdmin = async (
     id: ref.id,
     guardianUid: request.guardianUid ?? undefined,
     studentId: request.studentId ?? undefined,
+    guardianPhone: request.guardianPhone ?? undefined,
+    className: request.className ?? undefined,
+    section: request.section ?? undefined,
     guardianName: request.guardianName,
     studentName: request.studentName,
     topic: request.topic,

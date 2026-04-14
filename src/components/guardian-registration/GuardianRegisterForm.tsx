@@ -20,6 +20,7 @@ const defaultValues: GuardianRegisterValues = {
   phone: "",
   email: "",
   password: "",
+  gender: "male",
   relationship: "Father",
   address: "",
   nid: "",
@@ -27,7 +28,6 @@ const defaultValues: GuardianRegisterValues = {
   studentName: "",
   className: "",
   section: "",
-  roll: 1,
 };
 
 const guardianStepFields: Array<keyof GuardianRegisterValues> = [
@@ -35,6 +35,7 @@ const guardianStepFields: Array<keyof GuardianRegisterValues> = [
   "phone",
   "email",
   "password",
+  "gender",
   "relationship",
   "address",
   "nid",

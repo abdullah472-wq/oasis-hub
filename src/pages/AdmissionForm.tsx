@@ -75,6 +75,8 @@ const Field = ({
 const AdmissionFormPage = () => {
   const { t, lang } = useLanguage();
   const [submitting, setSubmitting] = useState(false);
+  const [rulesAccepted, setRulesAccepted] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     studentName: "",
@@ -291,7 +293,113 @@ const AdmissionFormPage = () => {
         </div>
 
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1fr_330px]">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6">
+            <section className="rounded-[1.75rem] border border-sky-100 bg-white p-6 shadow-[0_22px_70px_-52px_rgba(14,116,144,0.38)] md:p-7">
+              <div className="mb-5 flex items-start gap-4 border-b border-sky-100 pb-5">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
+                  <ShieldCheck className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="font-bengali text-xl font-bold text-slate-900 md:text-[1.65rem]">ভর্তিচ্ছু শিক্ষার্থীদের অঙ্গীকারনামা</h2>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                    প্রতিষ্ঠানটির শৃঙ্খলা ও শিক্ষার পরিবেশ রক্ষায় প্রতিটি শিক্ষার্থীকে নিচের বিষয়গুলো মেনে চলার অঙ্গীকার করতে হবে:
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="rounded-2xl border border-sky-100 bg-sky-50/50 p-4 md:p-5">
+                  <h3 className="font-bengali text-base font-semibold text-slate-900">শৃঙ্খলা ও আচরণনীতি</h3>
+                  <div className="mt-3 space-y-2 text-sm text-slate-600">
+                    {[
+                      "প্রতিষ্ঠানের বর্তমান ও ভবিষ্যতে গৃহিত সকল নিয়ম-কানুন অক্ষরে অক্ষরে পালন করা।",
+                      "পড়াশোনা ব্যতীত অন্য কোনো অনর্থক কাজে সময় ব্যয় না করা এবং আদর্শ পরিপন্থী কোনো বই-পুস্তক বা ম্যাগাজিন না পড়া।",
+                      "সর্বদা সুন্নতি তরীকা মোতাবেক জীবন যাপন, নির্ধারিত পোশাক পরিধান এবং উন্নত চারিত্রিক গুণাবলী অর্জন করা।",
+                      "নিজেকে এবং নিজের চারপাশ সর্বদা পরিষ্কার-পরিচ্ছন্ন রাখা।",
+                      "শিক্ষক ও মুরুব্বিদের সম্মান করা এবং সহপাঠী ও কর্মচারীদের সাথে সদাচরণ করা।",
+                      "প্রতিষ্ঠানের আসবাবপত্র ও সম্পদ আমানত হিসেবে ব্যবহার করা এবং অপচয় (পানি, বিদ্যুৎ) রোধে সচেষ্ট থাকা।",
+                      "অধ্যয়নরত অবস্থায় মোবাইল ফোন, টেপ রেকর্ডার বা এ জাতীয় কোনো ইলেকট্রনিক ডিভাইস ব্যবহার না করা।",
+                      "কর্তৃপক্ষের অনুমতি ব্যতিরেকে মাদরাসার সীমানার বাইরে না যাওয়া।",
+                    ].map((item) => (
+                      <div key={item} className="flex items-start gap-3">
+                        <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-sky-700" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-sky-100 bg-white p-4 md:p-5">
+                  <h3 className="font-bengali text-base font-semibold text-slate-900">অভিভাবকদের জন্য প্রয়োজনীয় জ্ঞাতব্য ও শর্তাবলী</h3>
+                  <p className="mt-2 text-sm text-slate-600">
+                    আপনার সন্তানকে সুশিক্ষিত ও আদর্শ মানুষ হিসেবে গড়ে তুলতে আমাদের সাথে আপনাদের সহযোগিতা একান্ত কাম্য:
+                  </p>
+                  <div className="mt-3 space-y-2 text-sm text-slate-600">
+                    {[
+                      "মাদরাসা কর্তৃপক্ষ কর্তৃক অর্পিত সকল দায়িত্ব এবং নিয়ম-কানুন মেনে চলা।",
+                      "সন্তানের পড়াশোনার নিয়মিত উন্নতি বা অবনতির খোঁজ নেওয়া।",
+                      "কোনো নিয়ম ভঙ্গ বা অপ্রীতিকর ঘটনার ক্ষেত্রে কর্তৃপক্ষের নেওয়া চূড়ান্ত সিদ্ধান্ত মেনে নেওয়া।",
+                      "প্রতি ইংরেজি মাসের ৫ তারিখের মধ্যে মাদরাসার বেতন ও অন্যান্য খরচ পরিশোধ করা।",
+                      "ছুটি শেষে নির্দিষ্ট সময়ে সন্তানকে মাদরাসায় পৌঁছে দেওয়া এবং নিজ দায়িত্বে নিয়ে যাওয়া।",
+                      "সপ্তাহে একদিন (নির্ধারিত দিনে) নির্দিষ্ট সময়ের বাইরে মোবাইলে সন্তানের সাথে কথা না বলা।",
+                      "মাদরাসা থেকে অনুমতি ছাড়া কেউ পালিয়ে গেলে বা হারিয়ে গেলে তার দায়ভার অভিভাবকের।",
+                      "কোনো শিক্ষার্থী মাসে মাত্র ৭ দিন অবস্থান করলেও পুরো মাসের বেতন প্রদান করতে হবে এবং ভর্তির সময় জমা দেওয়া টাকা ফেরতযোগ্য নয়।",
+                    ].map((item) => (
+                      <div key={item} className="flex items-start gap-3">
+                        <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-sky-700" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-sky-100 bg-sky-50/50 p-4 md:p-5">
+                  <h3 className="font-bengali text-base font-semibold text-slate-900">আমাদের একান্ত পালনীয় নীতিসমূহ</h3>
+                  <div className="mt-3 space-y-2 text-sm text-slate-600">
+                    {[
+                      "প্রতিষ্ঠানের আইন ও শৃঙ্খলা সর্বদা মেনে চলা।",
+                      "সচ্চরিত্রতা, ভদ্রতা ও পরিচ্ছন্নতা বজায় রাখা।",
+                      "ইলমে দ্বীনের চর্চাকেই জীবনের একমাত্র লক্ষ্য বানানো।",
+                      "ইজতিমায়ী আমলের পাবন্দি করা এবং সুন্নাত মোতাবেক জীবন যাপন করা।",
+                      "শিক্ষক ও মুরুব্বিদের প্রতি যথাযথ সম্মান প্রদর্শন করা।",
+                    ].map((item) => (
+                      <div key={item} className="flex items-start gap-3">
+                        <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-sky-700" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 rounded-2xl border border-sky-100 bg-white p-4 md:flex-row md:items-center md:justify-between">
+                  <label className="flex items-start gap-3 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={rulesAccepted}
+                      onChange={(e) => setRulesAccepted(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-sky-300 text-sky-700 focus:ring-sky-500/40"
+                    />
+                    আমি উপরোক্ত শর্তাবলী পড়েছি এবং সম্মত আছি।
+                  </label>
+                  <button
+                    type="button"
+                    className="rounded-xl bg-sky-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={!rulesAccepted}
+                    onClick={() => {
+                      setShowForm(true);
+                      setTimeout(() => {
+                        document.getElementById("admission-form")?.scrollIntoView({ behavior: "smooth" });
+                      }, 80);
+                    }}
+                  >
+                    পরের ধাপে যান
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            {showForm && (
+              <form id="admission-form" onSubmit={handleSubmit} className="space-y-6">
             <SectionCard
               icon={GraduationCap}
               title={t("শিক্ষার্থীর তথ্য", "Student information")}
@@ -608,7 +716,9 @@ const AdmissionFormPage = () => {
               {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
               {t("ভর্তি আবেদন জমা দিন", "Submit admission application")}
             </motion.button>
-          </form>
+              </form>
+            )}
+          </div>
 
           <aside className="space-y-5 lg:sticky lg:top-24 lg:h-fit">
             <div className="rounded-[1.75rem] border border-sky-100 bg-white p-6 shadow-[0_24px_80px_-52px_rgba(14,116,144,0.32)]">

@@ -10,6 +10,11 @@ interface AttendanceFiltersProps {
   sectionFilter: string;
   classOptions: string[];
   sectionOptions: string[];
+  totalStudents: number;
+  presentCount: number;
+  absentCount: number;
+  lateCount: number;
+  leaveCount: number;
   saving: boolean;
   onDateChange: (value: string) => void;
   onClassChange: (value: string) => void;
@@ -24,6 +29,11 @@ const AttendanceFilters = ({
   sectionFilter,
   classOptions,
   sectionOptions,
+  totalStudents,
+  presentCount,
+  absentCount,
+  lateCount,
+  leaveCount,
   saving,
   onDateChange,
   onClassChange,
@@ -69,10 +79,29 @@ const AttendanceFilters = ({
           {t("সব উপস্থিত", "Mark All Present")}
         </Button>
 
-        <Button type="button" className="h-11 rounded-2xl font-bengali" onClick={onSave} disabled={saving}>
-          <Save className="mr-2 h-4 w-4" />
-          {saving ? t("সেভ হচ্ছে...", "Saving...") : t("উপস্থিতি সেভ", "Save Attendance")}
-        </Button>
+        <div className="flex flex-col gap-2 lg:items-end">
+          <div className="flex flex-wrap gap-2 lg:justify-end">
+            <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+              {t("মোট", "Total")}: {totalStudents}
+            </div>
+            <div className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+              {t("উপস্থিত", "Present")}: {presentCount}
+            </div>
+            <div className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700">
+              {t("অনুপস্থিত", "Absent")}: {absentCount}
+            </div>
+            <div className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+              {t("বিলম্বিত", "Late")}: {lateCount}
+            </div>
+            <div className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
+              {t("ছুটি", "Leave")}: {leaveCount}
+            </div>
+          </div>
+          <Button type="button" className="h-11 rounded-2xl font-bengali" onClick={onSave} disabled={saving}>
+            <Save className="mr-2 h-4 w-4" />
+            {saving ? t("সেভ হচ্ছে...", "Saving...") : t("উপস্থিতি সেভ", "Save Attendance")}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

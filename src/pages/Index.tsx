@@ -2,7 +2,7 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { BookOpen, Users, Award, GraduationCap, Send, CheckCircle } from "lucide-react";
+import { BookOpen, Users, Award, GraduationCap, Send, CheckCircle, Briefcase } from "lucide-react";
 import type { Review } from "@/lib/reviews";
 import { useLanguage } from "@/contexts/LanguageContext";
 import PwaHomeCard from "@/components/PwaHomeCard";
@@ -80,6 +80,7 @@ const Index = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
 
   useEffect(() => {
     let isMounted = true;
@@ -505,23 +506,74 @@ const Index = () => {
 
       {/* Students Future */}
       <section className="py-16">
-        <div className="container mx-auto px-4 max-w-4xl">
-          <motion.div
-            {...springIn}
-            className="text-center"
-          >
-            <h2 className="font-bengali text-2xl md:text-3xl font-bold text-foreground mb-6">
+        <div className="container mx-auto max-w-6xl px-4">
+          <div className="text-center">
+            <h2 className="font-bengali text-2xl font-bold text-[#064E3B] md:text-3xl">
               {t("আমাদের শিক্ষার্থীদের ভবিষ্যৎ", "Our Students' Future")}
             </h2>
-            <div className="bg-secondary/50 rounded-2xl p-6 md:p-8">
-              <p className="font-bengali text-muted-foreground leading-relaxed">
+            <p className="mx-auto mt-4 max-w-3xl font-bengali text-base leading-8 text-muted-foreground">
+              {t(
+                "আমরা বিশ্বাস করি, দ্বীনি শিক্ষার আলো ও সাধারণ শিক্ষার দক্ষতা—এই দুইয়ের সমন্বয়ই ভবিষ্যৎকে আলোকিত করে। আমাদের শিক্ষার্থীরা জ্ঞান, নৈতিকতা ও পেশাগত দক্ষতায় এমনভাবে গড়ে উঠবে যেন তারা সমাজে নেতৃত্ব দিতে পারে।",
+                "We believe the blend of religious guidance and general education shapes a brighter future. Our students grow in knowledge, values, and professional excellence so they can lead society with confidence.",
+              )}
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-[#064E3B]">
+                <GraduationCap className="h-6 w-6" />
+              </div>
+              <h3 className="font-bengali text-lg font-semibold text-[#064E3B]">
+                {t("উচ্চশিক্ষা", "Higher Education")}
+              </h3>
+              <p className="mt-3 font-bengali text-sm leading-7 text-muted-foreground">
                 {t(
-                  "এ প্রতিষ্ঠানের শিক্ষার্থীরা শুধু দ্বীনি আলেমই হবে না বরং তারা হবে বিশ্ববিদ্যালয় পর্যায়ের ডিগ্রিধারী (অনার্স, মাস্টার্স ও পর্যায়ক্রমে পিএইচডি)। জাতীয় ও আন্তজাতিক পর্যায়ে মর্যাদার পদ ও স্থানে নিজেদের জায়গা করে নিতে পারবে। একদিকে হবে কুরআনের হাফেজ, আলেম, ইসলামী চিন্তাবিদ, গবেষক, শিক্ষক ও দাঈ। অন্যদিকে হবে ডাক্তার, ইঞ্জিনিয়ার, ব্যারিস্টার, প্রশাসনিক কর্মকর্তা, উদ্যোক্তা, ব্যবসায়ী ও অন্যান্য পেশাজীবী।",
-                  "The students of this institution will not merely become Islamic scholars — they will be degree holders at university level (Bachelor's, Master's, and progressively PhD). They will be able to establish themselves in prestigious positions at both national and international levels. On one hand, they will become Huffaz of the Quran, Islamic scholars, thinkers, researchers, teachers, and Da'ees (callers to Islam). On the other hand, they will become doctors, engineers, barristers, administrative officers, entrepreneurs, businesspeople, and professionals in various other fields."
+                  "অনার্স, মাস্টার্স ও পিএইচডি পর্যায়ের ডিগ্রি অর্জনের মাধ্যমে দেশ-বিদেশে মেধার স্বাক্ষর রাখার লক্ষ্য।",
+                  "Focus on Honors, Masters, and PhD degrees to leave a mark of excellence nationally and globally.",
                 )}
               </p>
             </div>
-          </motion.div>
+
+            <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-[#064E3B]">
+                <BookOpen className="h-6 w-6" />
+              </div>
+              <h3 className="font-bengali text-lg font-semibold text-[#064E3B]">
+                {t("দ্বীনি নেতৃত্ব", "Religious Leadership")}
+              </h3>
+              <p className="mt-3 font-bengali text-sm leading-7 text-muted-foreground">
+                {t(
+                  "হাফেজে কোরআন, ইসলামি চিন্তাবিদ, গবেষক ও শিক্ষক হিসেবে দায়িত্বশীল ভূমিকা পালন।",
+                  "Prepare as Hafez, Islamic thinkers, researchers, and dedicated teachers with responsibility.",
+                )}
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-[#064E3B]">
+                <Briefcase className="h-6 w-6" />
+              </div>
+              <h3 className="font-bengali text-lg font-semibold text-[#064E3B]">
+                {t("পেশাগত শ্রেষ্ঠত্ব", "Professional Excellence")}
+              </h3>
+              <p className="mt-3 font-bengali text-sm leading-7 text-muted-foreground">
+                {t(
+                  "ডাক্তার, ইঞ্জিনিয়ার, ব্যারিস্টার, প্রশাসনিক কর্মকর্তা ও উদ্যোক্তা হিসেবে দক্ষতা অর্জন।",
+                  "Build skills to become doctors, engineers, barristers, administrative officers, and entrepreneurs.",
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-10 rounded-3xl border border-emerald-200 bg-emerald-50/60 px-6 py-5 text-center">
+            <p className="font-bengali text-base font-semibold text-[#064E3B]">
+              {t(
+                "“দ্বীনি ও দুনিয়াবি শিক্ষার সমন্বয়ই আমাদের শিক্ষার্থীদের সত্যিকারের সফলতার পথে এগিয়ে নেয়।”",
+                "\"The harmony of faith-based and general education guides our students toward true success.\"",
+              )}
+            </p>
+          </div>
         </div>
       </section>
 

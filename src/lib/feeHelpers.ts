@@ -1,4 +1,4 @@
-import type { AdmissionForm } from "@/lib/admission";
+﻿import type { AdmissionForm } from "@/lib/admission";
 import type {
   FeeBatchDraft,
   FeeCategory,
@@ -8,6 +8,7 @@ import type {
   FeeStatus,
   FeeStudentOption,
 } from "@/lib/feeEntries";
+import type { StudentRecord } from "@/lib/students";
 
 export const feeCategoryOptions: Array<{ value: FeeCategory; labelBn: string; labelEn: string }> = [
   { value: "monthly", labelBn: "মাসিক", labelEn: "Monthly" },
@@ -87,23 +88,46 @@ export const calculateFeeSummary = (entries: FeeEntry[], billingMonth?: string):
     .reduce((sum, item) => sum + item.amount, 0),
 });
 
-export const buildFeeStudentOptions = (admissions: AdmissionForm[]): FeeStudentOption[] => {
+export const buildFeeStudentOptions = (students: StudentRecord[], admissions: AdmissionForm[]): FeeStudentOption[] => {
   const map = new Map<string, FeeStudentOption>();
+
+  students.forEach((item) => {
+    if (!item.studentId || !item.guardianUid) return;
+
+    map.set(item.studentId, {
+      studentId: item.studentId,
+      guardianUid: item.guardianUid,
+      guardianName: item.guardianName || "",
+      guardianPhone: item.guardianPhone || "",
+      studentName: item.studentName,
+      className: item.className,
+    });
+  });
 
   admissions.forEach((item) => {
     if (!item.id) return;
 
+    const current = map.get(item.id);
+
     map.set(item.id, {
       studentId: item.id,
-      guardianUid: "",
-      guardianName: item.fatherNameBn || item.fatherName || item.motherNameBn || item.motherName || "",
-      guardianPhone: item.fatherPhone || item.motherPhone || "",
+      guardianUid: current?.guardianUid || "",
+      guardianName:
+        current?.guardianName ||
+        item.fatherNameBn ||
+        item.fatherName ||
+        item.motherNameBn ||
+        item.motherName ||
+        "",
+      guardianPhone: current?.guardianPhone || item.fatherPhone || item.motherPhone || "",
       studentName: item.studentNameBn || item.studentName,
       className: item.class,
     });
   });
 
-  return Array.from(map.values()).sort((a, b) => a.studentName.localeCompare(b.studentName));
+  return Array.from(map.values())
+    .filter((item) => item.guardianUid.trim())
+    .sort((a, b) => a.studentName.localeCompare(b.studentName));
 };
 
 export const matchesFeeSearch = (entry: FeeEntry, term: string) => {

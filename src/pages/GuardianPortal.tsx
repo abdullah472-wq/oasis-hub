@@ -187,7 +187,7 @@ const GuardianPortal = () => {
             <p className="font-bengali text-sm font-semibold uppercase tracking-[0.2em] text-primary">{t("গার্ডিয়ান পোর্টাল", "Guardian Portal")}</p>
             <h1 className="font-bengali text-2xl font-semibold text-foreground">{pageTitle}</h1>
             <p className="font-bengali text-sm text-muted-foreground">
-              {data.guardianProfile.studentName} • {data.guardianProfile.className} • {data.guardianProfile.section} • {t("রোল", "Roll")} {data.guardianProfile.roll}
+              {data.guardianProfile.studentName} • {data.guardianProfile.className} • {data.guardianProfile.section} • {t("স্টুডেন্ট আইডি", "Student ID")} {data.guardianProfile.studentId}
             </p>
           </div>
           <div className="flex items-center gap-3">

@@ -1,5 +1,5 @@
 ﻿import { motion } from "framer-motion";
-import { Quote } from "lucide-react";
+import { Eye, Quote, Target } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
 import heroImg from "@/assets/hero-campus.jpg";
@@ -101,67 +101,48 @@ const About = () => {
         <WaveDivider className="absolute bottom-0" />
       </section>
 
-      <section className="py-16">
-        <div className="container mx-auto max-w-4xl px-4">
-          <div className="grid gap-8 md:grid-cols-2">
-            {[
-              {
-                title: t("আমাদের লক্ষ্য", "Our Mission"),
-                desc: t(
-                  "ইসলামি মূল্যবোধ ও আধুনিক শিক্ষার সমন্বয়ে প্রতিটি শিক্ষার্থীকে একজন আদর্শ মানুষ হিসেবে গড়ে তোলা।",
-                  "To develop every student into an ideal human being through the harmony of Islamic values and modern education.",
-                ),
-              },
-              {
-                title: t("আমাদের দৃষ্টিভঙ্গি", "Our Vision"),
-                desc: t(
-                  "ইসলামি ও নৈতিক শিক্ষায় একটি বিশ্বস্ত ও মানসম্মত প্রতিষ্ঠান হিসেবে পরিচিতি লাভ করা।",
-                  "To be recognized as a trusted and high-quality institution in Islamic and values-based education.",
-                ),
-              },
-            ].map((item, index) => (
-              <motion.div key={item.title} {...springIn} transition={springInDelay(index * 0.15)} className="card-institutional p-8">
-                <h2 className="mb-4 font-bengali text-2xl font-bold text-foreground">{item.title}</h2>
-                <p className="font-bengali leading-relaxed text-muted-foreground">{item.desc}</p>
-              </motion.div>
-            ))}
+      <section className="py-20">
+        <div className="container mx-auto max-w-5xl px-4">
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="rounded-xl border border-gray-200 bg-[#F9FAFB] p-8">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-[#064E3B]">
+                <Target className="h-6 w-6" />
+              </div>
+              <h2 className="mb-4 font-bengali text-xl font-semibold text-[#064E3B]">
+                {t("আমাদের লক্ষ্য", "Our Mission")}
+              </h2>
+              <p className="font-bengali text-lg leading-8 text-muted-foreground">
+                {t(
+                  "ইসলামি মূল্যবোধ ও আধুনিক শিক্ষার এক অনন্য সমন্বয়ে প্রতিটি শিক্ষার্থীকে নৈতিকতা সম্পন্ন, দক্ষ এবং একজন আদর্শ মানুষ হিসেবে গড়ে তোলা।",
+                  "To shape every student into a principled, capable, and ideal human being through a unique blend of Islamic values and modern education.",
+                )}
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-gray-200 bg-[#F9FAFB] p-8">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-[#064E3B]">
+                <Eye className="h-6 w-6" />
+              </div>
+              <h2 className="mb-4 font-bengali text-xl font-semibold text-[#064E3B]">
+                {t("আমাদের দৃষ্টিভঙ্গি", "Our Vision")}
+              </h2>
+              <p className="font-bengali text-lg leading-8 text-muted-foreground">
+                {t(
+                  "ইসলামি ও নৈতিক শিক্ষার প্রসারে একটি বিশ্বস্ত, মানসম্মত এবং অনুকরণীয় শিক্ষা প্রতিষ্ঠান হিসেবে পরিচিতি লাভ করা।",
+                  "To become a trusted, high-quality, and exemplary institution in promoting Islamic and moral education.",
+                )}
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="py-16">
-        <div className="container mx-auto max-w-4xl px-4">
-          <motion.h2
-            {...springIn}
-            className="mb-12 text-center font-bengali text-foreground"
-            style={{ fontSize: "clamp(2rem, 5vw, 2.5rem)" }}
-          >
-            {t("নেতৃত্ব", "Leadership")}
-          </motion.h2>
-          <div className="grid gap-8 md:grid-cols-2">
-            {leadership.map((leader, index) => (
-              <motion.div key={leader.name} {...springIn} transition={springInDelay(index * 0.15)} className="card-institutional p-8">
-                <div className="mb-4 flex items-start gap-3">
-                  <Quote className="h-8 w-8 shrink-0 text-accent" />
-                  <p className="font-bengali italic leading-relaxed text-muted-foreground">{leader.quote}</p>
-                </div>
-                <div className="mt-4 border-t border-border pt-4">
-                  <h3 className="font-bengali text-xl font-bold text-foreground">{leader.name}</h3>
-                  <p className="font-bengali font-medium text-accent">{leader.role}</p>
-                  <p className="mt-1 font-bengali text-sm text-muted-foreground">{leader.phone}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16">
+      <section className="py-20">
         <div className="container mx-auto max-w-5xl px-4">
           <motion.h2
             {...springIn}
-            className="mb-10 text-center font-bengali text-foreground"
-            style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)" }}
+            className="mb-10 text-center font-bengali font-bold text-foreground"
+            style={{ fontSize: "clamp(2.25rem, 5vw, 3rem)" }}
           >
             {t("শিক্ষা পদ্ধতি", "Teaching Methodology")}
           </motion.h2>
@@ -184,27 +165,58 @@ const About = () => {
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="py-20">
+        <div className="container mx-auto max-w-4xl px-4">
+          <motion.h2
+            {...springIn}
+            className="mb-12 text-center font-bengali font-bold text-foreground"
+            style={{ fontSize: "clamp(2.25rem, 5vw, 3rem)" }}
+          >
+            {t("নেতৃত্ব", "Leadership")}
+          </motion.h2>
+          <div className="grid gap-8 md:grid-cols-2">
+            {leadership.map((leader, index) => (
+              <motion.div key={leader.name} {...springIn} transition={springInDelay(index * 0.15)} className="card-institutional p-8">
+                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full border border-border bg-emerald-50 text-sm font-semibold text-[#064E3B]">
+                      {t("ছবি", "Photo")}
+                    </div>
+                    <Quote className="h-7 w-7 shrink-0 text-accent" />
+                  </div>
+                  <p className="font-bengali italic leading-relaxed text-muted-foreground">{leader.quote}</p>
+                </div>
+                <div className="mt-4 border-t border-border pt-4">
+                  <h3 className="font-bengali text-xl font-bold text-foreground">{leader.name}</h3>
+                  <p className="font-bengali font-medium text-accent">{leader.role}</p>
+                  <p className="mt-1 font-bengali text-sm text-muted-foreground">{leader.phone}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20">
         <div className="container mx-auto max-w-3xl px-4">
           <motion.h2
             {...springIn}
-            className="mb-12 text-center font-bengali text-foreground"
-            style={{ fontSize: "clamp(2rem, 5vw, 2.75rem)" }}
+            className="mb-12 text-center font-bengali font-bold text-foreground"
+            style={{ fontSize: "clamp(2.25rem, 5vw, 3rem)" }}
           >
             {t("আমাদের যাত্রা", "Our Journey")}
           </motion.h2>
           <div className="relative">
-            <svg className="absolute left-6 top-0 h-full w-8 -translate-x-1/2 md:left-1/2" viewBox="0 0 32 100" preserveAspectRatio="none">
-              <path d="M16,0 C20,20 12,30 16,50 C20,70 12,80 16,100" stroke="hsl(165, 85%, 15%)" strokeWidth="3" fill="none" vectorEffect="non-scaling-stroke" />
-            </svg>
+            <div className="absolute left-6 top-0 h-full w-1.5 -translate-x-1/2 rounded-full bg-emerald-800/70 md:left-1/2" />
             <div className="space-y-12">
               {milestones.map((item, index) => (
                 <motion.div key={`${item.year}-${item.title}`} {...springIn} transition={springInDelay(index * 0.1)} className={`relative flex items-center gap-6 ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
-                  <div className="absolute left-6 z-10 h-4 w-4 -translate-x-1/2 rounded-full border-4 border-primary bg-accent md:left-1/2" />
+                  <div className="absolute left-6 z-10 flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full border-4 border-emerald-800 bg-white text-sm font-bold text-emerald-800 md:left-1/2">
+                    {item.year}
+                  </div>
                   <div className={`ml-16 md:ml-0 md:w-1/2 ${index % 2 === 0 ? "md:pr-12 md:text-right" : "md:pl-12"}`}>
                     <div className="card-institutional p-6">
-                      <span className="font-display text-lg font-bold text-accent">{item.year}</span>
-                      <h3 className="mt-1 font-bengali text-lg font-bold text-foreground">{item.title}</h3>
+                      <h3 className="font-bengali text-lg font-bold text-foreground">{item.title}</h3>
                       <p className="mt-1 font-bengali text-sm text-muted-foreground">{item.desc}</p>
                     </div>
                   </div>

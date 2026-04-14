@@ -1,6 +1,8 @@
 import { deleteApp } from "firebase/app";
 import { createUserWithEmailAndPassword, deleteUser, getAuth, signOut } from "firebase/auth";
 import {
+  addDoc,
+  collection,
   deleteDoc,
   doc,
   getDoc,
@@ -9,6 +11,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { createSecondaryFirebaseApp, db } from "@/lib/firebase";
+import { syncStudentRecord } from "@/lib/students";
 
 export type GuardianRelationship = "Father" | "Mother" | "Guardian";
 
@@ -17,6 +20,7 @@ export interface GuardianRegistrationInput {
   phone: string;
   email: string;
   password: string;
+  gender: "male" | "female";
   relationship: GuardianRelationship;
   address?: string;
   nid?: string;
@@ -24,7 +28,7 @@ export interface GuardianRegistrationInput {
   studentName: string;
   className: string;
   section: string;
-  roll: number;
+  roll?: number;
 }
 
 export type GuardianAccountStatus = "pending" | "active";
@@ -32,6 +36,7 @@ export type GuardianAccountStatus = "pending" | "active";
 const USERS_COLLECTION = "users";
 const GUARDIANS_COLLECTION = "guardians";
 const STUDENT_LINKS_COLLECTION = "student_guardian_links";
+const GUARDIAN_REQUESTS_COLLECTION = "guardian_requests";
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
@@ -56,6 +61,11 @@ export const registerGuardian = async (values: GuardianRegistrationInput) => {
     const guardianRef = doc(secondaryDb, GUARDIANS_COLLECTION, uid);
     const studentLinkRef = doc(secondaryDb, STUDENT_LINKS_COLLECTION, studentId);
 
+    const existingStudentLink = await getDoc(studentLinkRef);
+    if (existingStudentLink.exists()) {
+      throw new Error("student-already-linked");
+    }
+
     await setDoc(studentLinkRef, {
       studentId,
       guardianUid: uid,
@@ -79,6 +89,7 @@ export const registerGuardian = async (values: GuardianRegistrationInput) => {
       fullName: values.fullName.trim(),
       phone: values.phone.trim(),
       email: normalizeEmail(values.email),
+      gender: values.gender,
       relationship: values.relationship,
       address: values.address?.trim() || "",
       nid: values.nid?.trim() || "",
@@ -90,6 +101,32 @@ export const registerGuardian = async (values: GuardianRegistrationInput) => {
       status: "pending",
       createdAt: serverTimestamp(),
     });
+
+    await addDoc(collection(secondaryDb, GUARDIAN_REQUESTS_COLLECTION), {
+      guardianUid: uid,
+      studentId,
+      guardianPhone: values.phone.trim(),
+      className: values.className.trim(),
+      section: values.section.trim(),
+      guardianName: values.fullName.trim(),
+      studentName: values.studentName.trim(),
+      topic: "নতুন গার্ডিয়ান রেজিস্ট্রেশন",
+      message: "নতুন গার্ডিয়ান রেজিস্ট্রেশন এসেছে। অনুগ্রহ করে যাচাই করুন।",
+      status: "pending",
+      createdAt: serverTimestamp(),
+    });
+
+    await syncStudentRecord({
+      studentId,
+      studentName: values.studentName,
+      className: values.className,
+      section: values.section,
+      roll: Number(values.roll || 0),
+      guardianUid: uid,
+      guardianName: values.fullName,
+      guardianPhone: values.phone,
+      status: "inactive",
+    }).catch(() => undefined);
 
     return { uid };
   } catch (error) {
@@ -167,6 +204,7 @@ export const createGuardianAccountByAdmin = async (
       fullName: values.fullName.trim(),
       phone: values.phone.trim(),
       email: normalizeEmail(values.email),
+      gender: values.gender,
       relationship: values.relationship,
       address: values.address?.trim() || "",
       nid: values.nid?.trim() || "",
@@ -178,6 +216,18 @@ export const createGuardianAccountByAdmin = async (
       status,
       createdAt: serverTimestamp(),
     });
+
+    await syncStudentRecord({
+      studentId,
+      studentName: values.studentName,
+      className: values.className,
+      section: values.section,
+      roll: Number(values.roll || 0),
+      guardianUid: uid,
+      guardianName: values.fullName,
+      guardianPhone: values.phone,
+      status: status === "active" ? "active" : "inactive",
+    }).catch(() => undefined);
 
     return { uid };
   } catch (error) {

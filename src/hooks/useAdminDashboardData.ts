@@ -210,17 +210,18 @@ export const useAdminDashboardData = (enabled = true) => {
     toast.success(`${bn} / ${en}`);
   };
 
-  const addNews = async (payload: Omit<NewsPost, "id" | "createdAt" | "date">, imageFile: File | null) => {
+  const addNews = async (payload: Omit<NewsPost, "id" | "createdAt" | "date"> & { id?: string }, imageFile: File | null) => {
+    const { id: _ignoredId, ...restPayload } = payload;
     let imageUrl = "";
     if (imageFile) imageUrl = await uploadImage(imageFile);
 
     const saved = await saveNewsToFirestore({
-      ...payload,
+      ...restPayload,
       imageUrl,
       date: new Date().toLocaleDateString("bn-BD", { day: "numeric", month: "long", year: "numeric" }),
     });
     setNewsPosts((current) => [saved, ...current]);
-    appendActivity("News published", payload.titleBn, "news");
+    appendActivity("News published", restPayload.titleBn, "news");
     notifySaved("সংবাদ সংরক্ষণ হয়েছে", "News saved");
     return saved;
   };
@@ -510,13 +511,27 @@ export const useAdminDashboardData = (enabled = true) => {
     const exists = guardianRequests.some((item) => item.id === request.id);
 
     if (exists) {
-      await updateGuardianRequest(request.id, {
-        topic: request.topic,
-        message: request.message,
-        status: request.status,
-      });
+      setGuardianRequests((current) =>
+        current.map((item) =>
+          item.id === request.id
+            ? {
+                ...item,
+                ...request,
+              }
+            : item,
+        ),
+      );
 
-      setGuardianRequests((current) => current.map((item) => (item.id === request.id ? request : item)));
+      try {
+        await updateGuardianRequest(request.id, {
+          topic: request.topic,
+          message: request.message,
+          status: request.status,
+        });
+      } catch (error) {
+        setGuardianRequests((current) => current.map((item) => (item.id === request.id ? request : item)));
+        throw error;
+      }
       appendActivity("Guardian request updated", request.topic, "guardianRequests");
       notifySaved("গার্ডিয়ান রিকোয়েস্ট আপডেট হয়েছে", "Guardian request updated");
       return;
@@ -596,7 +611,7 @@ export const useAdminDashboardData = (enabled = true) => {
   };
 
   const feeSummary = useMemo(() => calculateFeeSummary(feeEntries), [feeEntries]);
-  const feeStudents = useMemo(() => buildFeeStudentOptions(admissions), [admissions]);
+  const feeStudents = useMemo(() => buildFeeStudentOptions(attendanceStudents, admissions), [admissions, attendanceStudents]);
   const currentMonth = new Date().toISOString().slice(0, 7);
   const attendanceSummary = useMemo(
     () => calculateAttendanceMonthlySummary(attendanceRecords.filter((item) => item.month === currentMonth)),

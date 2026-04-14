@@ -25,11 +25,14 @@ import {
 } from "@/components/admin/AdminContentPages";
 import {
   AdmissionsManagerPage,
+  GuardianRequestsPage,
   SettingsPage,
   TeachersManagerPage,
   VirtualToursManagerPage,
 } from "@/components/admin/AdminOperationsPages";
 import GuardianAttendanceCard from "@/components/admin/attendance/GuardianAttendanceCard";
+import AttendancePage from "@/components/admin/attendance/AttendancePage";
+import FeesPage from "@/components/admin/fees/FeesPage";
 import RamadanManagerPage from "@/components/admin/ramadan/RamadanManagerPage";
 
 const siteLogo = "/site-logo.png";
@@ -39,7 +42,7 @@ const AdminPortalPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, loading: authLoading, login, logout } = useAuth();
-  const [role, setRole] = useState<"admin" | "manager" | "guardian">("admin");
+  const [role, setRole] = useState<"admin" | "manager" | "guardian">("guardian");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -119,7 +122,75 @@ const AdminPortalPage = () => {
     ? ""
     : t("সমস্ত অ্যাডমিন অপারেশন এক জায়গায়", "All admin operations in one place");
 
-  const notificationCount = data.dashboardStats.pendingReviews + data.dashboardStats.pendingAdmissions;
+  const NOTIFICATION_SEEN_KEY = "oasis_admin_notifications_seen_v1";
+  const [notificationsSeenAt, setNotificationsSeenAt] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    const raw = window.localStorage.getItem(NOTIFICATION_SEEN_KEY);
+    return raw ? Number(raw) : 0;
+  });
+
+  const notifications = useMemo(() => {
+    const pendingAdmissions = data.admissions.filter((item) => item.status === "pending");
+    const pendingReviews = data.reviews.filter((item) => !item.approved);
+    const pendingGuardianRequests = data.guardianRequests.filter((item) => item.status !== "resolved");
+
+    const items = [
+      {
+        id: "pending-admissions",
+        title: t("পেন্ডিং ভর্তি আবেদন", "Pending admissions"),
+        detail: t(
+          `পেন্ডিং আবেদন: ${pendingAdmissions.length}`,
+          `Pending applications: ${pendingAdmissions.length}`,
+        ),
+        href: "/admin/admissions",
+        createdAt: pendingAdmissions.length
+          ? Math.max(...pendingAdmissions.map((item) => item.createdAt || 0))
+          : 0,
+        count: pendingAdmissions.length,
+      },
+      {
+        id: "pending-reviews",
+        title: t("পেন্ডিং রিভিউ", "Pending reviews"),
+        detail: t(
+          `পেন্ডিং রিভিউ: ${pendingReviews.length}`,
+          `Pending reviews: ${pendingReviews.length}`,
+        ),
+        href: "/admin/reviews",
+        createdAt: pendingReviews.length
+          ? Math.max(...pendingReviews.map((item) => item.createdAt || 0))
+          : 0,
+        count: pendingReviews.length,
+      },
+      {
+        id: "pending-guardian-requests",
+        title: t("পেন্ডিং গার্ডিয়ান রিকোয়েস্ট", "Pending guardian requests"),
+        detail: t(
+          `পেন্ডিং রিকোয়েস্ট: ${pendingGuardianRequests.length}`,
+          `Pending requests: ${pendingGuardianRequests.length}`,
+        ),
+        href: "/admin/guardian-requests",
+        createdAt: pendingGuardianRequests.length
+          ? Math.max(...pendingGuardianRequests.map((item) => item.createdAt || 0))
+          : 0,
+        count: pendingGuardianRequests.length,
+      },
+    ];
+
+    return items.filter((item) => item.count > 0);
+  }, [data.admissions, data.guardianRequests, data.reviews, t]);
+
+  const notificationCount = useMemo(
+    () => notifications.reduce((sum, item) => sum + item.count, 0),
+    [notifications],
+  );
+
+  const handleNotificationsOpen = () => {
+    const next = Date.now();
+    setNotificationsSeenAt(next);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(NOTIFICATION_SEEN_KEY, String(next));
+    }
+  };
 
   const renderCurrentPage = () => {
     switch (location.pathname) {
@@ -132,6 +203,34 @@ const AdminPortalPage = () => {
             events={data.events}
             reviews={data.reviews}
             activityFeed={data.activityFeed}
+          />
+        );
+      case "/admin/fees":
+        return (
+          <FeesPage
+            entries={data.feeEntries}
+            students={data.feeStudents}
+            onCreateBatch={(draft) => data.actions.addFeeBatchItems(draft, currentUser!.fullName)}
+            onUpdateEntry={data.actions.updateFeeEntryItem}
+            onUpdatePayment={data.actions.updateFeePaymentItem}
+            onDeleteEntry={data.actions.removeFeeEntryItem}
+          />
+        );
+      case "/admin/attendance":
+        return (
+          <AttendancePage
+            students={data.attendanceStudents}
+            records={data.attendanceRecords}
+            onSaveSheet={(rows) => data.actions.saveAttendanceSheetItems(rows, currentUser!.fullName)}
+          />
+        );
+      case "/admin/guardian-requests":
+        return (
+          <GuardianRequestsPage
+            items={data.guardianRequests}
+            onSave={data.actions.saveGuardianRequestItem}
+            onCreateGuardianAccount={data.actions.createGuardianAccountItem}
+            onDelete={data.actions.removeGuardianRequestItem}
           />
         );
       case "/admin/news":
@@ -335,6 +434,15 @@ const AdminPortalPage = () => {
       searchValue={searchValue}
       onSearchChange={setSearchValue}
       notificationCount={notificationCount}
+      notifications={notifications.map((item) => ({
+        id: item.id,
+        title: item.title,
+        detail: item.detail,
+        href: item.href,
+        createdAt: item.createdAt,
+        tone: item.createdAt > notificationsSeenAt ? "primary" : "muted",
+      }))}
+      onNotificationsOpen={handleNotificationsOpen}
       onLogout={() => void handleLogout()}
     >
       <PermissionGuard

@@ -4,11 +4,14 @@ import {
   BellRing,
   BookOpen,
   CalendarDays,
+  CalendarCheck2,
+  CreditCard,
   FileCheck2,
   FileText,
   GraduationCap,
   ImageIcon,
   LayoutDashboard,
+  MessageSquare,
   MessageSquareQuote,
   Settings,
   ShieldCheck,
@@ -86,6 +89,9 @@ export interface GuardianRequest {
   id: string;
   guardianUid?: string;
   studentId?: string;
+  guardianPhone?: string;
+  className?: string;
+  section?: string;
   guardianName: string;
   studentName: string;
   topic: string;
@@ -178,6 +184,16 @@ export const permissionCatalog: Array<{
     ],
   },
   {
+    groupKey: "operations",
+    groupLabelBn: "অপারেশনস",
+    groupLabelEn: "Operations",
+    items: [
+      { key: "fees.manage", labelBn: "ফি", labelEn: "Fees" },
+      { key: "attendance.manage", labelBn: "উপস্থিতি", labelEn: "Attendance" },
+      { key: "guardianRequests.manage", labelBn: "গার্ডিয়ান রিকোয়েস্ট", labelEn: "Guardian Requests" },
+    ],
+  },
+  {
     groupKey: "users",
     groupLabelBn: "ইউজার ম্যানেজমেন্ট",
     groupLabelEn: "User Management",
@@ -213,6 +229,16 @@ export const sidebarGroups: SidebarGroup[] = [
       { key: "virtual-tours", labelBn: "ভার্চুয়াল ট্যুর", labelEn: "Virtual Tours", path: "/admin/virtual-tours", permission: "virtualTours.manage", icon: Video },
       { key: "admissions", labelBn: "ভর্তি", labelEn: "Admissions", path: "/admin/admissions", permission: "admissions.manage", icon: BookOpen },
       { key: "ramadan", labelBn: "রমাদান", labelEn: "Ramadan", path: "/admin/ramadan", permission: "ramadan.manage", icon: CalendarDays },
+    ],
+  },
+  {
+    key: "operations",
+    labelBn: "অপারেশনস",
+    labelEn: "Operations",
+    items: [
+      { key: "fees", labelBn: "ফি", labelEn: "Fees", path: "/admin/fees", permission: "fees.manage", icon: CreditCard },
+      { key: "attendance", labelBn: "উপস্থিতি", labelEn: "Attendance", path: "/admin/attendance", permission: "attendance.manage", icon: CalendarCheck2 },
+      { key: "guardian-requests", labelBn: "গার্ডিয়ান রিকোয়েস্ট", labelEn: "Guardian Requests", path: "/admin/guardian-requests", permission: "guardianRequests.manage", icon: MessageSquare },
     ],
   },
   {

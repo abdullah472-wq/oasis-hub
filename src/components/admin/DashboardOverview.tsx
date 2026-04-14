@@ -15,7 +15,11 @@ interface DashboardOverviewProps {
     totalNews: number;
     totalNotices: number;
     pendingReviews: number;
+    pendingAdmissions: number;
+    pendingGuardianRequests: number;
     activeManagers: number;
+    monthlyFees: number;
+    attendanceRate: number;
   };
   notices: Notice[];
   events: Event[];
@@ -46,6 +50,15 @@ const DashboardOverview = ({ user, stats, notices, events, reviews, activityFeed
       icon: BookCopy,
     },
     {
+      key: "fees",
+      titleBn: "মোট বকেয়া ফি",
+      titleEn: "Outstanding Fees",
+      value: `৳${stats.monthlyFees.toLocaleString("en-US")}`,
+      descriptionBn: "চলতি হিসাবের মোট বকেয়া",
+      descriptionEn: "Current outstanding due amount",
+      icon: ArrowDownToLine,
+    },
+    {
       key: "reviews",
       titleBn: "অপেক্ষমান রিভিউ",
       titleEn: "Pending Reviews",
@@ -63,11 +76,23 @@ const DashboardOverview = ({ user, stats, notices, events, reviews, activityFeed
       descriptionEn: "Listed upcoming events",
       icon: CalendarDays,
     },
+    {
+      key: "attendance",
+      titleBn: "উপস্থিতির হার",
+      titleEn: "Attendance Rate",
+      value: `${stats.attendanceRate}%`,
+      descriptionBn: "চলতি মাসের উপস্থিতি",
+      descriptionEn: "Current month attendance",
+      icon: ShieldCheck,
+    },
   ];
 
   const quickActions = [
     { key: "notice", labelBn: "নোটিশ প্রকাশ", labelEn: "Publish Notice", to: "/admin/notices", permission: "notices.manage" as const },
     { key: "news", labelBn: "সংবাদ যোগ করুন", labelEn: "Add News", to: "/admin/news", permission: "news.manage" as const },
+    { key: "fees", labelBn: "ফি ম্যানেজমেন্ট", labelEn: "Manage Fees", to: "/admin/fees", permission: "fees.manage" as const },
+    { key: "attendance", labelBn: "উপস্থিতি নিন", labelEn: "Take Attendance", to: "/admin/attendance", permission: "attendance.manage" as const },
+    { key: "guardian-requests", labelBn: "গার্ডিয়ান রিকোয়েস্ট", labelEn: "Guardian Requests", to: "/admin/guardian-requests", permission: "guardianRequests.manage" as const },
     { key: "managers", labelBn: "ম্যানেজার অনুমতি", labelEn: "Manager Permissions", to: "/admin/managers", permission: "managers.manage" as const },
     { key: "ramadan", labelBn: "রমাদান মডিউল", labelEn: "Ramadan Module", to: "/admin/ramadan", permission: "ramadan.manage" as const },
   ].filter((action) => canAccessPermission(user, action.permission));
@@ -148,6 +173,8 @@ const DashboardOverview = ({ user, stats, notices, events, reviews, activityFeed
           </CardHeader>
           <CardContent className="space-y-4">
             <SnapshotRow label={t("সক্রিয় ম্যানেজার", "Active Managers")} value={String(stats.activeManagers)} />
+            <SnapshotRow label={t("পেন্ডিং ভর্তি", "Pending Admissions")} value={String(stats.pendingAdmissions)} />
+            <SnapshotRow label={t("গার্ডিয়ান রিকোয়েস্ট", "Guardian Requests")} value={String(stats.pendingGuardianRequests)} />
             <SnapshotRow label={t("অপেক্ষমান রিভিউ", "Pending Reviews")} value={String(stats.pendingReviews)} />
             <SnapshotRow label={t("প্রকাশিত নোটিশ", "Published Notices")} value={String(stats.totalNotices)} />
             <SnapshotRow label={t("প্রকাশিত সংবাদ", "Published News")} value={String(stats.totalNews)} />

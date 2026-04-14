@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from "react";
-import { Download, Eye, FileText, Printer, UserCheck, Users, Video } from "lucide-react";
+import { CheckCircle2, Download, Eye, FileText, Printer, UserCheck, Users, Video } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { AdmissionForm } from "@/lib/admission";
 import type { Teacher } from "@/lib/teachers";
@@ -1028,25 +1028,18 @@ export const GuardianRequestsPage = ({
   onDelete: (id: string) => void;
 }) => {
   const { t } = useLanguage();
-  const [showForm, setShowForm] = useState(false);
   const [showAccountForm, setShowAccountForm] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<GuardianRequest | null>(null);
+  const [requestFilter, setRequestFilter] = useState<"all" | "complaint" | "registration">("all");
   const [accountSaving, setAccountSaving] = useState(false);
   const [accountError, setAccountError] = useState("");
   const [accountSuccess, setAccountSuccess] = useState("");
-  const [form, setForm] = useState<GuardianRequest>({
-    id: createClientId(),
-    guardianName: "",
-    studentName: "",
-    topic: "",
-    message: "",
-    status: "pending",
-    createdAt: Date.now(),
-  });
   const [accountForm, setAccountForm] = useState<GuardianRegistrationInput>({
     fullName: "",
     phone: "",
     email: "",
     password: "",
+    gender: "male",
     relationship: "Father",
     address: "",
     nid: "",
@@ -1054,29 +1047,8 @@ export const GuardianRequestsPage = ({
     studentName: "",
     className: "",
     section: "",
-    roll: 1,
   });
 
-  const submit = (event: React.FormEvent) => {
-    event.preventDefault();
-    onSave({
-      ...form,
-      guardianName: form.guardianName.trim(),
-      studentName: form.studentName.trim(),
-      topic: form.topic.trim(),
-      message: form.message.trim(),
-    });
-    setForm({
-      id: createClientId(),
-      guardianName: "",
-      studentName: "",
-      topic: "",
-      message: "",
-      status: "pending",
-      createdAt: Date.now(),
-    });
-    setShowForm(false);
-  };
 
   const submitGuardianAccount = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -1091,6 +1063,7 @@ export const GuardianRequestsPage = ({
         phone: "",
         email: "",
         password: "",
+        gender: "male",
         relationship: "Father",
         address: "",
         nid: "",
@@ -1098,7 +1071,6 @@ export const GuardianRequestsPage = ({
         studentName: "",
         className: "",
         section: "",
-        roll: 1,
       });
       setAccountSuccess(t("গার্ডিয়ান অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে", "Guardian account created successfully"));
       setShowAccountForm(false);
@@ -1111,11 +1083,31 @@ export const GuardianRequestsPage = ({
 
       if (message === "student-already-linked") {
         setAccountError(t("এই স্টুডেন্ট আইডির সাথে আগে থেকেই একটি গার্ডিয়ান যুক্ত আছে", "This student ID is already linked to a guardian"));
+      } else if (message === "permission-denied" || code === "permission-denied") {
+        setAccountError(
+          t(
+            "Firestore rules এই অ্যাকাউন্ট তৈরির অনুমতি দিচ্ছে না। users, guardians এবং student_guardian_links collection-এর create/read permission চেক করুন",
+            "Firestore rules are blocking this account creation. Check create/read permission for users, guardians, and student_guardian_links collections",
+          ),
+        );
       } else if (code === "auth/email-already-in-use") {
         setAccountError(t("এই ইমেইল দিয়ে আগেই একটি অ্যাকাউন্ট আছে", "An account already exists with this email"));
+      } else if (code === "auth/weak-password") {
+        setAccountError(t("পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে", "Password must be at least 6 characters"));
+      } else if (code === "auth/invalid-email") {
+        setAccountError(t("সঠিক ইমেইল ঠিকানা দিন", "Please enter a valid email address"));
+      } else if (code === "auth/operation-not-allowed") {
+        setAccountError(
+          t(
+            "Firebase Authentication-এ Email/Password sign-in এখনো চালু করা হয়নি",
+            "Email/Password sign-in is not enabled in Firebase Authentication",
+          ),
+        );
       } else {
         setAccountError(t("গার্ডিয়ান অ্যাকাউন্ট তৈরি করা যায়নি", "Could not create guardian account"));
       }
+
+      console.error("Guardian account create failed:", error);
     } finally {
       setAccountSaving(false);
     }
@@ -1151,6 +1143,21 @@ export const GuardianRequestsPage = ({
             </Field>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
+            <Field label={t("লিঙ্গ", "Gender")}>
+              <select
+                value={accountForm.gender}
+                onChange={(event) =>
+                  setAccountForm((current) => ({
+                    ...current,
+                    gender: event.target.value as GuardianRegistrationInput["gender"],
+                  }))
+                }
+                className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+              >
+                <option value="male">{t("ছেলে", "Boy")}</option>
+                <option value="female">{t("মেয়ে", "Girl")}</option>
+              </select>
+            </Field>
             <Field label={t("সম্পর্ক", "Relationship")}>
               <select
                 value={accountForm.relationship}
@@ -1182,15 +1189,12 @@ export const GuardianRequestsPage = ({
               <Input value={accountForm.studentName} onChange={(event) => setAccountForm((current) => ({ ...current, studentName: event.target.value }))} className="rounded-2xl" />
             </Field>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
             <Field label={t("শ্রেণি", "Class")}>
               <Input value={accountForm.className} onChange={(event) => setAccountForm((current) => ({ ...current, className: event.target.value }))} className="rounded-2xl" />
             </Field>
             <Field label={t("সেকশন", "Section")}>
               <Input value={accountForm.section} onChange={(event) => setAccountForm((current) => ({ ...current, section: event.target.value }))} className="rounded-2xl" />
-            </Field>
-            <Field label={t("রোল", "Roll")}>
-              <Input type="number" min={1} value={accountForm.roll} onChange={(event) => setAccountForm((current) => ({ ...current, roll: Number(event.target.value) || 1 }))} className="rounded-2xl" />
             </Field>
           </div>
           {accountError ? <p className="font-bengali text-sm text-red-600">{accountError}</p> : null}
@@ -1198,89 +1202,137 @@ export const GuardianRequestsPage = ({
         </FormCard>
       )}
 
-      {showForm && (
-        <FormCard onSubmit={submit} submitLabel={t("রিকোয়েস্ট সংরক্ষণ", "Save Request")}>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label={t("গার্ডিয়ানের নাম", "Guardian name")}>
-              <Input
-                value={form.guardianName}
-                onChange={(event) => setForm((current) => ({ ...current, guardianName: event.target.value }))}
-                className="rounded-2xl"
-              />
-            </Field>
-            <Field label={t("শিক্ষার্থীর নাম", "Student name")}>
-              <Input
-                value={form.studentName}
-                onChange={(event) => setForm((current) => ({ ...current, studentName: event.target.value }))}
-                className="rounded-2xl"
-              />
-            </Field>
-          </div>
-          <Field label={t("রিকোয়েস্ট বিষয়", "Request topic")}>
-            <Input
-              value={form.topic}
-              onChange={(event) => setForm((current) => ({ ...current, topic: event.target.value }))}
-              className="rounded-2xl"
-            />
-          </Field>
-          <Field label={t("বার্তা", "Message")}>
-            <Textarea
-              value={form.message}
-              onChange={(event) => setForm((current) => ({ ...current, message: event.target.value }))}
-              className="rounded-2xl"
-              rows={4}
-            />
-          </Field>
-          <Field label={t("স্ট্যাটাস", "Status")}>
-            <select
-              value={form.status}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  status: event.target.value as GuardianRequest["status"],
-                }))
-              }
-              className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
-            >
-              <option value="pending">{t("পেন্ডিং", "Pending")}</option>
-              <option value="in-review">{t("রিভিউতে", "In Review")}</option>
-              <option value="resolved">{t("সমাধান", "Resolved")}</option>
-            </select>
-          </Field>
-        </FormCard>
-      )}
-
-      <div className="flex justify-end">
-        <Button variant="outline" className="rounded-2xl font-bengali" onClick={() => setShowForm((current) => !current)}>
-          {showForm ? t("রিকোয়েস্ট ফর্ম লুকান", "Hide request form") : t("ম্যানুয়াল রিকোয়েস্ট", "Manual Request")}
-        </Button>
+      <div className="flex flex-wrap gap-2">
+        {[
+          { key: "all", labelBn: "সব", labelEn: "All" },
+          { key: "complaint", labelBn: "কমপ্লেইন্ট", labelEn: "Complaint" },
+          { key: "registration", labelBn: "রেজিস্ট্রেশন", labelEn: "Registration" },
+        ].map((filter) => (
+          <Button
+            key={filter.key}
+            type="button"
+            variant={requestFilter === filter.key ? "default" : "outline"}
+            className="h-9 rounded-full px-4 text-xs font-bengali"
+            onClick={() => setRequestFilter(filter.key as typeof requestFilter)}
+          >
+            {t(filter.labelBn, filter.labelEn)}
+          </Button>
+        ))}
       </div>
 
       <Card className={shellCardClass}>
         <CardContent className="space-y-4 p-6">
-          {items.length === 0 ? <EmptyState text={t("কোনো গার্ডিয়ান রিকোয়েস্ট নেই", "No guardian requests")} /> : items.map((item) => (
+          {items.filter((item) => {
+            if (requestFilter === "all") return true;
+            const isRegistration = item.topic?.includes("রেজিস্ট্রেশন") || item.topic?.toLowerCase().includes("registration");
+            return requestFilter === "registration" ? isRegistration : !isRegistration;
+          }).length === 0 ? (
+            <EmptyState text={t("কোনো গার্ডিয়ান রিকোয়েস্ট নেই", "No guardian requests")} />
+          ) : items.filter((item) => {
+            if (requestFilter === "all") return true;
+            const isRegistration = item.topic?.includes("রেজিস্ট্রেশন") || item.topic?.toLowerCase().includes("registration");
+            return requestFilter === "registration" ? isRegistration : !isRegistration;
+          }).map((item) => (
             <ItemCard
               key={item.id}
               title={`${item.guardianName} • ${item.studentName}`}
               meta={item.topic}
               onDelete={() => onDelete(item.id)}
               trailing={
-                <select
-                  value={item.status}
-                  onChange={(event) => onSave({ ...item, status: event.target.value as GuardianRequest["status"] })}
-                  className="h-9 rounded-xl border border-input bg-background px-3 text-xs outline-none"
-                >
-                  <option value="pending">{t("পেন্ডিং", "Pending")}</option>
-                  <option value="in-review">{t("রিভিউতে", "In Review")}</option>
-                  <option value="resolved">{t("সমাধান", "Resolved")}</option>
-                </select>
+                <div className="flex flex-wrap items-center gap-2">
+                  {item.status === "resolved" && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      {t("সমাধান", "Resolved")}
+                    </span>
+                  )}
+                  <Badge variant={item.topic?.includes("রেজিস্ট্রেশন") || item.topic?.toLowerCase().includes("registration") ? "secondary" : "outline"} className="rounded-full">
+                    {item.topic?.includes("রেজিস্ট্রেশন") || item.topic?.toLowerCase().includes("registration")
+                      ? t("রেজিস্ট্রেশন", "Registration")
+                      : t("কমপ্লেইন্ট", "Complaint")}
+                  </Badge>
+                  <select
+                    value={item.status}
+                    onChange={(event) => onSave({ ...item, status: event.target.value as GuardianRequest["status"] })}
+                    className="h-9 rounded-xl border border-input bg-background px-3 text-xs outline-none"
+                  >
+                    <option value="pending">{t("পেন্ডিং", "Pending")}</option>
+                    <option value="in-review">{t("রিভিউতে", "In Review")}</option>
+                    <option value="resolved">{t("সমাধান", "Resolved")}</option>
+                  </select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-9 rounded-xl px-3 text-xs"
+                    onClick={() => setSelectedRequest(item)}
+                  >
+                    {t("বিস্তারিত", "Details")}
+                  </Button>
+                </div>
               }
             >
-              <p className="font-bengali text-sm text-muted-foreground">{item.message}</p>
+              <div className="space-y-3">
+                <p className="font-bengali text-sm text-muted-foreground">{item.message}</p>
+                <div className="flex flex-wrap gap-2">
+                  {item.studentId && (
+                    <Badge variant="secondary" className="rounded-full">
+                      {t("স্টুডেন্ট আইডি", "Student ID")}: {item.studentId}
+                    </Badge>
+                  )}
+                  {item.guardianPhone && (
+                    <Badge variant="secondary" className="rounded-full">
+                      {t("ফোন", "Phone")}: {item.guardianPhone}
+                    </Badge>
+                  )}
+                </div>
+              </div>
             </ItemCard>
           ))}
         </CardContent>
       </Card>
+
+      <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && setSelectedRequest(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-bengali text-lg">{t("গার্ডিয়ান রিকোয়েস্ট ডিটেইল", "Guardian Request Details")}</DialogTitle>
+            <DialogDescription className="font-bengali">
+              {t("রিকোয়েস্ট যাচাইয়ের জন্য প্রয়োজনীয় তথ্য", "Required information to verify the request")}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedRequest && (
+            <div className="space-y-3">
+              <div className="grid gap-3 rounded-2xl border border-border/70 bg-muted/20 p-4 text-sm">
+                <p className="font-bengali"><span className="font-semibold">{t("গার্ডিয়ানের নাম", "Guardian name")}:</span> {selectedRequest.guardianName}</p>
+                <p className="font-bengali"><span className="font-semibold">{t("শিক্ষার্থীর নাম", "Student name")}:</span> {selectedRequest.studentName}</p>
+                {selectedRequest.studentId && <p className="font-bengali"><span className="font-semibold">{t("স্টুডেন্ট আইডি", "Student ID")}:</span> {selectedRequest.studentId}</p>}
+                {selectedRequest.className && <p className="font-bengali"><span className="font-semibold">{t("শ্রেণি", "Class")}:</span> {selectedRequest.className}</p>}
+                {selectedRequest.section && <p className="font-bengali"><span className="font-semibold">{t("সেকশন", "Section")}:</span> {selectedRequest.section}</p>}
+                {selectedRequest.guardianPhone && <p className="font-bengali"><span className="font-semibold">{t("ফোন", "Phone")}:</span> {selectedRequest.guardianPhone}</p>}
+                {selectedRequest.guardianUid && <p className="font-bengali"><span className="font-semibold">UID:</span> {selectedRequest.guardianUid}</p>}
+                <p className="font-bengali"><span className="font-semibold">{t("রিকোয়েস্ট বিষয়", "Topic")}:</span> {selectedRequest.topic}</p>
+                <p className="font-bengali"><span className="font-semibold">{t("বার্তা", "Message")}:</span> {selectedRequest.message}</p>
+                <p className="font-bengali">
+                  <span className="font-semibold">{t("স্ট্যাটাস", "Status")}:</span>{" "}
+                  {selectedRequest.status === "pending"
+                    ? t("পেন্ডিং", "Pending")
+                    : selectedRequest.status === "in-review"
+                      ? t("রিভিউতে", "In Review")
+                      : t("সমাধান", "Resolved")}
+                </p>
+                <p className="font-bengali">
+                  <span className="font-semibold">{t("সময়", "Time")}:</span>{" "}
+                  {new Date(selectedRequest.createdAt).toLocaleString("bn-BD")}
+                </p>
+              </div>
+              <div className="flex justify-end">
+                <Button type="button" variant="outline" className="rounded-2xl font-bengali" onClick={() => setSelectedRequest(null)}>
+                  {t("বন্ধ করুন", "Close")}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </ModuleShell>
   );
 };

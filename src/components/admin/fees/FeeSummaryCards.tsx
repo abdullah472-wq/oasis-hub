@@ -1,4 +1,4 @@
-import { CreditCard, ReceiptText, WalletCards, WalletMinimal } from "lucide-react";
+﻿import { CreditCard, ReceiptText, WalletCards, WalletMinimal } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { FeeSummary } from "@/lib/feeHelpers";
 import { Card, CardContent } from "@/components/ui/card";

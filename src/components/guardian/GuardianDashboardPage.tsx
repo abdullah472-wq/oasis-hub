@@ -25,7 +25,7 @@ const GuardianDashboardPage = ({ data }: GuardianDashboardPageProps) => {
             {t("স্বাগতম", "Welcome")}, {data.guardianProfile.fullName}
           </CardTitle>
           <CardDescription className="font-bengali text-base">
-            {data.guardianProfile.studentName} • {data.guardianProfile.className} • {data.guardianProfile.section} • {t("রোল", "Roll")} {data.guardianProfile.roll}
+            {data.guardianProfile.studentName} • {data.guardianProfile.className} • {data.guardianProfile.section} • {t("স্টুডেন্ট আইডি", "Student ID")} {data.guardianProfile.studentId}
           </CardDescription>
         </CardHeader>
         <CardContent>
