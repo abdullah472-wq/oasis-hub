@@ -92,7 +92,22 @@ const MultiFeeItemForm = ({ items, onChange }: MultiFeeItemFormProps) => {
               </Button>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-[1.4fr_0.9fr_0.7fr]">
+            <div className="grid gap-4 md:grid-cols-[0.9fr_1.4fr_0.7fr]">
+              <div className="space-y-2">
+                <Label className="font-bengali">{t("ক্যাটাগরি", "Category")}</Label>
+                <select
+                  value={item.category}
+                  onChange={(event) => updateItem(index, { category: event.target.value as FeeItemDraft["category"], title: "" })}
+                  className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+                >
+                  {feeCategoryOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {t(option.labelBn, option.labelEn)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="space-y-2">
                 <Label className="font-bengali">{t("আইটেমের নাম", "Item title")}</Label>
                 {isTitleSelect ? (
@@ -116,21 +131,6 @@ const MultiFeeItemForm = ({ items, onChange }: MultiFeeItemFormProps) => {
                     placeholder={t("যেমন: মাসিক ফি / খাতা", "Example: Monthly fee / Khata")}
                   />
                 )}
-              </div>
-
-              <div className="space-y-2">
-                <Label className="font-bengali">{t("ক্যাটাগরি", "Category")}</Label>
-                <select
-                  value={item.category}
-                  onChange={(event) => updateItem(index, { category: event.target.value as FeeItemDraft["category"], title: "" })}
-                  className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
-                >
-                  {feeCategoryOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {t(option.labelBn, option.labelEn)}
-                    </option>
-                  ))}
-                </select>
               </div>
 
               <div className="space-y-2">

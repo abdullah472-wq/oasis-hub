@@ -216,7 +216,30 @@ const FeeEntriesTable = ({ entries, onEdit, onPayment, onDelete }: FeeEntriesTab
                             {group.totals.due > 0 ? t("বাকি", "Due") : t("পরিশোধিত", "Paid")}
                           </Badge>
                         </td>
-                        <td className="px-4 py-4" />
+                        <td className="px-4 py-4">
+                          {group.items[0] ? (
+                            <div className="flex flex-wrap gap-2">
+                              <Button type="button" variant="outline" size="sm" className="rounded-xl font-bengali" onClick={() => onPayment(group.items[0])}>
+                                <Receipt className="mr-2 h-4 w-4" />
+                                {t("পেমেন্ট", "Payment")}
+                              </Button>
+                              <Button type="button" variant="outline" size="sm" className="rounded-xl font-bengali" onClick={() => onEdit(group.items[0])}>
+                                <Edit3 className="mr-2 h-4 w-4" />
+                                {t("এডিট", "Edit")}
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="rounded-xl font-bengali text-red-600 hover:text-red-600"
+                                onClick={() => void onDelete(group.items[0].id)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                {t("মুছুন", "Delete")}
+                              </Button>
+                            </div>
+                          ) : null}
+                        </td>
                       </tr>
                       {isOpen && (
                         <tr key={`${group.studentId}-details`} className="border-b border-border/50">

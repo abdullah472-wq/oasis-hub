@@ -244,3 +244,45 @@ export const createGuardianAccountByAdmin = async (
     await deleteApp(secondaryApp).catch(() => undefined);
   }
 };
+
+export interface ActivateGuardianAccountInput {
+  guardianUid: string;
+  studentId: string;
+  guardianName?: string;
+  guardianPhone?: string;
+  studentName?: string;
+  className?: string;
+  section?: string;
+}
+
+export const activateGuardianAccount = async (payload: ActivateGuardianAccountInput) => {
+  const guardianUid = payload.guardianUid.trim();
+  const studentId = payload.studentId.trim();
+
+  if (!guardianUid || !studentId) return;
+
+  const userRef = doc(db, USERS_COLLECTION, guardianUid);
+  const guardianRef = doc(db, GUARDIANS_COLLECTION, guardianUid);
+  const studentLinkRef = doc(db, STUDENT_LINKS_COLLECTION, studentId);
+
+  await Promise.all([
+    setDoc(userRef, { status: "active" }, { merge: true }),
+    setDoc(guardianRef, { status: "active" }, { merge: true }),
+    setDoc(studentLinkRef, { studentId, guardianUid, status: "active" }, { merge: true }),
+  ]);
+
+  const guardianSnapshot = await getDoc(guardianRef).catch(() => null);
+  const guardianData = guardianSnapshot?.exists() ? guardianSnapshot.data() : null;
+
+  await syncStudentRecord({
+    studentId,
+    studentName: payload.studentName?.trim() || String(guardianData?.studentName ?? ""),
+    className: payload.className?.trim() || String(guardianData?.className ?? ""),
+    section: payload.section?.trim() || String(guardianData?.section ?? ""),
+    roll: Number(guardianData?.roll ?? 0),
+    guardianUid,
+    guardianName: payload.guardianName?.trim() || String(guardianData?.fullName ?? ""),
+    guardianPhone: payload.guardianPhone?.trim() || String(guardianData?.phone ?? ""),
+    status: "active",
+  }).catch(() => undefined);
+};

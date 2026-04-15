@@ -10,6 +10,7 @@ import { findSidebarItem, getDefaultRouteForUser, sidebarGroups } from "@/lib/ad
 import { useAdminDashboardData } from "@/hooks/useAdminDashboardData";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
@@ -47,7 +48,15 @@ const AdminPortalPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [searchValue, setSearchValue] = useState("");
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
   const data = useAdminDashboardData(Boolean(currentUser && currentUser.role !== "guardian" && currentUser.status === "active"));
+
+  const dayPartGreeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "শুভ সকাল";
+    if (hour < 20) return "শুভ সন্ধ্যা";
+    return "শুভ রাত্রি";
+  }, []);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -66,6 +75,13 @@ const AdminPortalPage = () => {
       void logout().finally(() => navigate("/admin", { replace: true }));
     }
   }, [location.pathname, logout, navigate]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    if (currentUser.role === "guardian") return;
+    if (currentUser.status !== "active") return;
+    setWelcomeOpen(true);
+  }, [currentUser]);
 
   const handleLogin = async (event: FormEvent) => {
     event.preventDefault();
@@ -425,42 +441,79 @@ const AdminPortalPage = () => {
   }
 
   return (
-    <AdminLayout
-      user={currentUser}
-      pageTitle={pageTitle}
-      pageDescription={pageDescription}
-      groups={filteredGroups}
-      currentPath={location.pathname}
-      searchValue={searchValue}
-      onSearchChange={setSearchValue}
-      notificationCount={notificationCount}
-      notifications={notifications.map((item) => ({
-        id: item.id,
-        title: item.title,
-        detail: item.detail,
-        href: item.href,
-        createdAt: item.createdAt,
-        tone: item.createdAt > notificationsSeenAt ? "primary" : "muted",
-      }))}
-      onNotificationsOpen={handleNotificationsOpen}
-      onLogout={() => void handleLogout()}
-    >
-      <PermissionGuard
-        permission={currentUser.role === "guardian" ? undefined : currentItem?.permission}
-        fallback={
-          <Card className="rounded-3xl border-border/60 bg-white/95">
-            <CardContent className="space-y-3 p-10 text-center">
-              <p className="font-bengali text-lg font-semibold">{t("এই সেকশনে আপনার অনুমতি নেই", "You do not have permission for this section")}</p>
-              <Link to={getDefaultRouteForUser(currentUser)}>
-                <Button className="rounded-2xl font-bengali">{t("অনুমোদিত সেকশনে যান", "Go to an allowed section")}</Button>
-              </Link>
-            </CardContent>
-          </Card>
-        }
+    <>
+      <AdminLayout
+        user={currentUser}
+        pageTitle={pageTitle}
+        pageDescription={pageDescription}
+        groups={filteredGroups}
+        currentPath={location.pathname}
+        searchValue={searchValue}
+        onSearchChange={setSearchValue}
+        notificationCount={notificationCount}
+        notifications={notifications.map((item) => ({
+          id: item.id,
+          title: item.title,
+          detail: item.detail,
+          href: item.href,
+          createdAt: item.createdAt,
+          tone: item.createdAt > notificationsSeenAt ? "primary" : "muted",
+        }))}
+        onNotificationsOpen={handleNotificationsOpen}
+        onLogout={() => void handleLogout()}
       >
-        {currentUser.role === "guardian" ? <GuardianAttendanceCard guardianUid={currentUser.uid} /> : renderCurrentPage()}
-      </PermissionGuard>
-    </AdminLayout>
+        <PermissionGuard
+          permission={currentUser.role === "guardian" ? undefined : currentItem?.permission}
+          fallback={
+            <Card className="rounded-3xl border-border/60 bg-white/95">
+              <CardContent className="space-y-3 p-10 text-center">
+                <p className="font-bengali text-lg font-semibold">{t("এই সেকশনে আপনার অনুমতি নেই", "You do not have permission for this section")}</p>
+                <Link to={getDefaultRouteForUser(currentUser)}>
+                  <Button className="rounded-2xl font-bengali">{t("অনুমোদিত সেকশনে যান", "Go to an allowed section")}</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          }
+        >
+          {currentUser.role === "guardian" ? <GuardianAttendanceCard guardianUid={currentUser.uid} /> : renderCurrentPage()}
+        </PermissionGuard>
+      </AdminLayout>
+
+      <Dialog open={welcomeOpen} onOpenChange={setWelcomeOpen}>
+        <DialogContent className="max-w-2xl rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="font-bengali text-center text-xl">
+              🌻اَلسَّلاَمْ عَلَيْــــــــــــــــــــكُمْ وَ رَحْمَةُ اللہِ وَبَرَكَاتُهُ🌻
+            </DialogTitle>
+            <DialogDescription className="font-bengali text-center text-base text-foreground">
+              {dayPartGreeting}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-2xl border border-border/70 bg-muted/20 px-4 py-3 text-center">
+            <p className="text-2xl font-semibold text-foreground">
+              بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ
+            </p>
+            <p className="mt-2 font-bengali text-xl font-semibold text-foreground">
+              আল্লাহর নামে শুরু করলাম
+            </p>
+            <div className="mt-3 space-y-1">
+              <p className="font-bengali text-sm text-foreground">বুধবার, ১৫ এপ্রিল ২০২৬</p>
+            </div>
+            <div className="mt-2 space-y-1">
+              <p className="font-bengali text-sm text-foreground">২রা বৈশাখ ১৪৩৩</p>
+            </div>
+            <div className="mt-2 space-y-1">
+              <p className="font-bengali text-sm text-foreground">২৭ শাওয়াল ১৪৪৭</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" className="w-full rounded-2xl font-bengali" onClick={() => setWelcomeOpen(false)}>
+              {t("বন্ধ করুন", "Close")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

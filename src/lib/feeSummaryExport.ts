@@ -71,18 +71,24 @@ export const printGuardianMonthlySummary = (
   billingMonth: string,
 ) => {
   const html = buildGuardianMonthlySummaryHtml(entries, identity, billingMonth);
-  const printWindow = window.open("", "_blank", "noopener,noreferrer,width=980,height=800");
+  const printWindow = window.open("about:blank", "_blank", "width=980,height=800");
 
   if (!printWindow) return;
 
   printWindow.document.open();
   printWindow.document.write(html);
   printWindow.document.close();
-  printWindow.focus();
-
-  setTimeout(() => {
+  const triggerPrint = () => {
+    printWindow.focus();
     printWindow.print();
-  }, 250);
+  };
+
+  if (printWindow.document.readyState === "complete") {
+    setTimeout(triggerPrint, 150);
+    return;
+  }
+
+  printWindow.addEventListener("load", () => setTimeout(triggerPrint, 150), { once: true });
 };
 
 const buildGuardianMonthlySummaryHtml = (
@@ -121,7 +127,7 @@ const buildGuardianMonthlySummaryHtml = (
       <style>
         @page {
           size: A4 portrait;
-          margin: 12mm;
+          margin: 16mm 12mm 12mm;
         }
         * { box-sizing: border-box; }
         body {
@@ -253,7 +259,7 @@ const buildGuardianMonthlySummaryHtml = (
             border: 0;
             border-radius: 0;
             box-shadow: none;
-            padding: 0;
+            padding: 6mm 0 0;
           }
         }
       </style>

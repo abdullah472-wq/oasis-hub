@@ -126,7 +126,7 @@ export const buildFeeStudentOptions = (students: StudentRecord[], admissions: Ad
   });
 
   return Array.from(map.values())
-    .filter((item) => item.guardianUid.trim())
+    .filter((item) => item.studentId.trim())
     .sort((a, b) => a.studentName.localeCompare(b.studentName));
 };
 

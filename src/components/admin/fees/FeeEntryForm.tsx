@@ -20,6 +20,11 @@ interface FeeEntryFormProps {
   onUpdate: (id: string, payload: FeeEntryUpdateInput) => Promise<void>;
 }
 
+const normalizeDigits = (value: string) =>
+  value
+    .replace(/[০-৯]/g, (digit) => String.fromCharCode(digit.charCodeAt(0) - 0x09e6 + 0x30))
+    .replace(/\D/g, "");
+
 const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCreate, onUpdate }: FeeEntryFormProps) => {
   const { t } = useLanguage();
   const [saving, setSaving] = useState(false);
@@ -58,11 +63,41 @@ const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCrea
   const filteredStudents = useMemo(() => {
     const query = studentSearch.trim().toLowerCase();
     if (!query) return students;
+
+    const queryDigits = normalizeDigits(query);
+
     return students.filter((student) =>
-      [student.studentId, student.studentName, student.className, student.guardianName]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(query)),
+      [student.studentId, student.studentName, student.className, student.guardianName].filter(Boolean).some((value, index) => {
+        const normalizedValue = String(value).toLowerCase();
+
+        if (index === 0 && queryDigits) {
+          return normalizeDigits(normalizedValue).startsWith(queryDigits);
+        }
+
+        return normalizedValue.includes(query);
+      }),
     );
+  }, [studentSearch, students]);
+
+  useEffect(() => {
+    const query = studentSearch.trim();
+    if (!query) return;
+
+    const normalizedQuery = normalizeDigits(query);
+    if (!normalizedQuery) return;
+
+    const exactMatch = students.find((student) => normalizeDigits(student.studentId) === normalizedQuery);
+    if (!exactMatch) return;
+
+    setBatchDraft((current) => ({
+      ...current,
+      studentId: exactMatch.studentId,
+      guardianUid: exactMatch.guardianUid || "",
+      guardianName: exactMatch.guardianName || "",
+      guardianPhone: exactMatch.guardianPhone || "",
+      studentName: exactMatch.studentName || "",
+      className: exactMatch.className || "",
+    }));
   }, [studentSearch, students]);
 
   useEffect(() => {
@@ -113,68 +148,65 @@ const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCrea
         {mode === "create" ? (
           <div className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <div className="space-y-2 xl:col-span-2">
+              <div className="space-y-2 xl:col-span-4">
                 <Label className="font-bengali">{t("শিক্ষার্থী নির্বাচন", "Select student")}</Label>
-                <Input
-                  value={studentSearch}
-                  onChange={(event) => setStudentSearch(event.target.value)}
-                  className="mb-2 rounded-2xl"
-                  placeholder={t("স্টুডেন্ট আইডি দিয়ে খুঁজুন", "Search by student ID")}
-                />
-                <select
-                  value={batchDraft.studentId}
-                  onChange={(event) => {
-                    const nextStudent = students.find((item) => item.studentId === event.target.value);
-                    setBatchDraft((current) => ({
-                      ...current,
-                      studentId: event.target.value,
-                      guardianUid: nextStudent?.guardianUid || "",
-                      guardianName: nextStudent?.guardianName || "",
-                      guardianPhone: nextStudent?.guardianPhone || "",
-                      studentName: nextStudent?.studentName || "",
-                      className: nextStudent?.className || "",
-                    }));
-                  }}
-                  className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
-                >
-                  <option value="">{t("শিক্ষার্থী নির্বাচন করুন", "Choose a student")}</option>
-                  {filteredStudents.map((student) => (
-                    <option key={student.studentId} value={student.studentId}>
-                      {student.studentId} - {student.studentName} - {student.className} - {student.guardianName || t("গার্ডিয়ান নেই", "No guardian")}
-                    </option>
-                  ))}
-                </select>
+                <div className="grid items-center gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                  <Input
+                    value={studentSearch}
+                    onChange={(event) => setStudentSearch(event.target.value)}
+                    className="h-10 rounded-2xl text-sm"
+                    placeholder={t("স্টুডেন্ট আইডি দিয়ে খুঁজুন", "Search by student ID")}
+                  />
+                  <select
+                    value={batchDraft.studentId}
+                    onChange={(event) => {
+                      const nextStudent = students.find((item) => item.studentId === event.target.value);
+                      setBatchDraft((current) => ({
+                        ...current,
+                        studentId: event.target.value,
+                        guardianUid: nextStudent?.guardianUid || "",
+                        guardianName: nextStudent?.guardianName || "",
+                        guardianPhone: nextStudent?.guardianPhone || "",
+                        studentName: nextStudent?.studentName || "",
+                        className: nextStudent?.className || "",
+                      }));
+                    }}
+                    className="h-10 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+                  >
+                    <option value="">{t("শিক্ষার্থী নির্বাচন করুন", "Choose a student")}</option>
+                    {filteredStudents.map((student) => (
+                      <option key={student.studentId} value={student.studentId}>
+                        {student.studentId} - {student.studentName} - {student.className} - {student.guardianName || t("গার্ডিয়ান নেই", "No guardian")}
+                      </option>
+                    ))}
+                  </select>
+                  <Input
+                    type="month"
+                    value={batchDraft.billingMonth}
+                    onChange={(event) => setBatchDraft((current) => ({ ...current, billingMonth: event.target.value }))}
+                    className="h-10 rounded-2xl"
+                  />
+                </div>
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  <div className="space-y-2">
+                    <Label className="font-bengali">{t("শিক্ষার্থীর নাম", "Student name")}</Label>
+                    <Input value={batchDraft.studentName} className="rounded-2xl" readOnly />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-bengali">{t("শ্রেণি", "Class")}</Label>
+                    <Input value={batchDraft.className} className="rounded-2xl" readOnly />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-bengali">{t("অভিভাবকের নাম", "Guardian name")}</Label>
+                    <Input value={batchDraft.guardianName} onChange={(event) => setBatchDraft((current) => ({ ...current, guardianName: event.target.value }))} className="rounded-2xl" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-bengali">{t("ফোন", "Phone")}</Label>
+                    <Input value={batchDraft.guardianPhone} onChange={(event) => setBatchDraft((current) => ({ ...current, guardianPhone: event.target.value }))} className="rounded-2xl" />
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="font-bengali">{t("বিলিং মাস", "Billing month")}</Label>
-                <Input type="month" value={batchDraft.billingMonth} onChange={(event) => setBatchDraft((current) => ({ ...current, billingMonth: event.target.value }))} className="rounded-2xl" />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="font-bengali">{t("গার্ডিয়ান UID", "Guardian UID")}</Label>
-                <Input value={batchDraft.guardianUid} onChange={(event) => setBatchDraft((current) => ({ ...current, guardianUid: event.target.value }))} className="rounded-2xl" placeholder={t("লগইন লিংকের জন্য", "Used for guardian login mapping")} />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="font-bengali">{t("অভিভাবকের নাম", "Guardian name")}</Label>
-                <Input value={batchDraft.guardianName} onChange={(event) => setBatchDraft((current) => ({ ...current, guardianName: event.target.value }))} className="rounded-2xl" />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="font-bengali">{t("ফোন", "Phone")}</Label>
-                <Input value={batchDraft.guardianPhone} onChange={(event) => setBatchDraft((current) => ({ ...current, guardianPhone: event.target.value }))} className="rounded-2xl" />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="font-bengali">{t("শিক্ষার্থীর নাম", "Student name")}</Label>
-                <Input value={batchDraft.studentName} className="rounded-2xl" readOnly />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="font-bengali">{t("শ্রেণি", "Class")}</Label>
-                <Input value={batchDraft.className} className="rounded-2xl" readOnly />
-              </div>
             </div>
 
             <MultiFeeItemForm items={batchDraft.items} onChange={(items) => setBatchDraft((current) => ({ ...current, items }))} />

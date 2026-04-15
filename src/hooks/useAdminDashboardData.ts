@@ -61,7 +61,11 @@ import {
   subscribeGuardianRequests,
   updateGuardianRequest,
 } from "@/lib/guardianRequests";
-import { createGuardianAccountByAdmin, type GuardianRegistrationInput } from "@/lib/guardianRegistration";
+import {
+  activateGuardianAccount,
+  createGuardianAccountByAdmin,
+  type GuardianRegistrationInput,
+} from "@/lib/guardianRegistration";
 import { deleteAchievement, getAchievements, saveAchievement, type AchievementItem } from "@/lib/achievements";
 
 const mergeAttendanceRecords = (current: AttendanceRecord[], nextItems: AttendanceRecord[]) => {
@@ -509,6 +513,7 @@ export const useAdminDashboardData = (enabled = true) => {
 
   const saveGuardianRequestItem = async (request: GuardianRequest) => {
     const exists = guardianRequests.some((item) => item.id === request.id);
+    const previousRequest = guardianRequests.find((item) => item.id === request.id);
 
     if (exists) {
       setGuardianRequests((current) =>
@@ -528,8 +533,24 @@ export const useAdminDashboardData = (enabled = true) => {
           message: request.message,
           status: request.status,
         });
+
+        if (request.status === "resolved" && request.guardianUid && request.studentId) {
+          await activateGuardianAccount({
+            guardianUid: request.guardianUid,
+            studentId: request.studentId,
+            guardianName: request.guardianName,
+            guardianPhone: request.guardianPhone,
+            studentName: request.studentName,
+            className: request.className,
+            section: request.section,
+          });
+        }
       } catch (error) {
-        setGuardianRequests((current) => current.map((item) => (item.id === request.id ? request : item)));
+        if (previousRequest) {
+          setGuardianRequests((current) =>
+            current.map((item) => (item.id === request.id ? previousRequest : item)),
+          );
+        }
         throw error;
       }
       appendActivity("Guardian request updated", request.topic, "guardianRequests");
