@@ -91,6 +91,7 @@ const Results = () => {
                     <tr className="border-b-2 border-border">
                       <th className="py-4 text-left font-bengali font-bold text-foreground">{t("পরীক্ষা", "Exam")}</th>
                       <th className="py-4 text-left font-bengali font-bold text-foreground">{t("শ্রেণি", "Class")}</th>
+                      <th className="py-4 text-left font-bengali font-bold text-foreground">{t("ফলাফল", "Result")}</th>
                       <th className="py-4 text-right font-bengali font-bold text-foreground">{t("ডাউনলোড", "Download")}</th>
                     </tr>
                   </thead>
@@ -99,6 +100,11 @@ const Results = () => {
                       <tr key={result.id || index} className="border-b border-border/50 transition-colors hover:bg-secondary/50">
                         <td className="py-4 font-bengali text-foreground">{lang === "bn" ? result.exam : result.examEn}</td>
                         <td className="py-4 font-bengali text-muted-foreground">{lang === "bn" ? result.className : result.classNameEn}</td>
+                        <td className="py-4 font-bengali text-sm text-muted-foreground">
+                          {result.entryType === "manual"
+                            ? `${t("গ্রেড", "Grade")}: ${result.grade || "-"} • GPA: ${Number(result.gpa || 0)} • ${t("পজিশন", "Position")}: ${Number(result.position || 0) || "-"}`
+                            : t("পিডিএফ ফলাফল", "PDF result")}
+                        </td>
                         <td className="py-4 text-right">
                           {result.pdfUrl ? (
                             <button
@@ -110,7 +116,9 @@ const Results = () => {
                               PDF
                             </button>
                           ) : (
-                            <span className="text-sm text-muted-foreground">{t("শীঘ্রই আসছে", "Coming soon")}</span>
+                            <span className="text-sm text-muted-foreground">
+                              {result.entryType === "manual" ? t("ম্যানুয়াল এন্ট্রি", "Manual entry") : t("শীঘ্রই আসছে", "Coming soon")}
+                            </span>
                           )}
                         </td>
                       </tr>

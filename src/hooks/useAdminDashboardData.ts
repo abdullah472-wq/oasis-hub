@@ -67,6 +67,7 @@ import {
   type GuardianRegistrationInput,
 } from "@/lib/guardianRegistration";
 import { deleteAchievement, getAchievements, saveAchievement, type AchievementItem } from "@/lib/achievements";
+import { listDailyEngagement, type DailyEngagement } from "@/lib/engagementAnalytics";
 
 const mergeAttendanceRecords = (current: AttendanceRecord[], nextItems: AttendanceRecord[]) => {
   const map = new Map(current.map((item) => [item.id, item] as const));
@@ -103,6 +104,7 @@ export const useAdminDashboardData = (enabled = true) => {
   });
   const [settings, setSettings] = useState<DashboardSettings>(getDashboardSettings());
   const [activityFeed, setActivityFeed] = useState<ActivityItem[]>([]);
+  const [dailyEngagement, setDailyEngagement] = useState<DailyEngagement[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -136,6 +138,7 @@ export const useAdminDashboardData = (enabled = true) => {
           nextRamadanRequests,
           nextRamadanSettings,
           nextRunningNoticeSettings,
+          nextDailyEngagement,
         ] = await Promise.all([
           getNewsFromFirestore().catch(() => []),
           getGalleryImages().catch(() => []),
@@ -155,6 +158,7 @@ export const useAdminDashboardData = (enabled = true) => {
           listRamadanSponsorRequests().catch(() => []),
           getRamadanSettings().catch(() => ({ isPublic: true, updatedAt: Date.now() })),
           getRunningNoticeSettings().catch(() => ({ runningNoticeEnabled: true, runningNotices: [], updatedAt: Date.now() })),
+          listDailyEngagement().catch(() => []),
         ]);
 
         if (!isMounted) return;
@@ -177,6 +181,7 @@ export const useAdminDashboardData = (enabled = true) => {
         setRamadanRequests(nextRamadanRequests);
         setRamadanSettings(nextRamadanSettings);
         setRunningNoticeSettings(nextRunningNoticeSettings);
+        setDailyEngagement(nextDailyEngagement);
         setSettings(getDashboardSettings());
         setActivityFeed(getActivityFeed());
       } finally {
@@ -325,7 +330,10 @@ export const useAdminDashboardData = (enabled = true) => {
 
   const addResultItem = async (payload: Omit<Result, "id" | "createdAt" | "pdfUrl">, file: File | null) => {
     const pdfUrl = file ? await uploadResultPdf(file) : undefined;
-    const saved = await saveResult({ ...payload, pdfUrl });
+    const saved = await saveResult({
+      ...payload,
+      ...(pdfUrl ? { pdfUrl } : {}),
+    });
     setResults((current) => [saved, ...current]);
     appendActivity("Result published", `${payload.exam} - ${payload.className}`, "results");
     notifySaved("ফলাফল সংরক্ষণ হয়েছে", "Result saved");
@@ -648,9 +656,10 @@ export const useAdminDashboardData = (enabled = true) => {
       activeManagers: managers.filter((item) => item.status === "active").length,
       pendingGuardianRequests: guardianRequests.filter((item) => item.status !== "resolved").length,
       monthlyFees: feeSummary.totalDue,
+      monthlyCollected: feeSummary.totalPaid,
       attendanceRate: attendanceSummary.attendancePercent,
     }),
-    [admissions, attendanceSummary.attendancePercent, feeSummary.totalDue, guardianRequests, managers, newsPosts.length, notices.length, reviews],
+    [admissions, attendanceSummary.attendancePercent, feeSummary.totalDue, feeSummary.totalPaid, guardianRequests, managers, newsPosts.length, notices.length, reviews],
   );
 
   return {
@@ -677,6 +686,7 @@ export const useAdminDashboardData = (enabled = true) => {
     runningNoticeSettings,
     settings,
     activityFeed,
+    dailyEngagement,
     dashboardStats,
     actions: {
       addNews,

@@ -37,6 +37,37 @@ import FeesPage from "@/components/admin/fees/FeesPage";
 import RamadanManagerPage from "@/components/admin/ramadan/RamadanManagerPage";
 
 const siteLogo = "/site-logo.png";
+const BANGLA_MONTHS = ["বৈশাখ", "জ্যৈষ্ঠ", "আষাঢ়", "শ্রাবণ", "ভাদ্র", "আশ্বিন", "কার্তিক", "অগ্রহায়ণ", "পৌষ", "মাঘ", "ফাল্গুন", "চৈত্র"];
+const BANGLA_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+
+const toBanglaDigits = (value: number | string) =>
+  String(value).replace(/\d/g, (digit) => BANGLA_DIGITS[Number(digit)]);
+
+const isGregorianLeapYear = (year: number) =>
+  (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+
+const getBanglaDateLine = (date: Date) => {
+  const year = date.getFullYear();
+  const yearStart = new Date(year, 3, 14);
+  const usesPreviousYear = date < yearStart;
+  const banglaYear = usesPreviousYear ? year - 594 : year - 593;
+  const banglaYearStart = usesPreviousYear ? new Date(year - 1, 3, 14) : yearStart;
+  const dayOfYear = Math.floor((date.getTime() - banglaYearStart.getTime()) / 86400000) + 1;
+
+  const monthLengths = [31, 31, 31, 31, 31, 30, 30, 30, 30, 30, isGregorianLeapYear(banglaYearStart.getFullYear() + 1) ? 31 : 30, 30];
+  let dayRemainder = dayOfYear;
+  let monthIndex = 0;
+
+  while (monthIndex < monthLengths.length && dayRemainder > monthLengths[monthIndex]) {
+    dayRemainder -= monthLengths[monthIndex];
+    monthIndex += 1;
+  }
+
+  const day = toBanglaDigits(dayRemainder);
+  const month = BANGLA_MONTHS[Math.min(monthIndex, BANGLA_MONTHS.length - 1)];
+  const formattedYear = toBanglaDigits(banglaYear);
+  return `${day} ${month} ${formattedYear}`;
+};
 
 const AdminPortalPage = () => {
   const { t } = useLanguage();
@@ -56,6 +87,34 @@ const AdminPortalPage = () => {
     if (hour < 12) return "শুভ সকাল";
     if (hour < 20) return "শুভ সন্ধ্যা";
     return "শুভ রাত্রি";
+  }, []);
+
+  const todayDateLines = useMemo(() => {
+    const now = new Date();
+    const gregorianParts = new Intl.DateTimeFormat("bn-BD", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).formatToParts(now);
+    const weekday = gregorianParts.find((part) => part.type === "weekday")?.value ?? "";
+    const day = gregorianParts.find((part) => part.type === "day")?.value ?? "";
+    const month = gregorianParts.find((part) => part.type === "month")?.value ?? "";
+    const year = gregorianParts.find((part) => part.type === "year")?.value ?? "";
+    const gregorian = `আজ ${weekday}, ${day} ${month}, ${year} ইংরেজী`;
+
+    const bengali = getBanglaDateLine(now);
+    const hijriParts = new Intl.DateTimeFormat("bn-BD-u-ca-islamic", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).formatToParts(now);
+    const hijriDay = hijriParts.find((part) => part.type === "day")?.value ?? "";
+    const hijriMonth = hijriParts.find((part) => part.type === "month")?.value ?? "";
+    const hijriYear = hijriParts.find((part) => part.type === "year")?.value ?? "";
+    const hijri = `${hijriDay} ${hijriMonth}, ${hijriYear} হিজরী`;
+
+    return { gregorian, bengali: `${bengali} বঙ্গাব্দ`, hijri };
   }, []);
 
   useEffect(() => {
@@ -215,12 +274,13 @@ const AdminPortalPage = () => {
           <DashboardOverview
             user={currentUser!}
             stats={data.dashboardStats}
-            notices={data.notices}
-            events={data.events}
-            reviews={data.reviews}
-            activityFeed={data.activityFeed}
-          />
-        );
+              notices={data.notices}
+              events={data.events}
+              reviews={data.reviews}
+              activityFeed={data.activityFeed}
+              dailyEngagement={data.dailyEngagement}
+            />
+          );
       case "/admin/fees":
         return (
           <FeesPage
@@ -266,7 +326,7 @@ const AdminPortalPage = () => {
           />
         );
       case "/admin/results":
-        return <ResultsManagerPage items={data.results} onCreate={data.actions.addResultItem} onDelete={data.actions.removeResultItem} />;
+        return <ResultsManagerPage items={data.results} students={data.attendanceStudents} onCreate={data.actions.addResultItem} onDelete={data.actions.removeResultItem} />;
       case "/admin/reviews":
         return <ReviewsManagerPage items={data.reviews} onApprove={data.actions.approveReviewItem} onDelete={data.actions.removeReviewItem} />;
       case "/admin/achievements":
@@ -497,13 +557,13 @@ const AdminPortalPage = () => {
               আল্লাহর নামে শুরু করলাম
             </p>
             <div className="mt-3 space-y-1">
-              <p className="font-bengali text-sm text-foreground">বুধবার, ১৫ এপ্রিল ২০২৬</p>
+              <p className="font-bengali text-sm text-foreground">{todayDateLines.gregorian}</p>
             </div>
             <div className="mt-2 space-y-1">
-              <p className="font-bengali text-sm text-foreground">২রা বৈশাখ ১৪৩৩</p>
+              <p className="font-bengali text-sm text-foreground">{todayDateLines.bengali}</p>
             </div>
             <div className="mt-2 space-y-1">
-              <p className="font-bengali text-sm text-foreground">২৭ শাওয়াল ১৪৪৭</p>
+              <p className="font-bengali text-sm text-foreground">{todayDateLines.hijri}</p>
             </div>
           </div>
           <DialogFooter>

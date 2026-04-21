@@ -135,6 +135,11 @@ const GuardianPortal = () => {
                     <p className="font-bengali text-xs text-muted-foreground">
                       {pickGuardianText(t, result.className, result.classNameEn, result.className)}
                     </p>
+                    {result.entryType === "manual" && (
+                      <p className="mt-1 font-bengali text-xs text-muted-foreground">
+                        {t("প্রাপ্ত", "Obtained")}: {Number(result.obtainedMarks || 0)} / {Number(result.totalMarks || 0)} • GPA: {Number(result.gpa || 0)} • {t("গ্রেড", "Grade")}: {result.grade || "-"} • {t("পজিশন", "Position")}: {Number(result.position || 0) || "-"}
+                      </p>
+                    )}
                     {result.pdfUrl && (
                       <a href={result.pdfUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex font-bengali text-xs font-semibold text-primary hover:underline">
                         {t("ফলাফল দেখুন", "Open Result")}

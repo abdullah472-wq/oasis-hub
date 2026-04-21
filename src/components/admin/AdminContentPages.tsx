@@ -1,5 +1,5 @@
-﻿import { useEffect, useState } from "react";
-import { Award, CalendarDays, FileText, ImageIcon, MessageSquareQuote, Pencil, Trash2 } from "lucide-react";
+﻿import { useEffect, useMemo, useState } from "react";
+import { Award, BellRing, CalendarDays, ChevronDown, ExternalLink, FileText, ImageIcon, Link2, MessageSquareQuote, Pencil, Radio, Save, Trash2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import { getDownloadUrl } from "@/lib/upload";
@@ -11,10 +11,12 @@ import type { Result } from "@/lib/results";
 import type { Review } from "@/lib/reviews";
 import type { RunningNoticeSettings } from "@/lib/runningNoticeSettings";
 import type { AchievementItem } from "@/lib/achievements";
+import type { StudentRecord } from "@/lib/students";
 import { createClientId } from "@/lib/uuid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   BilingualInput,
   BilingualTextarea,
@@ -148,7 +150,7 @@ export const GalleryManagerPage = ({
   onCreate: (payload: Omit<GalleryImage, "id" | "src" | "createdAt">, image: File) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }) => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [image, setImage] = useState<File | null>(null);
@@ -292,7 +294,7 @@ export const NoticesManagerPage = ({
   noticeSettings: RunningNoticeSettings;
   onSaveNoticeSettings: (settings: Pick<RunningNoticeSettings, "runningNoticeEnabled" | "runningNotices">) => Promise<void>;
 }) => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [pdf, setPdf] = useState<File | null>(null);
@@ -300,6 +302,7 @@ export const NoticesManagerPage = ({
   const [noticeDraft, setNoticeDraft] = useState(noticeSettings);
   const [savingNoticeBar, setSavingNoticeBar] = useState(false);
   const [expandedNotices, setExpandedNotices] = useState<Record<string, boolean>>({});
+  const [expandedPublishedNotices, setExpandedPublishedNotices] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setNoticeDraft(noticeSettings);
@@ -308,11 +311,14 @@ export const NoticesManagerPage = ({
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSaving(true);
-    await onCreate(form, pdf);
-    setForm({ titleBn: "", titleEn: "", descriptionBn: "", descriptionEn: "" });
-    setPdf(null);
-    setShowForm(false);
-    setSaving(false);
+    try {
+      await onCreate(form, pdf);
+      setForm({ titleBn: "", titleEn: "", descriptionBn: "", descriptionEn: "" });
+      setPdf(null);
+      setShowForm(false);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const addRunningNotice = () => {
@@ -355,133 +361,220 @@ export const NoticesManagerPage = ({
     setExpandedNotices((current) => ({ ...current, [id]: !(current[id] ?? true) }));
   };
 
+  const togglePublishedNoticeExpanded = (id: string) => {
+    setExpandedPublishedNotices((current) => ({ ...current, [id]: !(current[id] ?? false) }));
+  };
+
   const saveRunningNoticeBar = async (event: React.FormEvent) => {
     event.preventDefault();
     setSavingNoticeBar(true);
-    await onSaveNoticeSettings({
-      runningNoticeEnabled: noticeDraft.runningNoticeEnabled,
-      runningNotices: noticeDraft.runningNotices,
-    });
-    setSavingNoticeBar(false);
+    try {
+      await onSaveNoticeSettings({
+        runningNoticeEnabled: noticeDraft.runningNoticeEnabled,
+        runningNotices: noticeDraft.runningNotices,
+      });
+    } finally {
+      setSavingNoticeBar(false);
+    }
   };
+
+  const dateLocale = lang === "bn" ? "bn-BD" : "en-US";
+  const sortedRunningNotices = useMemo(
+    () => noticeDraft.runningNotices.slice().sort((a, b) => a.priority - b.priority),
+    [noticeDraft.runningNotices],
+  );
+  const activeRunningCount = noticeDraft.runningNotices.filter((item) => item.active).length;
+  const noticesWithPdf = items.filter((item) => Boolean(item.pdfUrl)).length;
+  const latestNoticeDate = items[0]
+    ? new Date(items[0].createdAt).toLocaleDateString(dateLocale, { day: "numeric", month: "short", year: "numeric" })
+    : t("নেই", "None");
 
   return (
     <ModuleShell
       title={t("নোটিশ ম্যানেজমেন্ট", "Notice Management")}
       description={t("অফিশিয়াল নোটিশ, পিডিএফ সার্কুলার এবং রানিং নোটিশ বার এখান থেকে পরিচালনা করুন", "Manage official notices, PDF circulars, and the running notice bar from here")}
-      actionLabel={t("নতুন নোটিশ", "New Notice")}
+      actionLabel={showForm ? t("ফর্ম বন্ধ করুন", "Close form") : t("নতুন নোটিশ", "New Notice")}
       onAction={() => setShowForm((current) => !current)}
       icon={<BellFileIcon className="h-5 w-5" />}
     >
-      <FormCard onSubmit={saveRunningNoticeBar} saving={savingNoticeBar} submitLabel={t("নোটিশ বার সংরক্ষণ", "Save notice bar")}>
-        <div className="space-y-4 rounded-3xl border border-border/70 bg-muted/30 p-5">
-          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <div>
-              <h3 className="font-bengali text-base font-semibold text-foreground">{t("রানিং নোটিশ বার", "Running notice bar")}</h3>
-              <p className="mt-1 font-bengali text-sm text-muted-foreground">
-                {t("মেইন নেভিগেশন বারের উপরে চলমান নোটিশ এখান থেকে add, edit, remove এবং hide/show করুন", "Add, edit, remove, and hide/show the running notice above the main navigation bar from here")}
-              </p>
-            </div>
-            <Button type="button" variant="outline" className="rounded-2xl" onClick={addRunningNotice}>
-              {t("নতুন নোটিশ যোগ করুন", "Add notice item")}
-            </Button>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-lg border border-border/70 bg-card p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-bengali text-sm text-muted-foreground">{t("প্রকাশিত নোটিশ", "Published notices")}</p>
+            <FileText className="h-4 w-4 text-primary" />
           </div>
-
-          <ToggleRow
-            label={t("রানিং নোটিশ দেখান", "Show running notice")}
-            checked={noticeDraft.runningNoticeEnabled}
-            onCheckedChange={(checked) => setNoticeDraft((current) => ({ ...current, runningNoticeEnabled: checked }))}
-          />
-
-          <div className="space-y-4">
-            {noticeDraft.runningNotices.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-background/80 px-4 py-6 text-center font-bengali text-sm text-muted-foreground">
-                {t("এখনও কোনো রানিং নোটিশ যোগ করা হয়নি", "No running notice items added yet")}
-              </div>
-            ) : (
-              noticeDraft.runningNotices
-                .slice()
-                .sort((a, b) => a.priority - b.priority)
-                .map((item, index) => (
-                  <div key={item.id} className="space-y-4 rounded-3xl border border-border/70 bg-background p-5 shadow-sm">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <div>
-                        <h4 className="font-bengali text-sm font-semibold text-foreground">
-                          {t("টিকার আইটেম", "Ticker item")} #{index + 1}
-                        </h4>
-                        <p className="font-bengali text-xs text-muted-foreground">
-                          {t("কম priority number আগে দেখানো হবে", "Lower priority number appears first")}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button type="button" variant="outline" className="rounded-2xl font-bengali" onClick={() => toggleNoticeExpanded(item.id)}>
-                          {(expandedNotices[item.id] ?? true) ? t("লুকান", "Collapse") : t("দেখুন", "Expand")}
-                        </Button>
-                        <ToggleRow
-                          label={t("সক্রিয়", "Active")}
-                          checked={item.active}
-                          onCheckedChange={(checked) => updateRunningNotice(item.id, "active", checked)}
-                        />
-                        <Button type="button" variant="ghost" className="rounded-2xl text-destructive hover:text-destructive" onClick={() => removeRunningNotice(item.id)}>
-                          {t("রিমুভ", "Remove")}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {(expandedNotices[item.id] ?? true) && (
-                      <>
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <Field label={t("নোটিশ টেক্সট (বাংলা)", "Notice text (Bangla)")}>
-                            <textarea
-                              value={item.textBn}
-                              onChange={(event) => updateRunningNotice(item.id, "textBn", event.target.value)}
-                              className="min-h-[110px] w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm outline-none"
-                            />
-                          </Field>
-                          <Field label={t("Notice text (English)", "Notice text (English)")}>
-                            <textarea
-                              value={item.textEn}
-                              onChange={(event) => updateRunningNotice(item.id, "textEn", event.target.value)}
-                              className="min-h-[110px] w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm outline-none"
-                            />
-                          </Field>
-                        </div>
-
-                        <div className="grid gap-4 md:grid-cols-3">
-                          <Field label={t("লিংক", "Link")}>
-                            <input
-                              value={item.link || ""}
-                              onChange={(event) => updateRunningNotice(item.id, "link", event.target.value)}
-                              className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
-                              placeholder="/notices অথবা https://..."
-                            />
-                          </Field>
-                          <Field label={t("প্রকাশের তারিখ", "Publish date")}>
-                            <input
-                              type="date"
-                              value={item.publishDate}
-                              onChange={(event) => updateRunningNotice(item.id, "publishDate", event.target.value)}
-                              className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
-                            />
-                          </Field>
-                          <Field label={t("Priority", "Priority")}>
-                            <input
-                              type="number"
-                              min={1}
-                              value={item.priority}
-                              onChange={(event) => updateRunningNotice(item.id, "priority", Number(event.target.value) || 1)}
-                              className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
-                            />
-                          </Field>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))
-            )}
-          </div>
+          <p className="mt-3 text-3xl font-semibold text-foreground">{items.length}</p>
         </div>
-      </FormCard>
+        <div className="rounded-lg border border-border/70 bg-card p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-bengali text-sm text-muted-foreground">{t("পিডিএফ সার্কুলার", "PDF circulars")}</p>
+            <ExternalLink className="h-4 w-4 text-primary" />
+          </div>
+          <p className="mt-3 text-3xl font-semibold text-foreground">{noticesWithPdf}</p>
+        </div>
+        <div className="rounded-lg border border-border/70 bg-card p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-bengali text-sm text-muted-foreground">{t("সক্রিয় রানিং আইটেম", "Active ticker items")}</p>
+            <Radio className="h-4 w-4 text-primary" />
+          </div>
+          <p className="mt-3 text-3xl font-semibold text-foreground">{activeRunningCount}</p>
+        </div>
+        <div className="rounded-lg border border-border/70 bg-card p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-bengali text-sm text-muted-foreground">{t("সর্বশেষ প্রকাশ", "Latest publish")}</p>
+            <CalendarDays className="h-4 w-4 text-primary" />
+          </div>
+          <p className="mt-3 font-bengali text-lg font-semibold text-foreground">{latestNoticeDate}</p>
+        </div>
+      </div>
+
+      <form onSubmit={saveRunningNoticeBar}>
+        <Card className={shellCardClass}>
+          <CardContent className="space-y-5 p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <BellRing className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h3 className="font-bengali text-lg font-semibold text-foreground">{t("রানিং নোটিশ বার", "Running notice bar")}</h3>
+                    <p className="font-bengali text-sm text-muted-foreground">
+                      {t("মেইন নেভিগেশন বারের উপরের বার্তার ক্রম, লিংক এবং দৃশ্যমানতা ঠিক করুন", "Control the message order, links, and visibility above the main navigation")}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant={noticeDraft.runningNoticeEnabled ? "default" : "secondary"} className="rounded-lg font-bengali">
+                    {noticeDraft.runningNoticeEnabled ? t("লাইভ", "Live") : t("লুকানো", "Hidden")}
+                  </Badge>
+                  <Badge variant="outline" className="rounded-lg font-bengali">
+                    {activeRunningCount}/{noticeDraft.runningNotices.length} {t("সক্রিয়", "active")}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button type="button" variant="outline" className="rounded-lg font-bengali" onClick={addRunningNotice}>
+                  {t("আইটেম যোগ করুন", "Add item")}
+                </Button>
+                <Button type="submit" className="rounded-lg font-bengali" disabled={savingNoticeBar}>
+                  <Save className="mr-2 h-4 w-4" />
+                  {savingNoticeBar ? t("সংরক্ষণ হচ্ছে...", "Saving...") : t("নোটিশ বার সংরক্ষণ", "Save notice bar")}
+                </Button>
+              </div>
+            </div>
+
+            <ToggleRow
+              label={t("রানিং নোটিশ দেখান", "Show running notice")}
+              checked={noticeDraft.runningNoticeEnabled}
+              onCheckedChange={(checked) => setNoticeDraft((current) => ({ ...current, runningNoticeEnabled: checked }))}
+            />
+
+            <div className="space-y-3">
+              {sortedRunningNotices.length === 0 ? (
+                <EmptyState text={t("এখনও কোনো রানিং নোটিশ যোগ করা হয়নি", "No running notice items added yet")} />
+              ) : (
+                sortedRunningNotices.map((item, index) => {
+                  const isExpanded = expandedNotices[item.id] ?? true;
+                  const previewText = lang === "bn" ? item.textBn || item.textEn : item.textEn || item.textBn;
+                  const publishDate = item.publishDate
+                    ? new Date(`${item.publishDate}T00:00:00`).toLocaleDateString(dateLocale, { day: "numeric", month: "short", year: "numeric" })
+                    : t("তারিখ নেই", "No date");
+
+                  return (
+                    <div key={item.id} className="rounded-lg border border-border/70 bg-background shadow-sm">
+                      <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="min-w-0 space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="outline" className="rounded-lg">#{index + 1}</Badge>
+                            <Badge variant={item.active ? "default" : "secondary"} className="rounded-lg font-bengali">
+                              {item.active ? t("সক্রিয়", "Active") : t("বন্ধ", "Inactive")}
+                            </Badge>
+                            <span className="font-bengali text-xs text-muted-foreground">{publishDate}</span>
+                          </div>
+                          <p className="line-clamp-2 font-bengali text-sm font-medium text-foreground">
+                            {previewText || t("খালি নোটিশ আইটেম", "Empty notice item")}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button
+                            type="button"
+                            variant={item.active ? "secondary" : "outline"}
+                            className="rounded-lg font-bengali"
+                            onClick={() => updateRunningNotice(item.id, "active", !item.active)}
+                          >
+                            {item.active ? t("বন্ধ করুন", "Deactivate") : t("চালু করুন", "Activate")}
+                          </Button>
+                          <Button type="button" variant="outline" className="rounded-lg font-bengali" onClick={() => toggleNoticeExpanded(item.id)}>
+                            <ChevronDown className={`mr-2 h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                            {isExpanded ? t("লুকান", "Collapse") : t("এডিট", "Edit")}
+                          </Button>
+                          <Button type="button" variant="ghost" className="rounded-lg font-bengali text-destructive hover:text-destructive" onClick={() => removeRunningNotice(item.id)}>
+                            {t("রিমুভ", "Remove")}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {isExpanded && (
+                        <div className="space-y-4 border-t border-border/70 p-4">
+                          <div className="grid gap-4 md:grid-cols-2">
+                            <Field label={t("নোটিশ টেক্সট (বাংলা)", "Notice text (Bangla)")}>
+                              <textarea
+                                value={item.textBn}
+                                onChange={(event) => updateRunningNotice(item.id, "textBn", event.target.value)}
+                                className="min-h-[110px] w-full rounded-lg border border-input bg-background px-4 py-3 font-bengali text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              />
+                            </Field>
+                            <Field label={t("Notice text (English)", "Notice text (English)")}>
+                              <textarea
+                                value={item.textEn}
+                                onChange={(event) => updateRunningNotice(item.id, "textEn", event.target.value)}
+                                className="min-h-[110px] w-full rounded-lg border border-input bg-background px-4 py-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              />
+                            </Field>
+                          </div>
+
+                          <div className="grid gap-4 md:grid-cols-[1fr_180px_130px]">
+                            <Field label={t("লিংক", "Link")}>
+                              <div className="relative">
+                                <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <input
+                                  value={item.link || ""}
+                                  onChange={(event) => updateRunningNotice(item.id, "link", event.target.value)}
+                                  className="h-11 w-full rounded-lg border border-input bg-background pl-10 pr-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                  placeholder="/notices অথবা https://..."
+                                />
+                              </div>
+                            </Field>
+                            <Field label={t("প্রকাশের তারিখ", "Publish date")}>
+                              <input
+                                type="date"
+                                value={item.publishDate}
+                                onChange={(event) => updateRunningNotice(item.id, "publishDate", event.target.value)}
+                                className="h-11 w-full rounded-lg border border-input bg-background px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              />
+                            </Field>
+                            <Field label={t("Priority", "Priority")}>
+                              <input
+                                type="number"
+                                min={1}
+                                value={item.priority}
+                                onChange={(event) => updateRunningNotice(item.id, "priority", Number(event.target.value) || 1)}
+                                className="h-11 w-full rounded-lg border border-input bg-background px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              />
+                            </Field>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </form>
 
       {showForm && (
         <FormCard onSubmit={submit} saving={saving}>
@@ -492,15 +585,77 @@ export const NoticesManagerPage = ({
       )}
 
       <Card className={shellCardClass}>
-        <CardContent className="space-y-4 p-6">
-          {items.length === 0 ? <EmptyState text={t("এখনও কোনো নোটিশ নেই", "No notices yet")} /> : items.map((item) => (
-            <ItemCard key={item.id} title={item.titleBn} meta={new Date(item.createdAt).toLocaleString("bn-BD")} onDelete={() => item.id && void onDelete(item.id)}>
-              <div className="space-y-2">
-                {item.descriptionBn && <p className="font-bengali text-sm text-muted-foreground whitespace-pre-line">{item.descriptionBn}</p>}
-                {item.pdfUrl && <a href={getDownloadUrl(item.pdfUrl)} target="_blank" rel="noopener noreferrer" className="font-bengali text-sm text-primary hover:underline">{t("পিডিএফ দেখুন", "View PDF")}</a>}
-              </div>
-            </ItemCard>
-          ))}
+        <CardContent className="space-y-5 p-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h3 className="font-bengali text-lg font-semibold text-foreground">{t("প্রকাশিত নোটিশ", "Published notices")}</h3>
+              <p className="font-bengali text-sm text-muted-foreground">{t("সাইটের নোটিশ বোর্ডে যেগুলো দেখা যাচ্ছে", "Visible on the public notice board")}</p>
+            </div>
+            <Badge variant="secondary" className="w-fit rounded-lg font-bengali">
+              {items.length} {t("আইটেম", "items")}
+            </Badge>
+          </div>
+
+          {items.length === 0 ? (
+            <EmptyState text={t("এখনও কোনো নোটিশ নেই", "No notices yet")} />
+          ) : (
+            <div className="space-y-3">
+              {items.map((item) => {
+                const noticeKey = item.id || `${item.createdAt}-${item.titleBn}`;
+                const title = lang === "bn" ? item.titleBn : item.titleEn || item.titleBn;
+                const description = lang === "bn" ? item.descriptionBn : item.descriptionEn || item.descriptionBn;
+                const hasDetails = Boolean(description || item.pdfUrl);
+                const isExpanded = expandedPublishedNotices[noticeKey] ?? false;
+                const publishedDate = new Date(item.createdAt).toLocaleDateString(dateLocale, {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                });
+
+                return (
+                  <div key={noticeKey} className="rounded-lg border border-border/70 bg-background p-4 shadow-sm">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="min-w-0 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="outline" className="rounded-lg font-bengali">
+                            {publishedDate}
+                          </Badge>
+                          {item.pdfUrl ? (
+                            <Badge variant="secondary" className="rounded-lg font-bengali">
+                              PDF
+                            </Badge>
+                          ) : null}
+                        </div>
+                        <h4 className="font-bengali text-base font-semibold text-foreground">{title}</h4>
+                        {hasDetails && isExpanded ? (
+                          <div className="space-y-2 border-t border-border/60 pt-3">
+                            {description ? <p className="whitespace-pre-line font-bengali text-sm leading-6 text-muted-foreground">{description}</p> : null}
+                            {item.pdfUrl ? (
+                              <a href={getDownloadUrl(item.pdfUrl)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 font-bengali text-sm font-medium text-primary hover:underline">
+                                <ExternalLink className="h-4 w-4" />
+                                {t("পিডিএফ দেখুন", "View PDF")}
+                              </a>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {hasDetails ? (
+                          <Button type="button" variant="outline" className="rounded-lg font-bengali" onClick={() => togglePublishedNoticeExpanded(noticeKey)}>
+                            <ChevronDown className={`mr-2 h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                            {isExpanded ? t("লুকান", "Collapse") : t("দেখুন", "Expand")}
+                          </Button>
+                        ) : null}
+                        <Button variant="outline" size="icon" className="rounded-lg text-red-600 hover:text-red-600" onClick={() => item.id && void onDelete(item.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
     </ModuleShell>
@@ -509,10 +664,12 @@ export const NoticesManagerPage = ({
 
 export const ResultsManagerPage = ({
   items,
+  students,
   onCreate,
   onDelete,
 }: {
   items: Result[];
+  students: StudentRecord[];
   onCreate: (payload: Omit<Result, "id" | "createdAt" | "pdfUrl">, file: File | null) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }) => {
@@ -520,48 +677,284 @@ export const ResultsManagerPage = ({
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [pdf, setPdf] = useState<File | null>(null);
-  const [form, setForm] = useState({ exam: "", examEn: "", className: "", classNameEn: "", campus: "both" as Result["campus"] });
+  const [studentIdFocused, setStudentIdFocused] = useState(false);
+  const [form, setForm] = useState({
+    exam: "",
+    examEn: "",
+    className: "",
+    classNameEn: "",
+    campus: "both" as Result["campus"],
+    entryType: "manual" as Result["entryType"],
+    studentId: "",
+    studentName: "",
+    section: "",
+    position: "",
+    totalMarks: "",
+    obtainedMarks: "",
+    gpa: "",
+    grade: "",
+    remarksBn: "",
+    remarksEn: "",
+  });
+
+  const normalizeDigits = (value: string) =>
+    value.replace(/[০-৯]/g, (digit) => String.fromCharCode(digit.charCodeAt(0) - 0x09e6 + 0x30));
+
+  const normalizeSearch = (value: string) => normalizeDigits(value).trim().toLowerCase();
+
+  const studentById = useMemo(
+    () => new Map(students.map((student) => [normalizeSearch(student.studentId), student])),
+    [students],
+  );
+
+  const applyStudentSelection = (student: StudentRecord) => {
+    setForm((current) => ({
+      ...current,
+      studentId: student.studentId || current.studentId,
+      studentName: student.studentName || current.studentName,
+      className: student.className || current.className,
+      section: student.section || current.section,
+    }));
+    setStudentIdFocused(false);
+  };
+
+  const studentSuggestions = useMemo(() => {
+    const keyword = normalizeSearch(form.studentId);
+
+    if (!keyword) {
+      return students.slice(0, 8);
+    }
+
+    return students
+      .filter((student) => {
+        const id = normalizeSearch(student.studentId);
+        const name = normalizeSearch(student.studentName);
+        return id.includes(keyword) || name.includes(keyword);
+      })
+      .slice(0, 8);
+  }, [form.studentId, students]);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (form.entryType === "pdf" && !pdf) return;
+
     setSaving(true);
-    await onCreate(form, pdf);
-    setForm({ exam: "", examEn: "", className: "", classNameEn: "", campus: "both" });
-    setPdf(null);
-    setShowForm(false);
-    setSaving(false);
+    try {
+      await onCreate(
+        {
+          exam: form.exam,
+          examEn: form.examEn,
+          className: form.className,
+          classNameEn: form.classNameEn,
+          campus: form.campus,
+          entryType: form.entryType || "manual",
+          studentId: form.studentId.trim(),
+          studentName: form.studentName.trim(),
+          section: form.section.trim(),
+          position: Number(form.position || 0),
+          totalMarks: Number(form.totalMarks || 0),
+          obtainedMarks: Number(form.obtainedMarks || 0),
+          gpa: Number(form.gpa || 0),
+          grade: form.grade.trim(),
+          remarksBn: form.remarksBn.trim(),
+          remarksEn: form.remarksEn.trim(),
+        },
+        form.entryType === "pdf" ? pdf : null,
+      );
+      setForm({
+        exam: "",
+        examEn: "",
+        className: "",
+        classNameEn: "",
+        campus: "both",
+        entryType: "manual",
+        studentId: "",
+        studentName: "",
+        section: "",
+        position: "",
+        totalMarks: "",
+        obtainedMarks: "",
+        gpa: "",
+        grade: "",
+        remarksBn: "",
+        remarksEn: "",
+      });
+      setPdf(null);
+      setShowForm(false);
+    } finally {
+      setSaving(false);
+    }
   };
+
+  const isManual = form.entryType === "manual";
+  const manualResults = items.filter((item) => (item.entryType ?? "pdf") === "manual");
+  const pdfResults = items.filter((item) => (item.entryType ?? "pdf") === "pdf" || Boolean(item.pdfUrl));
+  const manualResultsByClass = manualResults.reduce<Record<string, Result[]>>((acc, item) => {
+    const key = item.className || "Uncategorized";
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(item);
+    return acc;
+  }, {});
+  const manualClassNames = Object.keys(manualResultsByClass).sort((a, b) => a.localeCompare(b));
 
   return (
     <ModuleShell
-      title={t("ফলাফল ম্যানেজমেন্ট", "Results Management")}
-      description={t("পরীক্ষার ফলাফল আপলোড ও ক্যাম্পাসভিত্তিক ব্যবস্থাপনা করুন", "Upload results and manage them by campus")}
-      actionLabel={t("নতুন ফলাফল", "New Result")}
+      title={t("Results Management", "Results Management")}
+      description={t("Publish results by manual entry or PDF upload", "Publish results by manual entry or PDF upload")}
+      actionLabel={t("New Result", "New Result")}
       onAction={() => setShowForm((current) => !current)}
       icon={<FileText className="h-5 w-5" />}
     >
       {showForm && (
         <FormCard onSubmit={submit} saving={saving}>
-          <BilingualInput labelBn="পরীক্ষার নাম" labelEn="Exam name" valueBn={form.exam} valueEn={form.examEn} onBnChange={(value) => setForm((current) => ({ ...current, exam: value }))} onEnChange={(value) => setForm((current) => ({ ...current, examEn: value }))} />
-          <BilingualInput labelBn="শ্রেণি" labelEn="Class" valueBn={form.className} valueEn={form.classNameEn} onBnChange={(value) => setForm((current) => ({ ...current, className: value }))} onEnChange={(value) => setForm((current) => ({ ...current, classNameEn: value }))} />
-          <Field label={t("ক্যাম্পাস", "Campus")}>
+          <BilingualInput labelBn="Exam name" labelEn="Exam name" valueBn={form.exam} valueEn={form.examEn} onBnChange={(value) => setForm((current) => ({ ...current, exam: value }))} onEnChange={(value) => setForm((current) => ({ ...current, examEn: value }))} />
+          <BilingualInput labelBn="Class" labelEn="Class" valueBn={form.className} valueEn={form.classNameEn} onBnChange={(value) => setForm((current) => ({ ...current, className: value }))} onEnChange={(value) => setForm((current) => ({ ...current, classNameEn: value }))} />
+          <Field label={t("Campus", "Campus")}>
             <select value={form.campus} onChange={(event) => setForm((current) => ({ ...current, campus: event.target.value as Result["campus"] }))} className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none">
-              <option value="both">{t("উভয়", "Both")}</option>
-              <option value="boys">{t("বালক", "Boys")}</option>
-              <option value="girls">{t("বালিকা", "Girls")}</option>
+              <option value="both">{t("Both", "Both")}</option>
+              <option value="boys">{t("Boys", "Boys")}</option>
+              <option value="girls">{t("Girls", "Girls")}</option>
             </select>
           </Field>
-          <FilePicker label={t("ফলাফলের পিডিএফ", "Result PDF")} file={pdf} onFileChange={setPdf} accept="application/pdf" />
+          <Field label={t("Entry type", "Entry type")}>
+            <select
+              value={form.entryType}
+              onChange={(event) => setForm((current) => ({ ...current, entryType: event.target.value as Result["entryType"] }))}
+              className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+            >
+              <option value="manual">{t("Manual entry", "Manual entry")}</option>
+              <option value="pdf">{t("PDF upload", "PDF upload")}</option>
+            </select>
+          </Field>
+
+          {isManual ? (
+            <>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label={t("Student ID", "Student ID")}>
+                  <div className="relative">
+                    <Input
+                      value={form.studentId}
+                      onFocus={() => setStudentIdFocused(true)}
+                      onBlur={() => setTimeout(() => setStudentIdFocused(false), 120)}
+                      onChange={(event) => {
+                        const nextStudentId = event.target.value;
+                        const matchedStudent = studentById.get(normalizeSearch(nextStudentId));
+
+                        setForm((current) => ({
+                          ...current,
+                          studentId: nextStudentId,
+                          studentName: matchedStudent?.studentName || current.studentName,
+                          className: matchedStudent?.className || current.className,
+                          section: matchedStudent?.section || current.section,
+                        }));
+                      }}
+                      className="rounded-2xl"
+                      placeholder={t("Type student ID to search", "Type student ID to search")}
+                    />
+                    {studentIdFocused && studentSuggestions.length > 0 ? (
+                      <div className="absolute z-20 mt-2 max-h-52 w-full overflow-auto rounded-2xl border border-border bg-background p-1 shadow-lg">
+                        {studentSuggestions.map((student) => (
+                          <button
+                            key={student.id}
+                            type="button"
+                            onClick={() => applyStudentSelection(student)}
+                            className="flex w-full items-start justify-between gap-3 rounded-xl px-3 py-2 text-left hover:bg-secondary"
+                          >
+                            <span className="font-bengali text-sm font-semibold text-foreground">{student.studentId}</span>
+                            <span className="font-bengali text-xs text-muted-foreground">
+                              {student.studentName} ? {student.className} ? {student.section || "-"}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </Field>
+                <Field label={t("Student name", "Student name")}>
+                  <Input value={form.studentName} onChange={(event) => setForm((current) => ({ ...current, studentName: event.target.value }))} className="rounded-2xl" />
+                </Field>
+              </div>
+              <div className="grid gap-4 md:grid-cols-5">
+                <Field label={t("Section", "Section")}>
+                  <Input value={form.section} onChange={(event) => setForm((current) => ({ ...current, section: event.target.value }))} className="rounded-2xl" />
+                </Field>
+                <Field label={t("Position", "Position")}>
+                  <Input type="number" min="0" value={form.position} onChange={(event) => setForm((current) => ({ ...current, position: event.target.value }))} className="rounded-2xl" />
+                </Field>
+                <Field label={t("Total marks", "Total marks")}>
+                  <Input type="number" min="0" value={form.totalMarks} onChange={(event) => setForm((current) => ({ ...current, totalMarks: event.target.value }))} className="rounded-2xl" />
+                </Field>
+                <Field label={t("Obtained marks", "Obtained marks")}>
+                  <Input type="number" min="0" value={form.obtainedMarks} onChange={(event) => setForm((current) => ({ ...current, obtainedMarks: event.target.value }))} className="rounded-2xl" />
+                </Field>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label={t("GPA", "GPA")}>
+                  <Input type="number" min="0" max="5" step="0.01" value={form.gpa} onChange={(event) => setForm((current) => ({ ...current, gpa: event.target.value }))} className="rounded-2xl" />
+                </Field>
+                <Field label={t("Grade", "Grade")}>
+                  <Input value={form.grade} onChange={(event) => setForm((current) => ({ ...current, grade: event.target.value }))} className="rounded-2xl" placeholder="A+, A, B..." />
+                </Field>
+              </div>
+              <BilingualTextarea
+                labelBn="Remarks"
+                labelEn="Remarks"
+                valueBn={form.remarksBn}
+                valueEn={form.remarksEn}
+                onBnChange={(value) => setForm((current) => ({ ...current, remarksBn: value }))}
+                onEnChange={(value) => setForm((current) => ({ ...current, remarksEn: value }))}
+              />
+            </>
+          ) : (
+            <FilePicker label={t("Result PDF", "Result PDF")} file={pdf} onFileChange={setPdf} accept="application/pdf" />
+          )}
         </FormCard>
       )}
 
       <Card className={shellCardClass}>
         <CardContent className="space-y-4 p-6">
-          {items.length === 0 ? <EmptyState text={t("এখনও কোনো ফলাফল আপলোড করা হয়নি", "No results uploaded yet")} /> : items.map((item) => (
-            <ItemCard key={item.id} title={`${item.exam} - ${item.className}`} meta={item.campus} onDelete={() => item.id && void onDelete(item.id)}>
-              {item.pdfUrl && <a href={getDownloadUrl(item.pdfUrl)} target="_blank" rel="noopener noreferrer" className="font-bengali text-sm text-primary hover:underline">{t("পিডিএফ ডাউনলোড", "Download PDF")}</a>}
-            </ItemCard>
-          ))}
+          {items.length === 0 ? <EmptyState text={t("No results uploaded yet", "No results uploaded yet")} /> : (
+            <>
+              {manualClassNames.map((className) => (
+                <div key={className} className="space-y-3 rounded-2xl border border-border/60 bg-background/70 p-4">
+                  <p className="font-bengali text-sm font-semibold text-foreground">
+                    {t("Manual Class Folder", "Manual Class Folder")}: {className}
+                  </p>
+                  <div className="space-y-3">
+                    {manualResultsByClass[className].map((item) => (
+                      <ItemCard key={item.id} title={`${item.exam} - ${item.className}`} meta={`${item.campus} • ${t("Manual", "Manual")}`} onDelete={() => item.id && void onDelete(item.id)}>
+                        <div className="space-y-1">
+                          <p className="font-bengali text-sm text-foreground">
+                            {item.studentName || "-"} {item.studentId ? `• ${item.studentId}` : ""}
+                          </p>
+                          <p className="font-bengali text-xs text-muted-foreground">
+                            {t("Obtained", "Obtained")}: {Number(item.obtainedMarks || 0)} / {Number(item.totalMarks || 0)} • GPA: {Number(item.gpa || 0)} • {t("Grade", "Grade")}: {item.grade || "-"}
+                          </p>
+                          <p className="font-bengali text-xs text-muted-foreground">
+                            {t("Position", "Position")}: {Number(item.position || 0) || "-"}
+                          </p>
+                          {(item.remarksBn || item.remarksEn) && <p className="font-bengali text-xs text-muted-foreground">{item.remarksBn || item.remarksEn}</p>}
+                        </div>
+                      </ItemCard>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {pdfResults.length > 0 ? (
+                <div className="space-y-3 rounded-2xl border border-border/60 bg-background/70 p-4">
+                  <p className="font-bengali text-sm font-semibold text-foreground">{t("PDF Result Folder", "PDF Result Folder")}</p>
+                  <div className="space-y-3">
+                    {pdfResults.map((item) => (
+                      <ItemCard key={item.id} title={`${item.exam} - ${item.className}`} meta={`${item.campus} • PDF`} onDelete={() => item.id && void onDelete(item.id)}>
+                        {item.pdfUrl ? <a href={getDownloadUrl(item.pdfUrl)} target="_blank" rel="noopener noreferrer" className="font-bengali text-sm text-primary hover:underline">{t("Download PDF", "Download PDF")}</a> : null}
+                      </ItemCard>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </>
+          )}
         </CardContent>
       </Card>
     </ModuleShell>

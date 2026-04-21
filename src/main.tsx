@@ -14,4 +14,9 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+// Recover from stale chunk errors after a fresh deploy by forcing one reload.
+window.addEventListener("vite:preloadError", () => {
+  window.location.reload();
+});
+
 createRoot(document.getElementById("root")!).render(<App />);

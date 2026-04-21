@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -13,6 +13,7 @@ import NoticeTicker from "@/components/NoticeTicker";
 import ScrollToTop from "@/components/ScrollToTop";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
 import { isAdminEnabled } from "@/lib/admin";
+import { getTodayDateKey, trackAppDailyOpen, trackWebsiteDailyVisitor } from "@/lib/engagementAnalytics";
 import Index from "./pages/Index";
 const About = lazy(() => import("./pages/About"));
 const Achievements = lazy(() => import("./pages/Achievements"));
@@ -57,6 +58,28 @@ const AppShell = () => {
   const isAdminRoute = location.pathname.startsWith("/admin");
   const isGuardianRoute = location.pathname.startsWith("/guardian");
   const isPortalRoute = isAdminRoute || isGuardianRoute;
+
+  useEffect(() => {
+    if (typeof window === "undefined" || isPortalRoute) return;
+
+    const dateKey = getTodayDateKey();
+    const websiteKey = `oasis_visit_${dateKey}`;
+    const appOpenKey = `oasis_app_open_${dateKey}`;
+
+    if (!window.localStorage.getItem(websiteKey)) {
+      window.localStorage.setItem(websiteKey, "1");
+      void trackWebsiteDailyVisitor().catch(() => undefined);
+    }
+
+    const mediaMatch = window.matchMedia?.("(display-mode: standalone)")?.matches ?? false;
+    const iosStandalone = "standalone" in window.navigator && (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+    const isStandalone = mediaMatch || iosStandalone;
+
+    if (isStandalone && !window.localStorage.getItem(appOpenKey)) {
+      window.localStorage.setItem(appOpenKey, "1");
+      void trackAppDailyOpen().catch(() => undefined);
+    }
+  }, [isPortalRoute]);
 
   return (
     <>
