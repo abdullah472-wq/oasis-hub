@@ -125,19 +125,15 @@ const buildStudentsFromGuardians = async (): Promise<StudentRecord[]> => {
 };
 
 export const listStudents = async (): Promise<StudentRecord[]> => {
-  const snapshot = await getDocs(collection(db, STUDENTS_COLLECTION));
-  const students = sortStudents(snapshot.docs.map(toStudentRecord).filter((item) => item.status === "active"));
-
-  if (students.length > 0) {
-    return students;
-  }
-
-  const [guardianStudents, fallbackStudents] = await Promise.all([
+  const [snapshot, guardianStudents, fallbackStudents] = await Promise.all([
+    getDocs(collection(db, STUDENTS_COLLECTION)).catch(() => ({ docs: [] } as Awaited<ReturnType<typeof getDocs>>)),
     buildStudentsFromGuardians().catch(() => []),
-    buildFallbackStudents(),
+    buildFallbackStudents().catch(() => []),
   ]);
 
-  return mergeStudentRecords([...guardianStudents, ...fallbackStudents]);
+  const students = snapshot.docs.map(toStudentRecord).filter((item) => item.status === "active");
+
+  return mergeStudentRecords([...students, ...guardianStudents, ...fallbackStudents]);
 };
 
 export const listStudentsByGuardian = async (guardianUid: string): Promise<StudentRecord[]> => {

@@ -1,10 +1,21 @@
 ﻿import { useMemo } from "react";
-import { ArrowDownToLine, ArrowRight, BellRing, BookCopy, CalendarDays, ShieldCheck } from "lucide-react";
+import { ArrowDownToLine, ArrowRight, BellRing, BookCopy, CalendarDays, MoreVertical, ShieldCheck } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { ActivityItem, Event, Notice, Review } from "@/lib/adminDashboard";
 import type { AdminUser } from "@/lib/adminDashboard";
 import type { DailyEngagement } from "@/lib/engagementAnalytics";
@@ -31,8 +42,109 @@ interface DashboardOverviewProps {
   dailyEngagement: DailyEngagement[];
 }
 
+type EngagementRange = "7d" | "30d" | "12m";
+
+interface EngagementChartPoint {
+  key: string;
+  label: string;
+  websiteVisitors: number;
+  appOpens: number;
+}
+
+const startOfDay = (date: Date) => {
+  const next = new Date(date);
+  next.setHours(0, 0, 0, 0);
+  return next;
+};
+
+const getDateKey = (date: Date) => {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getMonthKey = (date: Date) => {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  return `${year}-${month}`;
+};
+
+const formatDateTime = (lang: "bn" | "en") =>
+  new Date().toLocaleString(lang === "bn" ? "bn-BD" : "en-BD", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+const buildEngagementTrend = (
+  dailyEngagement: DailyEngagement[],
+  range: EngagementRange,
+  locale: string,
+): EngagementChartPoint[] => {
+  const dailyMap = new Map<string, DailyEngagement>();
+
+  dailyEngagement.forEach((item) => {
+    dailyMap.set(item.dateKey, item);
+  });
+
+  if (range === "12m") {
+    const today = startOfDay(new Date());
+    const monthMap = new Map<string, EngagementChartPoint>();
+
+    for (let i = 11; i >= 0; i -= 1) {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const key = getMonthKey(date);
+      monthMap.set(key, {
+        key,
+        label: date.toLocaleDateString(locale, { month: "short" }),
+        websiteVisitors: 0,
+        appOpens: 0,
+      });
+    }
+
+    dailyEngagement.forEach((item) => {
+      const monthKey = item.dateKey.slice(0, 7);
+      const current = monthMap.get(monthKey);
+      if (!current) return;
+
+      current.websiteVisitors += item.websiteVisitors;
+      current.appOpens += item.appOpens;
+    });
+
+    return Array.from(monthMap.values());
+  }
+
+  const totalDays = range === "30d" ? 30 : 7;
+  const points: EngagementChartPoint[] = [];
+  const today = startOfDay(new Date());
+
+  for (let i = totalDays - 1; i >= 0; i -= 1) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    const key = getDateKey(date);
+    const item = dailyMap.get(key);
+    const label =
+      range === "30d"
+        ? date.toLocaleDateString(locale, { day: "numeric", month: "short" })
+        : date.toLocaleDateString(locale, { weekday: "short" });
+
+    points.push({
+      key,
+      label,
+      websiteVisitors: item?.websiteVisitors ?? 0,
+      appOpens: item?.appOpens ?? 0,
+    });
+  }
+
+  return points;
+};
+
 const DashboardOverview = ({ user, stats, notices, events, reviews, activityFeed, dailyEngagement }: DashboardOverviewProps) => {
   const { t, lang } = useLanguage();
+  const [engagementRange, setEngagementRange] = useState<EngagementRange>("7d");
 
   const statCards = [
     {
@@ -87,36 +199,49 @@ const DashboardOverview = ({ user, stats, notices, events, reviews, activityFeed
   const latestEvents = events.slice(0, 4);
   const pendingReviews = reviews.filter((item) => !item.approved).slice(0, 4);
   const approvedReviewsCount = Math.max(reviews.length - stats.pendingReviews, 0);
-  const engagementTrend = useMemo(() => {
-    const dayMap = new Map<string, DailyEngagement>();
+  const chartLocale = lang === "bn" ? "bn-BD" : "en-US";
+  const engagementTrend = useMemo(
+    () => buildEngagementTrend(dailyEngagement, engagementRange, chartLocale),
+    [chartLocale, dailyEngagement, engagementRange],
+  );
 
-    for (let i = 6; i >= 0; i -= 1) {
-      const day = new Date();
-      day.setHours(0, 0, 0, 0);
-      day.setDate(day.getDate() - i);
-      const key = day.toISOString().slice(0, 10);
-      dayMap.set(key, { dateKey: key, websiteVisitors: 0, appOpens: 0 });
+  const engagementDescription = useMemo(() => {
+    switch (engagementRange) {
+      case "30d":
+        return t("গত ১ মাসের ওয়েবসাইট ভিজিট ও অ্যাপ ওপেন", "Last month website visitors and app opens");
+      case "12m":
+        return t("গত ১ বছরের ওয়েবসাইট ভিজিট ও অ্যাপ ওপেন", "Last year website visitors and app opens");
+      default:
+        return t("গত ৭ দিনের ওয়েবসাইট ভিজিট ও অ্যাপ ওপেন", "Last 7 days website visitors and app opens");
     }
+  }, [engagementRange, t]);
 
-    dailyEngagement.forEach((item) => {
-      const key = item.dateKey;
-      if (dayMap.has(key)) {
-        dayMap.set(key, item);
-      }
-    });
-
-    return Array.from(dayMap.values()).map((value) => {
-      const key = value.dateKey;
-      const date = new Date(`${key}T00:00:00`);
-      const label = date.toLocaleDateString("bn-BD", { weekday: "short" });
-      return { label, websiteVisitors: value.websiteVisitors, appOpens: value.appOpens };
-    });
-  }, [dailyEngagement]);
+  const engagementFilters = [
+    { key: "7d" as const, label: t("শেষ ৭ দিন", "Last 7 days") },
+    { key: "30d" as const, label: t("শেষ ১ মাস", "Last month") },
+    { key: "12m" as const, label: t("শেষ ১ বছর", "Last year") },
+  ];
 
   const feePieData = [
     { label: t("বকেয়া", "Due"), value: Math.max(stats.monthlyFees, 0), color: "#f59e0b" },
     { label: t("আদায়", "Collected"), value: Math.max(stats.monthlyCollected, 0), color: "#0f766e" },
   ];
+  const engagementTotals = useMemo(
+    () =>
+      engagementTrend.reduce(
+        (totals, point) => ({
+          websiteVisitors: totals.websiteVisitors + point.websiteVisitors,
+          appOpens: totals.appOpens + point.appOpens,
+        }),
+        { websiteVisitors: 0, appOpens: 0 },
+      ),
+    [engagementTrend],
+  );
+  const feeCollectionPercent = useMemo(() => {
+    const totalAmount = stats.monthlyFees + stats.monthlyCollected;
+    if (totalAmount <= 0) return 0;
+    return (stats.monthlyCollected / totalAmount) * 100;
+  }, [stats.monthlyCollected, stats.monthlyFees]);
 
   const handleDownloadSummary = () => {
     const summaryText = buildDashboardSummaryText({
@@ -130,16 +255,91 @@ const DashboardOverview = ({ user, stats, notices, events, reviews, activityFeed
       lang,
     });
 
-    downloadDashboardSummary(summaryText);
+    void downloadDashboardSummary(summaryText, "dashboard-summary");
+  };
+
+  const handleDownloadEngagementSummary = () => {
+    const rangeLabel =
+      engagementRange === "30d"
+        ? t("শেষ ১ মাস", "Last month")
+        : engagementRange === "12m"
+          ? t("শেষ ১ বছর", "Last year")
+          : t("শেষ ৭ দিন", "Last 7 days");
+
+    const lines = [
+      t("ভিজিটর লাইন চার্ট সামারি", "Visitors Line Chart Summary"),
+      `${t("ডাউনলোড সময়", "Downloaded at")}: ${formatDateTime(lang)}`,
+      `${t("নির্বাচিত সময়", "Selected range")}: ${rangeLabel}`,
+      `${t("মোট ওয়েবসাইট ভিজিট", "Total website visitors")}: ${engagementTotals.websiteVisitors}`,
+      `${t("মোট অ্যাপ ওপেন", "Total app opens")}: ${engagementTotals.appOpens}`,
+      "",
+      t("ডেটা পয়েন্ট", "Data Points"),
+      ...engagementTrend.map(
+        (point) => `- ${point.label}: ${t("ভিজিট", "Visitors")} ${point.websiteVisitors}, ${t("অ্যাপ ওপেন", "App Opens")} ${point.appOpens}`,
+      ),
+    ];
+
+    void downloadDashboardSummary(lines.join("\n"), "visitor-chart-summary");
+  };
+
+  const handleDownloadFeeSummary = () => {
+    const lines = [
+      t("ফি পাই চার্ট সামারি", "Fee Pie Chart Summary"),
+      `${t("ডাউনলোড সময়", "Downloaded at")}: ${formatDateTime(lang)}`,
+      `${t("মোট বকেয়া", "Total due")}: ৳${stats.monthlyFees.toLocaleString("en-US")}`,
+      `${t("মোট আদায়", "Total collected")}: ৳${stats.monthlyCollected.toLocaleString("en-US")}`,
+      `${t("কালেকশন রেট", "Collection rate")}: ${Math.round(feeCollectionPercent)}%`,
+      "",
+      t("বিস্তারিত", "Breakdown"),
+      ...feePieData.map((item) => `- ${item.label}: ${item.value}`),
+    ];
+
+    void downloadDashboardSummary(lines.join("\n"), "fee-chart-summary");
   };
 
   return (
     <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="rounded-3xl border-border/60 bg-white/95">
-          <CardHeader>
-            <CardTitle className="font-bengali text-lg">{t("ভিজিটর লাইন চার্ট", "Visitors Line Chart")}</CardTitle>
-            <CardDescription className="font-bengali">{t("গত ৭ দিনের ওয়েবসাইট ভিজিট ও অ্যাপ ওপেন", "Last 7 days website visitors and app opens")}</CardDescription>
+        <Card className="rounded-3xl border-border/60 bg-white/95 lg:col-span-2">
+          <CardHeader className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <CardTitle className="font-bengali text-lg">{t("ভিজিটর লাইন চার্ট", "Visitors Line Chart")}</CardTitle>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full text-muted-foreground"
+                    aria-label={t("চার্ট ফিল্টার অপশন", "Chart filter options")}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 rounded-2xl">
+                  <DropdownMenuLabel className="font-bengali">
+                    {t("ভিজিটর চার্ট ফিল্টার", "Visitor chart filter")}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuRadioGroup
+                    value={engagementRange}
+                    onValueChange={(value) => setEngagementRange(value as EngagementRange)}
+                  >
+                    {engagementFilters.map((filter) => (
+                      <DropdownMenuRadioItem key={filter.key} value={filter.key} className="font-bengali">
+                        {filter.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="font-bengali" onClick={handleDownloadEngagementSummary}>
+                    <ArrowDownToLine className="mr-2 h-4 w-4" />
+                    {t("সামারি ডাউনলোড", "Download Summary")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <CardDescription className="font-bengali">{engagementDescription}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <MiniEngagementLineChart points={engagementTrend} />
@@ -147,8 +347,33 @@ const DashboardOverview = ({ user, stats, notices, events, reviews, activityFeed
         </Card>
 
         <Card className="rounded-3xl border-border/60 bg-white/95">
-          <CardHeader>
-            <CardTitle className="font-bengali text-lg">{t("ফি পাই চার্ট", "Fee Pie Chart")}</CardTitle>
+          <CardHeader className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <CardTitle className="font-bengali text-lg">{t("ফি পাই চার্ট", "Fee Pie Chart")}</CardTitle>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full text-muted-foreground"
+                    aria-label={t("ফি চার্ট অপশন", "Fee chart options")}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 rounded-2xl">
+                  <DropdownMenuLabel className="font-bengali">
+                    {t("ফি চার্ট অপশন", "Fee chart options")}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="font-bengali" onClick={handleDownloadFeeSummary}>
+                    <ArrowDownToLine className="mr-2 h-4 w-4" />
+                    {t("সামারি ডাউনলোড", "Download Summary")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
             <CardDescription className="font-bengali">{t("মোট বকেয়া ও আদায়ের অনুপাত", "Due vs collected fee ratio")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -158,19 +383,6 @@ const DashboardOverview = ({ user, stats, notices, events, reviews, activityFeed
                 <LegendRow key={item.label} label={item.label} value={item.value} color={item.color} />
               ))}
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-3xl border-border/60 bg-white/95">
-          <CardHeader>
-            <CardTitle className="font-bengali text-lg">{t("পারফরম্যান্স ট্র্যাকার", "Performance Tracker")}</CardTitle>
-            <CardDescription className="font-bengali">{t("উপস্থিতি ও বকেয়ার সারসংক্ষেপ", "Attendance and dues summary")}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ProgressMeter label={t("অনুমোদিত রিভিউ", "Approved Reviews")} value={(approvedReviewsCount / Math.max(reviews.length, 1)) * 100} suffix="%" />
-            <ProgressMeter label={t("উপস্থিতির হার", "Attendance Rate")} value={stats.attendanceRate} suffix="%" />
-            <ProgressMeter label={t("মোট বকেয়া ফি", "Outstanding Fees")} value={Math.min((stats.monthlyFees / 100000) * 100, 100)} suffix="%" display={`৳${stats.monthlyFees.toLocaleString("en-US")}`} />
-            <ProgressMeter label={t("ম্যানেজার সক্রিয়তা", "Manager Activity")} value={Math.min((stats.activeManagers / 10) * 100, 100)} suffix="%" />
           </CardContent>
         </Card>
       </div>
@@ -305,10 +517,10 @@ const SnapshotRow = ({ label, value }: { label: string; value: string }) => (
 const MiniEngagementLineChart = ({
   points,
 }: {
-  points: { label: string; websiteVisitors: number; appOpens: number }[];
+  points: EngagementChartPoint[];
 }) => {
-  const width = 360;
-  const height = 140;
+  const width = Math.max(360, points.length * 28);
+  const height = 180;
   const max = Math.max(
     ...points.map((point) => Math.max(point.websiteVisitors, point.appOpens)),
     1,
@@ -331,21 +543,25 @@ const MiniEngagementLineChart = ({
 
   return (
     <div className="space-y-3">
-      <svg viewBox={`0 0 ${width} ${height}`} className="h-36 w-full rounded-2xl bg-muted/30 p-2">
-        <polyline fill="none" stroke="hsl(var(--primary))" strokeWidth="3" points={websiteLinePoints} strokeLinejoin="round" strokeLinecap="round" />
-        <polyline fill="none" stroke="#f59e0b" strokeWidth="3" points={appLinePoints} strokeLinejoin="round" strokeLinecap="round" />
-        {points.map((point, index) => {
-          const x = index * stepX;
-          const websiteY = height - (point.websiteVisitors / max) * (height - 20) - 10;
-          const appY = height - (point.appOpens / max) * (height - 20) - 10;
-          return (
-            <g key={`${point.label}-${index}`}>
-              <circle cx={x} cy={websiteY} r="3.5" fill="hsl(var(--primary))" />
-              <circle cx={x} cy={appY} r="3.5" fill="#f59e0b" />
-            </g>
-          );
-        })}
-      </svg>
+      <div className="overflow-x-auto pb-1">
+        <div style={{ minWidth: `${width}px` }}>
+          <svg viewBox={`0 0 ${width} ${height}`} className="h-48 w-full rounded-2xl bg-muted/30 p-2">
+            <polyline fill="none" stroke="hsl(var(--primary))" strokeWidth="3" points={websiteLinePoints} strokeLinejoin="round" strokeLinecap="round" />
+            <polyline fill="none" stroke="#f59e0b" strokeWidth="3" points={appLinePoints} strokeLinejoin="round" strokeLinecap="round" />
+            {points.map((point, index) => {
+              const x = index * stepX;
+              const websiteY = height - (point.websiteVisitors / max) * (height - 20) - 10;
+              const appY = height - (point.appOpens / max) * (height - 20) - 10;
+              return (
+                <g key={`${point.label}-${index}`}>
+                  <circle cx={x} cy={websiteY} r="3.5" fill="hsl(var(--primary))" />
+                  <circle cx={x} cy={appY} r="3.5" fill="#f59e0b" />
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+      </div>
       <div className="flex items-center justify-center gap-4">
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-primary" />
@@ -356,15 +572,23 @@ const MiniEngagementLineChart = ({
           <span className="font-bengali text-xs text-muted-foreground">App Opens</span>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-1">
-        {points.map((point) => (
-          <div key={point.label} className="text-center">
-            <p className="font-bengali text-[10px] text-muted-foreground">{point.label}</p>
-            <p className="font-display text-[11px] font-semibold text-foreground">
-              {point.websiteVisitors}/{point.appOpens}
-            </p>
-          </div>
-        ))}
+      <div className="overflow-x-auto pb-1">
+        <div
+          className="grid gap-1"
+          style={{
+            minWidth: `${width}px`,
+            gridTemplateColumns: `repeat(${Math.max(points.length, 1)}, minmax(0, 1fr))`,
+          }}
+        >
+          {points.map((point) => (
+            <div key={point.key} className="min-w-0 text-center">
+              <p className="font-bengali text-[10px] text-muted-foreground">{point.label}</p>
+              <p className="font-display text-[11px] font-semibold text-foreground">
+                {point.websiteVisitors}/{point.appOpens}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

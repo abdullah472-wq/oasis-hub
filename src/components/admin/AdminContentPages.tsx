@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from "react";
-import { Award, BellRing, CalendarDays, ChevronDown, ExternalLink, FileText, ImageIcon, Link2, MessageSquareQuote, Pencil, Radio, Save, Trash2 } from "lucide-react";
+import { Award, BellRing, CalendarDays, ChevronDown, ExternalLink, FileText, ImageIcon, Link2, MessageSquareQuote, Pencil, Radio, Save, Search, Trash2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import { getDownloadUrl } from "@/lib/upload";
@@ -747,6 +747,7 @@ export const ResultsManagerPage = ({
           className: form.className,
           classNameEn: form.classNameEn,
           campus: form.campus,
+          resultType: form.entryType === "pdf" ? "group" : "personal",
           entryType: form.entryType || "manual",
           studentId: form.studentId.trim(),
           studentName: form.studentName.trim(),
@@ -796,95 +797,115 @@ export const ResultsManagerPage = ({
     return acc;
   }, {});
   const manualClassNames = Object.keys(manualResultsByClass).sort((a, b) => a.localeCompare(b));
+  const getCampusLabel = (campus: Result["campus"]) => {
+    if (campus === "boys") return t("বালক", "Boys");
+    if (campus === "girls") return t("বালিকা", "Girls");
+    return t("উভয়", "Both");
+  };
 
   return (
     <ModuleShell
-      title={t("Results Management", "Results Management")}
-      description={t("Publish results by manual entry or PDF upload", "Publish results by manual entry or PDF upload")}
-      actionLabel={t("New Result", "New Result")}
+      title={t("রেজাল্ট ম্যানেজমেন্ট", "Results Management")}
+      description={t("পার্সোনাল ও গ্রুপ রেজাল্ট এখান থেকে যোগ, সাজানো ও প্রকাশ করুন", "Add, organize, and publish personal and group results from here")}
+      actionLabel={showForm ? t("ফর্ম বন্ধ করুন", "Close form") : t("নতুন রেজাল্ট", "New Result")}
       onAction={() => setShowForm((current) => !current)}
       icon={<FileText className="h-5 w-5" />}
     >
       {showForm && (
-        <FormCard onSubmit={submit} saving={saving}>
-          <BilingualInput labelBn="Exam name" labelEn="Exam name" valueBn={form.exam} valueEn={form.examEn} onBnChange={(value) => setForm((current) => ({ ...current, exam: value }))} onEnChange={(value) => setForm((current) => ({ ...current, examEn: value }))} />
-          <BilingualInput labelBn="Class" labelEn="Class" valueBn={form.className} valueEn={form.classNameEn} onBnChange={(value) => setForm((current) => ({ ...current, className: value }))} onEnChange={(value) => setForm((current) => ({ ...current, classNameEn: value }))} />
-          <Field label={t("Campus", "Campus")}>
+        <FormCard onSubmit={submit} saving={saving} submitLabel={t("রেজাল্ট সংরক্ষণ করুন", "Save result")}>
+          <BilingualInput labelBn="পরীক্ষার নাম" labelEn="Exam name" valueBn={form.exam} valueEn={form.examEn} onBnChange={(value) => setForm((current) => ({ ...current, exam: value }))} onEnChange={(value) => setForm((current) => ({ ...current, examEn: value }))} />
+          <BilingualInput labelBn="শ্রেণি" labelEn="Class" valueBn={form.className} valueEn={form.classNameEn} onBnChange={(value) => setForm((current) => ({ ...current, className: value }))} onEnChange={(value) => setForm((current) => ({ ...current, classNameEn: value }))} />
+          <Field label={t("ক্যাম্পাস", "Campus")}>
             <select value={form.campus} onChange={(event) => setForm((current) => ({ ...current, campus: event.target.value as Result["campus"] }))} className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none">
-              <option value="both">{t("Both", "Both")}</option>
-              <option value="boys">{t("Boys", "Boys")}</option>
-              <option value="girls">{t("Girls", "Girls")}</option>
+              <option value="both">{t("উভয়", "Both")}</option>
+              <option value="boys">{t("বালক", "Boys")}</option>
+              <option value="girls">{t("বালিকা", "Girls")}</option>
             </select>
           </Field>
-          <Field label={t("Entry type", "Entry type")}>
+          <Field label={t("রেজাল্টের ধরন", "Result type")}>
             <select
               value={form.entryType}
               onChange={(event) => setForm((current) => ({ ...current, entryType: event.target.value as Result["entryType"] }))}
               className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
             >
-              <option value="manual">{t("Manual entry", "Manual entry")}</option>
-              <option value="pdf">{t("PDF upload", "PDF upload")}</option>
+              <option value="manual">{t("পার্সোনাল রেজাল্ট", "Personal result")}</option>
+              <option value="pdf">{t("গ্রুপ রেজাল্ট", "Group result")}</option>
             </select>
           </Field>
 
           {isManual ? (
             <>
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label={t("Student ID", "Student ID")}>
+                <Field label={t("স্টুডেন্ট আইডি", "Student ID")}>
                   <div className="relative">
-                    <Input
-                      value={form.studentId}
-                      onFocus={() => setStudentIdFocused(true)}
-                      onBlur={() => setTimeout(() => setStudentIdFocused(false), 120)}
-                      onChange={(event) => {
-                        const nextStudentId = event.target.value;
-                        const matchedStudent = studentById.get(normalizeSearch(nextStudentId));
+                    <div className="relative">
+                      <Input
+                        value={form.studentId}
+                        onFocus={() => setStudentIdFocused(true)}
+                        onBlur={() => setTimeout(() => setStudentIdFocused(false), 120)}
+                        onChange={(event) => {
+                          const nextStudentId = event.target.value;
+                          const matchedStudent = studentById.get(normalizeSearch(nextStudentId));
 
-                        setForm((current) => ({
-                          ...current,
-                          studentId: nextStudentId,
-                          studentName: matchedStudent?.studentName || current.studentName,
-                          className: matchedStudent?.className || current.className,
-                          section: matchedStudent?.section || current.section,
-                        }));
-                      }}
-                      className="rounded-2xl"
-                      placeholder={t("Type student ID to search", "Type student ID to search")}
-                    />
-                    {studentIdFocused && studentSuggestions.length > 0 ? (
+                          setForm((current) => ({
+                            ...current,
+                            studentId: nextStudentId,
+                            studentName: matchedStudent?.studentName || "",
+                            className: matchedStudent?.className || current.className,
+                            section: matchedStudent?.section || "",
+                          }));
+                        }}
+                        className="rounded-2xl pl-10"
+                        placeholder={t("স্টুডেন্ট আইডি লিখে খুঁজুন", "Type student ID to search")}
+                      />
+                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    </div>
+                    <p className="mt-2 font-bengali text-xs text-muted-foreground">
+                      {t("ডিজিট ধরে ধরে সার্চ করুন, তারপর ট্যাপ করলে নাম অটো ফিল হবে", "Search digit by digit, then tap to auto-fill the student name")}
+                    </p>
+                    {studentIdFocused ? (
                       <div className="absolute z-20 mt-2 max-h-52 w-full overflow-auto rounded-2xl border border-border bg-background p-1 shadow-lg">
-                        {studentSuggestions.map((student) => (
-                          <button
-                            key={student.id}
-                            type="button"
-                            onClick={() => applyStudentSelection(student)}
-                            className="flex w-full items-start justify-between gap-3 rounded-xl px-3 py-2 text-left hover:bg-secondary"
-                          >
-                            <span className="font-bengali text-sm font-semibold text-foreground">{student.studentId}</span>
-                            <span className="font-bengali text-xs text-muted-foreground">
-                              {student.studentName} ? {student.className} ? {student.section || "-"}
-                            </span>
-                          </button>
-                        ))}
+                        {studentSuggestions.length > 0 ? (
+                          studentSuggestions.map((student) => (
+                            <button
+                              key={student.id}
+                              type="button"
+                              onMouseDown={(event) => {
+                                event.preventDefault();
+                                applyStudentSelection(student);
+                              }}
+                              className="flex w-full items-start justify-between gap-3 rounded-xl px-3 py-2 text-left hover:bg-secondary"
+                            >
+                              <span className="font-bengali text-sm font-semibold text-foreground">{student.studentId}</span>
+                              <span className="font-bengali text-xs text-muted-foreground">
+                                {student.studentName} - {student.className} - {student.section || "-"}
+                              </span>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-3 py-2 font-bengali text-xs text-muted-foreground">
+                            {t("কোনো স্টুডেন্ট পাওয়া যায়নি", "No student found")}
+                          </div>
+                        )}
                       </div>
                     ) : null}
                   </div>
                 </Field>
-                <Field label={t("Student name", "Student name")}>
+                <Field label={t("শিক্ষার্থীর নাম", "Student name")}>
                   <Input value={form.studentName} onChange={(event) => setForm((current) => ({ ...current, studentName: event.target.value }))} className="rounded-2xl" />
                 </Field>
               </div>
               <div className="grid gap-4 md:grid-cols-5">
-                <Field label={t("Section", "Section")}>
+                <Field label={t("সেকশন", "Section")}>
                   <Input value={form.section} onChange={(event) => setForm((current) => ({ ...current, section: event.target.value }))} className="rounded-2xl" />
                 </Field>
-                <Field label={t("Position", "Position")}>
+                <Field label={t("পজিশন", "Position")}>
                   <Input type="number" min="0" value={form.position} onChange={(event) => setForm((current) => ({ ...current, position: event.target.value }))} className="rounded-2xl" />
                 </Field>
-                <Field label={t("Total marks", "Total marks")}>
+                <Field label={t("মোট নম্বর", "Total marks")}>
                   <Input type="number" min="0" value={form.totalMarks} onChange={(event) => setForm((current) => ({ ...current, totalMarks: event.target.value }))} className="rounded-2xl" />
                 </Field>
-                <Field label={t("Obtained marks", "Obtained marks")}>
+                <Field label={t("প্রাপ্ত নম্বর", "Obtained marks")}>
                   <Input type="number" min="0" value={form.obtainedMarks} onChange={(event) => setForm((current) => ({ ...current, obtainedMarks: event.target.value }))} className="rounded-2xl" />
                 </Field>
               </div>
@@ -892,12 +913,12 @@ export const ResultsManagerPage = ({
                 <Field label={t("GPA", "GPA")}>
                   <Input type="number" min="0" max="5" step="0.01" value={form.gpa} onChange={(event) => setForm((current) => ({ ...current, gpa: event.target.value }))} className="rounded-2xl" />
                 </Field>
-                <Field label={t("Grade", "Grade")}>
-                  <Input value={form.grade} onChange={(event) => setForm((current) => ({ ...current, grade: event.target.value }))} className="rounded-2xl" placeholder="A+, A, B..." />
+                <Field label={t("গ্রেড", "Grade")}>
+                  <Input value={form.grade} onChange={(event) => setForm((current) => ({ ...current, grade: event.target.value }))} className="rounded-2xl" placeholder={t("A+, A, B...", "A+, A, B...")} />
                 </Field>
               </div>
               <BilingualTextarea
-                labelBn="Remarks"
+                labelBn="মন্তব্য"
                 labelEn="Remarks"
                 valueBn={form.remarksBn}
                 valueEn={form.remarksEn}
@@ -906,32 +927,32 @@ export const ResultsManagerPage = ({
               />
             </>
           ) : (
-            <FilePicker label={t("Result PDF", "Result PDF")} file={pdf} onFileChange={setPdf} accept="application/pdf" />
+            <FilePicker label={t("রেজাল্ট পিডিএফ", "Result PDF")} file={pdf} onFileChange={setPdf} accept="application/pdf" />
           )}
         </FormCard>
       )}
 
       <Card className={shellCardClass}>
         <CardContent className="space-y-4 p-6">
-          {items.length === 0 ? <EmptyState text={t("No results uploaded yet", "No results uploaded yet")} /> : (
+          {items.length === 0 ? <EmptyState text={t("এখনও কোনো রেজাল্ট আপলোড করা হয়নি", "No results uploaded yet")} /> : (
             <>
               {manualClassNames.map((className) => (
                 <div key={className} className="space-y-3 rounded-2xl border border-border/60 bg-background/70 p-4">
                   <p className="font-bengali text-sm font-semibold text-foreground">
-                    {t("Manual Class Folder", "Manual Class Folder")}: {className}
+                    {t("পার্সোনাল রেজাল্ট ফোল্ডার", "Personal Result Folder")}: {className || t("অনির্ধারিত", "Uncategorized")}
                   </p>
                   <div className="space-y-3">
                     {manualResultsByClass[className].map((item) => (
-                      <ItemCard key={item.id} title={`${item.exam} - ${item.className}`} meta={`${item.campus} • ${t("Manual", "Manual")}`} onDelete={() => item.id && void onDelete(item.id)}>
+                      <ItemCard key={item.id} title={`${item.exam} - ${item.className}`} meta={`${getCampusLabel(item.campus)} • ${t("পার্সোনাল", "Personal")}`} onDelete={() => item.id && void onDelete(item.id)}>
                         <div className="space-y-1">
                           <p className="font-bengali text-sm text-foreground">
                             {item.studentName || "-"} {item.studentId ? `• ${item.studentId}` : ""}
                           </p>
                           <p className="font-bengali text-xs text-muted-foreground">
-                            {t("Obtained", "Obtained")}: {Number(item.obtainedMarks || 0)} / {Number(item.totalMarks || 0)} • GPA: {Number(item.gpa || 0)} • {t("Grade", "Grade")}: {item.grade || "-"}
+                            {t("প্রাপ্ত", "Obtained")}: {Number(item.obtainedMarks || 0)} / {Number(item.totalMarks || 0)} • GPA: {Number(item.gpa || 0)} • {t("গ্রেড", "Grade")}: {item.grade || "-"}
                           </p>
                           <p className="font-bengali text-xs text-muted-foreground">
-                            {t("Position", "Position")}: {Number(item.position || 0) || "-"}
+                            {t("পজিশন", "Position")}: {Number(item.position || 0) || "-"}
                           </p>
                           {(item.remarksBn || item.remarksEn) && <p className="font-bengali text-xs text-muted-foreground">{item.remarksBn || item.remarksEn}</p>}
                         </div>
@@ -943,11 +964,11 @@ export const ResultsManagerPage = ({
 
               {pdfResults.length > 0 ? (
                 <div className="space-y-3 rounded-2xl border border-border/60 bg-background/70 p-4">
-                  <p className="font-bengali text-sm font-semibold text-foreground">{t("PDF Result Folder", "PDF Result Folder")}</p>
+                  <p className="font-bengali text-sm font-semibold text-foreground">{t("গ্রুপ রেজাল্ট ফোল্ডার", "Group Result Folder")}</p>
                   <div className="space-y-3">
                     {pdfResults.map((item) => (
-                      <ItemCard key={item.id} title={`${item.exam} - ${item.className}`} meta={`${item.campus} • PDF`} onDelete={() => item.id && void onDelete(item.id)}>
-                        {item.pdfUrl ? <a href={getDownloadUrl(item.pdfUrl)} target="_blank" rel="noopener noreferrer" className="font-bengali text-sm text-primary hover:underline">{t("Download PDF", "Download PDF")}</a> : null}
+                      <ItemCard key={item.id} title={`${item.exam} - ${item.className}`} meta={`${getCampusLabel(item.campus)} • ${t("গ্রুপ", "Group")}`} onDelete={() => item.id && void onDelete(item.id)}>
+                        {item.pdfUrl ? <a href={getDownloadUrl(item.pdfUrl)} target="_blank" rel="noopener noreferrer" className="font-bengali text-sm text-primary hover:underline">{t("পিডিএফ ডাউনলোড", "Download PDF")}</a> : null}
                       </ItemCard>
                     ))}
                   </div>

@@ -20,44 +20,42 @@ const NoticeTicker = () => {
 
   useEffect(() => {
     let mounted = true;
-    const settingsDoc = doc(db, "site_settings", "running_notice_bar");
+    const settingsDocs = [
+      doc(db, "site_settings", "running_notice_bar"),
+      doc(db, "site_settings", "ramadan"),
+      doc(db, "site_settings", "ramadan", "running_notice_bar", "running_notice_bar"),
+    ];
 
-    getRunningNoticeSettings()
-      .then((data) => {
-        if (mounted) setSettings(data);
-      })
-      .catch((error) => {
-        if (isPermissionDenied(error)) {
-          if (mounted) setSettings(null);
-          return;
-        }
-        console.error("Failed to load running notice settings:", error);
-      });
+    const syncFromStore = () => {
+      getRunningNoticeSettings()
+        .then((data) => {
+          if (mounted) setSettings(data);
+        })
+        .catch((error) => {
+          if (isPermissionDenied(error)) {
+            if (mounted) setSettings(null);
+            return;
+          }
+          console.error("Failed to load running notice settings:", error);
+        });
+    };
 
-    const unsubscribe = onSnapshot(
-      settingsDoc,
-      (snapshot) => {
-        if (!snapshot.exists()) return;
+    syncFromStore();
 
-        getRunningNoticeSettings()
-          .then((data) => {
-            if (mounted) setSettings(data);
-          })
-          .catch((error) => {
-            if (isPermissionDenied(error)) {
-              if (mounted) setSettings(null);
-              return;
-            }
-            console.error("Failed to sync running notice settings:", error);
-          });
-      },
-      (error) => {
-        if (isPermissionDenied(error)) {
-          if (mounted) setSettings(null);
-          return;
-        }
-        console.error("Running notice listener failed:", error);
-      },
+    const unsubscribes = settingsDocs.map((settingsDoc) =>
+      onSnapshot(
+        settingsDoc,
+        () => {
+          syncFromStore();
+        },
+        (error) => {
+          if (isPermissionDenied(error)) {
+            if (mounted) setSettings(null);
+            return;
+          }
+          console.error("Running notice listener failed:", error);
+        },
+      ),
     );
 
     const syncSettings = (event: Event) => {
@@ -69,7 +67,7 @@ const NoticeTicker = () => {
 
     return () => {
       mounted = false;
-      unsubscribe();
+      unsubscribes.forEach((unsubscribe) => unsubscribe());
       window.removeEventListener("running-notice-settings-updated", syncSettings as EventListener);
     };
   }, []);

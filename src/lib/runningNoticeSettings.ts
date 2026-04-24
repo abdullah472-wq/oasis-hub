@@ -10,6 +10,8 @@ export interface RunningNoticeSettings {
 }
 
 const SETTINGS_DOC = doc(db, "site_settings", "running_notice_bar");
+const RAMADAN_SETTINGS_DOC = doc(db, "site_settings", "ramadan");
+const LEGACY_SETTINGS_DOC = doc(db, "site_settings", "ramadan", "running_notice_bar", "running_notice_bar");
 
 const createDefaultRunningNotices = (): RunningNoticeItem[] => [
   {
@@ -45,14 +47,49 @@ const normalizeRunningNoticeSettings = (
   };
 };
 
-export const getRunningNoticeSettings = async (): Promise<RunningNoticeSettings> => {
-  const snapshot = await getDoc(SETTINGS_DOC);
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
 
-  if (!snapshot.exists()) {
-    return normalizeRunningNoticeSettings();
+const extractRunningNoticeSettings = (value: unknown): Partial<RunningNoticeSettings> | undefined => {
+  if (!isRecord(value)) {
+    return undefined;
   }
 
-  return normalizeRunningNoticeSettings(snapshot.data() as Partial<RunningNoticeSettings>);
+  if ("runningNoticeEnabled" in value || "runningNotices" in value) {
+    return value as Partial<RunningNoticeSettings>;
+  }
+
+  const nested = value.running_notice_bar;
+  if (isRecord(nested) && ("runningNoticeEnabled" in nested || "runningNotices" in nested)) {
+    return nested as Partial<RunningNoticeSettings>;
+  }
+
+  return undefined;
+};
+
+export const getRunningNoticeSettings = async (): Promise<RunningNoticeSettings> => {
+  const [primarySnapshot, ramadanSnapshot, legacySnapshot] = await Promise.all([
+    getDoc(SETTINGS_DOC),
+    getDoc(RAMADAN_SETTINGS_DOC),
+    getDoc(LEGACY_SETTINGS_DOC),
+  ]);
+
+  const primaryData = primarySnapshot.exists() ? extractRunningNoticeSettings(primarySnapshot.data()) : undefined;
+  if (primaryData) {
+    return normalizeRunningNoticeSettings(primaryData);
+  }
+
+  const ramadanData = ramadanSnapshot.exists() ? extractRunningNoticeSettings(ramadanSnapshot.data()) : undefined;
+  if (ramadanData) {
+    return normalizeRunningNoticeSettings(ramadanData);
+  }
+
+  const legacyData = legacySnapshot.exists() ? extractRunningNoticeSettings(legacySnapshot.data()) : undefined;
+  if (legacyData) {
+    return normalizeRunningNoticeSettings(legacyData);
+  }
+
+  return normalizeRunningNoticeSettings();
 };
 
 export const saveRunningNoticeSettings = async (
@@ -64,6 +101,10 @@ export const saveRunningNoticeSettings = async (
     updatedAt: Date.now(),
   });
 
-  await setDoc(SETTINGS_DOC, next, { merge: true });
+  await Promise.all([
+    setDoc(SETTINGS_DOC, next, { merge: true }),
+    setDoc(RAMADAN_SETTINGS_DOC, { running_notice_bar: next }, { merge: true }),
+    setDoc(LEGACY_SETTINGS_DOC, next, { merge: true }),
+  ]);
   return next;
 };

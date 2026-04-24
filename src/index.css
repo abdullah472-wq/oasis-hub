@@ -1,5 +1,4 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-@import url('https://fonts.maateen.me/adorsho-lipi/font.css');
 
 @tailwind base;
 @tailwind components;
@@ -99,7 +98,7 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight;
-    font-family: 'AdorshoLipi', 'Fraunces', 'Noto Sans Bengali', 'Hind Siliguri', serif;
+    font-family: 'Fraunces', 'Noto Sans Bengali', 'Hind Siliguri', serif;
   }
 }
 
@@ -136,7 +135,7 @@
 
 @layer utilities {
   .font-display {
-    font-family: 'AdorshoLipi', 'Fraunces', 'Noto Sans Bengali', 'Hind Siliguri', serif;
+    font-family: 'Fraunces', 'Noto Sans Bengali', 'Hind Siliguri', serif;
   }
 
   .font-bengali {
