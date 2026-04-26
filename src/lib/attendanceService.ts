@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   getDocs,
+  onSnapshot,
   orderBy,
   query,
   serverTimestamp,
@@ -88,6 +89,27 @@ export const listGuardianAttendanceRecords = async (guardianUid: string): Promis
   if (!guardianUid.trim()) return [];
   const snapshot = await getDocs(query(collection(db, ATTENDANCE_COLLECTION), where("guardianUid", "==", guardianUid.trim())));
   return snapshot.docs.map(toAttendanceRecord).sort((a, b) => b.date.localeCompare(a.date) || b.updatedAt - a.updatedAt);
+};
+
+export const subscribeGuardianAttendanceRecords = (
+  guardianUid: string,
+  callback: (items: AttendanceRecord[]) => void,
+) => {
+  const normalizedGuardianUid = guardianUid.trim();
+  if (!normalizedGuardianUid) {
+    callback([]);
+    return () => undefined;
+  }
+
+  return onSnapshot(
+    query(collection(db, ATTENDANCE_COLLECTION), where("guardianUid", "==", normalizedGuardianUid)),
+    (snapshot) => {
+      const items = snapshot.docs
+        .map(toAttendanceRecord)
+        .sort((a, b) => b.date.localeCompare(a.date) || b.updatedAt - a.updatedAt);
+      callback(items);
+    },
+  );
 };
 
 export const saveAttendanceSheet = async (rows: AttendanceSheetRowInput[], markedBy: string): Promise<AttendanceRecord[]> => {

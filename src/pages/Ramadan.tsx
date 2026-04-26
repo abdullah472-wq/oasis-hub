@@ -16,7 +16,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
 import { springIn, springInDelay } from "@/lib/animations";
 import { getRamadanSponsors, addRamadanSponsor, RamadanSponsor } from "@/lib/ramadanSponsors";
-import { getRamadanSettings } from "@/lib/ramadanSettings";
+import { getRamadanSettings, type RamadanSettings } from "@/lib/ramadanSettings";
 
 const TOTAL_DAYS = 25;
 const COST_PER_DAY = 5000;
@@ -37,24 +37,62 @@ const Ramadan = () => {
   const [sponsors, setSponsors] = useState<RamadanSponsor[]>([]);
 
   useEffect(() => {
-    Promise.allSettled([getRamadanSponsors(), getRamadanSettings()])
-      .then((results) => {
-        const [sponsorsResult, settingsResult] = results;
+    let mounted = true;
 
-        if (sponsorsResult.status === "fulfilled") {
-          setSponsors(sponsorsResult.value);
-        } else {
-          console.error("Failed to load Ramadan sponsors:", sponsorsResult.reason);
-        }
+    const syncPageState = () =>
+      Promise.allSettled([getRamadanSponsors(), getRamadanSettings()])
+        .then((results) => {
+          if (!mounted) return;
 
-        if (settingsResult.status === "fulfilled") {
-          setIsPublic(settingsResult.value.isPublic);
-        } else {
-          console.error("Failed to load Ramadan visibility settings:", settingsResult.reason);
-          setIsPublic(false);
-        }
-      })
-      .finally(() => setPageLoading(false));
+          const [sponsorsResult, settingsResult] = results;
+
+          if (sponsorsResult.status === "fulfilled") {
+            setSponsors(sponsorsResult.value);
+          } else {
+            console.error("Failed to load Ramadan sponsors:", sponsorsResult.reason);
+          }
+
+          if (settingsResult.status === "fulfilled") {
+            setIsPublic(settingsResult.value.isPublic);
+          } else {
+            console.error("Failed to load Ramadan visibility settings:", settingsResult.reason);
+            setIsPublic(false);
+          }
+        })
+        .finally(() => {
+          if (mounted) setPageLoading(false);
+        });
+
+    void syncPageState();
+
+    const syncVisibilityFromEvent = (event: Event) => {
+      const customEvent = event as CustomEvent<RamadanSettings>;
+      if (customEvent.detail && mounted) {
+        setIsPublic(customEvent.detail.isPublic);
+        setPageLoading(false);
+      }
+    };
+
+    const syncVisibilityFromStorage = (event: StorageEvent) => {
+      if (event.key === "oasis_ramadan_settings_v1") {
+        void getRamadanSettings()
+          .then((settings) => {
+            if (mounted) setIsPublic(settings.isPublic);
+          })
+          .catch((error) => {
+            console.error("Failed to sync Ramadan visibility settings:", error);
+          });
+      }
+    };
+
+    window.addEventListener("ramadan-settings-updated", syncVisibilityFromEvent as EventListener);
+    window.addEventListener("storage", syncVisibilityFromStorage);
+
+    return () => {
+      mounted = false;
+      window.removeEventListener("ramadan-settings-updated", syncVisibilityFromEvent as EventListener);
+      window.removeEventListener("storage", syncVisibilityFromStorage);
+    };
   }, []);
 
   const getSponsorshipPercent = (day: number) => {

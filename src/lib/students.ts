@@ -3,6 +3,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  orderBy,
   query,
   setDoc,
   where,
@@ -27,6 +28,7 @@ export interface StudentRecord {
 
 const STUDENTS_COLLECTION = "students";
 const GUARDIANS_COLLECTION = "guardians";
+const ATTENDANCE_COLLECTION = "attendance_records";
 
 const toStudentRecord = (snapshot: QueryDocumentSnapshot<DocumentData>): StudentRecord => {
   const data = snapshot.data();
@@ -124,16 +126,46 @@ const buildStudentsFromGuardians = async (): Promise<StudentRecord[]> => {
     .filter((item) => item.studentId);
 };
 
+const buildStudentsFromAttendanceRecords = async (): Promise<StudentRecord[]> => {
+  const snapshot = await getDocs(query(collection(db, ATTENDANCE_COLLECTION), orderBy("date", "desc")));
+  const seen = new Set<string>();
+
+  return snapshot.docs
+    .map((item) => {
+      const data = item.data();
+      const studentId = String(data.studentId ?? "").trim();
+
+      if (!studentId || seen.has(studentId)) {
+        return null;
+      }
+
+      seen.add(studentId);
+
+      return {
+        id: studentId,
+        studentId,
+        studentName: String(data.studentName ?? ""),
+        className: String(data.className ?? ""),
+        section: String(data.section ?? ""),
+        roll: Number(data.roll ?? 0),
+        guardianUid: String(data.guardianUid ?? "").trim(),
+        status: "active",
+      } satisfies StudentRecord;
+    })
+    .filter((item): item is StudentRecord => Boolean(item));
+};
+
 export const listStudents = async (): Promise<StudentRecord[]> => {
-  const [snapshot, guardianStudents, fallbackStudents] = await Promise.all([
+  const [snapshot, guardianStudents, attendanceStudents, fallbackStudents] = await Promise.all([
     getDocs(collection(db, STUDENTS_COLLECTION)).catch(() => ({ docs: [] } as Awaited<ReturnType<typeof getDocs>>)),
     buildStudentsFromGuardians().catch(() => []),
+    buildStudentsFromAttendanceRecords().catch(() => []),
     buildFallbackStudents().catch(() => []),
   ]);
 
   const students = snapshot.docs.map(toStudentRecord).filter((item) => item.status === "active");
 
-  return mergeStudentRecords([...students, ...guardianStudents, ...fallbackStudents]);
+  return mergeStudentRecords([...students, ...guardianStudents, ...attendanceStudents, ...fallbackStudents]);
 };
 
 export const listStudentsByGuardian = async (guardianUid: string): Promise<StudentRecord[]> => {

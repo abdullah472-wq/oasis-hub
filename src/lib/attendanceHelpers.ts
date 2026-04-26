@@ -26,8 +26,6 @@ const normalizeClassName = (value: string) => {
   return value.trim();
 };
 
-const hasRegisteredGuardian = (student: StudentRecord) => Boolean(student.guardianUid?.trim());
-
 export interface AttendanceMonthlySummary {
   totalDays: number;
   presentDays: number;
@@ -60,7 +58,7 @@ export const createAttendanceRow = (
 ): AttendanceSheetRowInput => ({
   recordId: record?.id,
   studentId: student.studentId,
-  guardianUid: student.guardianUid,
+  guardianUid: student.guardianUid?.trim() || record?.guardianUid?.trim() || "",
   guardianName: student.guardianName,
   guardianPhone: student.guardianPhone,
   studentName: student.studentName,
@@ -90,7 +88,6 @@ export const buildAttendanceSheetRows = ({
 
   return students
     .filter((student) => {
-      if (!hasRegisteredGuardian(student)) return false;
       if (className && className !== "all" && normalizeClassName(student.className) !== normalizeClassName(className)) return false;
       if (section && section !== "all" && student.section !== section) return false;
       return true;
@@ -158,7 +155,6 @@ export const buildSectionOptions = (students: StudentRecord[], className: string
   Array.from(
     new Set(
       students
-        .filter((item) => hasRegisteredGuardian(item))
         .filter((item) => !className || className === "all" || normalizeClassName(item.className) === normalizeClassName(className))
         .map((item) => item.section)
         .filter(Boolean),

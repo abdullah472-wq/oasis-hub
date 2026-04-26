@@ -5,6 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getGuardianDashboardData, type GuardianDashboardData } from "@/lib/guardianDashboardService";
 import { getDefaultRouteForUser } from "@/lib/adminDashboard";
+import { calculateAttendanceMonthlySummary, getRecentAttendanceFromRecords } from "@/lib/attendanceHelpers";
+import { subscribeGuardianAttendanceRecords } from "@/lib/attendanceService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import GuardianDashboardPage from "@/components/guardian/GuardianDashboardPage";
@@ -59,6 +61,37 @@ const GuardianPortal = () => {
 
     return unsubscribe;
   }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== "guardian" || currentUser.status !== "active" || !data?.guardianProfile.studentId) {
+      return;
+    }
+
+    const unsubscribe = subscribeGuardianAttendanceRecords(currentUser.uid, (items) => {
+      setData((current) => {
+        if (!current) return current;
+
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        const studentAttendanceRecords = items.filter(
+          (item) => item.studentId === current.guardianProfile.studentId,
+        );
+        const currentMonthAttendance = studentAttendanceRecords.filter(
+          (item) => item.month === currentMonth,
+        );
+
+        return {
+          ...current,
+          attendanceRecords: studentAttendanceRecords,
+          attendanceSummary: calculateAttendanceMonthlySummary(currentMonthAttendance),
+          recentAttendance: getRecentAttendanceFromRecords(studentAttendanceRecords, 7),
+          todayAttendance:
+            studentAttendanceRecords.find((item) => item.date === new Date().toISOString().slice(0, 10)) ?? null,
+        };
+      });
+    });
+
+    return unsubscribe;
+  }, [currentUser, data?.guardianProfile.studentId]);
 
   if (authLoading) {
     return (

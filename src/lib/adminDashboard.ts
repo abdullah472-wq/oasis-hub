@@ -18,6 +18,7 @@ import {
   Users,
   Video,
 } from "lucide-react";
+import { getSiteDateInputValue } from "./siteDate";
 import { createClientId } from "./uuid";
 
 export type AdminRole = "admin" | "manager" | "guardian";
@@ -299,7 +300,7 @@ const createDefaultRunningNotices = (): RunningNoticeItem[] => [
     textBn: "ভর্তি চলছে ২০২৬ শিক্ষাবর্ষের জন্য। বিস্তারিত জানতে অফিসে যোগাযোগ করুন।",
     textEn: "Admissions are now open for the 2026 academic year. Contact the office for details.",
     link: "/admission",
-    publishDate: new Date().toISOString().slice(0, 10),
+    publishDate: getSiteDateInputValue(),
     priority: 1,
     active: true,
   },
@@ -315,7 +316,7 @@ const normalizeDashboardSettings = (settings: DashboardSettings): DashboardSetti
             textBn: settings.runningNoticeBn,
             textEn: settings.runningNoticeEn,
             link: "",
-            publishDate: new Date().toISOString().slice(0, 10),
+            publishDate: getSiteDateInputValue(),
             priority: 1,
             active: true,
           },
@@ -329,7 +330,7 @@ const normalizeDashboardSettings = (settings: DashboardSettings): DashboardSetti
       textBn: item.textBn || "",
       textEn: item.textEn || "",
       link: item.link || "",
-      publishDate: item.publishDate || new Date().toISOString().slice(0, 10),
+      publishDate: item.publishDate || getSiteDateInputValue(),
       priority: typeof item.priority === "number" ? item.priority : index + 1,
       active: item.active ?? true,
     })),

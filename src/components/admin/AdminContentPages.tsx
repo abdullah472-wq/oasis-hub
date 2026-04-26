@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Award, BellRing, CalendarDays, ChevronDown, ExternalLink, FileText, ImageIcon, Link2, MessageSquareQuote, Pencil, Radio, Save, Search, Trash2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BilingualInput,
   BilingualTextarea,
@@ -397,267 +398,308 @@ export const NoticesManagerPage = ({
       onAction={() => setShowForm((current) => !current)}
       icon={<BellFileIcon className="h-5 w-5" />}
     >
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-lg border border-border/70 bg-card p-4 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <p className="font-bengali text-sm text-muted-foreground">{t("প্রকাশিত নোটিশ", "Published notices")}</p>
-            <FileText className="h-4 w-4 text-primary" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-5 shadow-md transition-all hover:shadow-xl">
+          <div className="absolute right-0 top-0 h-20 w-20 translate-x-8 -translate-y-1/2 rounded-full bg-primary/10 transition-transform group-hover:scale-150" />
+          <div className="relative flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary transition-colors group-hover:bg-primary/20">
+              <FileText className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="font-bengali text-sm text-muted-foreground">{t("প্রকাশিত নোটিশ", "Published notices")}</p>
+              <p className="text-3xl font-bold text-foreground">{items.length}</p>
+            </div>
           </div>
-          <p className="mt-3 text-3xl font-semibold text-foreground">{items.length}</p>
         </div>
-        <div className="rounded-lg border border-border/70 bg-card p-4 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <p className="font-bengali text-sm text-muted-foreground">{t("পিডিএফ সার্কুলার", "PDF circulars")}</p>
-            <ExternalLink className="h-4 w-4 text-primary" />
+        <div className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-5 shadow-md transition-all hover:shadow-xl">
+          <div className="absolute right-0 top-0 h-20 w-20 translate-x-8 -translate-y-1/2 rounded-full bg-blue-500/10 transition-transform group-hover:scale-150" />
+          <div className="relative flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/15 text-blue-600 transition-colors group-hover:bg-blue-500/20">
+              <ExternalLink className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="font-bengali text-sm text-muted-foreground">{t("পিডিএফ সার্কুলার", "PDF circulars")}</p>
+              <p className="text-3xl font-bold text-foreground">{noticesWithPdf}</p>
+            </div>
           </div>
-          <p className="mt-3 text-3xl font-semibold text-foreground">{noticesWithPdf}</p>
         </div>
-        <div className="rounded-lg border border-border/70 bg-card p-4 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <p className="font-bengali text-sm text-muted-foreground">{t("সক্রিয় রানিং আইটেম", "Active ticker items")}</p>
-            <Radio className="h-4 w-4 text-primary" />
+        <div className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-5 shadow-md transition-all hover:shadow-xl">
+          <div className="absolute right-0 top-0 h-20 w-20 translate-x-8 -translate-y-1/2 rounded-full bg-green-500/10 transition-transform group-hover:scale-150" />
+          <div className="relative flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500/15 text-green-600 transition-colors group-hover:bg-green-500/20">
+              <Radio className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="font-bengali text-sm text-muted-foreground">{t("সক্রিয় রানিং আইটেম", "Active ticker items")}</p>
+              <p className="text-3xl font-bold text-foreground">{activeRunningCount}</p>
+            </div>
           </div>
-          <p className="mt-3 text-3xl font-semibold text-foreground">{activeRunningCount}</p>
         </div>
-        <div className="rounded-lg border border-border/70 bg-card p-4 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <p className="font-bengali text-sm text-muted-foreground">{t("সর্বশেষ প্রকাশ", "Latest publish")}</p>
-            <CalendarDays className="h-4 w-4 text-primary" />
+        <div className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-5 shadow-md transition-all hover:shadow-xl">
+          <div className="absolute right-0 top-0 h-20 w-20 translate-x-8 -translate-y-1/2 rounded-full bg-orange-500/10 transition-transform group-hover:scale-150" />
+          <div className="relative flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/15 text-orange-600 transition-colors group-hover:bg-orange-500/20">
+              <CalendarDays className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="font-bengali text-sm text-muted-foreground">{t("সর্বশেষ প্রকাশ", "Latest publish")}</p>
+              <p className="font-bengali text-lg font-semibold text-foreground">{latestNoticeDate}</p>
+            </div>
           </div>
-          <p className="mt-3 font-bengali text-lg font-semibold text-foreground">{latestNoticeDate}</p>
         </div>
       </div>
 
-      <form onSubmit={saveRunningNoticeBar}>
-        <Card className={shellCardClass}>
-          <CardContent className="space-y-5 p-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <BellRing className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <h3 className="font-bengali text-lg font-semibold text-foreground">{t("রানিং নোটিশ বার", "Running notice bar")}</h3>
-                    <p className="font-bengali text-sm text-muted-foreground">
-                      {t("মেইন নেভিগেশন বারের উপরের বার্তার ক্রম, লিংক এবং দৃশ্যমানতা ঠিক করুন", "Control the message order, links, and visibility above the main navigation")}
-                    </p>
-                  </div>
+      <Tabs defaultValue="notices" className="w-full">
+        <TabsList className="mb-6 grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-1">
+          <TabsTrigger
+            value="notices"
+            className="flex-1 rounded-xl font-bengali font-medium transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg"
+          >
+            {t("প্রকাশিত নোটিশ", "Published Notices")} ({items.length})
+          </TabsTrigger>
+          <TabsTrigger
+            value="ticker"
+            className="flex-1 rounded-xl font-bengali font-medium transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg"
+          >
+            {t("রানিং নোটিশ বার", "Running Notice Bar")} ({activeRunningCount})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="notices" className="mt-0 space-y-6">
+          {showForm && (
+            <FormCard onSubmit={submit} saving={saving}>
+              <BilingualInput labelBn="নোটিশ শিরোনাম" labelEn="Notice title" valueBn={form.titleBn} valueEn={form.titleEn} onBnChange={(value) => setForm((current) => ({ ...current, titleBn: value }))} onEnChange={(value) => setForm((current) => ({ ...current, titleEn: value }))} />
+              <BilingualTextarea labelBn="নোটিশ বিবরণ" labelEn="Notice description" valueBn={form.descriptionBn} valueEn={form.descriptionEn} onBnChange={(value) => setForm((current) => ({ ...current, descriptionBn: value }))} onEnChange={(value) => setForm((current) => ({ ...current, descriptionEn: value }))} />
+              <FilePicker label={t("পিডিএফ নোটিশ", "Notice PDF")} file={pdf} onFileChange={setPdf} accept="application/pdf" />
+            </FormCard>
+          )}
+
+          <Card className={shellCardClass}>
+            <CardContent className="space-y-5 p-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h3 className="font-bengali text-lg font-semibold text-foreground">{t("প্রকাশিত নোটিশ", "Published notices")}</h3>
+                  <p className="font-bengali text-sm text-muted-foreground">{t("সাইটের নোটিশ বোর্ডে যেগুলো দেখা যাচ্ছে", "Visible on the public notice board")}</p>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant={noticeDraft.runningNoticeEnabled ? "default" : "secondary"} className="rounded-lg font-bengali">
-                    {noticeDraft.runningNoticeEnabled ? t("লাইভ", "Live") : t("লুকানো", "Hidden")}
-                  </Badge>
-                  <Badge variant="outline" className="rounded-lg font-bengali">
-                    {activeRunningCount}/{noticeDraft.runningNotices.length} {t("সক্রিয়", "active")}
-                  </Badge>
-                </div>
+                <Badge variant="secondary" className="w-fit rounded-lg font-bengali">
+                  {items.length} {t("আইটেম", "items")}
+                </Badge>
               </div>
 
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Button type="button" variant="outline" className="rounded-lg font-bengali" onClick={addRunningNotice}>
-                  {t("আইটেম যোগ করুন", "Add item")}
-                </Button>
-                <Button type="submit" className="rounded-lg font-bengali" disabled={savingNoticeBar}>
-                  <Save className="mr-2 h-4 w-4" />
-                  {savingNoticeBar ? t("সংরক্ষণ হচ্ছে...", "Saving...") : t("নোটিশ বার সংরক্ষণ", "Save notice bar")}
-                </Button>
-              </div>
-            </div>
-
-            <ToggleRow
-              label={t("রানিং নোটিশ দেখান", "Show running notice")}
-              checked={noticeDraft.runningNoticeEnabled}
-              onCheckedChange={(checked) => setNoticeDraft((current) => ({ ...current, runningNoticeEnabled: checked }))}
-            />
-
-            <div className="space-y-3">
-              {sortedRunningNotices.length === 0 ? (
-                <EmptyState text={t("এখনও কোনো রানিং নোটিশ যোগ করা হয়নি", "No running notice items added yet")} />
+              {items.length === 0 ? (
+                <EmptyState text={t("এখনও কোনো নোটিশ নেই", "No notices yet")} />
               ) : (
-                sortedRunningNotices.map((item, index) => {
-                  const isExpanded = expandedNotices[item.id] ?? true;
-                  const previewText = lang === "bn" ? item.textBn || item.textEn : item.textEn || item.textBn;
-                  const publishDate = item.publishDate
-                    ? new Date(`${item.publishDate}T00:00:00`).toLocaleDateString(dateLocale, { day: "numeric", month: "short", year: "numeric" })
-                    : t("তারিখ নেই", "No date");
+                <div className="space-y-3">
+                  {items.map((item) => {
+                    const noticeKey = item.id || [item.createdAt, item.titleBn].join("-");
+                    const title = lang === "bn" ? item.titleBn : item.titleEn || item.titleBn;
+                    const description = lang === "bn" ? item.descriptionBn : item.descriptionEn || item.descriptionBn;
+                    const hasDetails = Boolean(description || item.pdfUrl);
+                    const isExpanded = expandedPublishedNotices[noticeKey] ?? false;
+                    const publishedDate = new Date(item.createdAt).toLocaleDateString(dateLocale, {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    });
 
-                  return (
-                    <div key={item.id} className="rounded-lg border border-border/70 bg-background shadow-sm">
-                      <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
-                        <div className="min-w-0 space-y-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="outline" className="rounded-lg">#{index + 1}</Badge>
-                            <Badge variant={item.active ? "default" : "secondary"} className="rounded-lg font-bengali">
-                              {item.active ? t("সক্রিয়", "Active") : t("বন্ধ", "Inactive")}
-                            </Badge>
-                            <span className="font-bengali text-xs text-muted-foreground">{publishDate}</span>
-                          </div>
-                          <p className="line-clamp-2 font-bengali text-sm font-medium text-foreground">
-                            {previewText || t("খালি নোটিশ আইটেম", "Empty notice item")}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Button
-                            type="button"
-                            variant={item.active ? "secondary" : "outline"}
-                            className="rounded-lg font-bengali"
-                            onClick={() => updateRunningNotice(item.id, "active", !item.active)}
-                          >
-                            {item.active ? t("বন্ধ করুন", "Deactivate") : t("চালু করুন", "Activate")}
-                          </Button>
-                          <Button type="button" variant="outline" className="rounded-lg font-bengali" onClick={() => toggleNoticeExpanded(item.id)}>
-                            <ChevronDown className={`mr-2 h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                            {isExpanded ? t("লুকান", "Collapse") : t("এডিট", "Edit")}
-                          </Button>
-                          <Button type="button" variant="ghost" className="rounded-lg font-bengali text-destructive hover:text-destructive" onClick={() => removeRunningNotice(item.id)}>
-                            {t("রিমুভ", "Remove")}
-                          </Button>
-                        </div>
-                      </div>
-
-                      {isExpanded && (
-                        <div className="space-y-4 border-t border-border/70 p-4">
-                          <div className="grid gap-4 md:grid-cols-2">
-                            <Field label={t("নোটিশ টেক্সট (বাংলা)", "Notice text (Bangla)")}>
-                              <textarea
-                                value={item.textBn}
-                                onChange={(event) => updateRunningNotice(item.id, "textBn", event.target.value)}
-                                className="min-h-[110px] w-full rounded-lg border border-input bg-background px-4 py-3 font-bengali text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                              />
-                            </Field>
-                            <Field label={t("Notice text (English)", "Notice text (English)")}>
-                              <textarea
-                                value={item.textEn}
-                                onChange={(event) => updateRunningNotice(item.id, "textEn", event.target.value)}
-                                className="min-h-[110px] w-full rounded-lg border border-input bg-background px-4 py-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                              />
-                            </Field>
-                          </div>
-
-                          <div className="grid gap-4 md:grid-cols-[1fr_180px_130px]">
-                            <Field label={t("লিংক", "Link")}>
-                              <div className="relative">
-                                <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                <input
-                                  value={item.link || ""}
-                                  onChange={(event) => updateRunningNotice(item.id, "link", event.target.value)}
-                                  className="h-11 w-full rounded-lg border border-input bg-background pl-10 pr-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                  placeholder="/notices অথবা https://..."
-                                />
+                    return (
+                      <div key={noticeKey} className="rounded-lg border border-border/70 bg-background p-4 shadow-sm">
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                          <div className="min-w-0 space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge variant="outline" className="rounded-lg font-bengali">
+                                {publishedDate}
+                              </Badge>
+                              {item.pdfUrl ? (
+                                <Badge variant="secondary" className="rounded-lg font-bengali">
+                                  PDF
+                                </Badge>
+                              ) : null}
+                            </div>
+                            <h4 className="font-bengali text-base font-semibold text-foreground">{title}</h4>
+                            {hasDetails && isExpanded ? (
+                              <div className="space-y-2 border-t border-border/60 pt-3">
+                                {description ? <p className="whitespace-pre-line font-bengali text-sm leading-6 text-muted-foreground">{description}</p> : null}
+                                {item.pdfUrl ? (
+                                  <a href={getDownloadUrl(item.pdfUrl)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 font-bengali text-sm font-medium text-primary hover:underline">
+                                    <ExternalLink className="h-4 w-4" />
+                                    {t("পিডিএফ দেখুন", "View PDF")}
+                                  </a>
+                                ) : null}
                               </div>
-                            </Field>
-                            <Field label={t("প্রকাশের তারিখ", "Publish date")}>
-                              <input
-                                type="date"
-                                value={item.publishDate}
-                                onChange={(event) => updateRunningNotice(item.id, "publishDate", event.target.value)}
-                                className="h-11 w-full rounded-lg border border-input bg-background px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                              />
-                            </Field>
-                            <Field label={t("Priority", "Priority")}>
-                              <input
-                                type="number"
-                                min={1}
-                                value={item.priority}
-                                onChange={(event) => updateRunningNotice(item.id, "priority", Number(event.target.value) || 1)}
-                                className="h-11 w-full rounded-lg border border-input bg-background px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                              />
-                            </Field>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </form>
-
-      {showForm && (
-        <FormCard onSubmit={submit} saving={saving}>
-          <BilingualInput labelBn="নোটিশ শিরোনাম" labelEn="Notice title" valueBn={form.titleBn} valueEn={form.titleEn} onBnChange={(value) => setForm((current) => ({ ...current, titleBn: value }))} onEnChange={(value) => setForm((current) => ({ ...current, titleEn: value }))} />
-          <BilingualTextarea labelBn="নোটিশ বিবরণ" labelEn="Notice description" valueBn={form.descriptionBn} valueEn={form.descriptionEn} onBnChange={(value) => setForm((current) => ({ ...current, descriptionBn: value }))} onEnChange={(value) => setForm((current) => ({ ...current, descriptionEn: value }))} />
-          <FilePicker label={t("পিডিএফ নোটিশ", "Notice PDF")} file={pdf} onFileChange={setPdf} accept="application/pdf" />
-        </FormCard>
-      )}
-
-      <Card className={shellCardClass}>
-        <CardContent className="space-y-5 p-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h3 className="font-bengali text-lg font-semibold text-foreground">{t("প্রকাশিত নোটিশ", "Published notices")}</h3>
-              <p className="font-bengali text-sm text-muted-foreground">{t("সাইটের নোটিশ বোর্ডে যেগুলো দেখা যাচ্ছে", "Visible on the public notice board")}</p>
-            </div>
-            <Badge variant="secondary" className="w-fit rounded-lg font-bengali">
-              {items.length} {t("আইটেম", "items")}
-            </Badge>
-          </div>
-
-          {items.length === 0 ? (
-            <EmptyState text={t("এখনও কোনো নোটিশ নেই", "No notices yet")} />
-          ) : (
-            <div className="space-y-3">
-              {items.map((item) => {
-                const noticeKey = item.id || `${item.createdAt}-${item.titleBn}`;
-                const title = lang === "bn" ? item.titleBn : item.titleEn || item.titleBn;
-                const description = lang === "bn" ? item.descriptionBn : item.descriptionEn || item.descriptionBn;
-                const hasDetails = Boolean(description || item.pdfUrl);
-                const isExpanded = expandedPublishedNotices[noticeKey] ?? false;
-                const publishedDate = new Date(item.createdAt).toLocaleDateString(dateLocale, {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                });
-
-                return (
-                  <div key={noticeKey} className="rounded-lg border border-border/70 bg-background p-4 shadow-sm">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="min-w-0 space-y-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Badge variant="outline" className="rounded-lg font-bengali">
-                            {publishedDate}
-                          </Badge>
-                          {item.pdfUrl ? (
-                            <Badge variant="secondary" className="rounded-lg font-bengali">
-                              PDF
-                            </Badge>
-                          ) : null}
-                        </div>
-                        <h4 className="font-bengali text-base font-semibold text-foreground">{title}</h4>
-                        {hasDetails && isExpanded ? (
-                          <div className="space-y-2 border-t border-border/60 pt-3">
-                            {description ? <p className="whitespace-pre-line font-bengali text-sm leading-6 text-muted-foreground">{description}</p> : null}
-                            {item.pdfUrl ? (
-                              <a href={getDownloadUrl(item.pdfUrl)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 font-bengali text-sm font-medium text-primary hover:underline">
-                                <ExternalLink className="h-4 w-4" />
-                                {t("পিডিএফ দেখুন", "View PDF")}
-                              </a>
                             ) : null}
                           </div>
-                        ) : null}
+                          <div className="flex flex-wrap items-center gap-2">
+                            {hasDetails ? (
+                              <Button type="button" variant="outline" className="rounded-lg font-bengali" onClick={() => togglePublishedNoticeExpanded(noticeKey)}>
+                                <ChevronDown className={["mr-2 h-4 w-4 transition-transform", isExpanded ? "rotate-180" : ""].join(" ").trim()} />
+                                {isExpanded ? t("লুকান", "Collapse") : t("দেখুন", "Expand")}
+                              </Button>
+                            ) : null}
+                            <Button type="button" variant="outline" size="icon" className="rounded-lg text-red-600 hover:text-red-600" onClick={() => item.id && void onDelete(item.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {hasDetails ? (
-                          <Button type="button" variant="outline" className="rounded-lg font-bengali" onClick={() => togglePublishedNoticeExpanded(noticeKey)}>
-                            <ChevronDown className={`mr-2 h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                            {isExpanded ? t("লুকান", "Collapse") : t("দেখুন", "Expand")}
-                          </Button>
-                        ) : null}
-                        <Button variant="outline" size="icon" className="rounded-lg text-red-600 hover:text-red-600" onClick={() => item.id && void onDelete(item.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ticker" className="mt-0">
+          <form onSubmit={saveRunningNoticeBar}>
+            <Card className={shellCardClass}>
+              <CardContent className="space-y-5 p-6">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <BellRing className="h-5 w-5" />
+                      </span>
+                      <div>
+                        <h3 className="font-bengali text-lg font-semibold text-foreground">{t("রানিং নোটিশ বার", "Running notice bar")}</h3>
+                        <p className="font-bengali text-sm text-muted-foreground">
+                          {t("মেইন নেভিগেশন বারের উপরের বার্তার ক্রম, লিংক এবং দৃশ্যমানতা ঠিক করুন", "Control the message order, links, and visibility above the main navigation")}
+                        </p>
                       </div>
                     </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant={noticeDraft.runningNoticeEnabled ? "default" : "secondary"} className="rounded-lg font-bengali">
+                        {noticeDraft.runningNoticeEnabled ? t("লাইভ", "Live") : t("লুকানো", "Hidden")}
+                      </Badge>
+                      <Badge variant="outline" className="rounded-lg font-bengali">
+                        {activeRunningCount}/{noticeDraft.runningNotices.length} {t("সক্রিয়", "active")}
+                      </Badge>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button type="button" variant="outline" className="rounded-lg font-bengali" onClick={addRunningNotice}>
+                      {t("আইটেম যোগ করুন", "Add item")}
+                    </Button>
+                    <Button type="submit" className="rounded-lg font-bengali" disabled={savingNoticeBar}>
+                      <Save className="mr-2 h-4 w-4" />
+                      {savingNoticeBar ? t("সংরক্ষণ হচ্ছে...", "Saving...") : t("নোটিশ বার সংরক্ষণ", "Save notice bar")}
+                    </Button>
+                  </div>
+                </div>
+
+                <ToggleRow
+                  label={t("রানিং নোটিশ দেখান", "Show running notice")}
+                  checked={noticeDraft.runningNoticeEnabled}
+                  onCheckedChange={(checked) => setNoticeDraft((current) => ({ ...current, runningNoticeEnabled: checked }))}
+                />
+
+                <div className="space-y-3">
+                  {sortedRunningNotices.length === 0 ? (
+                    <EmptyState text={t("এখনও কোনো রানিং নোটিশ যোগ করা হয়নি", "No running notice items added yet")} />
+                  ) : (
+                    sortedRunningNotices.map((item, index) => {
+                      const isExpanded = expandedNotices[item.id] ?? true;
+                      const previewText = lang === "bn" ? item.textBn || item.textEn : item.textEn || item.textBn;
+                      const publishDate = item.publishDate
+                        ? new Date(item.publishDate + "T00:00:00").toLocaleDateString(dateLocale, { day: "numeric", month: "short", year: "numeric" })
+                        : t("তারিখ নেই", "No date");
+
+                      return (
+                        <div key={item.id} className="rounded-lg border border-border/70 bg-background shadow-sm">
+                          <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
+                            <div className="min-w-0 space-y-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge variant="outline" className="rounded-lg">#{index + 1}</Badge>
+                                <Badge variant={item.active ? "default" : "secondary"} className="rounded-lg font-bengali">
+                                  {item.active ? t("সক্রিয়", "Active") : t("বন্ধ", "Inactive")}
+                                </Badge>
+                                <span className="font-bengali text-xs text-muted-foreground">{publishDate}</span>
+                              </div>
+                              <p className="line-clamp-2 font-bengali text-sm font-medium text-foreground">
+                                {previewText || t("খালি নোটিশ আইটেম", "Empty notice item")}
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Button
+                                type="button"
+                                variant={item.active ? "secondary" : "outline"}
+                                className="rounded-lg font-bengali"
+                                onClick={() => updateRunningNotice(item.id, "active", !item.active)}
+                              >
+                                {item.active ? t("বন্ধ করুন", "Deactivate") : t("চালু করুন", "Activate")}
+                              </Button>
+                              <Button type="button" variant="outline" className="rounded-lg font-bengali" onClick={() => toggleNoticeExpanded(item.id)}>
+                                <ChevronDown className={["mr-2 h-4 w-4 transition-transform", isExpanded ? "rotate-180" : ""].join(" ").trim()} />
+                                {isExpanded ? t("লুকান", "Collapse") : t("এডিট", "Edit")}
+                              </Button>
+                              <Button type="button" variant="ghost" className="rounded-lg font-bengali text-destructive hover:text-destructive" onClick={() => removeRunningNotice(item.id)}>
+                                {t("রিমুভ", "Remove")}
+                              </Button>
+                            </div>
+                          </div>
+
+                          {isExpanded && (
+                            <div className="space-y-4 border-t border-border/70 p-4">
+                              <div className="grid gap-4 md:grid-cols-2">
+                                <Field label={t("নোটিশ টেক্সট (বাংলা)", "Notice text (Bangla)")}>
+                                  <textarea
+                                    value={item.textBn}
+                                    onChange={(event) => updateRunningNotice(item.id, "textBn", event.target.value)}
+                                    className="min-h-[110px] w-full rounded-lg border border-input bg-background px-4 py-3 font-bengali text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                  />
+                                </Field>
+                                <Field label={t("Notice text (English)", "Notice text (English)")}>
+                                  <textarea
+                                    value={item.textEn}
+                                    onChange={(event) => updateRunningNotice(item.id, "textEn", event.target.value)}
+                                    className="min-h-[110px] w-full rounded-lg border border-input bg-background px-4 py-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                  />
+                                </Field>
+                              </div>
+
+                              <div className="grid gap-4 md:grid-cols-[1fr_180px_130px]">
+                                <Field label={t("লিংক", "Link")}>
+                                  <div className="relative">
+                                    <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                    <input
+                                      value={item.link || ""}
+                                      onChange={(event) => updateRunningNotice(item.id, "link", event.target.value)}
+                                      className="h-11 w-full rounded-lg border border-input bg-background pl-10 pr-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                      placeholder="/notices অথবা https://..."
+                                    />
+                                  </div>
+                                </Field>
+                                <Field label={t("প্রকাশের তারিখ", "Publish date")}>
+                                  <input
+                                    type="date"
+                                    value={item.publishDate}
+                                    onChange={(event) => updateRunningNotice(item.id, "publishDate", event.target.value)}
+                                    className="h-11 w-full rounded-lg border border-input bg-background px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                  />
+                                </Field>
+                                <Field label={t("Priority", "Priority")}>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    value={item.priority}
+                                    onChange={(event) => updateRunningNotice(item.id, "priority", Number(event.target.value) || 1)}
+                                    className="h-11 w-full rounded-lg border border-input bg-background px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                  />
+                                </Field>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </form>
+        </TabsContent>
+      </Tabs>
     </ModuleShell>
   );
 };

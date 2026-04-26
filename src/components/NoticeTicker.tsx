@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { doc, onSnapshot } from "firebase/firestore";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { db } from "@/lib/firebase";
+import { getSiteDateInputValue } from "@/lib/siteDate";
 import {
   getRunningNoticeSettings,
   type RunningNoticeSettings,
@@ -76,7 +77,7 @@ const NoticeTicker = () => {
     () =>
       (settings?.runningNotices ?? [])
         .filter((item) => item.active)
-        .filter((item) => !item.publishDate || item.publishDate <= new Date().toISOString().slice(0, 10))
+        .filter((item) => !item.publishDate || item.publishDate <= getSiteDateInputValue())
         .sort((a, b) => a.priority - b.priority || a.publishDate.localeCompare(b.publishDate))
         .map((item) => ({
           key: item.id,
