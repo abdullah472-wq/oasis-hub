@@ -58,8 +58,7 @@ export const createAttendanceRow = (
 ): AttendanceSheetRowInput => ({
   recordId: record?.id,
   studentId: student.studentId,
-  guardianUid: student.guardianUid?.trim() || record?.guardianUid?.trim() || "",
-  guardianName: student.guardianName,
+  guardianName: student.guardianName || record?.guardianName || "",
   guardianPhone: student.guardianPhone,
   studentName: student.studentName,
   className: student.className,
@@ -128,7 +127,7 @@ export const calculateAttendanceSheetSummary = (rows: AttendanceSheetRowInput[])
     rows.map((item) => ({
       id: item.recordId ?? `${item.studentId}-${item.date}`,
       studentId: item.studentId,
-      guardianUid: item.guardianUid,
+      guardianName: item.guardianName,
       studentName: item.studentName,
       className: item.className,
       section: item.section,

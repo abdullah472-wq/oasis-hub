@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { ArrowDownToLine, ArrowRight, BellRing, BookCopy, CalendarDays, MoreVertical, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -298,8 +299,18 @@ const DashboardOverview = ({ user, stats, notices, events, reviews, activityFeed
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-3">
+    <motion.div
+      className="space-y-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div
+        className="grid gap-6 lg:grid-cols-3"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
         <Card className="rounded-3xl border-border/60 bg-white/95 lg:col-span-2">
           <CardHeader className="space-y-3">
             <div className="flex items-start justify-between gap-3">
@@ -381,35 +392,85 @@ const DashboardOverview = ({ user, stats, notices, events, reviews, activityFeed
             <div className="space-y-2">
               {feePieData.map((item) => (
                 <LegendRow key={item.label} label={item.label} value={item.value} color={item.color} />
-              ))}
+                ))}
             </div>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {statCards.map((card) => {
+      <motion.div
+        className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: { opacity: 0 },
+          visible: {
+            opacity: 1,
+            transition: {
+              staggerChildren: 0.1,
+              delayChildren: 0.3,
+            },
+          },
+        }}
+      >
+        {statCards.map((card, index) => {
           const Icon = card.icon;
 
           return (
-            <Card key={card.key} className="rounded-3xl border-border/60 bg-white/95 shadow-[0_20px_60px_-40px_rgba(16,24,40,0.35)]">
-              <CardContent className="flex items-start justify-between p-6">
-                <div className="space-y-2">
-                  <p className="font-bengali text-sm text-muted-foreground">{t(card.titleBn, card.titleEn)}</p>
-                  <h3 className="font-display text-3xl font-semibold text-foreground">{card.value}</h3>
-                  <p className="font-bengali text-xs text-muted-foreground">{t(card.descriptionBn, card.descriptionEn)}</p>
-                </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <Icon className="h-5 w-5" />
-                </div>
-              </CardContent>
-            </Card>
+            <motion.div
+              key={card.key}
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              transition={{ duration: 0.4, delay: index * 0.05 }}
+            >
+              <Card className="rounded-3xl border-border/60 bg-white/95 shadow-[0_20px_60px_-40px_rgba(16,24,40,0.35)] hover:shadow-[0_20px_60px_-40px_rgba(16,24,40,0.45)] transition-all duration-300">
+                <CardContent className="flex items-start justify-between p-6">
+                  <div className="space-y-2">
+                    <p className="font-bengali text-sm text-muted-foreground">{t(card.titleBn, card.titleEn)}</p>
+                    <motion.h3
+                      className="font-display text-3xl font-semibold text-foreground"
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ duration: 0.4, delay: 0.5 + index * 0.05, type: "spring", stiffness: 100 }}
+                    >
+                      {card.value}
+                    </motion.h3>
+                    <p className="font-bengali text-xs text-muted-foreground">{t(card.descriptionBn, card.descriptionEn)}</p>
+                  </div>
+                  <motion.div
+                    className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ duration: 0.4, delay: 0.4 + index * 0.05, type: "spring" }}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.3fr_0.9fr]">
-        <Card className="rounded-3xl border-border/60 bg-white/95 shadow-[0_20px_60px_-40px_rgba(16,24,40,0.35)]">
+      <motion.div
+        className="grid gap-6 xl:grid-cols-[1.3fr_0.9fr]"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: { opacity: 0 },
+          visible: {
+            opacity: 1,
+            transition: {
+              staggerChildren: 0.1,
+              delayChildren: 0.5,
+            },
+          },
+        }}
+      >
+        <motion.div variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }}>
+          <Card className="rounded-3xl border-border/60 bg-white/95 shadow-[0_20px_60px_-40px_rgba(16,24,40,0.35)]">
           <CardHeader className="flex flex-row items-start justify-between gap-4">
             <div>
               <CardTitle className="font-bengali text-xl">{t("দ্রুত অ্যাকশন", "Quick Actions")}</CardTitle>
@@ -435,75 +496,110 @@ const DashboardOverview = ({ user, stats, notices, events, reviews, activityFeed
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border-border/60 bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-[0_20px_60px_-40px_rgba(13,87,73,0.65)]">
-          <CardHeader>
-            <CardTitle className="font-bengali text-xl">{t("অপারেশন স্ন্যাপশট", "Operation Snapshot")}</CardTitle>
-            <CardDescription className="font-bengali text-primary-foreground/75">{t("ম্যানেজার, রিভিউ এবং কনটেন্ট অপারেশনের বর্তমান অবস্থা", "Live status of managers, reviews, and content operations")}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <SnapshotRow label={t("সক্রিয় ম্যানেজার", "Active Managers")} value={String(stats.activeManagers)} />
-            <SnapshotRow label={t("পেন্ডিং ভর্তি", "Pending Admissions")} value={String(stats.pendingAdmissions)} />
-            <SnapshotRow label={t("গার্ডিয়ান রিকোয়েস্ট", "Guardian Requests")} value={String(stats.pendingGuardianRequests)} />
-            <SnapshotRow label={t("অপেক্ষমান রিভিউ", "Pending Reviews")} value={String(stats.pendingReviews)} />
-            <SnapshotRow label={t("প্রকাশিত নোটিশ", "Published Notices")} value={String(stats.totalNotices)} />
-            <SnapshotRow label={t("প্রকাশিত সংবাদ", "Published News")} value={String(stats.totalNews)} />
-          </CardContent>
-        </Card>
-      </div>
+<motion.div variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }}>
+          <Card className="rounded-3xl border-border/60 bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-[0_20px_60px_-40px_rgba(13,87,73,0.65)]">
+            <CardHeader>
+              <CardTitle className="font-bengali text-xl">{t("অপারেশন স্ন্যাপশট", "Operation Snapshot")}</CardTitle>
+              <CardDescription className="font-bengali text-primary-foreground/75">{t("ম্যানেজার, রিভিউ এবং কনটেন্ট অপারেশনের বর্তমান অবস্থা", "Live status of managers, reviews, and content operations")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <SnapshotRow label={t("সক্রিয় ম্যানেজার", "Active Managers")} value={String(stats.activeManagers)} />
+              <SnapshotRow label={t("পেন্ডিং ভর্তি", "Pending Admissions")} value={String(stats.pendingAdmissions)} />
+              <SnapshotRow label={t("গার্ডিয়ান রিকোয়েস্ট", "Guardian Requests")} value={String(stats.pendingGuardianRequests)} />
+              <SnapshotRow label={t("অপেক্ষমান রিভিউ", "Pending Reviews")} value={String(stats.pendingReviews)} />
+              <SnapshotRow label={t("প্রকাশিত নোটিশ", "Published Notices")} value={String(stats.totalNotices)} />
+              <SnapshotRow label={t("প্রকাশিত সংবাদ", "Published News")} value={String(stats.totalNews)} />
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
+      </motion.div>
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <Card className="rounded-3xl border-border/60 bg-white/95 xl:col-span-1">
-          <CardHeader>
-            <CardTitle className="font-bengali text-lg">{t("সাম্প্রতিক নোটিশ", "Latest Notices")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {latestNotices.length === 0 ? (
-              <p className="font-bengali text-sm text-muted-foreground">{t("এখনও কোনো নোটিশ নেই", "No notices yet")}</p>
-            ) : (
-              latestNotices.map((item) => (
-                <div key={item.id} className="rounded-2xl border border-border/60 bg-background px-4 py-3">
-                  <p className="font-bengali text-sm font-medium text-foreground">{item.titleBn}</p>
-                  <p className="text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleString("bn-BD")}</p>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+      <motion.div
+        className="grid gap-6 xl:grid-cols-3"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: { opacity: 0 },
+          visible: {
+            opacity: 1,
+            transition: {
+              staggerChildren: 0.15,
+              delayChildren: 0.7,
+            },
+          },
+        }}
+      >
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+          <Card className="rounded-3xl border-border/60 bg-white/95 xl:col-span-1">
+            <CardHeader>
+              <CardTitle className="font-bengali text-lg">{t("সাম্প্রতিক নোটিশ", "Latest Notices")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {latestNotices.length === 0 ? (
+                <p className="font-bengali text-sm text-muted-foreground">{t("এখনও কোনো নোটিশ নেই", "No notices yet")}</p>
+              ) : (
+                latestNotices.map((item, index) => (
+                  <motion.div
+                    key={item.id}
+                    className="rounded-2xl border border-border/60 bg-background px-4 py-3"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.8 + index * 0.05 }}
+                  >
+                    <p className="font-bengali text-sm font-medium text-foreground">{item.titleBn}</p>
+                    <p className="text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleString("bn-BD")}</p>
+                  </motion.div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card className="rounded-3xl border-border/60 bg-white/95 xl:col-span-1">
-          <CardHeader>
-            <CardTitle className="font-bengali text-lg">{t("সাম্প্রতিক কার্যক্রম", "Recent Activity")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {activityFeed.length === 0 ? (
-              <p className="font-bengali text-sm text-muted-foreground">{t("এখনও কোনো কার্যক্রম লগ নেই", "No activity logged yet")}</p>
-            ) : (
-              activityFeed.slice(0, 5).map((item) => (
-                <div key={item.id} className="rounded-2xl border border-border/60 bg-background px-4 py-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-bengali text-sm font-medium">{item.title}</p>
-                    <Badge variant="secondary" className="rounded-full">{item.module}</Badge>
-                  </div>
-                  <p className="mt-1 font-bengali text-xs text-muted-foreground">{item.detail}</p>
-                  <p className="mt-2 text-[11px] text-muted-foreground">{new Date(item.createdAt).toLocaleString("bn-BD")}</p>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+          <Card className="rounded-3xl border-border/60 bg-white/95 xl:col-span-1">
+            <CardHeader>
+              <CardTitle className="font-bengali text-lg">{t("সাম্প্রতিক কার্যক্রম", "Recent Activity")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {activityFeed.length === 0 ? (
+                <p className="font-bengali text-sm text-muted-foreground">{t("এখনও কোনো কার্যক্রম লগ নেই", "No activity logged yet")}</p>
+              ) : (
+                activityFeed.slice(0, 5).map((item, index) => (
+                  <motion.div
+                    key={item.id}
+                    className="rounded-2xl border border-border/60 bg-background px-4 py-3"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.8 + index * 0.05 }}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-bengali text-sm font-medium">{item.title}</p>
+                      <Badge variant="secondary" className="rounded-full">{item.module}</Badge>
+                    </div>
+                    <p className="mt-1 font-bengali text-xs text-muted-foreground">{item.detail}</p>
+                    <p className="mt-2 text-[11px] text-muted-foreground">{new Date(item.createdAt).toLocaleString("bn-BD")}</p>
+                  </motion.div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card className="rounded-3xl border-border/60 bg-white/95 xl:col-span-1">
-          <CardHeader>
-            <CardTitle className="font-bengali text-lg">{t("অপেক্ষমান কিউ", "Pending Queue")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <QueueBlock title={t("রিভিউ অনুমোদন", "Review Approval")} items={pendingReviews.map((item) => item.name)} icon={<BookCopy className="h-4 w-4" />} />
-            <QueueBlock title={t("আসন্ন ইভেন্ট", "Upcoming Events")} items={latestEvents.map((item) => item.titleBn)} icon={<CalendarDays className="h-4 w-4" />} />
-            <QueueBlock title={t("সাম্প্রতিক নোটিশ", "Recent Notices")} items={latestNotices.map((item) => item.titleBn)} icon={<BellRing className="h-4 w-4" />} />
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+          <Card className="rounded-3xl border-border/60 bg-white/95 xl:col-span-1">
+            <CardHeader>
+              <CardTitle className="font-bengali text-lg">{t("অপেক্ষমান কিউ", "Pending Queue")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <QueueBlock title={t("রিভিউ অনুমোদন", "Review Approval")} items={pendingReviews.map((item) => item.name)} icon={<BookCopy className="h-4 w-4" />} />
+              <QueueBlock title={t("আসন্ন ইভেন্ট", "Upcoming Events")} items={latestEvents.map((item) => item.titleBn)} icon={<CalendarDays className="h-4 w-4" />} />
+              <QueueBlock title={t("সাম্প্রতিক নোটিশ", "Recent Notices")} items={latestNotices.map((item) => item.titleBn)} icon={<BellRing className="h-4 w-4" />} />
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 };
 
@@ -515,117 +611,188 @@ const SnapshotRow = ({ label, value }: { label: string; value: string }) => (
 );
 
 const MiniEngagementLineChart = ({
-  points,
-}: {
-  points: EngagementChartPoint[];
-}) => {
-  const width = Math.max(360, points.length * 28);
-  const height = 180;
-  const max = Math.max(
-    ...points.map((point) => Math.max(point.websiteVisitors, point.appOpens)),
-    1,
-  );
-  const stepX = points.length > 1 ? width / (points.length - 1) : width;
-  const websiteLinePoints = points
-    .map((point, index) => {
-      const x = index * stepX;
-      const y = height - (point.websiteVisitors / max) * (height - 20) - 10;
-      return `${x},${y}`;
-    })
-    .join(" ");
-  const appLinePoints = points
-    .map((point, index) => {
-      const x = index * stepX;
-      const y = height - (point.appOpens / max) * (height - 20) - 10;
-      return `${x},${y}`;
-    })
-    .join(" ");
+   points,
+ }: {
+   points: EngagementChartPoint[];
+ }) => {
+   const width = Math.max(360, points.length * 28);
+   const height = 180;
+   const max = Math.max(
+     ...points.map((point) => Math.max(point.websiteVisitors, point.appOpens)),
+     1,
+   );
+   const stepX = points.length > 1 ? width / (points.length - 1) : width;
+   const websiteLinePoints = points
+     .map((point, index) => {
+       const x = index * stepX;
+       const y = height - (point.websiteVisitors / max) * (height - 20) - 10;
+       return `${x},${y}`;
+     })
+     .join(" ");
+   const appLinePoints = points
+     .map((point, index) => {
+       const x = index * stepX;
+       const y = height - (point.appOpens / max) * (height - 20) - 10;
+       return `${x},${y}`;
+     })
+     .join(" ");
 
-  return (
-    <div className="space-y-3">
-      <div className="overflow-x-auto pb-1">
-        <div style={{ minWidth: `${width}px` }}>
-          <svg viewBox={`0 0 ${width} ${height}`} className="h-48 w-full rounded-2xl bg-muted/30 p-2">
-            <polyline fill="none" stroke="hsl(var(--primary))" strokeWidth="3" points={websiteLinePoints} strokeLinejoin="round" strokeLinecap="round" />
-            <polyline fill="none" stroke="#f59e0b" strokeWidth="3" points={appLinePoints} strokeLinejoin="round" strokeLinecap="round" />
-            {points.map((point, index) => {
-              const x = index * stepX;
-              const websiteY = height - (point.websiteVisitors / max) * (height - 20) - 10;
-              const appY = height - (point.appOpens / max) * (height - 20) - 10;
-              return (
-                <g key={`${point.label}-${index}`}>
-                  <circle cx={x} cy={websiteY} r="3.5" fill="hsl(var(--primary))" />
-                  <circle cx={x} cy={appY} r="3.5" fill="#f59e0b" />
-                </g>
-              );
-            })}
-          </svg>
-        </div>
-      </div>
-      <div className="flex items-center justify-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-primary" />
-          <span className="font-bengali text-xs text-muted-foreground">Website Visitors</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-          <span className="font-bengali text-xs text-muted-foreground">App Opens</span>
-        </div>
-      </div>
-      <div className="overflow-x-auto pb-1">
-        <div
-          className="grid gap-1"
-          style={{
-            minWidth: `${width}px`,
-            gridTemplateColumns: `repeat(${Math.max(points.length, 1)}, minmax(0, 1fr))`,
-          }}
-        >
-          {points.map((point) => (
-            <div key={point.key} className="min-w-0 text-center">
-              <p className="font-bengali text-[10px] text-muted-foreground">{point.label}</p>
-              <p className="font-display text-[11px] font-semibold text-foreground">
-                {point.websiteVisitors}/{point.appOpens}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+   return (
+     <div className="space-y-3">
+       <div className="overflow-x-auto pb-1">
+         <div style={{ minWidth: `${width}px` }}>
+           <svg viewBox={`0 0 ${width} ${height}`} className="h-48 w-full rounded-2xl bg-muted/30 p-2">
+             <motion.polyline
+               fill="none"
+               stroke="hsl(var(--primary))"
+               strokeWidth="3"
+               points={websiteLinePoints}
+               strokeLinejoin="round"
+               strokeLinecap="round"
+               initial={{ pathLength: 0, opacity: 0 }}
+               animate={{ pathLength: 1, opacity: 1 }}
+               transition={{ duration: 1.5, ease: "easeInOut" }}
+             />
+             <motion.polyline
+               fill="none"
+               stroke="#f59e0b"
+               strokeWidth="3"
+               points={appLinePoints}
+               strokeLinejoin="round"
+               strokeLinecap="round"
+               initial={{ pathLength: 0, opacity: 0 }}
+               animate={{ pathLength: 1, opacity: 1 }}
+               transition={{ duration: 1.5, ease: "easeInOut", delay: 0.3 }}
+             />
+             {points.map((point, index) => {
+               const x = index * stepX;
+               const websiteY = height - (point.websiteVisitors / max) * (height - 20) - 10;
+               const appY = height - (point.appOpens / max) * (height - 20) - 10;
+               return (
+                 <g key={`${point.label}-${index}`}>
+                   <motion.circle
+                     cx={x}
+                     cy={websiteY}
+                     r="3.5"
+                     fill="hsl(var(--primary))"
+                     initial={{ scale: 0, opacity: 0 }}
+                     animate={{ scale: 1, opacity: 1 }}
+                     transition={{ duration: 0.3, delay: 0.8 + index * 0.05 }}
+                   />
+                   <motion.circle
+                     cx={x}
+                     cy={appY}
+                     r="3.5"
+                     fill="#f59e0b"
+                     initial={{ scale: 0, opacity: 0 }}
+                     animate={{ scale: 1, opacity: 1 }}
+                     transition={{ duration: 0.3, delay: 1.1 + index * 0.05 }}
+                   />
+                 </g>
+               );
+             })}
+           </svg>
+         </div>
+       </div>
+       <div className="flex items-center justify-center gap-4">
+         <div className="flex items-center gap-2">
+           <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+           <span className="font-bengali text-xs text-muted-foreground">Website Visitors</span>
+         </div>
+         <div className="flex items-center gap-2">
+           <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+           <span className="font-bengali text-xs text-muted-foreground">App Opens</span>
+         </div>
+       </div>
+       <div className="overflow-x-auto pb-1">
+         <div
+           className="grid gap-1"
+           style={{
+             minWidth: `${width}px`,
+             gridTemplateColumns: `repeat(${Math.max(points.length, 1)}, minmax(0, 1fr))`,
+           }}
+         >
+           {points.map((point, index) => (
+             <motion.div
+               key={point.key}
+               className="min-w-0 text-center"
+               initial={{ opacity: 0, y: 10 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.3, delay: 1.5 + index * 0.05 }}
+             >
+               <p className="font-bengali text-[10px] text-muted-foreground">{point.label}</p>
+               <p className="font-display text-[11px] font-semibold text-foreground">
+                 {point.websiteVisitors}/{point.appOpens}
+               </p>
+             </motion.div>
+           ))}
+         </div>
+       </div>
+     </div>
+   );
 };
 
 const MiniPieChart = ({ slices }: { slices: { label: string; value: number; color: string }[] }) => {
-  const total = Math.max(slices.reduce((sum, item) => sum + item.value, 0), 1);
-  let cumulative = 0;
+   const total = Math.max(slices.reduce((sum, item) => sum + item.value, 0), 1);
+   let cumulative = 0;
 
-  return (
-    <div className="flex items-center justify-center">
-      <svg viewBox="0 0 42 42" className="h-40 w-40">
-        <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke="hsl(var(--muted))" strokeWidth="7" />
-        {slices.map((slice) => {
-          const fraction = (slice.value / total) * 100;
-          const segment = (
-            <circle
-              key={slice.label}
-              cx="21"
-              cy="21"
-              r="15.9155"
-              fill="transparent"
-              stroke={slice.color}
-              strokeWidth="7"
-              strokeDasharray={`${fraction} ${100 - fraction}`}
-              strokeDashoffset={-cumulative}
-              transform="rotate(-90 21 21)"
-            />
-          );
-          cumulative += fraction;
-          return segment;
-        })}
-        <text x="21" y="20" textAnchor="middle" className="fill-foreground text-[4px] font-semibold">{total}</text>
-        <text x="21" y="25" textAnchor="middle" className="fill-muted-foreground text-[2.5px]">Pending</text>
-      </svg>
-    </div>
-  );
+   return (
+     <div className="flex items-center justify-center">
+       <motion.svg
+         viewBox="0 0 42 42"
+         className="h-40 w-40"
+         initial={{ scale: 0, rotate: -180, opacity: 0 }}
+         animate={{ scale: 1, rotate: 0, opacity: 1 }}
+         transition={{ duration: 0.6, ease: "backOut" }}
+       >
+         <circle cx="21" cy="21" r="15.9155" fill="transparent" stroke="hsl(var(--muted))" strokeWidth="7" />
+         {slices.map((slice, index) => {
+           const fraction = (slice.value / total) * 100;
+           const currentOffset = -cumulative;
+           cumulative += fraction;
+           return (
+             <motion.circle
+               key={slice.label}
+               cx="21"
+               cy="21"
+               r="15.9155"
+               fill="transparent"
+               stroke={slice.color}
+               strokeWidth="7"
+               strokeDasharray={`${fraction} ${100 - fraction}`}
+               strokeDashoffset={currentOffset}
+               transform="rotate(-90 21 21)"
+               initial={{ strokeDasharray: `0 ${100}` }}
+               animate={{ strokeDasharray: `${fraction} ${100 - fraction}` }}
+               transition={{ duration: 1, delay: 0.3 + index * 0.2, ease: "easeOut" }}
+             />
+           );
+         })}
+         <motion.text
+           x="21"
+           y="20"
+           textAnchor="middle"
+           className="fill-foreground text-[4px] font-semibold"
+           initial={{ scale: 0 }}
+           animate={{ scale: 1 }}
+           transition={{ duration: 0.3, delay: 1 }}
+         >
+           {total}
+         </motion.text>
+         <motion.text
+           x="21"
+           y="25"
+           textAnchor="middle"
+           className="fill-muted-foreground text-[2.5px]"
+           initial={{ opacity: 0 }}
+           animate={{ opacity: 1 }}
+           transition={{ duration: 0.3, delay: 1.2 }}
+         >
+           Pending
+         </motion.text>
+       </motion.svg>
+     </div>
+   );
 };
 
 const LegendRow = ({ label, value, color }: { label: string; value: number; color: string }) => (

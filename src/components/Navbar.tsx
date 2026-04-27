@@ -237,7 +237,7 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-primary/10 bg-background/95 backdrop-blur-md">
+    <nav className="sticky top-0 z-50 border-b border-primary/10 backdrop-blur-md">
       <div className="container mx-auto px-4 pb-3 pt-4">
         <div className="flex items-center justify-between lg:hidden">
           <Link to="/" className="flex items-center gap-3">
@@ -285,7 +285,7 @@ const Navbar = () => {
           </motion.div>
 
           <div className={`relative ${isCompact ? "mt-0" : "mt-5"} flex justify-center`}>
-            <div className="flex items-center gap-3 rounded-full border border-white/55 bg-white/65 px-3 py-2 shadow-[0_20px_45px_rgba(15,23,42,0.12)] ring-1 ring-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/60">
+            <div className="flex items-center gap-3 rounded-full border border-white/55 px-3 py-2 shadow-[0_20px_45px_rgba(15,23,42,0.12)] ring-1 ring-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/60">
               {isCompact && (
                 <>
                   <div className="hidden xl:flex items-center gap-3 pl-1">

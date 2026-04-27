@@ -23,10 +23,9 @@ const AttendanceSheet = ({ rows, onStatusChange, onRemarkChange }: AttendanceShe
           </div>
         ) : (
           <Table>
-            <TableHeader>
+<TableHeader>
               <TableRow>
                 <TableHead>{t("শিক্ষার্থী", "Student")}</TableHead>
-                <TableHead>{t("গার্ডিয়ান", "Guardian")}</TableHead>
                 <TableHead>{t("স্টুডেন্ট আইডি", "Student ID")}</TableHead>
                 <TableHead>{t("স্ট্যাটাস", "Status")}</TableHead>
                 <TableHead>{t("মন্তব্য", "Remark")}</TableHead>

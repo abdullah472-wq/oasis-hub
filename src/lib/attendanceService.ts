@@ -21,7 +21,7 @@ export type AttendanceStatus = "present" | "absent" | "late" | "leave";
 export interface AttendanceRecord {
   id: string;
   studentId: string;
-  guardianUid: string;
+  guardianName: string;
   studentName: string;
   className: string;
   section: string;
@@ -36,10 +36,7 @@ export interface AttendanceRecord {
 }
 
 export interface AttendanceSheetRowInput
-  extends Pick<
-    StudentRecord,
-    "studentId" | "guardianUid" | "studentName" | "className" | "section" | "roll" | "guardianName" | "guardianPhone"
-  > {
+  extends Pick<StudentRecord, "studentId" | "studentName" | "className" | "section" | "roll" | "guardianName" | "guardianPhone"> {
   recordId?: string;
   date: string;
   status: AttendanceStatus;
@@ -63,7 +60,7 @@ const toAttendanceRecord = (snapshot: QueryDocumentSnapshot<DocumentData>): Atte
   return {
     id: snapshot.id,
     studentId: String(data.studentId ?? ""),
-    guardianUid: String(data.guardianUid ?? ""),
+    guardianName: String(data.guardianName ?? ""),
     studentName: String(data.studentName ?? ""),
     className: String(data.className ?? ""),
     section: String(data.section ?? ""),
@@ -85,24 +82,24 @@ export const listAttendanceRecords = async (): Promise<AttendanceRecord[]> => {
   return snapshot.docs.map(toAttendanceRecord);
 };
 
-export const listGuardianAttendanceRecords = async (guardianUid: string): Promise<AttendanceRecord[]> => {
-  if (!guardianUid.trim()) return [];
-  const snapshot = await getDocs(query(collection(db, ATTENDANCE_COLLECTION), where("guardianUid", "==", guardianUid.trim())));
+export const listGuardianAttendanceRecords = async (guardianName: string): Promise<AttendanceRecord[]> => {
+  if (!guardianName.trim()) return [];
+  const snapshot = await getDocs(query(collection(db, ATTENDANCE_COLLECTION), where("guardianName", "==", guardianName.trim())));
   return snapshot.docs.map(toAttendanceRecord).sort((a, b) => b.date.localeCompare(a.date) || b.updatedAt - a.updatedAt);
 };
 
 export const subscribeGuardianAttendanceRecords = (
-  guardianUid: string,
+  guardianName: string,
   callback: (items: AttendanceRecord[]) => void,
 ) => {
-  const normalizedGuardianUid = guardianUid.trim();
-  if (!normalizedGuardianUid) {
+  const normalizedGuardianName = guardianName.trim();
+  if (!normalizedGuardianName) {
     callback([]);
     return () => undefined;
   }
 
   return onSnapshot(
-    query(collection(db, ATTENDANCE_COLLECTION), where("guardianUid", "==", normalizedGuardianUid)),
+    query(collection(db, ATTENDANCE_COLLECTION), where("guardianName", "==", normalizedGuardianName)),
     (snapshot) => {
       const items = snapshot.docs
         .map(toAttendanceRecord)
@@ -119,10 +116,10 @@ export const saveAttendanceSheet = async (rows: AttendanceSheetRowInput[], marke
   const sanitizedRows = rows.map((row) => {
     const id = row.recordId || buildAttendanceRecordId(row.studentId, row.date);
     const docRef = doc(db, ATTENDANCE_COLLECTION, id);
-    const guardianUid = String(row.guardianUid ?? "").trim();
+    const guardianName = row.guardianName?.trim() || "";
     const payload = {
       studentId: row.studentId,
-      guardianUid,
+      guardianName,
       studentName: row.studentName.trim(),
       className: row.className.trim(),
       section: row.section.trim(),
@@ -141,7 +138,7 @@ export const saveAttendanceSheet = async (rows: AttendanceSheetRowInput[], marke
     return {
       id,
       studentId: payload.studentId,
-      guardianUid: payload.guardianUid,
+      guardianName: payload.guardianName,
       studentName: payload.studentName,
       className: payload.className,
       section: payload.section,

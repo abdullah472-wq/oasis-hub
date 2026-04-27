@@ -24,10 +24,7 @@ const AttendanceRow = ({ row, onStatusChange, onRemarkChange }: AttendanceRowPro
           {row.section ? ` • ${row.section}` : ""}
         </p>
       </TableCell>
-      <TableCell className="space-y-1">
-        <p className="font-bengali text-sm font-medium text-foreground">{row.guardianName || "--"}</p>
-        <p className="font-bengali text-xs text-muted-foreground">{row.guardianPhone || row.guardianUid || "--"}</p>
-      </TableCell>
+
       <TableCell className="font-display text-sm font-semibold">{row.studentId || "--"}</TableCell>
       <TableCell>
         <div className="flex flex-wrap gap-2">

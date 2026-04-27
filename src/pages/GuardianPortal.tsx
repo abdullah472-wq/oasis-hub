@@ -62,12 +62,12 @@ const GuardianPortal = () => {
     return unsubscribe;
   }, [currentUser]);
 
-  useEffect(() => {
-    if (!currentUser || currentUser.role !== "guardian" || currentUser.status !== "active" || !data?.guardianProfile.studentId) {
+useEffect(() => {
+    if (!currentUser || currentUser.role !== "guardian" || currentUser.status !== "active" || !data?.guardianProfile.fullName) {
       return;
     }
 
-    const unsubscribe = subscribeGuardianAttendanceRecords(currentUser.uid, (items) => {
+    const unsubscribe = subscribeGuardianAttendanceRecords(data.guardianProfile.fullName, (items) => {
       setData((current) => {
         if (!current) return current;
 
@@ -91,7 +91,7 @@ const GuardianPortal = () => {
     });
 
     return unsubscribe;
-  }, [currentUser, data?.guardianProfile.studentId]);
+  }, [currentUser, data?.guardianProfile.fullName, data?.guardianProfile.studentId]);
 
   if (authLoading) {
     return (
