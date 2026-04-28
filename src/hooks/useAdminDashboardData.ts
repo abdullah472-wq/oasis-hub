@@ -38,9 +38,16 @@ import {
   type FeeEntryUpdateInput,
 } from "@/lib/feeEntries";
 import { buildFeeEntryUpdatePayload, buildFeeStudentOptions, calculateFeeSummary } from "@/lib/feeHelpers";
-import { listAttendanceRecords, saveAttendanceSheet, type AttendanceRecord, type AttendanceSheetRowInput } from "@/lib/attendanceService";
+import { deleteAttendanceRecord, listAttendanceRecords, saveAttendanceSheet, type AttendanceRecord, type AttendanceSheetRowInput } from "@/lib/attendanceService";
 import { calculateAttendanceMonthlySummary } from "@/lib/attendanceHelpers";
-import { listStudents, type StudentRecord } from "@/lib/students";
+import {
+  deleteGuardianProfileRecord,
+  deleteGuardianUserRecord,
+  deleteStudentGuardianLink,
+  deleteStudentRecord,
+  listStudents,
+  type StudentRecord,
+} from "@/lib/students";
 import {
   deleteRamadanSponsor,
   listRamadanSponsorRequests,
@@ -594,6 +601,60 @@ export const useAdminDashboardData = (enabled = true) => {
     appendActivity("Guardian request removed", "A guardian request was deleted", "guardianRequests");
   };
 
+  const removeStudentItem = async (student: StudentRecord) => {
+    const studentId = student.studentId.trim();
+    const guardianUid = student.guardianUid.trim();
+    const siblingCount = guardianUid
+      ? attendanceStudents.filter((item) => item.guardianUid.trim() === guardianUid).length
+      : 0;
+
+    const relatedFeeEntries = feeEntries.filter((item) => item.studentId === studentId);
+    const relatedAttendanceRecords = attendanceRecords.filter((item) => item.studentId === studentId);
+    const relatedGuardianRequests = guardianRequests.filter(
+      (item) => item.studentId === studentId || (guardianUid && item.guardianUid === guardianUid),
+    );
+    const relatedResults = results.filter((item) => item.studentId === studentId);
+    const relatedAdmissions = admissions.filter((item) => item.id === studentId);
+    const relatedRamadanRequests = ramadanRequests.filter((item) => item.studentId === studentId);
+
+    await Promise.all([
+      ...relatedFeeEntries.map((item) => deleteFeeEntry(item.id)),
+      ...relatedAttendanceRecords.map((item) => deleteAttendanceRecord(item.id)),
+      ...relatedGuardianRequests.map((item) => deleteGuardianRequest(item.id)),
+      ...relatedResults.filter((item): item is Result & { id: string } => Boolean(item.id)).map((item) => deleteResult(item.id!)),
+      ...relatedAdmissions.filter((item): item is AdmissionForm & { id: string } => Boolean(item.id)).map((item) => deleteAdmission(item.id!)),
+      ...relatedRamadanRequests.filter((item): item is RamadanSponsor & { id: string } => Boolean(item.id)).map((item) => deleteRamadanSponsor(item.id!)),
+      deleteStudentRecord(studentId).catch(() => undefined),
+      deleteStudentGuardianLink(studentId).catch(() => undefined),
+    ]);
+
+    if (guardianUid && siblingCount <= 1) {
+      await Promise.all([
+        deleteGuardianProfileRecord(guardianUid).catch(() => undefined),
+        deleteGuardianUserRecord(guardianUid).catch(() => undefined),
+      ]);
+    }
+
+    setFeeEntries((current) => current.filter((item) => item.studentId !== studentId));
+    setAttendanceRecords((current) => current.filter((item) => item.studentId !== studentId));
+    setGuardianRequests((current) =>
+      current.filter((item) => item.studentId !== studentId && (!guardianUid || item.guardianUid !== guardianUid)),
+    );
+    setResults((current) => current.filter((item) => item.studentId !== studentId));
+    setAdmissions((current) => current.filter((item) => item.id !== studentId));
+    setRamadanRequests((current) => current.filter((item) => item.studentId !== studentId));
+    setAttendanceStudents((current) => current.filter((item) => item.studentId !== studentId));
+
+    appendActivity("Student removed", `${student.studentName || studentId} deleted`, "students");
+    notifySaved("শিক্ষার্থীর সংশ্লিষ্ট তথ্য মুছে ফেলা হয়েছে", "Student-related data deleted");
+
+    if (guardianUid && siblingCount <= 1) {
+      toast.message(
+        "Guardian app documents were removed. Firebase Auth login may still need manual cleanup.",
+      );
+    }
+  };
+
   const saveSettingsItem = (nextSettings: DashboardSettings) => {
     setSettings(nextSettings);
     saveDashboardSettings(nextSettings);
@@ -716,6 +777,7 @@ export const useAdminDashboardData = (enabled = true) => {
       updateFeePaymentItem,
       removeFeeEntryItem,
       saveAttendanceSheetItems,
+      removeStudentItem,
       saveGuardianRequestItem,
       createGuardianAccountItem,
       removeGuardianRequestItem,

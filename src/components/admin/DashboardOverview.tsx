@@ -496,7 +496,9 @@ const DashboardOverview = ({ user, stats, notices, events, reviews, activityFeed
           </CardContent>
         </Card>
 
-<motion.div variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }}>
+        </motion.div>
+
+        <motion.div variants={{ hidden: { opacity: 0, x: 20 }, visible: { opacity: 1, x: 0 } }}>
           <Card className="rounded-3xl border-border/60 bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-[0_20px_60px_-40px_rgba(13,87,73,0.65)]">
             <CardHeader>
               <CardTitle className="font-bengali text-xl">{t("অপারেশন স্ন্যাপশট", "Operation Snapshot")}</CardTitle>
@@ -507,12 +509,9 @@ const DashboardOverview = ({ user, stats, notices, events, reviews, activityFeed
               <SnapshotRow label={t("পেন্ডিং ভর্তি", "Pending Admissions")} value={String(stats.pendingAdmissions)} />
               <SnapshotRow label={t("গার্ডিয়ান রিকোয়েস্ট", "Guardian Requests")} value={String(stats.pendingGuardianRequests)} />
               <SnapshotRow label={t("অপেক্ষমান রিভিউ", "Pending Reviews")} value={String(stats.pendingReviews)} />
-              <SnapshotRow label={t("প্রকাশিত নোটিশ", "Published Notices")} value={String(stats.totalNotices)} />
-              <SnapshotRow label={t("প্রকাশিত সংবাদ", "Published News")} value={String(stats.totalNews)} />
             </CardContent>
           </Card>
         </motion.div>
-      </motion.div>
       </motion.div>
 
       <motion.div

@@ -2,6 +2,7 @@
 import { CheckCircle2, Download, Eye, FileText, Printer, UserCheck, Users, Video } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { AdmissionForm } from "@/lib/admission";
+import type { StudentRecord } from "@/lib/students";
 import type { Teacher } from "@/lib/teachers";
 import type { VirtualTour } from "@/lib/virtualTour";
 import type { AttendanceRecord, DashboardSettings, FeeRecord, GuardianRequest } from "@/lib/adminDashboard";
@@ -157,6 +158,230 @@ export const VirtualToursManagerPage = ({
         </CardContent>
       </Card>
     </ModuleShell>
+  );
+};
+
+const inferStudentAvatarVariant = (student: StudentRecord): "boys" | "girls" => {
+  const source = `${student.className} ${student.section}`.toLowerCase();
+
+  if (/(girls|girl|female|balika|বালিকা|ছাত্রী)/.test(source)) return "girls";
+  if (/(boys|boy|male|balok|বালক|ছাত্র)/.test(source)) return "boys";
+
+  const hash = Array.from(student.studentId || student.id).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return hash % 2 === 0 ? "boys" : "girls";
+};
+
+const StudentAvatarCard = ({ variant }: { variant: "boys" | "girls" }) => (
+  <div
+    className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] border shadow-sm sm:h-16 sm:w-16 ${
+      variant === "boys"
+        ? "border-sky-200/80 bg-[linear-gradient(180deg,rgba(224,242,254,0.95),rgba(186,230,253,0.88))] text-sky-700"
+        : "border-rose-200/80 bg-[linear-gradient(180deg,rgba(255,228,230,0.95),rgba(254,205,211,0.9))] text-rose-700"
+    }`}
+  >
+    <svg viewBox="0 0 64 64" className="h-9 w-9 sm:h-10 sm:w-10" fill="none" aria-hidden="true">
+      <circle cx="32" cy="21" r="11" fill="currentColor" opacity="0.18" />
+      <path
+        d={variant === "boys" ? "M20 24c1-8 8-13 12-13s11 5 12 13c-3-2-7-3-12-3s-9 1-12 3Z" : "M18 24c2-9 8-14 14-14s12 5 14 14c-2-3-6-6-14-6s-12 3-14 6Z"}
+        fill="currentColor"
+      />
+      <circle cx="32" cy="25" r="9" fill="white" fillOpacity="0.94" />
+      <path d="M18 53c1-11 7-17 14-17s13 6 14 17H18Z" fill="currentColor" opacity="0.2" />
+      <path
+        d={variant === "boys" ? "M25 41c2-2 4-3 7-3s5 1 7 3l2 10H23l2-10Z" : "M22 42c3-3 6-4 10-4s7 1 10 4l-2 9H24l-2-9Z"}
+        fill="currentColor"
+      />
+    </svg>
+  </div>
+);
+
+export const StudentListPage = ({
+  students,
+  onDelete,
+}: {
+  students: StudentRecord[];
+  onDelete: (student: StudentRecord) => Promise<void>;
+}) => {
+  const { t } = useLanguage();
+  const [query, setQuery] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState<StudentRecord | null>(null);
+  const [deletingId, setDeletingId] = useState("");
+
+  const filteredStudents = useMemo(() => {
+    const keyword = query.trim().toLowerCase();
+    if (!keyword) return students;
+
+    return students.filter((student) =>
+      [
+        student.studentId,
+        student.studentName,
+        student.guardianName || "",
+        student.className,
+        student.section,
+        String(student.roll || ""),
+      ].some((value) => value.toLowerCase().includes(keyword)),
+    );
+  }, [query, students]);
+
+  return (
+    <>
+      <ModuleShell
+        title={t("শিক্ষার্থী তালিকা", "Student List")}
+        description={t(
+          "প্রতি শিক্ষার্থীর আইডি-কার্ড স্টাইল বক্সে নাম, অভিভাবক, শ্রেণি, সেকশন ও রোল একসাথে দেখুন",
+          "View each student in an ID-card style box with name, guardian, class, section, and roll",
+        )}
+        icon={<Users className="h-5 w-5" />}
+      >
+        <Card className={shellCardClass}>
+          <CardContent className="space-y-5 p-6">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary" className="rounded-full px-4 py-1 font-bengali">
+                  {t("মোট শিক্ষার্থী", "Total Students")}: {students.length}
+                </Badge>
+                <Badge variant="outline" className="rounded-full px-4 py-1 font-bengali">
+                  {t("দেখানো হচ্ছে", "Showing")}: {filteredStudents.length}
+                </Badge>
+              </div>
+              <Input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                className="h-11 w-full rounded-2xl lg:max-w-sm"
+                placeholder={t("আইডি, নাম, অভিভাবক বা শ্রেণি দিয়ে খুঁজুন", "Search by ID, name, guardian, or class")}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+              {filteredStudents.length === 0 ? (
+                <EmptyState
+                  text={t("কোনো শিক্ষার্থী পাওয়া যায়নি", "No students found")}
+                  className="sm:col-span-2 xl:col-span-3 2xl:col-span-4"
+                />
+              ) : (
+                filteredStudents.map((student) => {
+                  const variant = inferStudentAvatarVariant(student);
+
+                  return (
+                  <div
+                    key={student.studentId || student.id}
+                    className="relative overflow-hidden rounded-[22px] border border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] p-3 shadow-[0_20px_50px_-38px_rgba(15,23,42,0.45)] sm:rounded-[24px] sm:p-3.5"
+                  >
+                    <div className="absolute inset-x-0 top-0 h-1.5 bg-[linear-gradient(90deg,rgba(14,116,144,0.9),rgba(245,158,11,0.88),rgba(225,29,72,0.85))]" />
+                    <div className="relative flex min-h-[205px] flex-col gap-3 sm:min-h-[220px]">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="rounded-full bg-background/80 px-2.5 py-1 font-bengali text-[10px] text-muted-foreground">
+                          {t("স্টুডেন্ট কার্ড", "Student Card")}
+                        </div>
+                        <DeleteIconButton onClick={() => setSelectedStudent(student)} />
+                      </div>
+
+                      <div className="flex items-start gap-2.5">
+                        <StudentAvatarCard variant={variant} />
+                        <div className="min-w-0 flex-1 space-y-1.5">
+                          <p className="font-bengali text-[11px] leading-5 text-muted-foreground">
+                            {t("নাম", "Name")} :{" "}
+                            <span className="font-semibold text-foreground">
+                              {student.studentName || t("নাম পাওয়া যায়নি", "Name unavailable")}
+                            </span>
+                          </p>
+                          <p className="font-bengali text-[11px] leading-5 text-muted-foreground">
+                            {t("অভিভাবক", "Guardian")} :{" "}
+                            <span className="font-semibold text-foreground">
+                              {student.guardianName || t("তথ্য নেই", "No data")}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-auto rounded-2xl border border-border/60 bg-white/70 px-3 py-3 shadow-sm">
+                        <div className="space-y-1.5 font-bengali text-[11px] leading-5 text-muted-foreground sm:text-xs">
+                          <p>
+                            {t("স্টুডেন্ট আইডি", "Student ID")} :{" "}
+                            <span className="font-semibold text-foreground">{student.studentId || "-"}</span>
+                          </p>
+                          <p>
+                            {t("শ্রেণি", "Class")} :{" "}
+                            <span className="font-semibold text-foreground">{student.className || "-"}</span>
+                          </p>
+                          <p>
+                            {t("সেকশন", "Section")} :{" "}
+                            <span className="font-semibold text-foreground">{student.section || "-"}</span>
+                          </p>
+                          <p>
+                            {t("রোল", "Roll")} :{" "}
+                            <span className="font-semibold text-foreground">{student.roll ? String(student.roll) : "-"}</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </ModuleShell>
+
+      <Dialog open={Boolean(selectedStudent)} onOpenChange={(open) => !open && !deletingId && setSelectedStudent(null)}>
+        <DialogContent className="max-w-xl rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="font-bengali text-xl">
+              {t("শিক্ষার্থী মুছে ফেলবেন?", "Delete this student?")}
+            </DialogTitle>
+            <DialogDescription className="font-bengali text-sm leading-6">
+              {selectedStudent
+                ? t(
+                    `এই অ্যাকশনটি ${selectedStudent.studentName} এর related attendance, fees, guardian requests, results, admission fallback এবং linked student data মুছে ফেলবে।`,
+                    `This action will remove ${selectedStudent.studentName}'s related attendance, fees, guardian requests, results, admission fallback, and linked student data.`,
+                  )
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedStudent ? (
+            <div className="rounded-3xl border border-red-200/70 bg-red-50/70 p-4">
+              <p className="font-bengali text-sm text-red-700">
+                {t(
+                  "সতর্কতা: guardian login document-ও মুছে ফেলার চেষ্টা করা হবে যদি এই guardian-এর আর কোনো শিক্ষার্থী না থাকে।",
+                  "Warning: the guardian login document will also be removed if this guardian has no other students.",
+                )}
+              </p>
+            </div>
+          ) : null}
+
+          <div className="flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-2xl font-bengali"
+              disabled={Boolean(deletingId)}
+              onClick={() => setSelectedStudent(null)}
+            >
+              {t("বাতিল", "Cancel")}
+            </Button>
+            <Button
+              type="button"
+              className="rounded-2xl bg-red-600 font-bengali text-white hover:bg-red-700"
+              disabled={!selectedStudent || Boolean(deletingId)}
+              onClick={async () => {
+                if (!selectedStudent) return;
+                setDeletingId(selectedStudent.studentId);
+                try {
+                  await onDelete(selectedStudent);
+                  setSelectedStudent(null);
+                } finally {
+                  setDeletingId("");
+                }
+              }}
+            >
+              {deletingId ? t("মুছে ফেলা হচ্ছে...", "Deleting...") : t("ডিলিট করুন", "Delete")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

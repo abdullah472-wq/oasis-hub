@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
   onSnapshot,
@@ -166,4 +167,8 @@ export const getMonthlySummary = async (studentId: string, month: string): Promi
 export const getRecentAttendance = async (studentId: string, limit = 7): Promise<AttendanceRecord[]> => {
   const snapshot = await getDocs(query(collection(db, ATTENDANCE_COLLECTION), where("studentId", "==", studentId)));
   return getRecentAttendanceFromRecords(snapshot.docs.map(toAttendanceRecord), limit);
+};
+
+export const deleteAttendanceRecord = async (id: string) => {
+  await deleteDoc(doc(db, ATTENDANCE_COLLECTION, id));
 };

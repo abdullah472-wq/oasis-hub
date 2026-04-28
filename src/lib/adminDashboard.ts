@@ -238,6 +238,7 @@ export const sidebarGroups: SidebarGroup[] = [
     labelEn: "Operations",
     items: [
       { key: "fees", labelBn: "ফি", labelEn: "Fees", path: "/admin/fees", permission: "fees.manage", icon: CreditCard },
+      { key: "students", labelBn: "শিক্ষার্থী তালিকা", labelEn: "Student List", path: "/admin/students", permission: "attendance.manage", icon: Users },
       { key: "attendance", labelBn: "উপস্থিতি", labelEn: "Attendance", path: "/admin/attendance", permission: "attendance.manage", icon: CalendarCheck2 },
       { key: "guardian-requests", labelBn: "গার্ডিয়ান রিকোয়েস্ট", labelEn: "Guardian Requests", path: "/admin/guardian-requests", permission: "guardianRequests.manage", icon: MessageSquare },
     ],

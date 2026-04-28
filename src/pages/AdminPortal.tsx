@@ -28,6 +28,7 @@ import {
   AdmissionsManagerPage,
   GuardianRequestsPage,
   SettingsPage,
+  StudentListPage,
   TeachersManagerPage,
   VirtualToursManagerPage,
 } from "@/components/admin/AdminOperationsPages";
@@ -69,6 +70,13 @@ const getBanglaDateLine = (date: Date) => {
   return `${day} ${month} ${formattedYear}`;
 };
 
+interface AdminTodoItem {
+  id: string;
+  text: string;
+  completed: boolean;
+  createdAt: number;
+}
+
 const AdminPortalPage = () => {
   const { t } = useLanguage();
   const location = useLocation();
@@ -79,6 +87,8 @@ const AdminPortalPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [searchValue, setSearchValue] = useState("");
+  const [todoDraft, setTodoDraft] = useState("");
+  const [todos, setTodos] = useState<AdminTodoItem[]>([]);
   const [welcomeOpen, setWelcomeOpen] = useState(false);
   const data = useAdminDashboardData(Boolean(currentUser && currentUser.role !== "guardian" && currentUser.status === "active"));
 
@@ -141,6 +151,65 @@ const AdminPortalPage = () => {
     if (currentUser.status !== "active") return;
     setWelcomeOpen(true);
   }, [currentUser]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !currentUser || currentUser.role === "guardian") {
+      setTodos([]);
+      return;
+    }
+
+    const storageKey = `oasis_admin_todos_${currentUser.uid}_v1`;
+    const raw = window.localStorage.getItem(storageKey);
+
+    if (!raw) {
+      setTodos([]);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as AdminTodoItem[];
+      setTodos(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      setTodos([]);
+    }
+  }, [currentUser]);
+
+  const persistTodos = (nextTodos: AdminTodoItem[]) => {
+    setTodos(nextTodos);
+
+    if (typeof window === "undefined" || !currentUser || currentUser.role === "guardian") return;
+
+    const storageKey = `oasis_admin_todos_${currentUser.uid}_v1`;
+    window.localStorage.setItem(storageKey, JSON.stringify(nextTodos));
+  };
+
+  const handleAddTodo = () => {
+    const value = todoDraft.trim();
+    if (!value) return;
+
+    const nextTodos: AdminTodoItem[] = [
+      {
+        id: `todo-${Date.now()}`,
+        text: value,
+        completed: false,
+        createdAt: Date.now(),
+      },
+      ...todos,
+    ];
+
+    persistTodos(nextTodos);
+    setTodoDraft("");
+  };
+
+  const handleRemoveTodo = (id: string) => {
+    persistTodos(todos.filter((item) => item.id !== id));
+  };
+
+  const handleToggleTodo = (id: string) => {
+    persistTodos(
+      todos.map((item) => (item.id === id ? { ...item, completed: !item.completed } : item)),
+    );
+  };
 
   const handleLogin = async (event: FormEvent) => {
     event.preventDefault();
@@ -300,6 +369,8 @@ const AdminPortalPage = () => {
             onSaveSheet={(rows) => data.actions.saveAttendanceSheetItems(rows, currentUser!.fullName)}
           />
         );
+      case "/admin/students":
+        return <StudentListPage students={data.attendanceStudents} onDelete={data.actions.removeStudentItem} />;
       case "/admin/guardian-requests":
         return (
           <GuardianRequestsPage
@@ -510,6 +581,8 @@ const AdminPortalPage = () => {
         currentPath={location.pathname}
         searchValue={searchValue}
         onSearchChange={setSearchValue}
+        todoDraft={todoDraft}
+        todos={todos}
         notificationCount={notificationCount}
         notifications={notifications.map((item) => ({
           id: item.id,
@@ -519,6 +592,10 @@ const AdminPortalPage = () => {
           createdAt: item.createdAt,
           tone: item.createdAt > notificationsSeenAt ? "primary" : "muted",
         }))}
+        onTodoDraftChange={setTodoDraft}
+        onAddTodo={handleAddTodo}
+        onRemoveTodo={handleRemoveTodo}
+        onToggleTodo={handleToggleTodo}
         onNotificationsOpen={handleNotificationsOpen}
         onLogout={() => void handleLogout()}
       >

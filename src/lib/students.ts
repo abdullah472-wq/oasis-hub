@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -29,6 +30,8 @@ export interface StudentRecord {
 const STUDENTS_COLLECTION = "students";
 const GUARDIANS_COLLECTION = "guardians";
 const ATTENDANCE_COLLECTION = "attendance_records";
+const USERS_COLLECTION = "users";
+const STUDENT_LINKS_COLLECTION = "student_guardian_links";
 
 const toStudentRecord = (snapshot: QueryDocumentSnapshot<DocumentData>): StudentRecord => {
   const data = snapshot.data();
@@ -228,4 +231,20 @@ export const syncStudentRecord = async (payload: SyncStudentInput) => {
     },
     { merge: true },
   );
+};
+
+export const deleteStudentRecord = async (studentId: string) => {
+  await deleteDoc(doc(db, STUDENTS_COLLECTION, studentId.trim()));
+};
+
+export const deleteStudentGuardianLink = async (studentId: string) => {
+  await deleteDoc(doc(db, STUDENT_LINKS_COLLECTION, studentId.trim()));
+};
+
+export const deleteGuardianProfileRecord = async (guardianUid: string) => {
+  await deleteDoc(doc(db, GUARDIANS_COLLECTION, guardianUid.trim()));
+};
+
+export const deleteGuardianUserRecord = async (guardianUid: string) => {
+  await deleteDoc(doc(db, USERS_COLLECTION, guardianUid.trim()));
 };

@@ -34,6 +34,12 @@ interface AdminNotificationItem {
   tone?: "primary" | "muted";
 }
 
+interface AdminTodoItem {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
 interface AdminLayoutProps {
   user: AdminUser;
   pageTitle: string;
@@ -42,8 +48,14 @@ interface AdminLayoutProps {
   currentPath: string;
   searchValue: string;
   onSearchChange: (value: string) => void;
+  todoDraft: string;
+  todos: AdminTodoItem[];
   notificationCount: number;
   notifications: AdminNotificationItem[];
+  onTodoDraftChange: (value: string) => void;
+  onAddTodo: () => void;
+  onRemoveTodo: (id: string) => void;
+  onToggleTodo: (id: string) => void;
   onNotificationsOpen?: () => void;
   onLogout: () => void;
   children: React.ReactNode;
@@ -57,13 +69,20 @@ const AdminLayout = ({
   currentPath,
   searchValue,
   onSearchChange,
+  todoDraft,
+  todos,
   notificationCount,
   notifications,
+  onTodoDraftChange,
+  onAddTodo,
+  onRemoveTodo,
+  onToggleTodo,
   onNotificationsOpen,
   onLogout,
   children,
 }: AdminLayoutProps) => {
   const { t } = useLanguage();
+  const pendingTodoCount = todos.filter((item) => !item.completed).length;
 
   return (
     <SidebarProvider defaultOpen>
@@ -141,6 +160,108 @@ const AdminLayout = ({
               </div>
 
               <div className="flex shrink-0 items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="relative h-11 w-11 rounded-2xl border-border/70 bg-card shadow-sm"
+                      aria-label={t("টু-ডু নোটপ্যাড", "To-Do Notepad")}
+                    >
+                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M8 3h8" />
+                        <path d="M9 2v2" />
+                        <path d="M15 2v2" />
+                        <rect x="5" y="4" width="14" height="17" rx="2" />
+                        <path d="M8 9h8" />
+                        <path d="M8 13h8" />
+                        <path d="M8 17h5" />
+                      </svg>
+                      {pendingTodoCount > 0 && (
+                        <span className="absolute right-1 top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
+                          {pendingTodoCount}
+                        </span>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-96 max-w-[calc(100vw-1.5rem)] rounded-3xl border-amber-200/80 bg-[linear-gradient(180deg,rgba(255,251,235,0.98),rgba(254,243,199,0.94))] p-0 shadow-[0_24px_80px_-40px_rgba(120,53,15,0.4)]"
+                  >
+                    <div className="border-b border-amber-200/80 px-4 py-3">
+                      <DropdownMenuLabel className="px-0 font-bengali text-base text-amber-950">
+                        {t("টু-ডু নোটপ্যাড", "To-Do Notepad")}
+                      </DropdownMenuLabel>
+                      <p className="font-bengali text-xs text-amber-900/70">
+                        {t("ছোট ছোট কাজ লিখে রাখুন, সম্পন্ন হলে কেটে দিন", "Write down quick tasks and cross them off when done")}
+                      </p>
+                    </div>
+
+                    <div className="space-y-4 p-4">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={todoDraft}
+                          onChange={(event) => onTodoDraftChange(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              onAddTodo();
+                            }
+                          }}
+                          className="h-11 rounded-2xl border-amber-300/80 bg-white/80 font-bengali shadow-none placeholder:text-amber-900/40"
+                          placeholder={t("নতুন কাজ লিখুন", "Write a new task")}
+                        />
+                        <Button
+                          type="button"
+                          onClick={onAddTodo}
+                          className="h-11 rounded-2xl bg-amber-500 px-4 font-bengali text-white hover:bg-amber-600"
+                        >
+                          + {t("যোগ", "Add")}
+                        </Button>
+                      </div>
+
+                      <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
+                        {todos.length === 0 ? (
+                          <div className="rounded-2xl border border-dashed border-amber-300/80 bg-white/60 px-4 py-5 text-center">
+                            <p className="font-bengali text-sm text-amber-900/75">
+                              {t("এখনো কোনো টু-ডু যোগ করা হয়নি", "No to-do items added yet")}
+                            </p>
+                          </div>
+                        ) : (
+                          todos.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-start gap-3 rounded-2xl border border-amber-200/80 bg-white/70 px-3 py-3"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => onToggleTodo(item.id)}
+                                className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full border border-amber-400 text-xs text-amber-800 transition hover:bg-amber-100"
+                                aria-label={item.completed ? t("কাজটি অসম্পূর্ণ করুন", "Mark task incomplete") : t("কাজটি সম্পন্ন করুন", "Mark task complete")}
+                              >
+                                {item.completed ? "✓" : ""}
+                              </button>
+                              <div className="min-w-0 flex-1">
+                                <p className={`font-bengali text-sm leading-6 text-amber-950 ${item.completed ? "text-amber-900/50 line-through" : ""}`}>
+                                  {item.text}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => onRemoveTodo(item.id)}
+                                className="rounded-full px-2 py-1 font-bengali text-xs text-amber-800/80 transition hover:bg-red-50 hover:text-red-600"
+                                aria-label={t("কাজ মুছুন", "Remove task")}
+                              >
+                                {t("মুছুন", "Remove")}
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 <DropdownMenu onOpenChange={(open) => open && onNotificationsOpen?.()}>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="icon" className="relative h-11 w-11 rounded-2xl border-border/70 bg-card shadow-sm">
