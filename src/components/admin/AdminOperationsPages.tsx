@@ -1,7 +1,9 @@
 ﻿import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Download, Eye, FileText, Printer, UserCheck, Users, Video } from "lucide-react";
+import { BellRing, CheckCircle2, Download, Eye, FileText, Printer, UserCheck, Users, Video } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { toast } from "sonner";
 import type { AdmissionForm } from "@/lib/admission";
+import type { MobileAppNotification, MobileNotificationAudience } from "@/lib/mobileNotifications";
 import type { StudentRecord } from "@/lib/students";
 import type { Teacher } from "@/lib/teachers";
 import type { VirtualTour } from "@/lib/virtualTour";
@@ -382,6 +384,407 @@ export const StudentListPage = ({
         </DialogContent>
       </Dialog>
     </>
+  );
+};
+
+export const MobileNotificationsPage = ({
+  items,
+  students,
+  onCreate,
+  onDelete,
+}: {
+  items: MobileAppNotification[];
+  students: StudentRecord[];
+  onCreate: (payload: Omit<MobileAppNotification, "id" | "createdAt" | "createdBy">) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}) => {
+  const { t } = useLanguage();
+  const [saving, setSaving] = useState(false);
+  const [showForm, setShowForm] = useState(true);
+  const [error, setError] = useState("");
+  const [studentSearch, setStudentSearch] = useState("");
+  const [draft, setDraft] = useState<{
+    titleBn: string;
+    titleEn: string;
+    messageBn: string;
+    messageEn: string;
+    audience: MobileNotificationAudience;
+    guardianUid: string;
+    guardianName: string;
+    studentId: string;
+    className: string;
+    section: string;
+  }>({
+    titleBn: "",
+    titleEn: "",
+    messageBn: "",
+    messageEn: "",
+    audience: "all",
+    guardianUid: "",
+    guardianName: "",
+    studentId: "",
+    className: "",
+    section: "",
+  });
+
+  const targetableStudents = useMemo(
+    () =>
+      students
+        .filter((item) => item.guardianUid.trim())
+        .sort(
+          (a, b) =>
+            a.studentId.localeCompare(b.studentId) ||
+            a.studentName.localeCompare(b.studentName) ||
+            (a.guardianName || "").localeCompare(b.guardianName || ""),
+        ),
+    [students],
+  );
+
+  const filteredStudents = useMemo(() => {
+    const term = studentSearch.trim().toLowerCase();
+    if (!term) {
+      return targetableStudents.slice(0, 8);
+    }
+
+    return targetableStudents
+      .filter((item) =>
+        [
+          item.studentId,
+          item.studentName,
+          item.guardianName || "",
+          item.className,
+          item.section,
+        ].some((value) => value.toLowerCase().includes(term)),
+      )
+      .slice(0, 8);
+  }, [studentSearch, targetableStudents]);
+
+  const audienceLabel = (item: MobileAppNotification) => {
+    if (item.audience === "boys") return t("শুধু বালক শাখা", "Boys campus only");
+    if (item.audience === "girls") return t("শুধু বালিকা শাখা", "Girls campus only");
+    if (item.audience === "guardian") {
+      return item.studentId
+        ? `${item.studentId} • ${item.guardianName || t("কাস্টম গার্ডিয়ান", "Custom guardian")}`
+        : item.guardianName || t("কাস্টম গার্ডিয়ান", "Custom guardian");
+    }
+    if (item.audience === "class-section") {
+      const classLabel = item.className || t("সব শ্রেণি", "All classes");
+      const sectionLabel = item.section || t("সব সেকশন", "All sections");
+      return `${classLabel} • ${sectionLabel}`;
+    }
+    return t("সব গার্ডিয়ান", "All guardians");
+  };
+
+  const getValidationError = () => {
+    if (!draft.titleBn.trim() && !draft.titleEn.trim()) {
+      return t("একটি শিরোনাম লিখুন", "Enter a title");
+    }
+
+    if (!draft.messageBn.trim() && !draft.messageEn.trim()) {
+      return t("একটি বার্তা লিখুন", "Enter a message");
+    }
+
+    if (draft.audience === "guardian" && !draft.guardianUid.trim()) {
+      return t("স্টুডেন্ট আইডি দিয়ে একজন গার্ডিয়ান নির্বাচন করুন", "Select a guardian using the student ID search");
+    }
+
+    if (draft.audience === "class-section" && !draft.className.trim()) {
+      return t("নির্দিষ্ট শ্রেণির জন্য ক্লাসের নাম দিন", "Enter a class name for targeted delivery");
+    }
+
+    return "";
+  };
+
+  const previewToast = () => {
+    const nextError = getValidationError();
+    if (nextError) {
+      setError(nextError);
+      toast.error(nextError);
+      return;
+    }
+
+    setError("");
+
+    const title = draft.titleBn.trim() || draft.titleEn.trim();
+    const message = draft.messageBn.trim() || draft.messageEn.trim();
+    const audienceText =
+      draft.audience === "boys"
+        ? t("শুধু বালক শাখা", "Boys campus only")
+        : draft.audience === "girls"
+          ? t("শুধু বালিকা শাখা", "Girls campus only")
+          : draft.audience === "guardian"
+            ? `${draft.studentId.trim() || t("স্টুডেন্ট আইডি", "Student ID")} • ${draft.guardianName.trim() || t("কাস্টম গার্ডিয়ান", "Custom guardian")}`
+          : draft.audience === "class-section"
+            ? `${draft.className.trim() || t("সব শ্রেণি", "All classes")} • ${draft.section.trim() || t("সব সেকশন", "All sections")}`
+            : t("সব গার্ডিয়ান", "All guardians");
+
+    toast(title, {
+      description: `${message} • ${audienceText}`,
+    });
+  };
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError("");
+
+    const nextError = getValidationError();
+    if (nextError) {
+      setError(nextError);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await onCreate({
+        titleBn: draft.titleBn,
+        titleEn: draft.titleEn,
+        messageBn: draft.messageBn,
+        messageEn: draft.messageEn,
+        audience: draft.audience,
+        guardianUid: draft.guardianUid,
+        guardianName: draft.guardianName,
+        studentId: draft.studentId,
+        className: draft.className,
+        section: draft.section,
+      });
+      setDraft({
+        titleBn: "",
+        titleEn: "",
+        messageBn: "",
+        messageEn: "",
+        audience: "all",
+        guardianUid: "",
+        guardianName: "",
+        studentId: "",
+        className: "",
+        section: "",
+      });
+      setStudentSearch("");
+      setShowForm(false);
+    } catch (error) {
+      const message =
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        (error as { code?: string }).code === "permission-denied"
+          ? t(
+              "Firebase permission denied. Firestore rules-এ mobile_app_notifications collection-এ write access দিতে হবে।",
+              "Firebase permission denied. Firestore rules must allow writes to the mobile_app_notifications collection.",
+            )
+          : error instanceof Error
+            ? error.message
+            : t("নোটিফিকেশন পাঠানো যায়নি", "Failed to send notification");
+
+      setError(message);
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <ModuleShell
+      title={t("মোবাইল অ্যাপ নোটিফিকেশন", "Mobile App Notifications")}
+      description={t(
+        "গার্ডিয়ান মোবাইল অ্যাপে ইন-অ্যাপ নোটিফিকেশন পাঠান। চাইলে সব গার্ডিয়ান, শুধু বালক/বালিকা শাখা অথবা নির্দিষ্ট শ্রেণি-সেকশনে পাঠাতে পারবেন।",
+        "Send in-app notifications to the guardian mobile app. You can target all guardians, only boys or girls campus, or a specific class and section.",
+      )}
+      actionLabel={showForm ? t("ফর্ম বন্ধ", "Hide form") : t("নোটিফিকেশন পাঠান", "Send notification")}
+      onAction={() => {
+        setShowForm((current) => !current);
+        setError("");
+      }}
+      icon={<BellRing className="h-5 w-5" />}
+    >
+      {showForm && (
+        <FormCard onSubmit={submit} saving={saving} submitLabel={t("নোটিফিকেশন পাঠান", "Send notification")}>
+          <div className="rounded-3xl border border-amber-200/80 bg-amber-50/80 px-4 py-3">
+            <p className="font-bengali text-sm text-amber-900">
+              {t(
+                "এগুলো guardian app-এর notice screen-এ সাথে সাথে দেখা যাবে। এটি true device push নয়, বরং app-এর ভেতরের live inbox message।",
+                "These appear inside the guardian app notice screen. This is not a true device push notification; it works as a live in-app inbox message.",
+              )}
+            </p>
+          </div>
+
+          <BilingualInput
+            labelBn="শিরোনাম"
+            labelEn="Title"
+            valueBn={draft.titleBn}
+            valueEn={draft.titleEn}
+            onBnChange={(value) => setDraft((current) => ({ ...current, titleBn: value }))}
+            onEnChange={(value) => setDraft((current) => ({ ...current, titleEn: value }))}
+          />
+          <BilingualTextarea
+            labelBn="বার্তা"
+            labelEn="Message"
+            valueBn={draft.messageBn}
+            valueEn={draft.messageEn}
+            onBnChange={(value) => setDraft((current) => ({ ...current, messageBn: value }))}
+            onEnChange={(value) => setDraft((current) => ({ ...current, messageEn: value }))}
+          />
+          <Field label={t("কাদের কাছে যাবে", "Audience")}>
+            <select
+              value={draft.audience}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  audience: event.target.value as MobileNotificationAudience,
+                  guardianUid: event.target.value === "guardian" ? current.guardianUid : "",
+                  guardianName: event.target.value === "guardian" ? current.guardianName : "",
+                  studentId: event.target.value === "guardian" ? current.studentId : "",
+                  className: event.target.value === "class-section" ? current.className : "",
+                  section: event.target.value === "class-section" ? current.section : "",
+                }))
+              }
+              className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+            >
+              <option value="all">{t("সব গার্ডিয়ান", "All guardians")}</option>
+              <option value="boys">{t("শুধু বালক শাখা", "Boys campus only")}</option>
+              <option value="girls">{t("শুধু বালিকা শাখা", "Girls campus only")}</option>
+              <option value="guardian">{t("নির্দিষ্ট গার্ডিয়ান", "Specific guardian")}</option>
+              <option value="class-section">{t("নির্দিষ্ট শ্রেণি / সেকশন", "Specific class / section")}</option>
+            </select>
+          </Field>
+
+          {draft.audience === "guardian" && (
+            <div className="space-y-3 rounded-2xl border border-border/70 bg-muted/20 p-4">
+              <Field label={t("স্টুডেন্ট আইডি দিয়ে খুঁজুন", "Search by student ID")}>
+                <Input
+                  value={studentSearch}
+                  onChange={(event) => setStudentSearch(event.target.value)}
+                  className="rounded-2xl"
+                  placeholder={t("যেমন: STD-1023", "Example: STD-1023")}
+                />
+              </Field>
+
+              {draft.guardianUid ? (
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm">
+                  <p className="font-bengali font-semibold text-emerald-900">
+                    {draft.guardianName || t("নির্বাচিত গার্ডিয়ান", "Selected guardian")}
+                  </p>
+                  <p className="font-bengali text-emerald-800">
+                    {draft.studentId} • {draft.className || t("শ্রেণি নেই", "No class")} • {draft.section || t("সেকশন নেই", "No section")}
+                  </p>
+                </div>
+              ) : null}
+
+              <div className="space-y-2">
+                {filteredStudents.length === 0 ? (
+                  <p className="font-bengali text-sm text-muted-foreground">
+                    {t("মিলছে এমন কোনো স্টুডেন্ট পাওয়া যায়নি", "No matching student was found")}
+                  </p>
+                ) : (
+                  filteredStudents.map((item) => {
+                    const isSelected = draft.guardianUid === item.guardianUid && draft.studentId === item.studentId;
+
+                    return (
+                      <button
+                        key={`${item.studentId}-${item.guardianUid}`}
+                        type="button"
+                        onClick={() => {
+                          setDraft((current) => ({
+                            ...current,
+                            guardianUid: item.guardianUid,
+                            guardianName: item.guardianName || item.studentName,
+                            studentId: item.studentId,
+                            className: item.className,
+                            section: item.section,
+                          }));
+                          setError("");
+                        }}
+                        className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
+                          isSelected
+                            ? "border-primary bg-primary/10"
+                            : "border-border/70 bg-background hover:border-primary/40 hover:bg-muted/40"
+                        }`}
+                      >
+                        <p className="font-bengali text-sm font-semibold text-foreground">
+                          {item.studentId} • {item.studentName}
+                        </p>
+                        <p className="font-bengali text-xs text-muted-foreground">
+                          {(item.guardianName || t("গার্ডিয়ান নাম নেই", "No guardian name"))} • {item.className} • {item.section || t("সেকশন নেই", "No section")}
+                        </p>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
+
+          {draft.audience === "class-section" && (
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label={t("শ্রেণি", "Class")}>
+                <Input
+                  value={draft.className}
+                  onChange={(event) => setDraft((current) => ({ ...current, className: event.target.value }))}
+                  className="rounded-2xl"
+                  placeholder={t("যেমন: Class 4", "Example: Class 4")}
+                />
+              </Field>
+              <Field label={t("সেকশন", "Section")}>
+                <Input
+                  value={draft.section}
+                  onChange={(event) => setDraft((current) => ({ ...current, section: event.target.value }))}
+                  className="rounded-2xl"
+                  placeholder={t("যেমন: Nurani", "Example: Nurani")}
+                />
+              </Field>
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-3">
+            <Button type="button" variant="outline" className="rounded-2xl font-bengali" onClick={previewToast}>
+              <Eye className="mr-2 h-4 w-4" />
+              {t("টোস্ট প্রিভিউ", "Preview toast")}
+            </Button>
+          </div>
+
+          {error ? <p className="font-bengali text-sm text-red-600">{error}</p> : null}
+        </FormCard>
+      )}
+
+      <Card className={shellCardClass}>
+        <CardContent className="space-y-4 p-6">
+          {items.length === 0 ? (
+            <EmptyState
+              text={t("এখনও কোনো মোবাইল অ্যাপ নোটিফিকেশন পাঠানো হয়নি", "No mobile app notifications have been sent yet")}
+            />
+          ) : (
+            items.map((item) => (
+              <ItemCard
+                key={item.id}
+                title={item.titleBn || item.titleEn || t("শিরোনাম নেই", "Untitled")}
+                meta={new Date(item.createdAt).toLocaleString("bn-BD")}
+                onDelete={() => void onDelete(item.id)}
+                trailing={
+                  <Badge variant="secondary" className="rounded-full px-3 py-1 font-bengali">
+                    {audienceLabel(item)}
+                  </Badge>
+                }
+              >
+                <div className="space-y-2">
+                  <p className="font-bengali text-sm text-muted-foreground">
+                    {item.messageBn || item.messageEn}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className="rounded-full font-bengali">
+                      {t("প্রেরক", "Sender")}: {item.createdBy || t("সিস্টেম", "System")}
+                    </Badge>
+                    {(item.titleBn || item.titleEn) && item.titleBn !== item.titleEn ? (
+                      <Badge variant="outline" className="rounded-full font-bengali">
+                        EN: {item.titleEn || item.titleBn}
+                      </Badge>
+                    ) : null}
+                  </div>
+                </div>
+              </ItemCard>
+            ))
+          )}
+        </CardContent>
+      </Card>
+    </ModuleShell>
   );
 };
 

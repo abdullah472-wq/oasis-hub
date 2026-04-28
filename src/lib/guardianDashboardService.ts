@@ -10,6 +10,11 @@ import { calculateAttendanceMonthlySummary, getRecentAttendanceFromRecords, type
 import { getResults, type Result } from "@/lib/results";
 import { listGuardianRequestsByGuardian } from "@/lib/guardianRequests";
 import type { GuardianRequest } from "@/lib/adminDashboard";
+import {
+  listMobileAppNotifications,
+  matchesMobileAppNotificationAudience,
+  type MobileAppNotification,
+} from "@/lib/mobileNotifications";
 
 const GUARDIANS_COLLECTION = "guardians";
 
@@ -32,6 +37,7 @@ export interface GuardianProfile {
 
 export interface GuardianDashboardData {
   guardianProfile: GuardianProfile;
+  mobileNotifications: MobileAppNotification[];
   notices: Notice[];
   todaysNotice: Notice | null;
   feeEntries: FeeEntry[];
@@ -99,7 +105,8 @@ export const getGuardianDashboardData = async (uid: string): Promise<GuardianDas
   const guardianProfile = await getGuardianProfile(uid);
   if (!guardianProfile) return null;
 
-  const [notices, feeEntries, attendanceRecords, results, events, requests] = await Promise.all([
+  const [mobileNotifications, notices, feeEntries, attendanceRecords, results, events, requests] = await Promise.all([
+    listMobileAppNotifications().catch(() => []),
     getNotices().catch(() => []),
     listGuardianFeeEntries(uid).catch(() => []),
     listGuardianAttendanceRecords(uid).catch(() => []),
@@ -120,11 +127,22 @@ export const getGuardianDashboardData = async (uid: string): Promise<GuardianDas
   const todayAttendance = studentAttendanceRecords.find((item) => item.date === new Date().toISOString().slice(0, 10)) ?? null;
   const filteredResults = results.filter((item) => matchesGuardianResult(item, guardianProfile)).sort((a, b) => b.createdAt - a.createdAt);
   const upcomingExam = events.filter((item) => matchesGuardianExam(item, guardianProfile)).sort((a, b) => a.startDate.localeCompare(b.startDate))[0] ?? null;
+  const filteredMobileNotifications = mobileNotifications
+    .filter((item) =>
+      matchesMobileAppNotificationAudience(item, {
+        className: guardianProfile.className,
+        section: guardianProfile.section,
+        guardianUid: guardianProfile.uid,
+        studentId: guardianProfile.studentId,
+      }),
+    )
+    .sort((a, b) => b.createdAt - a.createdAt);
   const sortedNotices = [...notices].sort((a, b) => b.createdAt - a.createdAt);
   const todaysNotice = sortedNotices[0] ?? null;
 
   return {
     guardianProfile,
+    mobileNotifications: filteredMobileNotifications,
     notices: sortedNotices,
     todaysNotice,
     feeEntries,

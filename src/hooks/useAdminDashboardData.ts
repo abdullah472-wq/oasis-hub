@@ -75,6 +75,12 @@ import {
 } from "@/lib/guardianRegistration";
 import { deleteAchievement, getAchievements, saveAchievement, type AchievementItem } from "@/lib/achievements";
 import { listDailyEngagement, type DailyEngagement } from "@/lib/engagementAnalytics";
+import {
+  createMobileAppNotification,
+  deleteMobileAppNotification,
+  listMobileAppNotifications,
+  type MobileAppNotification,
+} from "@/lib/mobileNotifications";
 
 const mergeAttendanceRecords = (current: AttendanceRecord[], nextItems: AttendanceRecord[]) => {
   const map = new Map(current.map((item) => [item.id, item] as const));
@@ -109,6 +115,7 @@ export const useAdminDashboardData = (enabled = true) => {
     runningNotices: [],
     updatedAt: Date.now(),
   });
+  const [mobileNotifications, setMobileNotifications] = useState<MobileAppNotification[]>([]);
   const [settings, setSettings] = useState<DashboardSettings>(getDashboardSettings());
   const [activityFeed, setActivityFeed] = useState<ActivityItem[]>([]);
   const [dailyEngagement, setDailyEngagement] = useState<DailyEngagement[]>([]);
@@ -145,6 +152,7 @@ export const useAdminDashboardData = (enabled = true) => {
           nextRamadanRequests,
           nextRamadanSettings,
           nextRunningNoticeSettings,
+          nextMobileNotifications,
           nextDailyEngagement,
         ] = await Promise.all([
           getNewsFromFirestore().catch(() => []),
@@ -165,6 +173,7 @@ export const useAdminDashboardData = (enabled = true) => {
           listRamadanSponsorRequests().catch(() => []),
           getRamadanSettings().catch(() => ({ isPublic: true, updatedAt: Date.now() })),
           getRunningNoticeSettings().catch(() => ({ runningNoticeEnabled: true, runningNotices: [], updatedAt: Date.now() })),
+          listMobileAppNotifications().catch(() => []),
           listDailyEngagement().catch(() => []),
         ]);
 
@@ -188,6 +197,7 @@ export const useAdminDashboardData = (enabled = true) => {
         setRamadanRequests(nextRamadanRequests);
         setRamadanSettings(nextRamadanSettings);
         setRunningNoticeSettings(nextRunningNoticeSettings);
+        setMobileNotifications(nextMobileNotifications);
         setDailyEngagement(nextDailyEngagement);
         setSettings(getDashboardSettings());
         setActivityFeed(getActivityFeed());
@@ -662,6 +672,36 @@ export const useAdminDashboardData = (enabled = true) => {
     notifySaved("সেটিংস সংরক্ষণ হয়েছে", "Settings saved");
   };
 
+  const sendMobileNotificationItem = async (
+    payload: Omit<MobileAppNotification, "id" | "createdAt" | "createdBy">,
+    createdBy: string,
+  ) => {
+    const fallbackTitle =
+      payload.titleBn.trim() ||
+      payload.titleEn.trim() ||
+      payload.messageBn.trim().slice(0, 60) ||
+      payload.messageEn.trim().slice(0, 60);
+    const saved = await createMobileAppNotification({
+      ...payload,
+      titleBn: payload.titleBn.trim() || payload.titleEn.trim(),
+      titleEn: payload.titleEn.trim() || payload.titleBn.trim(),
+      messageBn: payload.messageBn.trim() || payload.messageEn.trim(),
+      messageEn: payload.messageEn.trim() || payload.messageBn.trim(),
+      createdBy,
+    });
+
+    setMobileNotifications((current) => [saved, ...current.filter((item) => item.id !== saved.id)]);
+    appendActivity("Mobile notification sent", fallbackTitle, "mobile-notifications");
+    notifySaved("মোবাইল অ্যাপ নোটিফিকেশন পাঠানো হয়েছে", "Mobile app notification sent");
+  };
+
+  const removeMobileNotificationItem = async (id: string) => {
+    await deleteMobileAppNotification(id);
+    setMobileNotifications((current) => current.filter((item) => item.id !== id));
+    appendActivity("Mobile notification deleted", id, "mobile-notifications");
+    notifySaved("মোবাইল নোটিফিকেশন মুছে ফেলা হয়েছে", "Mobile notification deleted");
+  };
+
   const saveRamadanSettingsItem = async (nextSettings: Pick<RamadanSettings, "isPublic">) => {
     const saved = await saveRamadanSettings(nextSettings);
     setRamadanSettings(saved);
@@ -745,6 +785,7 @@ export const useAdminDashboardData = (enabled = true) => {
     ramadanRequests,
     ramadanSettings,
     runningNoticeSettings,
+    mobileNotifications,
     settings,
     activityFeed,
     dailyEngagement,
@@ -786,6 +827,8 @@ export const useAdminDashboardData = (enabled = true) => {
       saveRamadanRequestItem,
       removeRamadanRequestItem,
       saveSettingsItem,
+      sendMobileNotificationItem,
+      removeMobileNotificationItem,
     },
   };
 };

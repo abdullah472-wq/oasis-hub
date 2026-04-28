@@ -7,6 +7,7 @@ import { getGuardianDashboardData, type GuardianDashboardData } from "@/lib/guar
 import { getDefaultRouteForUser } from "@/lib/adminDashboard";
 import { calculateAttendanceMonthlySummary, getRecentAttendanceFromRecords } from "@/lib/attendanceHelpers";
 import { subscribeGuardianAttendanceRecords } from "@/lib/attendanceService";
+import { matchesMobileAppNotificationAudience, subscribeMobileAppNotifications } from "@/lib/mobileNotifications";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import GuardianDashboardPage from "@/components/guardian/GuardianDashboardPage";
@@ -62,7 +63,7 @@ const GuardianPortal = () => {
     return unsubscribe;
   }, [currentUser]);
 
-useEffect(() => {
+  useEffect(() => {
     if (!currentUser || currentUser.role !== "guardian" || currentUser.status !== "active" || !data?.guardianProfile.fullName) {
       return;
     }
@@ -92,6 +93,28 @@ useEffect(() => {
 
     return unsubscribe;
   }, [currentUser, data?.guardianProfile.fullName, data?.guardianProfile.studentId]);
+
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== "guardian" || currentUser.status !== "active" || !data?.guardianProfile) {
+      return;
+    }
+
+    const profile = data.guardianProfile;
+    const unsubscribe = subscribeMobileAppNotifications((items) => {
+      const filtered = items.filter((item) =>
+        matchesMobileAppNotificationAudience(item, {
+          className: profile.className,
+          section: profile.section,
+          guardianUid: profile.uid,
+          studentId: profile.studentId,
+        }),
+      );
+
+      setData((current) => (current ? { ...current, mobileNotifications: filtered } : current));
+    });
+
+    return unsubscribe;
+  }, [currentUser, data?.guardianProfile]);
 
   if (authLoading) {
     return (
@@ -149,7 +172,7 @@ useEffect(() => {
   const renderCurrentPage = () => {
     switch (location.pathname) {
       case "/guardian/notices":
-        return <GuardianNoticeList notices={data.notices} />;
+        return <GuardianNoticeList notices={data.notices} appNotifications={data.mobileNotifications} />;
       case "/guardian/results":
         return (
           <Card className="rounded-3xl border-border/60 bg-white/95 shadow-[0_20px_60px_-40px_rgba(16,24,40,0.25)]">

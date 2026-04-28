@@ -50,7 +50,7 @@ const GuardianDashboardPage = ({ data }: GuardianDashboardPageProps) => {
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <GuardianNoticeList notices={data.notices} compact />
+        <GuardianNoticeList notices={data.notices} appNotifications={data.mobileNotifications} compact />
         <GuardianUpcomingExamCard exam={data.upcomingExam} />
       </div>
 

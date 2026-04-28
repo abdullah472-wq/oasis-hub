@@ -27,6 +27,7 @@ import {
 import {
   AdmissionsManagerPage,
   GuardianRequestsPage,
+  MobileNotificationsPage,
   SettingsPage,
   StudentListPage,
   TeachersManagerPage,
@@ -371,6 +372,15 @@ const AdminPortalPage = () => {
         );
       case "/admin/students":
         return <StudentListPage students={data.attendanceStudents} onDelete={data.actions.removeStudentItem} />;
+      case "/admin/mobile-notifications":
+        return (
+          <MobileNotificationsPage
+            items={data.mobileNotifications}
+            students={data.attendanceStudents}
+            onCreate={(payload) => data.actions.sendMobileNotificationItem(payload, currentUser!.fullName)}
+            onDelete={data.actions.removeMobileNotificationItem}
+          />
+        );
       case "/admin/guardian-requests":
         return (
           <GuardianRequestsPage
