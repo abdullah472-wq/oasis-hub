@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { uploadImage } from "@/lib/upload";
+import { uploadFile, uploadImage } from "@/lib/upload";
 import { saveNewsToFirestore, getNewsFromFirestore, deleteNewsFromFirestore, updateNewsInFirestore, type NewsPost } from "@/lib/news";
 import { saveGalleryImage, getGalleryImages, deleteGalleryImage, type GalleryImage } from "@/lib/gallery";
 import { saveEvent, getEvents, deleteEvent, type Event } from "@/lib/events";
@@ -81,6 +81,18 @@ import {
   listMobileAppNotifications,
   type MobileAppNotification,
 } from "@/lib/mobileNotifications";
+import {
+  getAppDownloadSettings,
+  saveAppDownloadSettings,
+  type AppDownloadSettings,
+} from "@/lib/appDownloadSettings";
+
+const formatFileSize = (bytes: number) => {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "";
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes >= 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${bytes} B`;
+};
 
 const mergeAttendanceRecords = (current: AttendanceRecord[], nextItems: AttendanceRecord[]) => {
   const map = new Map(current.map((item) => [item.id, item] as const));
@@ -116,6 +128,16 @@ export const useAdminDashboardData = (enabled = true) => {
     updatedAt: Date.now(),
   });
   const [mobileNotifications, setMobileNotifications] = useState<MobileAppNotification[]>([]);
+  const [appDownloadSettings, setAppDownloadSettings] = useState<AppDownloadSettings>({
+    enabled: false,
+    apkUrl: "",
+    version: "",
+    releaseNotesBn: "",
+    releaseNotesEn: "",
+    fileName: "",
+    fileSizeLabel: "",
+    updatedAt: 0,
+  });
   const [settings, setSettings] = useState<DashboardSettings>(getDashboardSettings());
   const [activityFeed, setActivityFeed] = useState<ActivityItem[]>([]);
   const [dailyEngagement, setDailyEngagement] = useState<DailyEngagement[]>([]);
@@ -153,6 +175,7 @@ export const useAdminDashboardData = (enabled = true) => {
           nextRamadanSettings,
           nextRunningNoticeSettings,
           nextMobileNotifications,
+          nextAppDownloadSettings,
           nextDailyEngagement,
         ] = await Promise.all([
           getNewsFromFirestore().catch(() => []),
@@ -174,6 +197,16 @@ export const useAdminDashboardData = (enabled = true) => {
           getRamadanSettings().catch(() => ({ isPublic: true, updatedAt: Date.now() })),
           getRunningNoticeSettings().catch(() => ({ runningNoticeEnabled: true, runningNotices: [], updatedAt: Date.now() })),
           listMobileAppNotifications().catch(() => []),
+          getAppDownloadSettings().catch(() => ({
+            enabled: false,
+            apkUrl: "",
+            version: "",
+            releaseNotesBn: "",
+            releaseNotesEn: "",
+            fileName: "",
+            fileSizeLabel: "",
+            updatedAt: 0,
+          })),
           listDailyEngagement().catch(() => []),
         ]);
 
@@ -198,6 +231,7 @@ export const useAdminDashboardData = (enabled = true) => {
         setRamadanSettings(nextRamadanSettings);
         setRunningNoticeSettings(nextRunningNoticeSettings);
         setMobileNotifications(nextMobileNotifications);
+        setAppDownloadSettings(nextAppDownloadSettings);
         setDailyEngagement(nextDailyEngagement);
         setSettings(getDashboardSettings());
         setActivityFeed(getActivityFeed());
@@ -672,6 +706,32 @@ export const useAdminDashboardData = (enabled = true) => {
     notifySaved("সেটিংস সংরক্ষণ হয়েছে", "Settings saved");
   };
 
+  const saveAppDownloadSettingsItem = async (
+    nextSettings: Omit<AppDownloadSettings, "updatedAt">,
+    file: File | null,
+  ) => {
+    let apkUrl = nextSettings.apkUrl.trim();
+    let fileName = nextSettings.fileName.trim();
+    let fileSizeLabel = nextSettings.fileSizeLabel.trim();
+
+    if (file) {
+      apkUrl = await uploadFile(file);
+      fileName = file.name;
+      fileSizeLabel = formatFileSize(file.size);
+    }
+
+    const saved = await saveAppDownloadSettings({
+      ...nextSettings,
+      apkUrl,
+      fileName,
+      fileSizeLabel,
+    });
+
+    setAppDownloadSettings(saved);
+    appendActivity("Guardian app updated", saved.version || saved.fileName || "APK upload settings saved", "settings");
+    notifySaved("গার্ডিয়ান অ্যাপ সেটিংস সংরক্ষণ হয়েছে", "Guardian app settings saved");
+  };
+
   const sendMobileNotificationItem = async (
     payload: Omit<MobileAppNotification, "id" | "createdAt" | "createdBy">,
     createdBy: string,
@@ -786,6 +846,7 @@ export const useAdminDashboardData = (enabled = true) => {
     ramadanSettings,
     runningNoticeSettings,
     mobileNotifications,
+    appDownloadSettings,
     settings,
     activityFeed,
     dailyEngagement,
@@ -827,6 +888,7 @@ export const useAdminDashboardData = (enabled = true) => {
       saveRamadanRequestItem,
       removeRamadanRequestItem,
       saveSettingsItem,
+      saveAppDownloadSettingsItem,
       sendMobileNotificationItem,
       removeMobileNotificationItem,
     },

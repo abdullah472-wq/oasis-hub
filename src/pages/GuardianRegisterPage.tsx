@@ -51,8 +51,7 @@ const GuardianRegisterPage = () => {
                 </p>
                 <div className="mt-4">
                   <a
-                    href="/guardian-app.apk"
-                    download
+                    href="/apk"
                     className="inline-flex rounded-2xl bg-primary px-5 py-3 font-bengali text-primary-foreground transition-opacity hover:opacity-90"
                   >
                     {t("Official Annoor App ডাউনলোড", "Download Official Annoor App")}

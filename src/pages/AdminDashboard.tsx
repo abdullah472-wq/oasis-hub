@@ -176,7 +176,14 @@ const AdminDashboardPage = () => {
       case "/admin/managers":
         return <ManagersPage managers={data.managers} onSave={data.actions.saveManagerItem} onDelete={data.actions.removeManagerItem} />;
       case "/admin/settings":
-        return <SettingsPage settings={data.settings} onSave={data.actions.saveSettingsItem} />;
+        return (
+          <SettingsPage
+            settings={data.settings}
+            appDownloadSettings={data.appDownloadSettings}
+            onSave={data.actions.saveSettingsItem}
+            onSaveAppDownloadSettings={data.actions.saveAppDownloadSettingsItem}
+          />
+        );
       default:
         return (
           <Card className="rounded-3xl border-border/60 bg-white/95">

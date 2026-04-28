@@ -3,12 +3,14 @@ import { BellRing, CheckCircle2, Download, Eye, FileText, Printer, UserCheck, Us
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import type { AdmissionForm } from "@/lib/admission";
+import type { AppDownloadSettings } from "@/lib/appDownloadSettings";
 import type { MobileAppNotification, MobileNotificationAudience } from "@/lib/mobileNotifications";
 import type { StudentRecord } from "@/lib/students";
 import type { Teacher } from "@/lib/teachers";
 import type { VirtualTour } from "@/lib/virtualTour";
 import type { AttendanceRecord, DashboardSettings, FeeRecord, GuardianRequest } from "@/lib/adminDashboard";
 import type { GuardianRegistrationInput, GuardianRelationship } from "@/lib/guardianRegistration";
+import { getDownloadUrl } from "@/lib/upload";
 import { createClientId } from "@/lib/uuid";
 import LanguageToggle from "@/components/LanguageToggle";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -1967,21 +1969,69 @@ export const GuardianRequestsPage = ({
 
 export const SettingsPage = ({
   settings,
+  appDownloadSettings,
   onSave,
+  onSaveAppDownloadSettings,
 }: {
   settings: DashboardSettings;
-  onSave: (settings: DashboardSettings) => void;
+  appDownloadSettings: AppDownloadSettings;
+  onSave: (settings: DashboardSettings) => void | Promise<void>;
+  onSaveAppDownloadSettings: (settings: Omit<AppDownloadSettings, "updatedAt">, file: File | null) => Promise<void>;
 }) => {
   const { t } = useLanguage();
   const [draft, setDraft] = useState(settings);
+  const [appDraft, setAppDraft] = useState<Omit<AppDownloadSettings, "updatedAt">>({
+    enabled: appDownloadSettings.enabled,
+    apkUrl: appDownloadSettings.apkUrl,
+    version: appDownloadSettings.version,
+    releaseNotesBn: appDownloadSettings.releaseNotesBn,
+    releaseNotesEn: appDownloadSettings.releaseNotesEn,
+    fileName: appDownloadSettings.fileName,
+    fileSizeLabel: appDownloadSettings.fileSizeLabel,
+  });
+  const [apkFile, setApkFile] = useState<File | null>(null);
+  const [savingApk, setSavingApk] = useState(false);
+  const [apkError, setApkError] = useState("");
 
   useEffect(() => {
     setDraft(settings);
   }, [settings]);
 
+  useEffect(() => {
+    setAppDraft({
+      enabled: appDownloadSettings.enabled,
+      apkUrl: appDownloadSettings.apkUrl,
+      version: appDownloadSettings.version,
+      releaseNotesBn: appDownloadSettings.releaseNotesBn,
+      releaseNotesEn: appDownloadSettings.releaseNotesEn,
+      fileName: appDownloadSettings.fileName,
+      fileSizeLabel: appDownloadSettings.fileSizeLabel,
+    });
+  }, [appDownloadSettings]);
+
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     onSave(draft);
+  };
+
+  const submitApkSettings = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setApkError("");
+
+    if (appDraft.enabled && !apkFile && !appDraft.apkUrl.trim()) {
+      setApkError(t("একটি APK ফাইল আপলোড করুন", "Upload an APK file first"));
+      return;
+    }
+
+    setSavingApk(true);
+    try {
+      await onSaveAppDownloadSettings(appDraft, apkFile);
+      setApkFile(null);
+    } catch (error) {
+      setApkError(error instanceof Error ? error.message : t("APK সেটিংস সংরক্ষণ করা যায়নি", "Could not save APK settings"));
+    } finally {
+      setSavingApk(false);
+    }
   };
 
   return (
@@ -2012,6 +2062,96 @@ export const SettingsPage = ({
           </div>
         </div>
       </FormCard>
+
+      <Card className={shellCardClass}>
+        <CardContent className="space-y-5 p-6">
+          <div className="space-y-2">
+            <h3 className="font-bengali text-lg font-semibold text-foreground">{t("গার্ডিয়ান অ্যাপ APK", "Guardian app APK")}</h3>
+            <p className="font-bengali text-sm text-muted-foreground">
+              {t("এখান থেকে public download page-এর জন্য সর্বশেষ APK ফাইল, version এবং release note আপডেট করুন", "Upload the latest APK file, version, and release notes for the public download page from here")}
+            </p>
+          </div>
+
+          <form onSubmit={submitApkSettings} className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <ToggleRow
+                label={t("ডাউনলোড চালু", "Enable download")}
+                checked={appDraft.enabled}
+                onCheckedChange={(checked) => setAppDraft((current) => ({ ...current, enabled: checked }))}
+              />
+              <Field label={t("অ্যাপ ভার্সন", "App version")}>
+                <Input
+                  value={appDraft.version}
+                  onChange={(event) => setAppDraft((current) => ({ ...current, version: event.target.value }))}
+                  className="rounded-2xl"
+                  placeholder="v1.0.0"
+                />
+              </Field>
+            </div>
+
+            <FilePicker
+              label={t("APK ফাইল আপলোড", "Upload APK file")}
+              file={apkFile}
+              onFileChange={setApkFile}
+              accept=".apk,application/vnd.android.package-archive,application/octet-stream"
+            />
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label={t("ফাইলের নাম", "File name")}>
+                <Input
+                  value={appDraft.fileName}
+                  onChange={(event) => setAppDraft((current) => ({ ...current, fileName: event.target.value }))}
+                  className="rounded-2xl"
+                  placeholder="annoor-guardian.apk"
+                />
+              </Field>
+              <Field label={t("ফাইল সাইজ", "File size label")}>
+                <Input
+                  value={appDraft.fileSizeLabel}
+                  onChange={(event) => setAppDraft((current) => ({ ...current, fileSizeLabel: event.target.value }))}
+                  className="rounded-2xl"
+                  placeholder="24.8 MB"
+                />
+              </Field>
+            </div>
+
+            <BilingualTextarea
+              labelBn="রিলিজ নোট"
+              labelEn="Release notes"
+              valueBn={appDraft.releaseNotesBn}
+              valueEn={appDraft.releaseNotesEn}
+              onBnChange={(value) => setAppDraft((current) => ({ ...current, releaseNotesBn: value }))}
+              onEnChange={(value) => setAppDraft((current) => ({ ...current, releaseNotesEn: value }))}
+            />
+
+            <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+              <p className="font-bengali text-sm font-semibold text-foreground">
+                {t("পাবলিক ডাউনলোড পেইজ", "Public download page")}: <span className="text-primary">/apk</span>
+              </p>
+              {appDraft.apkUrl ? (
+                <a
+                  href={getDownloadUrl(appDraft.apkUrl)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-flex text-sm font-semibold text-primary hover:underline"
+                >
+                  {t("বর্তমান APK লিংক খুলুন", "Open current APK link")}
+                </a>
+              ) : (
+                <p className="mt-2 font-bengali text-sm text-muted-foreground">
+                  {t("এখনও কোনো APK আপলোড করা হয়নি", "No APK has been uploaded yet")}
+                </p>
+              )}
+            </div>
+
+            {apkError ? <p className="font-bengali text-sm text-red-600">{apkError}</p> : null}
+
+            <Button type="submit" className="rounded-2xl font-bengali" disabled={savingApk}>
+              {savingApk ? t("APK সংরক্ষণ হচ্ছে...", "Saving APK...") : t("APK সেটিংস সংরক্ষণ", "Save APK settings")}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </ModuleShell>
   );
 };
