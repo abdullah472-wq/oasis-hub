@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface MultiFeeItemFormProps {
   items: FeeItemDraft[];
+  classOptions: string[];
   onChange: (items: FeeItemDraft[]) => void;
 }
 
@@ -57,7 +58,7 @@ const getTitleOptions = (category: FeeItemDraft["category"]) => {
   }
 };
 
-const MultiFeeItemForm = ({ items, onChange }: MultiFeeItemFormProps) => {
+const MultiFeeItemForm = ({ items, classOptions, onChange }: MultiFeeItemFormProps) => {
   const { t } = useLanguage();
 
   const updateItem = (index: number, patch: Partial<FeeItemDraft>) => {
@@ -70,7 +71,7 @@ const MultiFeeItemForm = ({ items, onChange }: MultiFeeItemFormProps) => {
   };
 
   const addItem = () => {
-    onChange([...items, { title: "", category: "monthly", amount: 0, note: "" }]);
+    onChange([...items, { title: "", category: "monthly", amount: 0, note: "", targetClassName: "" }]);
   };
 
   const subtotal = items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
@@ -80,6 +81,7 @@ const MultiFeeItemForm = ({ items, onChange }: MultiFeeItemFormProps) => {
       {items.map((item, index) => {
         const titleOptions = getTitleOptions(item.category);
         const isTitleSelect = titleOptions.length > 0;
+        const isExamItem = item.category === "exam";
 
         return (
           <div key={`${index}-${item.title}`} className="rounded-3xl border border-border/60 bg-muted/20 p-4">
@@ -92,12 +94,18 @@ const MultiFeeItemForm = ({ items, onChange }: MultiFeeItemFormProps) => {
               </Button>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-[0.9fr_1.4fr_0.7fr]">
+            <div className={`grid gap-4 ${isExamItem ? "md:grid-cols-4" : "md:grid-cols-[0.9fr_1.4fr_0.7fr]"}`}>
               <div className="space-y-2">
                 <Label className="font-bengali">{t("ক্যাটাগরি", "Category")}</Label>
                 <select
                   value={item.category}
-                  onChange={(event) => updateItem(index, { category: event.target.value as FeeItemDraft["category"], title: "" })}
+                  onChange={(event) =>
+                    updateItem(index, {
+                      category: event.target.value as FeeItemDraft["category"],
+                      title: "",
+                      targetClassName: event.target.value === "exam" ? item.targetClassName || "" : "",
+                    })
+                  }
                   className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
                 >
                   {feeCategoryOptions.map((option) => (
@@ -137,6 +145,24 @@ const MultiFeeItemForm = ({ items, onChange }: MultiFeeItemFormProps) => {
                 <Label className="font-bengali">{t("পরিমাণ", "Amount")}</Label>
                 <Input type="number" min="0" value={item.amount} onChange={(event) => updateItem(index, { amount: Number(event.target.value) })} className="rounded-2xl" />
               </div>
+
+              {isExamItem ? (
+                <div className="space-y-2">
+                  <Label className="font-bengali">{t("ক্লাস", "Class")}</Label>
+                  <select
+                    value={item.targetClassName || ""}
+                    onChange={(event) => updateItem(index, { targetClassName: event.target.value })}
+                    className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+                  >
+                    <option value="">{t("একটি ক্লাস নির্বাচন করুন", "Select a class")}</option>
+                    {classOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
             </div>
 
             <div className="mt-4 space-y-2">

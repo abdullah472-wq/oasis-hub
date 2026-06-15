@@ -1,5 +1,7 @@
 import { db } from "./firebase";
-import { collection, addDoc, getDocs, doc, deleteDoc, query, orderBy } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc } from "firebase/firestore";
+
+export type AdmissionStatus = "pending" | "approved" | "rejected";
 
 export interface AdmissionForm {
   id?: string;
@@ -27,7 +29,12 @@ export interface AdmissionForm {
     mobile: string;
   }>;
   imageUrl?: string;
-  status: "pending" | "approved" | "rejected";
+  approvedStudentId?: string;
+  approvedRoll?: number;
+  approvedClass?: string;
+  approvedSection?: string;
+  approvedMonthlyFee?: number;
+  status: AdmissionStatus;
   createdAt: number;
 }
 
@@ -51,8 +58,15 @@ export const getAdmissions = async (): Promise<AdmissionForm[]> => {
   })) as AdmissionForm[];
 };
 
-export const updateAdmissionStatus = async (id: string, status: "approved" | "rejected"): Promise<void> => {
-  await doc(db, ADMISSIONS_COLLECTION, id);
+export const updateAdmissionStatus = async (
+  id: string,
+  status: AdmissionStatus,
+  updates?: Partial<Pick<AdmissionForm, "approvedStudentId" | "approvedRoll" | "approvedClass" | "approvedSection" | "approvedMonthlyFee">>,
+): Promise<void> => {
+  await updateDoc(doc(db, ADMISSIONS_COLLECTION, id), {
+    status,
+    ...(updates ?? {}),
+  });
 };
 
 export const deleteAdmission = async (id: string): Promise<void> => {

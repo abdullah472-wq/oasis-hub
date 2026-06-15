@@ -2,9 +2,23 @@ import type { StudentRecord } from "@/lib/students";
 import type { AttendanceRecord, AttendanceSheetRowInput, AttendanceStatus } from "@/lib/attendanceService";
 
 const ATTENDANCE_CLASS_SEQUENCE = ["Play", "Nursery", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"] as const;
+export const CLASS_NAME_OPTIONS = [
+  "Play",
+  "Nursery",
+  "Class 1",
+  "Class 2",
+  "Class 3",
+  "Class 4",
+  "Class 5",
+  "Class 6",
+  "Class 7",
+  "Class 8",
+  "Class 9",
+  "Class 10",
+] as const;
 
-const normalizeClassName = (value: string) => {
-  const normalized = value.trim().toLowerCase();
+export const normalizeClassName = (value: string) => {
+  const normalized = String(value || "").trim().toLowerCase();
   if (!normalized) return "";
 
   if (normalized === "play" || normalized === "pre-play" || normalized === "pre play" || normalized === "play group") {
@@ -17,9 +31,9 @@ const normalizeClassName = (value: string) => {
 
   const digitMatch = normalized.match(/\d+/);
   if (digitMatch) {
-    const digit = digitMatch[0];
-    if (ATTENDANCE_CLASS_SEQUENCE.includes(digit as (typeof ATTENDANCE_CLASS_SEQUENCE)[number])) {
-      return digit;
+    const digit = Number(digitMatch[0]);
+    if (digit >= 1 && digit <= 10) {
+      return `Class ${digit}`;
     }
   }
 
@@ -148,7 +162,7 @@ export const calculateAttendanceSheetSummary = (rows: AttendanceSheetRowInput[])
   };
 };
 
-export const buildClassOptions = (_students: StudentRecord[]) => [...ATTENDANCE_CLASS_SEQUENCE];
+export const buildClassOptions = (_students: StudentRecord[]) => [...CLASS_NAME_OPTIONS];
 
 export const buildSectionOptions = (students: StudentRecord[], className: string) =>
   Array.from(

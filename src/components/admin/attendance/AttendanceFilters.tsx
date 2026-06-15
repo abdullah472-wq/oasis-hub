@@ -1,7 +1,6 @@
 ﻿import { CalendarDays, CheckCheck, Save } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 interface AttendanceFiltersProps {
@@ -43,9 +42,18 @@ const AttendanceFilters = ({
 }: AttendanceFiltersProps) => {
   const { t } = useLanguage();
 
+  const chips = [
+    { labelBn: "মোট", labelEn: "Total", value: totalStudents, color: "bg-primary/10 text-primary border-primary/20" },
+    { labelBn: "উপস্থিত", labelEn: "Present", value: presentCount, color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    { labelBn: "অনুপস্থিত", labelEn: "Absent", value: absentCount, color: "bg-rose-50 text-rose-700 border-rose-200" },
+    { labelBn: "বিলম্বিত", labelEn: "Late", value: lateCount, color: "bg-amber-50 text-amber-700 border-amber-200" },
+    { labelBn: "ছুটি", labelEn: "Leave", value: leaveCount, color: "bg-sky-50 text-sky-700 border-sky-200" },
+  ];
+
   return (
-    <Card className="rounded-3xl border-border/60 bg-white/95 shadow-[0_20px_60px_-40px_rgba(16,24,40,0.25)]">
-      <CardContent className="grid gap-4 p-5 lg:grid-cols-[1.2fr_1fr_1fr_auto_auto] lg:items-end">
+    <div className="rounded-2xl border border-border/60 bg-card/95 shadow-sm p-5 space-y-4">
+      {/* Filters row */}
+      <div className="grid gap-4 md:grid-cols-[1.2fr_1fr_1fr] items-end">
         <div className="space-y-2">
           <label className="font-bengali text-sm font-medium text-foreground">{t("তারিখ", "Date")}</label>
           <div className="relative">
@@ -73,37 +81,29 @@ const AttendanceFilters = ({
             ))}
           </select>
         </div>
+      </div>
 
-        <Button type="button" variant="outline" className="h-11 rounded-2xl font-bengali" onClick={onMarkAllPresent}>
-          <CheckCheck className="mr-2 h-4 w-4" />
-          {t("সব উপস্থিত", "Mark All Present")}
-        </Button>
-
-        <div className="flex flex-col gap-2 lg:items-end">
-          <div className="flex flex-wrap gap-2 lg:justify-end">
-            <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-              {t("মোট", "Total")}: {totalStudents}
+      {/* Chips + actions row */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-2">
+          {chips.map((chip) => (
+            <div key={chip.labelEn} className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium ${chip.color}`}>
+              {t(chip.labelBn, chip.labelEn)}: {chip.value}
             </div>
-            <div className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-              {t("উপস্থিত", "Present")}: {presentCount}
-            </div>
-            <div className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700">
-              {t("অনুপস্থিত", "Absent")}: {absentCount}
-            </div>
-            <div className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
-              {t("বিলম্বিত", "Late")}: {lateCount}
-            </div>
-            <div className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
-              {t("ছুটি", "Leave")}: {leaveCount}
-            </div>
-          </div>
-          <Button type="button" className="h-11 rounded-2xl font-bengali" onClick={onSave} disabled={saving}>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Button type="button" variant="outline" className="h-10 rounded-2xl font-bengali text-sm" onClick={onMarkAllPresent}>
+            <CheckCheck className="mr-2 h-4 w-4" />
+            {t("সব উপস্থিত", "Mark All Present")}
+          </Button>
+          <Button type="button" className="h-10 rounded-2xl font-bengali text-sm" onClick={onSave} disabled={saving}>
             <Save className="mr-2 h-4 w-4" />
-            {saving ? t("সেভ হচ্ছে...", "Saving...") : t("উপস্থিতি সেভ", "Save Attendance")}
+            {saving ? t("সেভ হচ্ছে...", "Saving...") : t("সেভ", "Save")}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

@@ -38,6 +38,7 @@ export const createEmptyFeeItem = (): FeeItemDraft => ({
   category: "monthly",
   amount: 0,
   note: "",
+  targetClassName: "",
 });
 
 export const createEmptyFeeBatchDraft = (): FeeBatchDraft => ({
@@ -101,16 +102,18 @@ export const buildFeeStudentOptions = (students: StudentRecord[], admissions: Ad
       guardianPhone: item.guardianPhone || "",
       studentName: item.studentName,
       className: item.className,
+      monthlyFee: Number(item.monthlyFee || 0),
     });
   });
 
-  admissions.forEach((item) => {
+  admissions.filter((item) => item.status === "approved").forEach((item) => {
     if (!item.id) return;
 
-    const current = map.get(item.id);
+    const fallbackStudentId = item.approvedStudentId || item.id;
+    const current = map.get(fallbackStudentId);
 
-    map.set(item.id, {
-      studentId: item.id,
+    map.set(fallbackStudentId, {
+      studentId: fallbackStudentId,
       guardianUid: current?.guardianUid || "",
       guardianName:
         current?.guardianName ||
@@ -121,7 +124,8 @@ export const buildFeeStudentOptions = (students: StudentRecord[], admissions: Ad
         "",
       guardianPhone: current?.guardianPhone || item.fatherPhone || item.motherPhone || "",
       studentName: item.studentNameBn || item.studentName,
-      className: item.class,
+      className: item.approvedClass || item.class,
+      monthlyFee: Number(current?.monthlyFee || item.approvedMonthlyFee || 0),
     });
   });
 

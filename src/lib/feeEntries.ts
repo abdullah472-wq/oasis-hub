@@ -45,6 +45,7 @@ export interface FeeStudentOption {
   guardianPhone?: string;
   studentName: string;
   className: string;
+  monthlyFee?: number;
 }
 
 export interface FeeItemDraft {
@@ -52,6 +53,7 @@ export interface FeeItemDraft {
   category: FeeCategory;
   amount: number;
   note: string;
+  targetClassName?: string;
 }
 
 export interface FeeBatchDraft {
@@ -75,6 +77,20 @@ export interface FeeEntryUpdateInput {
 }
 
 const FEE_ENTRIES_COLLECTION = "fee_entries";
+
+const formatBillingMonthLabel = (billingMonth: string) => {
+  const [year, month] = billingMonth.split("-");
+  const monthIndex = Number(month) - 1;
+
+  if (!year || Number.isNaN(monthIndex) || monthIndex < 0 || monthIndex > 11) {
+    return billingMonth;
+  }
+
+  return new Date(Number(year), monthIndex, 1).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+};
 
 const toMillis = (value: unknown) => {
   if (!value) return Date.now();
@@ -166,6 +182,75 @@ export const createFeeEntriesBatch = async (draft: FeeBatchDraft, createdBy: str
   );
 
   return results.sort((a, b) => b.createdAt - a.createdAt);
+};
+
+export const ensureMonthlyFeeEntries = async ({
+  students,
+  existingEntries,
+  createdBy,
+  billingMonth = new Date().toISOString().slice(0, 7),
+}: {
+  students: FeeStudentOption[];
+  existingEntries: FeeEntry[];
+  createdBy: string;
+  billingMonth?: string;
+}): Promise<FeeEntry[]> => {
+  const existingStudentIds = new Set(
+    existingEntries
+      .filter((entry) => entry.category === "monthly" && entry.billingMonth === billingMonth)
+      .map((entry) => entry.studentId.trim())
+      .filter(Boolean),
+  );
+
+  const eligibleStudents = students.filter(
+    (student) =>
+      student.studentId.trim() &&
+      Number(student.monthlyFee || 0) > 0 &&
+      !existingStudentIds.has(student.studentId.trim()),
+  );
+
+  if (eligibleStudents.length === 0) {
+    return [];
+  }
+
+  const billingMonthLabel = formatBillingMonthLabel(billingMonth);
+
+  const createdEntries = await Promise.all(
+    eligibleStudents.map(async (student) => {
+      const ref = doc(collection(db, FEE_ENTRIES_COLLECTION));
+      const amount = Number(student.monthlyFee || 0);
+      const payload = {
+        studentId: student.studentId.trim(),
+        guardianUid: student.guardianUid.trim(),
+        guardianName: student.guardianName.trim(),
+        guardianPhone: student.guardianPhone?.trim() || "",
+        studentName: student.studentName.trim(),
+        className: student.className.trim(),
+        title: billingMonthLabel,
+        category: "monthly" as FeeCategory,
+        amount,
+        paidAmount: 0,
+        dueAmount: amount,
+        status: "unpaid" as FeeStatus,
+        billingMonth,
+        note: `Auto-generated monthly due for ${billingMonthLabel}`,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy,
+      };
+
+      await setDoc(ref, payload);
+
+      return {
+        id: ref.id,
+        ...payload,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+    }),
+  );
+
+  return createdEntries.sort((a, b) => b.createdAt - a.createdAt);
 };
 
 export const updateFeeEntry = async (id: string, payload: FeeEntryUpdateInput & Pick<FeeEntry, "dueAmount" | "status">) => {

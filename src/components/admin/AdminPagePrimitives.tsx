@@ -17,6 +17,9 @@ export const ModuleShell = ({
   actionLabel,
   onAction,
   icon,
+  recordCount,
+  recordLabel,
+  helperText,
   children,
 }: {
   title: string;
@@ -24,6 +27,9 @@ export const ModuleShell = ({
   actionLabel?: string;
   onAction?: () => void;
   icon: React.ReactNode;
+  recordCount?: number;
+  recordLabel?: string;
+  helperText?: string;
   children: React.ReactNode;
 }) => (
   <div className="space-y-6">
@@ -37,6 +43,20 @@ export const ModuleShell = ({
           <h2 className="font-bengali text-2xl font-semibold text-foreground">{title}</h2>
           <p className="font-bengali text-sm text-muted-foreground">{description}</p>
         </div>
+        {(typeof recordCount === "number" || helperText) && (
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            {typeof recordCount === "number" ? (
+              <Badge variant="secondary" className="rounded-full px-3 py-1 font-bengali">
+                {(recordLabel || "Records")}: {recordCount}
+              </Badge>
+            ) : null}
+            {helperText ? (
+              <Badge variant="outline" className="rounded-full px-3 py-1 font-bengali text-muted-foreground">
+                {helperText}
+              </Badge>
+            ) : null}
+          </div>
+        )}
       </div>
       {actionLabel && onAction && (
         <Button className="rounded-2xl font-bengali" onClick={onAction}>
@@ -154,6 +174,22 @@ export const Field = ({ label, children }: { label: string; children: React.Reac
   </div>
 );
 
+export const FieldWithHelp = ({
+  label,
+  helpText,
+  children,
+}: {
+  label: string;
+  helpText?: string;
+  children: React.ReactNode;
+}) => (
+  <div className="space-y-2">
+    <Label className="font-bengali">{label}</Label>
+    {children}
+    {helpText ? <p className="font-bengali text-xs leading-5 text-muted-foreground">{helpText}</p> : null}
+  </div>
+);
+
 export const ItemCard = ({
   title,
   meta,
@@ -190,9 +226,36 @@ export const DeleteIconButton = ({ onClick }: { onClick: () => void }) => (
   </Button>
 );
 
-export const EmptyState = ({ text, className = "" }: { text: string; className?: string }) => (
-  <div className={`rounded-3xl border border-dashed border-border/70 bg-muted/20 px-6 py-10 text-center font-bengali text-sm text-muted-foreground ${className}`}>
-    {text}
+export const EmptyState = ({
+  text,
+  description,
+  actionLabel,
+  onAction,
+  icon,
+  className = "",
+}: {
+  text: string;
+  description?: string;
+  actionLabel?: string;
+  onAction?: () => void;
+  icon?: React.ReactNode;
+  className?: string;
+}) => (
+  <div className={`rounded-3xl border border-dashed border-border/70 bg-muted/20 px-6 py-10 text-center ${className}`}>
+    <div className="mx-auto max-w-md space-y-3">
+      {icon ? (
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-background text-primary shadow-sm">
+          {icon}
+        </div>
+      ) : null}
+      <p className="font-bengali text-base font-medium text-foreground">{text}</p>
+      {description ? <p className="font-bengali text-sm text-muted-foreground">{description}</p> : null}
+      {actionLabel && onAction ? (
+        <Button type="button" variant="outline" className="rounded-2xl font-bengali" onClick={onAction}>
+          {actionLabel}
+        </Button>
+      ) : null}
+    </div>
   </div>
 );
 

@@ -1,0 +1,325 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userDocPath(uid) {
+      return /databases/$(database)/documents/users/$(uid);
+    }
+
+    function guardianDocPath(uid) {
+      return /databases/$(database)/documents/guardians/$(uid);
+    }
+
+    function linkDocPath(studentId) {
+      return /databases/$(database)/documents/student_guardian_links/$(studentId);
+    }
+
+    function hasUserDoc(uid) {
+      return signedIn() && exists(userDocPath(uid));
+    }
+
+    function hasGuardianDoc(uid) {
+      return signedIn() && exists(guardianDocPath(uid));
+    }
+
+    function myUser() {
+      return get(userDocPath(request.auth.uid));
+    }
+
+    function myGuardian() {
+      return get(guardianDocPath(request.auth.uid));
+    }
+
+    function isActiveUser() {
+      return hasUserDoc(request.auth.uid)
+        && myUser().data.status == "active";
+    }
+
+    function isAdmin() {
+      return isActiveUser() && myUser().data.role == "admin";
+    }
+
+    function isManager() {
+      return isActiveUser() && myUser().data.role == "manager";
+    }
+
+    function isStaff() {
+      return isAdmin() || isManager();
+    }
+
+    function hasPermission(permission) {
+      return isAdmin()
+        || (
+          isManager()
+          && myUser().data.permissions is list
+          && permission in myUser().data.permissions
+        );
+    }
+
+    function canManageNews() { return hasPermission("news.manage"); }
+    function canManageResults() { return hasPermission("results.manage"); }
+    function canManageEvents() { return hasPermission("events.manage"); }
+    function canManageNotices() { return hasPermission("notices.manage"); }
+    function canManageFees() { return hasPermission("fees.manage"); }
+    function canManageAttendance() { return hasPermission("attendance.manage"); }
+    function canManageGuardianRequests() { return hasPermission("guardianRequests.manage"); }
+
+    // ===== Guardians =====
+    match /guardians/{uid} {
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.uid == request.auth.uid;
+      allow read: if (signedIn() && request.auth.uid == uid) || isStaff();
+      allow update: if signedIn() && request.auth.uid == uid;
+      allow delete: if isAdmin();
+    }
+
+    // ===== Users =====
+    match /users/{uid} {
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.uid == request.auth.uid;
+      allow read: if (signedIn() && request.auth.uid == uid) || isStaff();
+      allow update, delete: if isAdmin();
+    }
+
+    // ===== Student Guardian Links =====
+    match /student_guardian_links/{studentId} {
+      allow create: if signedIn()
+        && request.resource.data.studentId == studentId
+        && request.resource.data.guardianUid == request.auth.uid;
+      allow read: if isStaff() || signedIn();
+      allow update, delete: if isAdmin() || canManageGuardianRequests();
+    }
+
+    // ===== Students =====
+    match /students/{id} {
+      allow read: if isStaff()
+        || canManageFees()
+        || canManageAttendance()
+        || canManageGuardianRequests()
+        || (signedIn() && resource.data.guardianUid == request.auth.uid);
+      allow create, update: if isAdmin() || canManageGuardianRequests();
+      allow delete: if isAdmin();
+    }
+
+    // ===== Guardian Requests =====
+    match /guardian_requests/{id} {
+      allow create: if signedIn()
+        && request.resource.data.guardianUid == request.auth.uid;
+      allow read: if isAdmin() || canManageGuardianRequests()
+        || (signedIn() && resource.data.guardianUid == request.auth.uid);
+      allow update, delete: if isAdmin() || canManageGuardianRequests();
+    }
+
+    // ===== Fees =====
+    match /fee_entries/{id} {
+      allow read: if isAdmin()
+        || canManageFees()
+        || (signedIn() && resource.data.guardianUid == request.auth.uid);
+      allow write: if isAdmin() || canManageFees();
+    }
+
+    // ===== Attendance =====
+    match /attendance_records/{id} {
+      allow read: if isAdmin()
+        || canManageAttendance()
+        || (
+          signedIn()
+          && hasGuardianDoc(request.auth.uid)
+          && resource.data.studentId == myGuardian().data.studentId
+        );
+      allow write: if isAdmin() || canManageAttendance();
+    }
+
+    // ===== Personal Results =====
+    match /personal_results/{id} {
+      allow read: if true;
+      allow write: if isAdmin() || canManageResults();
+    }
+
+    // ===== Group Results =====
+    match /group_results/{id} {
+      allow read: if true;
+      allow write: if isAdmin() || canManageResults();
+    }
+
+    // ===== Legacy Results =====
+    match /results/{id} {
+      allow read: if true;
+      allow write: if isAdmin() || canManageResults();
+    }
+
+    match /results_pdf/{id} {
+      allow read: if true;
+      allow write: if isAdmin() || canManageResults();
+    }
+
+    match /results_manual_classes/{classKey} {
+      allow read: if true;
+      allow write: if isAdmin() || canManageResults();
+
+      match /items/{id} {
+        allow read: if true;
+        allow write: if isAdmin() || canManageResults();
+      }
+    }
+
+    match /class_subject_configs/{id} {
+      allow read: if isAdmin() || canManageResults();
+      allow write: if isAdmin() || canManageResults();
+    }
+
+    // ===== Rules collection =====
+    match /rules/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ===== Notices =====
+    match /notices/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin() || canManageNotices();
+    }
+
+    // ===== News =====
+    match /news/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin() || canManageNews();
+    }
+
+    // ===== Events =====
+    match /events/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin() || canManageEvents();
+    }
+
+    // ===== Teachers =====
+    match /teachers/{id} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    // ===== Gallery =====
+    match /gallery/{id} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    // ===== Achievements =====
+    match /achievements/{id} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    // ===== Virtual Tours =====
+    match /virtual_tours/{id} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    // ===== Admissions =====
+    match /admissions/{id} {
+      allow create: if true;
+      allow read, update, delete: if isStaff();
+    }
+
+    // ===== Reviews =====
+    match /reviews/{id} {
+      allow create: if true;
+      allow read: if isStaff() || resource.data.approved == true;
+      allow update, delete: if isStaff();
+    }
+
+    // ===== Subscribers =====
+    match /subscribers/{id} {
+      allow create: if true;
+      allow read: if isStaff();
+      allow update, delete: if isAdmin();
+    }
+
+    // ===== Complaints =====
+    match /complaints/{id} {
+      allow create: if signedIn()
+        && request.resource.data.guardianUid == request.auth.uid;
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.guardianUid == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    // ===== Notification =====
+    match /mobile_app_notifications/{id} {
+      allow read: if isAdmin()
+        || canManageNotices()
+        || (
+          signedIn()
+          && (
+            (hasUserDoc(request.auth.uid)
+              && myUser().data.role == "guardian"
+              && myUser().data.status == "active")
+            || hasGuardianDoc(request.auth.uid)
+          )
+        );
+
+      allow create, update: if (isAdmin() || canManageNotices())
+        && request.resource.data.audience in ["all", "boys", "girls", "class-section", "guardian"]
+        && (
+          request.resource.data.audience != "guardian"
+          || (
+            request.resource.data.guardianUid is string
+            && request.resource.data.guardianUid != ""
+          )
+        );
+
+      allow delete: if isAdmin() || canManageNotices();
+    }
+
+    // ===== Analytics =====
+    match /analytics_daily/{id} {
+      allow create, update: if request.resource.data.dateKey == id;
+      allow read, delete: if isStaff();
+    }
+
+    // ===== Site Settings =====
+    match /site_settings/running_notice_bar {
+      allow read: if true;
+      allow write: if isAdmin() || canManageNotices();
+    }
+
+    match /site_settings/ramadan {
+      allow read: if true;
+      allow write: if isAdmin() || isManager();
+    }
+
+    match /site_settings/ramadan/running_notice_bar/{id} {
+      allow read: if true;
+      allow write: if isAdmin() || canManageNotices();
+    }
+
+    match /site_settings/app_download {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /site_settings/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ===== Ramadan Sponsors =====
+    match /ramadan_sponsors/{id} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isAdmin() || isManager();
+    }
+
+    // ===== Default lock =====
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

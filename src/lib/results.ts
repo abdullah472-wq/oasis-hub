@@ -3,15 +3,28 @@ import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query } from "fir
 import { db } from "./firebase";
 import { uploadDocument } from "./upload";
 
+export interface ResultSubjectMark {
+  id: string;
+  name: string;
+  nameEn?: string;
+  testMark: number;
+  semesterMark: number;
+  totalMark: number;
+  testMaxMark: number;
+  semesterMaxMark: number;
+  totalMaxMark: number;
+}
+
 export interface Result {
   id?: string;
   exam: string;
   examEn: string;
+  examType?: "test" | "semester";
   className: string;
   classNameEn: string;
   campus: "boys" | "girls" | "both";
   resultType?: "personal" | "group";
-  entryType?: "pdf" | "manual";
+  entryType?: "pdf" | "manual" | "class";
   studentId?: string;
   studentName?: string;
   section?: string;
@@ -24,6 +37,7 @@ export interface Result {
   remarksBn?: string;
   remarksEn?: string;
   pdfUrl?: string;
+  subjects?: ResultSubjectMark[];
   createdAt: number;
 }
 
@@ -57,27 +71,41 @@ const isPermissionError = (error: unknown) => {
   if (!error || typeof error !== "object") return false;
   const maybeCode = "code" in error ? String((error as { code?: unknown }).code ?? "") : "";
   const maybeMessage = "message" in error ? String((error as { message?: unknown }).message ?? "") : "";
-  return (
-    maybeCode.includes("permission-denied") ||
-    maybeMessage.includes("Missing or insufficient permissions")
-  );
+
+  return maybeCode.includes("permission-denied") || maybeMessage.includes("Missing or insufficient permissions");
+};
+
+const normalizeSubjectMark = (item: Partial<ResultSubjectMark>, index: number): ResultSubjectMark => {
+  const testMark = Math.max(0, Number(item.testMark ?? 0));
+  const semesterMark = Math.max(0, Number(item.semesterMark ?? 0));
+  const testMaxMark = Math.max(0, Number(item.testMaxMark ?? 25));
+  const semesterMaxMark = Math.max(0, Number(item.semesterMaxMark ?? 75));
+
+  return {
+    id: String(item.id || `subject-${index + 1}`),
+    name: String(item.name || ""),
+    nameEn: item.nameEn ? String(item.nameEn) : undefined,
+    testMark,
+    semesterMark,
+    totalMark: Math.max(0, Number(item.totalMark ?? testMark + semesterMark)),
+    testMaxMark,
+    semesterMaxMark,
+    totalMaxMark: Math.max(0, Number(item.totalMaxMark ?? testMaxMark + semesterMaxMark)),
+  };
 };
 
 const normalizeResult = (id: string, data: Partial<Result>): Result => {
-  const resultType =
-    data.resultType ??
-    (data.pdfUrl || data.entryType === "pdf" ? "group" : "personal");
-  const entryType =
-    data.entryType ??
-    (resultType === "group" || data.pdfUrl ? "pdf" : "manual");
+  const resultType = data.resultType ?? (data.pdfUrl || data.entryType === "pdf" ? "group" : "personal");
+  const entryType = data.entryType ?? (resultType === "group" || data.pdfUrl ? "pdf" : "manual");
 
   return {
     id,
     exam: String(data.exam ?? ""),
     examEn: String(data.examEn ?? data.exam ?? ""),
+    examType: data.examType === "test" || data.examType === "semester" ? data.examType : undefined,
     className: String(data.className ?? ""),
     classNameEn: String(data.classNameEn ?? data.className ?? ""),
-    campus: (data.campus === "boys" || data.campus === "girls" || data.campus === "both" ? data.campus : "both"),
+    campus: data.campus === "boys" || data.campus === "girls" || data.campus === "both" ? data.campus : "both",
     resultType,
     entryType,
     studentId: data.studentId ? String(data.studentId) : undefined,
@@ -92,6 +120,11 @@ const normalizeResult = (id: string, data: Partial<Result>): Result => {
     remarksBn: data.remarksBn ? String(data.remarksBn) : undefined,
     remarksEn: data.remarksEn ? String(data.remarksEn) : undefined,
     pdfUrl: data.pdfUrl ? String(data.pdfUrl) : undefined,
+    subjects: Array.isArray(data.subjects)
+      ? data.subjects
+          .map((item: Partial<ResultSubjectMark>, index: number) => normalizeSubjectMark(item, index))
+          .filter((item) => item.name.trim())
+      : undefined,
     createdAt: Number(data.createdAt ?? Date.now()),
   };
 };
@@ -106,7 +139,7 @@ export const saveResult = async (result: Omit<Result, "id" | "createdAt">): Prom
   if (resultType === "personal") {
     const personalPayload = {
       ...cleanResult,
-      entryType: "manual" as const,
+      entryType: cleanResult.entryType === "class" ? "class" : ("manual" as const),
       resultType: "personal" as const,
       createdAt,
     };
@@ -152,6 +185,11 @@ export const saveResult = async (result: Omit<Result, "id" | "createdAt">): Prom
   }
 };
 
+export const saveResultsBatch = async (items: Array<Omit<Result, "id" | "createdAt">>): Promise<Result[]> => {
+  const saved = await Promise.all(items.map((item) => saveResult(item)));
+  return saved.sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+};
+
 export const getResults = async (): Promise<Result[]> => {
   const [personalSnapshot, groupSnapshot, legacySnapshot, legacyPdfSnapshot, legacyManualClassSnapshot] = await Promise.all([
     getDocs(query(collection(db, PERSONAL_RESULTS_COLLECTION), orderBy("createdAt", "desc"))).catch(
@@ -182,7 +220,6 @@ export const getResults = async (): Promise<Result[]> => {
         normalizeResult(buildLegacyManualResultId(classKey, item.id), {
           ...(item.data() as Omit<Result, "id">),
           resultType: "personal",
-          entryType: "manual",
         }),
       );
     }),
@@ -192,7 +229,6 @@ export const getResults = async (): Promise<Result[]> => {
     normalizeResult(buildPersonalResultId(item.id), {
       ...(item.data() as Omit<Result, "id">),
       resultType: "personal",
-      entryType: "manual",
     }),
   );
 

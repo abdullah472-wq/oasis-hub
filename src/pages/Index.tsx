@@ -2,7 +2,7 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { BookOpen, Users, Award, GraduationCap, Send, CheckCircle, Briefcase } from "lucide-react";
+import { BookOpen, Users, Award, GraduationCap, Send, CheckCircle, Briefcase, Copy, Share2 } from "lucide-react";
 import type { Review } from "@/lib/reviews";
 import { useLanguage } from "@/contexts/LanguageContext";
 import PwaHomeCard from "@/components/PwaHomeCard";
@@ -68,11 +68,14 @@ const Index = () => {
   const [reviewText, setReviewText] = useState("");
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewLoading, setReviewLoading] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState("");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [homeNotices, setHomeNotices] = useState<Notice[]>([]);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+  const featuresSectionRef = useRef<HTMLElement | null>(null);
+  const reviewSectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -113,6 +116,44 @@ const Index = () => {
     return () => {
       active = false;
     };
+  }, []);
+
+  const openReviewSection = (smooth = true) => {
+    setShowReviewForm(true);
+
+    window.requestAnimationFrame(() => {
+      reviewSectionRef.current?.scrollIntoView({
+        behavior: smooth ? "smooth" : "auto",
+        block: "start",
+      });
+    });
+  };
+
+  const scrollToSection = (ref: React.RefObject<HTMLElement>, smooth = true) => {
+    window.requestAnimationFrame(() => {
+      ref.current?.scrollIntoView({
+        behavior: smooth ? "smooth" : "auto",
+        block: "start",
+      });
+    });
+  };
+
+  useEffect(() => {
+    const handleSectionHash = () => {
+      if (window.location.hash === "#write-review" || window.location.hash === "#reviews") {
+        openReviewSection(false);
+        return;
+      }
+
+      if (window.location.hash === "#madrasha-features") {
+        scrollToSection(featuresSectionRef, false);
+      }
+    };
+
+    handleSectionHash();
+    window.addEventListener("hashchange", handleSectionHash);
+
+    return () => window.removeEventListener("hashchange", handleSectionHash);
   }, []);
 
   const defaultReviews = [
@@ -167,6 +208,46 @@ const Index = () => {
       console.error(error);
     }
     setReviewLoading(false);
+  };
+
+  const reviewShareUrl = typeof window !== "undefined"
+    ? `${window.location.origin}${window.location.pathname}#write-review`
+    : "/#write-review";
+
+  const setTemporaryShareFeedback = (message: string) => {
+    setShareFeedback(message);
+    window.setTimeout(() => setShareFeedback(""), 2500);
+  };
+
+  const handleCopyReviewLink = async () => {
+    try {
+      await navigator.clipboard.writeText(reviewShareUrl);
+      setTemporaryShareFeedback(t("রিভিউ ফর্মের লিংক কপি হয়েছে", "Review form link copied"));
+    } catch (error) {
+      console.error(error);
+      setTemporaryShareFeedback(t("লিংক কপি করা যায়নি", "Could not copy the link"));
+    }
+  };
+
+  const handleShareReviewLink = async () => {
+    if (typeof navigator === "undefined") return;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: t("রিভিউ ফর্ম", "Review Form"),
+          text: t("এই লিংকে গিয়ে সরাসরি রিভিউ দিন", "Use this link to submit a review directly"),
+          url: reviewShareUrl,
+        });
+        setTemporaryShareFeedback(t("রিভিউ ফর্ম শেয়ার করা হয়েছে", "Review form shared"));
+        return;
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") return;
+        console.error(error);
+      }
+    }
+
+    await handleCopyReviewLink();
   };
 
   const stats = [
@@ -578,7 +659,7 @@ const Index = () => {
       </section>
 
       {/* Madrasha Features */}
-      <section className="py-16">
+      <section id="madrasha-features" ref={featuresSectionRef} className="py-16">
         <div className="container mx-auto px-4 max-w-5xl">
           <motion.h2
             {...springIn}
@@ -690,7 +771,7 @@ const Index = () => {
       </section>
 
       {/* Guardians Speech */}
-      <section className="py-16">
+      <section id="reviews" ref={reviewSectionRef} className="py-16">
         <div className="container mx-auto px-4 max-w-5xl">
           <motion.h2
             {...springIn}
@@ -699,14 +780,34 @@ const Index = () => {
             {t("অভিভাবকদের মতামত", "What Guardians Say")}
           </motion.h2>
           
-          <div className="text-center mb-8">
+          <div className="mb-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <button
               onClick={() => setShowReviewForm(!showReviewForm)}
               className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bengali font-medium hover:bg-primary/90 transition-colors"
             >
               {showReviewForm ? t("বাতিল", "Cancel") : t("রিভিউ দিন", "Write a Review")}
             </button>
+            <button
+              type="button"
+              onClick={() => void handleShareReviewLink()}
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-6 py-3 font-bengali font-medium text-foreground transition-colors hover:bg-secondary/60"
+            >
+              <Share2 className="h-4 w-4" />
+              {t("ফর্ম শেয়ার", "Share Form")}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleCopyReviewLink()}
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-6 py-3 font-bengali font-medium text-foreground transition-colors hover:bg-secondary/60"
+            >
+              <Copy className="h-4 w-4" />
+              {t("লিংক কপি", "Copy Link")}
+            </button>
           </div>
+
+          {shareFeedback ? (
+            <p className="mb-6 text-center font-bengali text-sm text-muted-foreground">{shareFeedback}</p>
+          ) : null}
 
           {showReviewForm && (
             <motion.div

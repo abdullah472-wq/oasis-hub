@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown } from "lucide-react";
 import LanguageToggle from "./LanguageToggle";
@@ -11,30 +11,45 @@ const ENABLE_EXPERIMENTAL_NAVBAR = true;
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [homeOpen, setHomeOpen] = useState(false);
   const [admissionOpen, setAdmissionOpen] = useState(false);
   const [academicOpen, setAcademicOpen] = useState(false);
+  const [mobileHomeOpen, setMobileHomeOpen] = useState(false);
   const [mobileAdmissionOpen, setMobileAdmissionOpen] = useState(false);
   const [mobileAcademicOpen, setMobileAcademicOpen] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
   const { t } = useLanguage();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const mainLinks = [
-    { to: "/", label: t("হোম", "Home") },
     { to: "/about", label: t("আমাদের সম্পর্কে", "About") },
     { to: "/news", label: t("সংবাদ", "News") },
     { to: "/contact", label: t("যোগাযোগ", "Contact") },
     { to: "/ramadan", label: t("রমজান", "Ramadan") },
   ];
 
+  const homeLinks = [
+    {
+      hash: "#madrasha-features",
+      label: t("মাদরাসার বৈশিষ্ট্য", "Features of the Madrasha"),
+      description: t("প্রতিষ্ঠানের বিশেষ দিকগুলো দেখুন", "Explore the institution's standout qualities"),
+    },
+    {
+      hash: "#reviews",
+      label: t("অভিভাবকদের মতামত", "What Guardians Say"),
+      description: t("রিভিউ ও অভিভাবকদের মতামত দেখুন", "Read reviews and guardian feedback"),
+    },
+  ];
+
   const admissionLinks = [
     { to: "/admission", label: t("ভর্তি তথ্য", "Admission Info") },
     { to: "/admission-form", label: t("অনলাইন ভর্তি", "Online Admission") },
+    { to: "/guardian-register", label: t("গার্ডিয়ান রেজিস্ট্রেশন", "Guardian Registration") },
   ];
 
   const academicLinks = [
     { to: "/achievements", label: t("আমাদের অর্জন", "Our Achievements") },
-    { to: "/guardian-register", label: t("গার্ডিয়ান রেজিস্ট্রেশন", "Guardian Registration") },
     { to: "/notices", label: t("নোটিশ বোর্ড", "Notice") },
     { to: "/results", label: t("পরীক্ষার ফলাফল", "Results") },
     { to: "/gallery", label: t("গ্যালারি", "Gallery") },
@@ -54,6 +69,26 @@ const Navbar = () => {
     };
   }, []);
 
+  const handleHomeSectionNavigate = (hash: string) => {
+    setHomeOpen(false);
+    setIsOpen(false);
+    setMobileHomeOpen(false);
+
+    if (location.pathname !== "/") {
+      navigate(`/${hash}`);
+      return;
+    }
+
+    navigate({ pathname: "/", hash });
+
+    window.requestAnimationFrame(() => {
+      document.getElementById(hash.slice(1))?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  };
+
   if (!ENABLE_EXPERIMENTAL_NAVBAR) {
     return (
       <nav className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-lg">
@@ -71,6 +106,39 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden items-center gap-1 lg:flex">
+            <div className="relative" onMouseEnter={() => setHomeOpen(true)} onMouseLeave={() => setHomeOpen(false)}>
+              <Link
+                to="/"
+                className={`flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-medium font-bengali transition-all ${
+                  location.pathname === "/" ? "bg-primary text-primary-foreground" : "text-foreground hover:scale-105 hover:bg-secondary"
+                }`}
+              >
+                {t("হোম", "Home")}
+                <ChevronDown className="h-4 w-4" />
+              </Link>
+              <AnimatePresence>
+                {homeOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute left-0 top-full mt-1 min-w-[220px] rounded-xl border border-border bg-card py-2 shadow-lg"
+                  >
+                    {homeLinks.map((link) => (
+                      <button
+                        key={link.hash}
+                        type="button"
+                        onClick={() => handleHomeSectionNavigate(link.hash)}
+                        className="block w-full px-4 py-2 text-left text-sm font-medium font-bengali text-foreground hover:bg-secondary"
+                      >
+                        {link.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             {mainLinks.map((link) => (
               <Link
                 key={link.to}
@@ -83,9 +151,8 @@ const Navbar = () => {
               </Link>
             ))}
 
-            <div className="relative">
+            <div className="relative" onMouseEnter={() => setAdmissionOpen(true)} onMouseLeave={() => setAdmissionOpen(false)}>
               <button
-                onMouseEnter={() => setAdmissionOpen(true)}
                 className="flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-medium font-bengali text-foreground transition-all hover:scale-105 hover:bg-secondary"
               >
                 {t("ভর্তি", "Admission")}
@@ -97,7 +164,6 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    onMouseLeave={() => setAdmissionOpen(false)}
                     className="absolute left-0 top-full mt-1 min-w-[160px] rounded-xl border border-border bg-card py-2 shadow-lg"
                   >
                     {admissionLinks.map((link) => (
@@ -110,9 +176,8 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
 
-            <div className="relative">
+            <div className="relative" onMouseEnter={() => setAcademicOpen(true)} onMouseLeave={() => setAcademicOpen(false)}>
               <button
-                onMouseEnter={() => setAcademicOpen(true)}
                 className="flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-medium font-bengali text-foreground transition-all hover:scale-105 hover:bg-secondary"
               >
                 {t("একাডেমিক", "Academic")}
@@ -124,7 +189,6 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    onMouseLeave={() => setAcademicOpen(false)}
                     className="absolute left-0 top-full mt-1 min-w-[180px] rounded-xl border border-border bg-card py-2 shadow-lg"
                   >
                     {academicLinks.map((link) => (
@@ -174,6 +238,40 @@ const Navbar = () => {
                     {link.label}
                   </Link>
                 ))}
+
+                <button
+                  onClick={() => setMobileHomeOpen(!mobileHomeOpen)}
+                  className="flex items-center justify-between rounded-xl px-4 py-3 font-bengali font-medium text-foreground hover:bg-secondary"
+                >
+                  <span>{t("হোম", "Home")}</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${mobileHomeOpen ? "rotate-180" : ""}`} />
+                </button>
+                <AnimatePresence>
+                  {mobileHomeOpen && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                      <Link
+                        to="/"
+                        onClick={() => {
+                          setIsOpen(false);
+                          setMobileHomeOpen(false);
+                        }}
+                        className="block rounded-xl py-2 pl-8 pr-4 font-bengali font-medium text-foreground hover:bg-secondary"
+                      >
+                        {t("হোম", "Home")}
+                      </Link>
+                      {homeLinks.map((link) => (
+                        <button
+                          key={link.hash}
+                          type="button"
+                          onClick={() => handleHomeSectionNavigate(link.hash)}
+                          className="block w-full rounded-xl py-2 pl-8 pr-4 text-left font-bengali font-medium text-foreground hover:bg-secondary"
+                        >
+                          {link.label}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <button
                   onClick={() => setMobileAdmissionOpen(!mobileAdmissionOpen)}
@@ -302,6 +400,47 @@ const Navbar = () => {
                   <div className="hidden xl:block h-8 w-px bg-border/70" />
                 </>
               )}
+              <div className="relative" onMouseEnter={() => setHomeOpen(true)} onMouseLeave={() => setHomeOpen(false)}>
+                <Link
+                  to="/"
+                  className={`flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold font-bengali transition-all ${
+                    location.pathname === "/" ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground hover:bg-primary/8"
+                  }`}
+                >
+                  {t("হোম", "Home")}
+                  <ChevronDown className="h-4 w-4" />
+                </Link>
+                <AnimatePresence>
+                  {homeOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 12 }}
+                      className="absolute left-1/2 top-full z-20 mt-4 w-[320px] -translate-x-1/2 rounded-3xl border border-white/70 bg-white/90 p-4 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/90"
+                    >
+                      <p className="mb-3 px-2 font-bengali text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
+                        {t("হোম শর্টকাট", "Home shortcuts")}
+                      </p>
+                      <div className="space-y-1">
+                        {homeLinks.map((link) => (
+                          <button
+                            key={link.hash}
+                            type="button"
+                            onClick={() => handleHomeSectionNavigate(link.hash)}
+                            className="block w-full rounded-2xl px-3 py-3 text-left text-sm font-medium font-bengali text-foreground transition-colors hover:bg-primary/8"
+                          >
+                            <span className="block">{link.label}</span>
+                            <span className="mt-1 block text-xs text-muted-foreground">
+                              {link.description}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               {mainLinks.map((link) => (
                 <Link
                   key={link.to}
@@ -314,9 +453,8 @@ const Navbar = () => {
                 </Link>
               ))}
 
-              <div className="relative">
+              <div className="relative" onMouseEnter={() => setAcademicOpen(true)} onMouseLeave={() => setAcademicOpen(false)}>
                 <button
-                  onMouseEnter={() => setAcademicOpen(true)}
                   className="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold font-bengali text-foreground transition-all hover:bg-primary/8"
                 >
                   {t("একাডেমিক", "Academic")}
@@ -328,7 +466,6 @@ const Navbar = () => {
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 12 }}
-                      onMouseLeave={() => setAcademicOpen(false)}
                       className="absolute left-1/2 top-full z-20 mt-4 w-[300px] -translate-x-1/2 rounded-3xl border border-white/70 bg-white/90 p-4 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/90"
                     >
                       <p className="mb-3 px-2 font-bengali text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
@@ -349,9 +486,8 @@ const Navbar = () => {
                 </AnimatePresence>
               </div>
 
-              <div className="relative">
+              <div className="relative" onMouseEnter={() => setAdmissionOpen(true)} onMouseLeave={() => setAdmissionOpen(false)}>
                 <button
-                  onMouseEnter={() => setAdmissionOpen(true)}
                   className="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold font-bengali text-foreground transition-all hover:bg-primary/8"
                 >
                   {t("ভর্তি", "Admission")}
@@ -363,7 +499,6 @@ const Navbar = () => {
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 12 }}
-                      onMouseLeave={() => setAdmissionOpen(false)}
                       className="absolute left-1/2 top-full z-20 mt-4 w-[320px] -translate-x-1/2 rounded-3xl border border-white/70 bg-white/90 p-4 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/90"
                     >
                       <p className="mb-3 px-2 font-bengali text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
@@ -404,6 +539,40 @@ const Navbar = () => {
               <div className="mb-2 border-b border-border pb-3">
                 <LanguageToggle />
               </div>
+
+              <button
+                onClick={() => setMobileHomeOpen(!mobileHomeOpen)}
+                className="flex items-center justify-between rounded-2xl px-4 py-3 font-bengali font-medium text-foreground hover:bg-secondary"
+              >
+                <span>{t("হোম", "Home")}</span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${mobileHomeOpen ? "rotate-180" : ""}`} />
+              </button>
+              <AnimatePresence>
+                {mobileHomeOpen && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                    <Link
+                      to="/"
+                      onClick={() => {
+                        setIsOpen(false);
+                        setMobileHomeOpen(false);
+                      }}
+                      className="block rounded-xl py-2 pl-8 pr-4 font-bengali font-medium text-foreground hover:bg-secondary"
+                    >
+                      {t("হোম", "Home")}
+                    </Link>
+                    {homeLinks.map((link) => (
+                      <button
+                        key={link.hash}
+                        type="button"
+                        onClick={() => handleHomeSectionNavigate(link.hash)}
+                        className="block w-full rounded-xl py-2 pl-8 pr-4 text-left font-bengali font-medium text-foreground hover:bg-secondary"
+                      >
+                        {link.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {mainLinks.map((link) => (
                 <Link

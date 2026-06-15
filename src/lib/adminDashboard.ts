@@ -1,6 +1,7 @@
 ﻿import type { LucideIcon } from "lucide-react";
 import {
   Award,
+  BarChart3,
   BellRing,
   BookOpen,
   CalendarDays,
@@ -10,6 +11,7 @@ import {
   FileText,
   GraduationCap,
   ImageIcon,
+  Layers,
   LayoutDashboard,
   MessageSquare,
   MessageSquareQuote,
@@ -139,6 +141,7 @@ export interface SidebarItem {
   permission?: AdminPermission;
   icon: LucideIcon;
   badge?: string;
+  children?: SidebarItem[];
 }
 
 export interface SidebarGroup {
@@ -153,6 +156,7 @@ const ATTENDANCE_STORAGE_KEY = "oasis_attendance_records_v1";
 const GUARDIAN_REQUESTS_STORAGE_KEY = "oasis_guardian_requests_v1";
 const SETTINGS_STORAGE_KEY = "oasis_dashboard_settings_v1";
 const ACTIVITY_STORAGE_KEY = "oasis_admin_activity_v1";
+const ADMIN_SESSION_STORAGE_KEY = "oasis_admin_dashboard_session_v1";
 
 export const permissionCatalog: Array<{
   groupKey: string;
@@ -223,7 +227,6 @@ export const sidebarGroups: SidebarGroup[] = [
       { key: "gallery", labelBn: "গ্যালারি", labelEn: "Gallery", path: "/admin/gallery", permission: "gallery.manage", icon: ImageIcon },
       { key: "events", labelBn: "ইভেন্ট", labelEn: "Events", path: "/admin/events", permission: "events.manage", icon: CalendarDays },
       { key: "notices", labelBn: "নোটিশ", labelEn: "Notices", path: "/admin/notices", permission: "notices.manage", icon: BellRing },
-      { key: "results", labelBn: "ফলাফল", labelEn: "Results", path: "/admin/results", permission: "results.manage", icon: FileCheck2 },
       { key: "reviews", labelBn: "রিভিউ", labelEn: "Reviews", path: "/admin/reviews", permission: "reviews.manage", icon: MessageSquareQuote },
       { key: "achievements", labelBn: "অর্জন", labelEn: "Achievements", path: "/admin/achievements", permission: "achievements.manage", icon: Award },
       { key: "teachers", labelBn: "শিক্ষক", labelEn: "Teachers", path: "/admin/teachers", permission: "teachers.manage", icon: GraduationCap },
@@ -234,14 +237,53 @@ export const sidebarGroups: SidebarGroup[] = [
   },
   {
     key: "operations",
-    labelBn: "অপারেশনস",
-    labelEn: "Operations",
+    labelBn: "একাডেমিক",
+    labelEn: "Academic",
     items: [
-      { key: "fees", labelBn: "ফি", labelEn: "Fees", path: "/admin/fees", permission: "fees.manage", icon: CreditCard },
+      {
+        key: "result-dashboard",
+        labelBn: "রেজাল্ট ড্যাশবোর্ড",
+        labelEn: "Result Dashboard",
+        path: "/admin/results/dashboard",
+        permission: "results.manage",
+        icon: BarChart3,
+        children: [
+          { key: "results", labelBn: "ফলাফল", labelEn: "Results", path: "/admin/results", permission: "results.manage", icon: FileCheck2 },
+          { key: "marks-entry", labelBn: "মার্কস এন্ট্রি", labelEn: "Marks Entry", path: "/admin/marks-entry", permission: "results.manage", icon: FileText },
+          { key: "exams", labelBn: "পরীক্ষা ব্যবস্থাপনা", labelEn: "Exam Management", path: "/admin/exams", permission: "results.manage", icon: CalendarDays },
+          { key: "merit-list", labelBn: "মেধা তালিকা", labelEn: "Merit List", path: "/admin/merit-list", permission: "results.manage", icon: Award },
+          { key: "grading-system", labelBn: "গ্রেডিং সিস্টেম", labelEn: "Grading System", path: "/admin/grading-system", permission: "results.manage", icon: BookOpen },
+        ],
+      },
+      {
+        key: "subject-dashboard",
+        labelBn: "বিষয় ড্যাশবোর্ড",
+        labelEn: "Subject Dashboard",
+        path: "/admin/subject-dashboard",
+        permission: "results.manage",
+        icon: BarChart3,
+        children: [
+          { key: "subjects", labelBn: "বিষয় তালিকা", labelEn: "Subjects", path: "/admin/subjects", permission: "results.manage", icon: BookOpen },
+          { key: "subject-groups", labelBn: "বিষয় গ্রুপ", labelEn: "Subject Groups", path: "/admin/subject-groups", permission: "results.manage", icon: Layers },
+          { key: "class-subjects", labelBn: "ক্লাস ও বিষয়", labelEn: "Class Subjects", path: "/admin/class-subjects", permission: "results.manage", icon: BookOpen },
+          { key: "class-routine", labelBn: "ক্লাস রুটিন", labelEn: "Class Routine", path: "/admin/class-routine", permission: "attendance.manage", icon: CalendarDays },
+        ],
+      },
+      {
+        key: "accounting",
+        labelBn: "অ্যাকাউন্টিং",
+        labelEn: "Accounting",
+        path: "/admin/accounting",
+        permission: "fees.manage",
+        icon: BookOpen,
+        children: [
+          { key: "fees", labelBn: "ফি ম্যানেজমেন্ট", labelEn: "Fee Management", path: "/admin/accounting/fees", permission: "fees.manage", icon: CreditCard },
+        ],
+      },
       { key: "students", labelBn: "শিক্ষার্থী তালিকা", labelEn: "Student List", path: "/admin/students", permission: "attendance.manage", icon: Users },
       { key: "mobile-notifications", labelBn: "মোবাইল নোটিফিকেশন", labelEn: "Mobile Notifications", path: "/admin/mobile-notifications", permission: "notices.manage", icon: BellRing },
       { key: "attendance", labelBn: "উপস্থিতি", labelEn: "Attendance", path: "/admin/attendance", permission: "attendance.manage", icon: CalendarCheck2 },
-      { key: "guardian-requests", labelBn: "গার্ডিয়ান রিকোয়েস্ট", labelEn: "Guardian Requests", path: "/admin/guardian-requests", permission: "guardianRequests.manage", icon: MessageSquare },
+      { key: "guardian-requests", labelBn: "গার্ডিয়ান রিকোয়েস্ট", labelEn: "Guardian Requests", path: "/admin/guardian-requests", permission: "guardianRequests.manage", icon: MessageSquare },
     ],
   },
   {
@@ -271,6 +313,22 @@ export const createAdminUser = (): AdminUser => ({
   status: "active",
   permissions: [...ADMIN_PERMISSION_KEYS],
 });
+
+export const getStoredSession = (): AdminUser | null => {
+  const session = readStorage<AdminUser | null>(ADMIN_SESSION_STORAGE_KEY, null);
+  return session?.role === "admin" ? session : null;
+};
+
+export const saveSession = (user: AdminUser | null) => {
+  if (typeof window === "undefined") return;
+
+  if (!user) {
+    window.localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
+    return;
+  }
+
+  writeStorage(ADMIN_SESSION_STORAGE_KEY, user);
+};
 
 export const canAccessPermission = (user: AdminUser | null, permission?: AdminPermission): boolean => {
   if (!user || user.status !== "active") return false;
@@ -442,7 +500,7 @@ export const logActivity = (item: Omit<ActivityItem, "id" | "createdAt">) => {
 
 export const getDefaultRouteForUser = (user: AdminUser | null): string => {
   if (!user) return "/admin";
-  if (user.role === "guardian") return "/guardian";
+  if (user.role === "guardian") return "/admin";
   if (user.role === "admin") return "/admin/dashboard";
 
   const firstAllowed = sidebarGroups

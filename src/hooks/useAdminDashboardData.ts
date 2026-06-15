@@ -1,12 +1,12 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { uploadFile, uploadImage } from "@/lib/upload";
+import { uploadImage } from "@/lib/upload";
 import { saveNewsToFirestore, getNewsFromFirestore, deleteNewsFromFirestore, updateNewsInFirestore, type NewsPost } from "@/lib/news";
 import { saveGalleryImage, getGalleryImages, deleteGalleryImage, type GalleryImage } from "@/lib/gallery";
 import { saveEvent, getEvents, deleteEvent, type Event } from "@/lib/events";
-import { getAdmissions, deleteAdmission, type AdmissionForm } from "@/lib/admission";
+import { deleteAdmission, getAdmissions, updateAdmissionStatus, type AdmissionForm, type AdmissionStatus } from "@/lib/admission";
 import { saveNotice, getNotices, deleteNotice, uploadPdf, type Notice } from "@/lib/notices";
-import { saveResult, getResults, deleteResult, uploadResultPdf, type Result } from "@/lib/results";
+import { saveResult, saveResultsBatch, getResults, deleteResult, uploadResultPdf, type Result } from "@/lib/results";
 import { getAllReviews, approveReview, deleteReview, type Review } from "@/lib/reviews";
 import { addTeacher, getTeachers, deleteTeacher, uploadTeacherImage, type Teacher } from "@/lib/teachers";
 import { addVirtualTour, getVirtualTours, deleteVirtualTour, type VirtualTour } from "@/lib/virtualTour";
@@ -30,6 +30,7 @@ import {
 import {
   createFeeEntriesBatch,
   deleteFeeEntry,
+  ensureMonthlyFeeEntries,
   listFeeEntries,
   updateFeeEntry,
   updateFeeEntryPayment,
@@ -46,6 +47,7 @@ import {
   deleteStudentGuardianLink,
   deleteStudentRecord,
   listStudents,
+  syncStudentRecord,
   type StudentRecord,
 } from "@/lib/students";
 import {
@@ -86,13 +88,73 @@ import {
   saveAppDownloadSettings,
   type AppDownloadSettings,
 } from "@/lib/appDownloadSettings";
-
-const formatFileSize = (bytes: number) => {
-  if (!Number.isFinite(bytes) || bytes <= 0) return "";
-  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  if (bytes >= 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${bytes} B`;
-};
+import {
+  deleteClassRoutineConfig,
+  listClassRoutineConfigs,
+  saveClassRoutineConfig,
+  type ClassRoutineConfig,
+} from "@/lib/classRoutine";
+import {
+  deleteClassSubjectConfig,
+  listClassSubjectConfigs,
+  saveClassSubjectConfig,
+  type ClassSubjectConfig,
+} from "@/lib/classSubjects";
+import {
+  listSubjects as listSubjectsFromFirestore,
+  saveSubject as saveSubjectToFirestore,
+  deleteSubject as deleteSubjectFromFirestore,
+  updateSubjectStatus as updateSubjectStatusInFirestore,
+  updateSubjectOrder as updateSubjectOrderInFirestore,
+  type Subject,
+  type SubjectStatus,
+} from "@/lib/subjects";
+import {
+  listSubjectGroups as listSubjectGroupsFromFirestore,
+  saveSubjectGroup as saveSubjectGroupToFirestore,
+  deleteSubjectGroup as deleteSubjectGroupFromFirestore,
+  type SubjectGroup,
+} from "@/lib/subjectGroups";
+import {
+  listAccounts as listAccountsFromFirestore,
+  createChartOfAccount as saveAccountToFirestore,
+  deleteChartOfAccount as deleteAccountFromFirestore,
+  listJournals as listJournalsFromFirestore,
+  createJournal as saveJournalToFirestore,
+  updateJournalStatus as updateJournalStatusInFirestore,
+  deleteJournal as deleteJournalFromFirestore,
+  createDonation as saveDonationToFirestore,
+  listDonations as listDonationsFromFirestore,
+  createBankAccount as saveBankToFirestore,
+  listBankAccounts as listBanksFromFirestore,
+  updateBankAccount as updateBankInFirestore,
+  deleteBankAccount as deleteBankFromFirestore,
+  type ChartOfAccount,
+  type JournalEntry,
+  type DonationRecord,
+  type BankAccount,
+  type VoucherStatus,
+} from "@/lib/accounting";
+import {
+  deleteExamName,
+  getExamNames,
+  saveExamName,
+  type ExamName,
+} from "@/lib/examNames";
+import {
+  getExams as getExamsFromFirestore,
+  saveExam as saveExamToFirestore,
+  updateExam as updateExamInFirestore,
+  deleteExam as deleteExamFromFirestore,
+  type Exam,
+  type ExamStatus,
+} from "@/lib/examManagement";
+import {
+  listGradingSystems as listGradingSystemsFromFirestore,
+  saveGradingSystem as saveGradingSystemToFirestore,
+  deleteGradingSystem as deleteGradingSystemFromFirestore,
+  type GradingSystem,
+} from "@/lib/gradingSystems";
 
 const mergeAttendanceRecords = (current: AttendanceRecord[], nextItems: AttendanceRecord[]) => {
   const map = new Map(current.map((item) => [item.id, item] as const));
@@ -111,12 +173,23 @@ export const useAdminDashboardData = (enabled = true) => {
   const [admissions, setAdmissions] = useState<AdmissionForm[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [results, setResults] = useState<Result[]>([]);
+  const [examNames, setExamNames] = useState<ExamName[]>([]);
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [gradingSystems, setGradingSystems] = useState<GradingSystem[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [achievements, setAchievements] = useState<AchievementItem[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [virtualTours, setVirtualTours] = useState<VirtualTour[]>([]);
   const [managers, setManagers] = useState<FirestoreUserProfile[]>([]);
   const [feeEntries, setFeeEntries] = useState<FeeEntry[]>([]);
+  const [accounts, setAccounts] = useState<ChartOfAccount[]>([]);
+  const [journals, setJournals] = useState<JournalEntry[]>([]);
+  const [donations, setDonations] = useState<DonationRecord[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [subjectGroups, setSubjectGroups] = useState<SubjectGroup[]>([]);
+  const [classSubjectConfigs, setClassSubjectConfigs] = useState<ClassSubjectConfig[]>([]);
+  const [classRoutineConfigs, setClassRoutineConfigs] = useState<ClassRoutineConfig[]>([]);
   const [attendanceStudents, setAttendanceStudents] = useState<StudentRecord[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [guardianRequests, setGuardianRequests] = useState<GuardianRequest[]>([]);
@@ -162,12 +235,23 @@ export const useAdminDashboardData = (enabled = true) => {
           nextAdmissions,
           nextNotices,
           nextResults,
+          nextExamNames,
+          nextExams,
+          nextGradingSystems,
           nextReviews,
           nextAchievements,
           nextTeachers,
           nextTours,
           nextManagers,
           nextFeeEntries,
+          nextSubjects,
+          nextSubjectGroups,
+          nextClassSubjectConfigs,
+          nextClassRoutineConfigs,
+          nextAccounts,
+          nextJournals,
+          nextDonations,
+          nextBankAccounts,
           nextStudents,
           nextAttendanceRecords,
           nextGuardianRequests,
@@ -184,12 +268,23 @@ export const useAdminDashboardData = (enabled = true) => {
           getAdmissions().catch(() => []),
           getNotices().catch(() => []),
           getResults().catch(() => []),
+          getExamNames().catch(() => []),
+          getExamsFromFirestore().catch(() => []),
+          listGradingSystemsFromFirestore().catch(() => []),
           getAllReviews().catch(() => []),
           getAchievements().catch(() => []),
           getTeachers().catch(() => []),
           getVirtualTours().catch(() => []),
           listUsersByRole("manager").catch(() => []),
           listFeeEntries().catch(() => []),
+          listSubjectsFromFirestore().catch(() => []),
+          listSubjectGroupsFromFirestore().catch(() => []),
+listClassSubjectConfigs().catch(() => []),
+          listClassRoutineConfigs().catch(() => []),
+          listAccountsFromFirestore().catch(() => []),
+          listJournalsFromFirestore().catch(() => []),
+          listDonationsFromFirestore().catch(() => []),
+          listBanksFromFirestore().catch(() => []),
           listStudents().catch(() => []),
           listAttendanceRecords().catch(() => []),
           listGuardianRequests().catch(() => []),
@@ -218,12 +313,23 @@ export const useAdminDashboardData = (enabled = true) => {
         setAdmissions(nextAdmissions);
         setNotices(nextNotices);
         setResults(nextResults);
+        setExamNames(nextExamNames);
+        setExams(nextExams);
+        setGradingSystems(nextGradingSystems);
         setReviews(nextReviews);
         setAchievements(nextAchievements);
         setTeachers(nextTeachers);
         setVirtualTours(nextTours);
         setManagers(nextManagers);
         setFeeEntries(nextFeeEntries);
+        setSubjects(nextSubjects);
+        setSubjectGroups(nextSubjectGroups);
+        setClassSubjectConfigs(nextClassSubjectConfigs);
+        setClassRoutineConfigs(nextClassRoutineConfigs);
+        setAccounts(nextAccounts);
+        setJournals(nextJournals);
+        setDonations(nextDonations);
+        setBankAccounts(nextBankAccounts);
         setAttendanceStudents(nextStudents);
         setAttendanceRecords(nextAttendanceRecords);
         setGuardianRequests(nextGuardianRequests);
@@ -391,10 +497,162 @@ export const useAdminDashboardData = (enabled = true) => {
     return saved;
   };
 
+  const addResultBatchItems = async (payloads: Array<Omit<Result, "id" | "createdAt" | "pdfUrl">>) => {
+    const saved = await saveResultsBatch(payloads);
+    setResults((current) => [...saved, ...current]);
+    if (payloads[0]) {
+      appendActivity("Class results published", `${payloads[0].exam} - ${payloads[0].className}`, "results");
+    }
+    notifySaved("ক্লাস রেজাল্ট সংরক্ষণ হয়েছে", "Class results saved");
+    return saved;
+  };
+
   const removeResultItem = async (id: string) => {
     await deleteResult(id);
     setResults((current) => current.filter((item) => item.id !== id));
     appendActivity("Result removed", "A result was deleted", "results");
+  };
+
+  const saveSubjectItem = async (payload: Omit<Subject, "createdAt" | "updatedAt"> & { id?: string }) => {
+    const saved = await saveSubjectToFirestore(payload);
+    setSubjects((current) => {
+      const next = current.filter((item) => item.id !== saved.id);
+      return [...next, saved].sort((a, b) => a.orderIndex - b.orderIndex);
+    });
+    appendActivity("Subject saved", saved.nameBn, "subjects");
+    notifySaved("বিষয় সংরক্ষণ হয়েছে", "Subject saved");
+    return saved;
+  };
+
+  const deleteSubjectItem = async (id: string) => {
+    await deleteSubjectFromFirestore(id);
+    setSubjects((current) => current.filter((item) => item.id !== id));
+    appendActivity("Subject removed", "A subject was deleted", "subjects");
+  };
+
+  const updateSubjectStatusItem = async (id: string, status: SubjectStatus) => {
+    await updateSubjectStatusInFirestore(id, status);
+    setSubjects((current) => current.map((item) => (item.id === id ? { ...item, status } : item)));
+    appendActivity("Subject status updated", status, "subjects");
+  };
+
+  const updateSubjectOrderItem = async (updatedSubjects: Subject[]) => {
+    await updateSubjectOrderInFirestore(updatedSubjects);
+    setSubjects(updatedSubjects);
+    appendActivity("Subjects reordered", `${updatedSubjects.length} subjects`, "subjects");
+  };
+
+  const saveSubjectGroupItem = async (payload: Omit<SubjectGroup, "createdAt" | "updatedAt"> & { id?: string }) => {
+    const saved = await saveSubjectGroupToFirestore(payload);
+    setSubjectGroups((current) => {
+      const next = current.filter((item) => item.id !== saved.id);
+      return [...next, saved].sort((a, b) => a.orderIndex - b.orderIndex);
+    });
+    appendActivity("Subject group saved", saved.nameBn, "subject-groups");
+    notifySaved("গ্রুপ সংরক্ষণ হয়েছে", "Group saved");
+    return saved;
+  };
+
+  const deleteSubjectGroupItem = async (id: string) => {
+    await deleteSubjectGroupFromFirestore(id);
+    setSubjectGroups((current) => current.filter((item) => item.id !== id));
+    appendActivity("Subject group removed", "A group was deleted", "subject-groups");
+  };
+
+  const saveAccountItem = async (payload: any) => {
+    const saved = await saveAccountToFirestore(payload);
+    setAccounts((current) => {
+      const next = current.filter((item) => item.id !== saved.id);
+      return [...next, saved].sort((a, b) => a.orderIndex - b.orderIndex);
+    });
+    appendActivity("Account saved", saved.name, "accounts");
+    notifySaved("অ্যাকাউন্ট সংরক্ষণ হয়েছে", "Account saved");
+    return saved;
+  };
+
+  const deleteAccountItem = async (id: string) => {
+    await deleteAccountFromFirestore(id);
+    setAccounts((current) => current.filter((item) => item.id !== id));
+    appendActivity("Account removed", "An account was deleted", "accounts");
+  };
+
+  const saveJournalItem = async (payload: any) => {
+    const saved = await saveJournalToFirestore(payload);
+    setJournals((current) => [saved, ...current]);
+    appendActivity("Journal entry saved", saved.voucherNumber, "accounts");
+    notifySaved("জার্নাল সংরক্ষণ হয়েছে", "Journal saved");
+    return saved;
+  };
+
+  const deleteJournalItem = async (id: string) => {
+    await deleteJournalFromFirestore(id);
+    setJournals((current) => current.filter((item) => item.id !== id));
+    appendActivity("Journal removed", "A journal entry was deleted", "accounts");
+  };
+
+  const updateJournalStatusItem = async (id: string, status: VoucherStatus) => {
+    await updateJournalStatusInFirestore(id, status);
+    setJournals((current) => current.map((item) => (item.id === id ? { ...item, status } : item)));
+    appendActivity("Journal status updated", status, "accounts");
+  };
+
+  const saveDonationItem = async (payload: any) => {
+    const saved = await saveDonationToFirestore(payload);
+    setDonations((current) => [saved, ...current]);
+    appendActivity("Donation saved", saved.donorName, "accounts");
+    notifySaved("দান সংরক্ষণ হয়েছে", "Donation saved");
+    return saved;
+  };
+
+  const saveBankItem = async (payload: any) => {
+    const saved = await saveBankToFirestore(payload);
+    setBankAccounts((current) => {
+      const next = current.filter((item) => item.id !== saved.id);
+      return [...next, saved].sort((a, b) => a.bankName.localeCompare(b.bankName));
+    });
+    appendActivity("Bank account saved", saved.bankName, "accounts");
+    notifySaved("ব্যাংক অ্যাকাউন্ট সংরক্ষণ হয়েছে", "Bank account saved");
+    return saved;
+  };
+
+  const deleteBankItem = async (id: string) => {
+    await deleteBankFromFirestore(id);
+    setBankAccounts((current) => current.filter((item) => item.id !== id));
+    appendActivity("Bank account removed", "A bank account was deleted", "accounts");
+  };
+
+  const saveClassSubjectConfigItem = async (payload: Omit<ClassSubjectConfig, "createdAt" | "updatedAt">) => {
+    const saved = await saveClassSubjectConfig(payload);
+    setClassSubjectConfigs((current) => {
+      const next = current.filter((item) => item.id !== saved.id);
+      return [...next, saved].sort((a, b) => a.className.localeCompare(b.className));
+    });
+    appendActivity("Class subject config saved", saved.className, "results");
+    notifySaved("ক্লাসের বিষয় সংরক্ষণ হয়েছে", "Class subjects saved");
+    return saved;
+  };
+
+  const removeClassSubjectConfigItem = async (id: string) => {
+    await deleteClassSubjectConfig(id);
+    setClassSubjectConfigs((current) => current.filter((item) => item.id !== id));
+    appendActivity("Class subject config removed", id, "results");
+  };
+
+  const saveClassRoutineConfigItem = async (payload: Omit<ClassRoutineConfig, "createdAt" | "updatedAt">) => {
+    const saved = await saveClassRoutineConfig(payload);
+    setClassRoutineConfigs((current) => {
+      const next = current.filter((item) => item.id !== saved.id);
+      return [...next, saved].sort((a, b) => a.className.localeCompare(b.className));
+    });
+    appendActivity("Class routine config saved", saved.className, "attendance");
+    notifySaved("ক্লাস রুটিন সংরক্ষণ হয়েছে", "Class routine saved");
+    return saved;
+  };
+
+  const removeClassRoutineConfigItem = async (id: string) => {
+    await deleteClassRoutineConfig(id);
+    setClassRoutineConfigs((current) => current.filter((item) => item.id !== id));
+    appendActivity("Class routine config removed", id, "attendance");
   };
 
   const approveReviewItem = async (id: string) => {
@@ -453,10 +711,82 @@ export const useAdminDashboardData = (enabled = true) => {
     appendActivity("Virtual tour removed", "A virtual tour was deleted", "virtualTours");
   };
 
+  const syncAdmissionStudentRecord = async (item: AdmissionForm) => {
+    if (!item.id) return;
+
+    const studentId = item.approvedStudentId?.trim() || item.id;
+
+    await syncStudentRecord({
+      studentId,
+      studentName: item.studentNameBn || item.studentName,
+      className: item.approvedClass || item.class,
+      section: item.approvedSection || "",
+      roll: Number(item.approvedRoll || 0),
+      monthlyFee: Number(item.approvedMonthlyFee || 0),
+      guardianUid: "",
+      guardianName: item.fatherNameBn || item.fatherName || item.motherNameBn || item.motherName || "",
+      guardianPhone: item.fatherPhone || item.motherPhone || "",
+      status: "active",
+    });
+  };
+
+  const saveAdmissionStatusItem = async (
+    payload: AdmissionFormValues,
+    imageFile: File | null,
+  ) => {
+    if (!payload.id) {
+      const saved = await addAdmission(payload, imageFile);
+      setAdmissions((current) =>
+        [saved, ...current].sort((a, b) => b.createdAt - a.createdAt),
+      );
+      appendActivity("Admission added", saved.studentName, "admissions");
+      notifySaved("ভর্তি সংরক্ষণ হয়েছে", "Admission saved");
+      return saved;
+    }
+
+    let imageUrl = payload.imageUrl || "";
+    if (imageFile) imageUrl = await uploadImage(imageFile);
+
+    const updated = await updateAdmissionStatus(payload.id, {
+      studentName: payload.studentName,
+      class: payload.class,
+      status: payload.status,
+      imageUrl,
+      phone: payload.phone,
+    });
+
+    setAdmissions((current) =>
+      current
+        .map((item) => (item.id === payload.id ? updated : item))
+        .sort((a, b) => b.createdAt - a.createdAt),
+    );
+    appendActivity("Admission updated", updated.studentName, "admissions");
+    notifySaved("ভর্তি আপডেট হয়েছে", "Admission updated");
+    return updated;
+  };
+
   const removeAdmissionItem = async (id: string) => {
+    const currentItem = admissions.find((item) => item.id === id);
     await deleteAdmission(id);
+    await deleteStudentRecord(currentItem?.approvedStudentId?.trim() || id).catch(() => undefined);
     setAdmissions((current) => current.filter((item) => item.id !== id));
+    setAttendanceStudents(await listStudents());
     appendActivity("Admission removed", "An admission record was deleted", "admissions");
+  };
+
+  const saveExamNameItem = async (payload: Omit<ExamName, "id" | "createdAt">) => {
+    const saved = await saveExamName(payload);
+    setExamNames((current) => [...current, saved]);
+    appendActivity("Exam name saved", payload.name, "examNames");
+    notifySaved("পরীক্ষার নাম সংরক্ষণ হয়েছে", "Exam name saved");
+    return saved;
+  };
+
+  const removeExamNameItem = async (id: string) => {
+    await deleteExamName(id);
+    setExamNames((current) => current.filter((item) => item.id !== id));
+    appendActivity("Exam name removed", id, "examNames");
+    notifySaved("পরীক্ষার নাম বাদ হয়েছে", "Exam name removed");
   };
 
   const saveManagerItem = async (manager: ManagerFormValues) => {
@@ -501,6 +831,17 @@ export const useAdminDashboardData = (enabled = true) => {
     setFeeEntries((current) => [...created, ...current]);
     appendActivity("Fee batch added", `${draft.studentName} - ${created.length}`, "fees");
     notifySaved("ফি তথ্য সংরক্ষণ হয়েছে", "Fee entries saved");
+  };
+
+  const addFeeBulkBatchItems = async (drafts: FeeBatchDraft[], createdBy: string) => {
+    const createdGroups = await Promise.all(drafts.map((draft) => createFeeEntriesBatch(draft, createdBy)));
+    const created = createdGroups.flat().sort((a, b) => b.createdAt - a.createdAt);
+
+    if (created.length === 0) return;
+
+    setFeeEntries((current) => [...created, ...current]);
+    appendActivity("Fee batch added", `${drafts.length} student batches created`, "fees");
+    notifySaved("ক্লাসভিত্তিক ফি সংরক্ষণ হয়েছে", "Class-wise fee entries saved");
   };
 
   const updateFeeEntryItem = async (id: string, payload: FeeEntryUpdateInput) => {
@@ -699,6 +1040,25 @@ export const useAdminDashboardData = (enabled = true) => {
     }
   };
 
+  const updateStudentItem = async (student: StudentRecord) => {
+    await syncStudentRecord({
+      studentId: student.studentId,
+      studentName: student.studentName,
+      className: student.className,
+      section: student.section,
+      roll: Number(student.roll || 0),
+      monthlyFee: Number(student.monthlyFee || 0),
+      guardianUid: student.guardianUid,
+      guardianName: student.guardianName,
+      guardianPhone: student.guardianPhone,
+      status: student.status || "active",
+    });
+
+    setAttendanceStudents(await listStudents());
+    appendActivity("Student updated", `${student.studentName || student.studentId} updated`, "students");
+    notifySaved("শিক্ষার্থীর তথ্য আপডেট হয়েছে", "Student information updated");
+  };
+
   const saveSettingsItem = (nextSettings: DashboardSettings) => {
     setSettings(nextSettings);
     saveDashboardSettings(nextSettings);
@@ -708,23 +1068,12 @@ export const useAdminDashboardData = (enabled = true) => {
 
   const saveAppDownloadSettingsItem = async (
     nextSettings: Omit<AppDownloadSettings, "updatedAt">,
-    file: File | null,
   ) => {
-    let apkUrl = nextSettings.apkUrl.trim();
-    let fileName = nextSettings.fileName.trim();
-    let fileSizeLabel = nextSettings.fileSizeLabel.trim();
-
-    if (file) {
-      apkUrl = await uploadFile(file);
-      fileName = file.name;
-      fileSizeLabel = formatFileSize(file.size);
-    }
-
     const saved = await saveAppDownloadSettings({
       ...nextSettings,
-      apkUrl,
-      fileName,
-      fileSizeLabel,
+      apkUrl: nextSettings.apkUrl.trim(),
+      fileName: nextSettings.fileName.trim(),
+      fileSizeLabel: nextSettings.fileSizeLabel.trim(),
     });
 
     setAppDownloadSettings(saved);
@@ -760,6 +1109,46 @@ export const useAdminDashboardData = (enabled = true) => {
     setMobileNotifications((current) => current.filter((item) => item.id !== id));
     appendActivity("Mobile notification deleted", id, "mobile-notifications");
     notifySaved("মোবাইল নোটিফিকেশন মুছে ফেলা হয়েছে", "Mobile notification deleted");
+  };
+
+  const saveExamItem = async (payload: Omit<Exam, "id" | "createdAt" | "updatedAt"> & { id?: string }) => {
+    const saved = await saveExamToFirestore(payload as Omit<Exam, "id" | "createdAt" | "updatedAt">);
+    setExams((current) => {
+      const next = current.filter((e) => e.id !== saved.id);
+      return [saved, ...next].sort((a, b) => b.createdAt - a.createdAt);
+    });
+    appendActivity("Exam created", saved.name, "results");
+    notifySaved("পরীক্ষা সংরক্ষণ হয়েছে", "Exam saved");
+    return saved;
+  };
+
+  const removeExamItem = async (id: string) => {
+    await deleteExamFromFirestore(id);
+    setExams((current) => current.filter((e) => e.id !== id));
+    appendActivity("Exam deleted", id, "results");
+  };
+
+  const updateExamStatusItem = async (id: string, status: ExamStatus) => {
+    await updateExamInFirestore(id, { status });
+    setExams((current) => current.map((e) => (e.id === id ? { ...e, status } : e)));
+    appendActivity("Exam status updated", `${id} → ${status}`, "results");
+  };
+
+  const saveGradingSystemItem = async (payload: Omit<GradingSystem, "id" | "createdAt" | "updatedAt"> & { id?: string }) => {
+    const saved = await saveGradingSystemToFirestore(payload);
+    setGradingSystems((current) => {
+      const next = current.filter((g) => g.id !== saved.id);
+      return [...next, saved].sort((a, b) => a.createdAt - b.createdAt);
+    });
+    appendActivity("Grading system saved", saved.name, "results");
+    notifySaved("গ্রেডিং সিস্টেম সংরক্ষণ হয়েছে", "Grading system saved");
+    return saved;
+  };
+
+  const removeGradingSystemItem = async (id: string) => {
+    await deleteGradingSystemFromFirestore(id);
+    setGradingSystems((current) => current.filter((g) => g.id !== id));
+    appendActivity("Grading system deleted", id, "results");
   };
 
   const saveRamadanSettingsItem = async (nextSettings: Pick<RamadanSettings, "isPublic">) => {
@@ -823,6 +1212,32 @@ export const useAdminDashboardData = (enabled = true) => {
     [admissions, attendanceSummary.attendancePercent, feeSummary.totalDue, feeSummary.totalPaid, guardianRequests, managers, newsPosts.length, notices.length, reviews],
   );
 
+  useEffect(() => {
+    if (!enabled || feeStudents.length === 0) return;
+
+    let isCancelled = false;
+
+    const syncMonthlyFees = async () => {
+      const created = await ensureMonthlyFeeEntries({
+        students: feeStudents,
+        existingEntries: feeEntries,
+        billingMonth: currentMonth,
+        createdBy: "system:auto-monthly",
+      }).catch(() => []);
+
+      if (isCancelled || created.length === 0) return;
+
+      setFeeEntries((current) => [...created, ...current]);
+      appendActivity("Monthly fees auto-added", `${created.length} dues created for ${currentMonth}`, "fees");
+    };
+
+    void syncMonthlyFees();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentMonth, enabled, feeEntries, feeStudents]);
+
   return {
     loading,
     newsPosts,
@@ -831,16 +1246,26 @@ export const useAdminDashboardData = (enabled = true) => {
     admissions,
     notices,
     results,
+    examNames,
+    exams,
+    gradingSystems,
     reviews,
     achievements,
     teachers,
     virtualTours,
     managers,
     feeEntries,
+    accounts,
+    journals,
+    donations,
+    bankAccounts,
+    subjects,
+    subjectGroups,
+    classSubjectConfigs,
+    classRoutineConfigs,
     feeStudents,
     feeSummary,
     attendanceStudents,
-    attendanceRecords,
     guardianRequests,
     ramadanRequests,
     ramadanSettings,
@@ -862,7 +1287,33 @@ export const useAdminDashboardData = (enabled = true) => {
       addNoticeItem,
       removeNoticeItem,
       addResultItem,
+      addResultBatchItems,
       removeResultItem,
+      saveAccountItem,
+      deleteAccountItem,
+      saveJournalItem,
+      deleteJournalItem,
+      updateJournalStatusItem,
+      saveDonationItem,
+      saveBankItem,
+      deleteBankItem,
+      saveSubjectItem,
+      deleteSubjectItem,
+      updateSubjectStatusItem,
+      updateSubjectOrderItem,
+      saveSubjectGroupItem,
+      deleteSubjectGroupItem,
+      saveClassSubjectConfigItem,
+      removeClassSubjectConfigItem,
+      saveClassRoutineConfigItem,
+      removeClassRoutineConfigItem,
+      saveExamNameItem,
+      removeExamNameItem,
+      saveExamItem,
+      removeExamItem,
+      updateExamStatusItem,
+      saveGradingSystemItem,
+      removeGradingSystemItem,
       approveReviewItem,
       addAchievementItem,
       removeAchievementItem,
@@ -871,14 +1322,17 @@ export const useAdminDashboardData = (enabled = true) => {
       removeTeacherItem,
       addVirtualTourItem,
       removeVirtualTourItem,
+      saveAdmissionStatusItem,
       removeAdmissionItem,
       saveManagerItem,
       removeManagerItem,
       addFeeBatchItems,
+      addFeeBulkBatchItems,
       updateFeeEntryItem,
       updateFeePaymentItem,
       removeFeeEntryItem,
       saveAttendanceSheetItems,
+      updateStudentItem,
       removeStudentItem,
       saveGuardianRequestItem,
       createGuardianAccountItem,

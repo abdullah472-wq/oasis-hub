@@ -1,8 +1,10 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { FeeBatchDraft, FeeEntry, FeeEntryUpdateInput, FeeStudentOption } from "@/lib/feeEntries";
 import { buildFeeEntryUpdatePayload, createEmptyFeeBatchDraft, feeCategoryOptions, feeStatusOptions } from "@/lib/feeHelpers";
+import { CLASS_NAME_OPTIONS } from "@/lib/attendanceHelpers";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -17,6 +19,7 @@ interface FeeEntryFormProps {
   initialEntry?: FeeEntry | null;
   onOpenChange: (open: boolean) => void;
   onCreate: (draft: FeeBatchDraft) => Promise<void>;
+  onCreateBulk: (drafts: FeeBatchDraft[]) => Promise<void>;
   onUpdate: (id: string, payload: FeeEntryUpdateInput) => Promise<void>;
 }
 
@@ -25,7 +28,13 @@ const normalizeDigits = (value: string) =>
     .replace(/[০-৯]/g, (digit) => String.fromCharCode(digit.charCodeAt(0) - 0x09e6 + 0x30))
     .replace(/\D/g, "");
 
-const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCreate, onUpdate }: FeeEntryFormProps) => {
+const normalizeClassName = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
+const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCreate, onCreateBulk, onUpdate }: FeeEntryFormProps) => {
   const { t } = useLanguage();
   const [saving, setSaving] = useState(false);
   const [batchDraft, setBatchDraft] = useState<FeeBatchDraft>(createEmptyFeeBatchDraft());
@@ -44,6 +53,7 @@ const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCrea
 
     if (mode === "create") {
       setBatchDraft(createEmptyFeeBatchDraft());
+      setStudentSearch("");
       return;
     }
 
@@ -60,6 +70,7 @@ const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCrea
   }, [initialEntry, mode, open]);
 
   const selectedStudent = useMemo(() => students.find((item) => item.studentId === batchDraft.studentId), [batchDraft.studentId, students]);
+
   const filteredStudents = useMemo(() => {
     const query = studentSearch.trim().toLowerCase();
     if (!query) return students;
@@ -78,6 +89,8 @@ const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCrea
       }),
     );
   }, [studentSearch, students]);
+
+  const classOptions = useMemo(() => [...CLASS_NAME_OPTIONS], []);
 
   useEffect(() => {
     const query = studentSearch.trim();
@@ -115,12 +128,107 @@ const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCrea
 
   const computedEditState = buildFeeEntryUpdatePayload(editDraft);
 
+  const createDraftAnalysis = useMemo(() => {
+    const validItems = batchDraft.items.filter((item) => item.title.trim() && Number(item.amount) > 0);
+    const classExamItems = validItems.filter((item) => item.category === "exam" && item.targetClassName?.trim());
+    const regularItems = validItems.filter((item) => !(item.category === "exam" && item.targetClassName?.trim()));
+
+    return {
+      validItems,
+      classExamItems,
+      regularItems,
+      hasAnyValidItem: validItems.length > 0,
+      requiresStudentSelection: regularItems.length > 0,
+    };
+  }, [batchDraft.items]);
+
   const handleSubmit = async () => {
     setSaving(true);
 
     try {
       if (mode === "create") {
-        await onCreate(batchDraft);
+        if (!createDraftAnalysis.hasAnyValidItem) {
+          toast.error(t("অন্তত একটি সঠিক ফি আইটেম দিন", "Add at least one valid fee item"));
+          return;
+        }
+
+        if (createDraftAnalysis.classExamItems.some((item) => !(item.targetClassName || "").trim())) {
+          toast.error(t("এক্সাম ফি-এর জন্য ক্লাস নির্বাচন করুন", "Choose a class for exam fees"));
+          return;
+        }
+
+        if (createDraftAnalysis.requiresStudentSelection && !batchDraft.studentId) {
+          toast.error(t("সাধারণ ফি আইটেমের জন্য একজন শিক্ষার্থী নির্বাচন করুন", "Choose a student for regular fee items"));
+          return;
+        }
+
+        const drafts: FeeBatchDraft[] = [];
+
+        if (createDraftAnalysis.regularItems.length > 0) {
+          drafts.push({
+            ...batchDraft,
+            items: createDraftAnalysis.regularItems.map((item) => ({
+              ...item,
+              targetClassName: "",
+            })),
+          });
+        }
+
+        const examItemsByClass = new Map<string, FeeBatchDraft["items"]>();
+        createDraftAnalysis.classExamItems.forEach((item) => {
+          const className = item.targetClassName?.trim() || "";
+          if (!className) return;
+
+          const current = examItemsByClass.get(className) || [];
+          current.push({
+            ...item,
+            targetClassName: className,
+          });
+          examItemsByClass.set(className, current);
+        });
+
+        for (const [className, items] of examItemsByClass.entries()) {
+          const classStudents = students.filter(
+            (student) => normalizeClassName(student.className) === normalizeClassName(className),
+          );
+
+          if (classStudents.length === 0) {
+            toast.error(
+              t(
+                `${className} শ্রেণির কোনো শিক্ষার্থী পাওয়া যায়নি`,
+                `No students found in class ${className}`,
+              ),
+            );
+            return;
+          }
+
+          classStudents.forEach((student) => {
+            drafts.push({
+              studentId: student.studentId,
+              guardianUid: student.guardianUid || "",
+              guardianName: student.guardianName || "",
+              guardianPhone: student.guardianPhone || "",
+              studentName: student.studentName || "",
+              className: student.className || className,
+              billingMonth: batchDraft.billingMonth,
+              items: items.map((entry) => ({
+                ...entry,
+                targetClassName: className,
+              })),
+            });
+          });
+        }
+
+        if (drafts.length === 0) {
+          toast.error(t("সংরক্ষণের জন্য কোনো ফি তৈরি হয়নি", "No fees were prepared to save"));
+          return;
+        }
+
+        if (drafts.length === 1) {
+          await onCreate(drafts[0]);
+        } else {
+          await onCreateBulk(drafts);
+        }
       } else if (initialEntry) {
         await onUpdate(initialEntry.id, editDraft);
       }
@@ -205,11 +313,16 @@ const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCrea
                     <Input value={batchDraft.guardianPhone} onChange={(event) => setBatchDraft((current) => ({ ...current, guardianPhone: event.target.value }))} className="rounded-2xl" />
                   </div>
                 </div>
+                <p className="font-bengali text-xs leading-5 text-muted-foreground">
+                  {t(
+                    "Exam ক্যাটাগরিতে ক্লাস নির্বাচন করলে সেই ক্লাসের সব শিক্ষার্থীর জন্য একই exam fee due হিসেবে যোগ হবে।",
+                    "When you choose a class for an exam item, the same exam fee will be added as due for all students in that class.",
+                  )}
+                </p>
               </div>
-
             </div>
 
-            <MultiFeeItemForm items={batchDraft.items} onChange={(items) => setBatchDraft((current) => ({ ...current, items }))} />
+            <MultiFeeItemForm classOptions={classOptions} items={batchDraft.items} onChange={(items) => setBatchDraft((current) => ({ ...current, items }))} />
           </div>
         ) : (
           <div className="space-y-4">
@@ -277,7 +390,14 @@ const FeeEntryForm = ({ open, mode, students, initialEntry, onOpenChange, onCrea
             type="button"
             className="rounded-2xl font-bengali"
             onClick={() => void handleSubmit()}
-            disabled={saving || (mode === "create" ? !batchDraft.studentId || batchDraft.items.every((item) => !item.title.trim() || Number(item.amount) <= 0) : !editDraft.title.trim() || Number(editDraft.amount) <= 0)}
+            disabled={
+              saving ||
+              (mode === "create"
+                ? !createDraftAnalysis.hasAnyValidItem ||
+                  createDraftAnalysis.classExamItems.some((item) => !(item.targetClassName || "").trim()) ||
+                  (createDraftAnalysis.requiresStudentSelection && !batchDraft.studentId)
+                : !editDraft.title.trim() || Number(editDraft.amount) <= 0)
+            }
           >
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {mode === "create" ? t("ফি সংরক্ষণ", "Save Fees") : t("আপডেট সংরক্ষণ", "Save Update")}

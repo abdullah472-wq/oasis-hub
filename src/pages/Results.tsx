@@ -6,7 +6,7 @@ import { Download, ExternalLink, Search } from "lucide-react";
 import WaveDivider from "@/components/WaveDivider";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { springIn } from "@/lib/animations";
-import { Result, getResults } from "@/lib/results";
+import { type Result, getResults } from "@/lib/results";
 import { getDownloadUrl } from "@/lib/upload";
 
 const normalizeStudentId = (value: string) => value.trim().toLowerCase();
@@ -56,9 +56,10 @@ const Results = () => {
     return t("উভয়", "Both");
   };
 
-  const handleStudentIdSearch = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSearchedStudentId(studentIdInput.trim());
+  const renderExamTypeLabel = (type?: Result["examType"]) => {
+    if (type === "test") return t("টেস্ট", "Test");
+    if (type === "semester") return t("সেমিস্টার", "Semester");
+    return "";
   };
 
   return (
@@ -158,10 +159,18 @@ const Results = () => {
                             </h3>
                             <p className="font-bengali text-sm text-muted-foreground">
                               {t("স্টুডেন্ট আইডি", "Student ID")}: {result.studentId || "-"}
+                              {result.roll ? ` • ${t("রোল", "Roll")}: ${result.roll}` : ""}
                             </p>
                           </div>
-                          <div className="rounded-full bg-primary/10 px-4 py-2 font-bengali text-sm font-semibold text-primary">
-                            {lang === "bn" ? result.exam : result.examEn || result.exam}
+                          <div className="space-y-2">
+                            <div className="rounded-full bg-primary/10 px-4 py-2 font-bengali text-sm font-semibold text-primary">
+                              {lang === "bn" ? result.exam : result.examEn || result.exam}
+                            </div>
+                            {result.examType ? (
+                              <div className="rounded-full bg-secondary/10 px-4 py-2 text-xs font-semibold text-muted-foreground">
+                                {renderExamTypeLabel(result.examType)}
+                              </div>
+                            ) : null}
                           </div>
                         </div>
 
@@ -205,6 +214,37 @@ const Results = () => {
                             </p>
                           </div>
                         </div>
+
+                        {result.subjects?.length ? (
+                          <div className="mt-5 overflow-x-auto rounded-2xl border border-border/60">
+                            <table className="min-w-full text-sm">
+                              <thead className="bg-secondary/30">
+                                <tr>
+                                  <th className="px-4 py-3 text-left font-bengali">{t("বিষয়", "Subject")}</th>
+                                  <th className="px-4 py-3 text-left font-bengali">{t("টেস্ট", "Test")}</th>
+                                  <th className="px-4 py-3 text-left font-bengali">{t("সেমিস্টার", "Semester")}</th>
+                                  <th className="px-4 py-3 text-left font-bengali">{t("মোট", "Total")}</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {result.subjects.map((subject) => (
+                                  <tr key={subject.id} className="border-t border-border/50">
+                                    <td className="px-4 py-3 font-bengali text-foreground">{lang === "bn" ? subject.name : subject.nameEn || subject.name}</td>
+                                    <td className="px-4 py-3 font-bengali text-foreground">
+                                      {subject.testMark} / {subject.testMaxMark}
+                                    </td>
+                                    <td className="px-4 py-3 font-bengali text-foreground">
+                                      {subject.semesterMark} / {subject.semesterMaxMark}
+                                    </td>
+                                    <td className="px-4 py-3 font-bengali font-semibold text-foreground">
+                                      {subject.totalMark} / {subject.totalMaxMark}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : null}
                       </div>
                     ))}
                   </div>
@@ -227,6 +267,7 @@ const Results = () => {
                     <thead>
                       <tr className="border-b-2 border-border">
                         <th className="py-4 text-left font-bengali font-bold text-foreground">{t("পরীক্ষা", "Exam")}</th>
+                        <th className="py-4 text-left font-bengali font-bold text-foreground">{t("ধরন", "Type")}</th>
                         <th className="py-4 text-left font-bengali font-bold text-foreground">{t("শ্রেণি", "Class")}</th>
                         <th className="py-4 text-left font-bengali font-bold text-foreground">{t("ক্যাম্পাস", "Campus")}</th>
                         <th className="py-4 text-right font-bengali font-bold text-foreground">{t("ডাউনলোড", "Download")}</th>
@@ -236,6 +277,7 @@ const Results = () => {
                       {groupResults.map((result, index) => (
                         <tr key={result.id || index} className="border-b border-border/50 transition-colors hover:bg-secondary/50">
                           <td className="py-4 font-bengali text-foreground">{lang === "bn" ? result.exam : result.examEn || result.exam}</td>
+                          <td className="py-4 font-bengali text-muted-foreground">{renderExamTypeLabel(result.examType)}</td>
                           <td className="py-4 font-bengali text-muted-foreground">{lang === "bn" ? result.className : result.classNameEn || result.className}</td>
                           <td className="py-4 font-bengali text-muted-foreground">{renderCampusLabel(result.campus)}</td>
                           <td className="py-4 text-right">

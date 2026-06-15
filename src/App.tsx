@@ -14,12 +14,10 @@ import ScrollToTop from "@/components/ScrollToTop";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
 import { isAdminEnabled } from "@/lib/admin";
 import { getTodayDateKey, trackAppDailyOpen, trackWebsiteDailyVisitor } from "@/lib/engagementAnalytics";
+import { trackAnalyticsEvent, trackPageView } from "@/lib/firebase";
 import Index from "./pages/Index";
 const About = lazy(() => import("./pages/About"));
 const Achievements = lazy(() => import("./pages/Achievements"));
-const GuardianPortal = lazy(() => import("./pages/GuardianPortal"));
-const GuardianRegisterPage = lazy(() => import("./pages/GuardianRegisterPage"));
-const GuardianLogin = lazy(() => import("./pages/GuardianLogin"));
 const AppDownloadPage = lazy(() => import("./pages/AppDownloadPage"));
 const NoticeBoard = lazy(() => import("./pages/NoticeBoard"));
 const Results = lazy(() => import("./pages/Results"));
@@ -28,11 +26,12 @@ const Admission = lazy(() => import("./pages/Admission"));
 const Gallery = lazy(() => import("./pages/Gallery"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Ramadan = lazy(() => import("./pages/Ramadan"));
-const AdminPortal = lazy(() => import("./pages/AdminPortal"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const News = lazy(() => import("./pages/News"));
 const Events = lazy(() => import("./pages/Events"));
 const AdmissionForm = lazy(() => import("./pages/AdmissionForm"));
+const GuardianRegisterPage = lazy(() => import("./pages/GuardianRegisterPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,8 +56,7 @@ const RouteFallback = () => (
 const AppShell = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
-  const isGuardianRoute = location.pathname.startsWith("/guardian");
-  const isPortalRoute = isAdminRoute || isGuardianRoute;
+  const isPortalRoute = isAdminRoute;
 
   useEffect(() => {
     if (typeof window === "undefined" || isPortalRoute) return;
@@ -79,8 +77,21 @@ const AppShell = () => {
     if (isStandalone && !window.localStorage.getItem(appOpenKey)) {
       window.localStorage.setItem(appOpenKey, "1");
       void trackAppDailyOpen().catch(() => undefined);
+      void trackAnalyticsEvent("app_open", {
+        source: "pwa",
+        date_key: dateKey,
+      }).catch(() => undefined);
     }
   }, [isPortalRoute]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || isPortalRoute) {
+      return;
+    }
+
+    const pagePath = `${location.pathname}${location.search}${location.hash}`;
+    void trackPageView(pagePath).catch(() => undefined);
+  }, [isPortalRoute, location.hash, location.pathname, location.search]);
 
   return (
     <>
@@ -93,10 +104,7 @@ const AppShell = () => {
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
             <Route path="/achievements" element={<Achievements />} />
-            <Route path="/guardian-register" element={<GuardianRegisterPage />} />
-            <Route path="/guardian-login" element={<GuardianLogin />} />
             <Route path="/apk" element={<AppDownloadPage />} />
-            <Route path="/guardian/*" element={<GuardianPortal />} />
             <Route path="/notices" element={<NoticeBoard />} />
             <Route path="/results" element={<Results />} />
             <Route path="/virtual-tour" element={<VirtualTour />} />
@@ -105,9 +113,10 @@ const AppShell = () => {
             <Route path="/news" element={<News />} />
             <Route path="/events" element={<Events />} />
             <Route path="/admission-form" element={<AdmissionForm />} />
+            <Route path="/guardian-register" element={<GuardianRegisterPage />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/ramadan" element={<Ramadan />} />
-            <Route path="/admin/*" element={isAdminEnabled ? <AdminPortal /> : <NotFound />} />
+            <Route path="/admin/*" element={isAdminEnabled ? <AdminDashboard /> : <NotFound />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

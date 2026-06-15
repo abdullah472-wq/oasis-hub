@@ -21,6 +21,7 @@ export interface StudentRecord {
   className: string;
   section: string;
   roll: number;
+  monthlyFee?: number;
   guardianUid: string;
   guardianName?: string;
   guardianPhone?: string;
@@ -43,6 +44,7 @@ const toStudentRecord = (snapshot: QueryDocumentSnapshot<DocumentData>): Student
     className: String(data.className ?? ""),
     section: String(data.section ?? ""),
     roll: Number(data.roll ?? 0),
+    monthlyFee: Number(data.monthlyFee ?? 0),
     guardianUid: String(data.guardianUid ?? ""),
     guardianName: data.guardianName ? String(data.guardianName) : undefined,
     guardianPhone: data.guardianPhone ? String(data.guardianPhone) : undefined,
@@ -79,6 +81,7 @@ const mergeStudentRecords = (items: StudentRecord[]) => {
       guardianPhone: item.guardianPhone || current.guardianPhone,
       section: item.section || current.section,
       roll: item.roll || current.roll,
+      monthlyFee: item.monthlyFee || current.monthlyFee,
       status: item.status === "active" || current.status === "active" ? "active" : "inactive",
     });
   });
@@ -91,14 +94,15 @@ const buildFallbackStudents = async (): Promise<StudentRecord[]> => {
 
   return mergeStudentRecords(
     admissions
-      .filter((item) => item.id && item.status !== "rejected")
+      .filter((item) => item.id && item.status === "approved")
       .map((item, index) => ({
-        id: item.id!,
-        studentId: item.id!,
+        id: item.approvedStudentId || item.id!,
+        studentId: item.approvedStudentId || item.id!,
         studentName: item.studentNameBn || item.studentName,
-        className: item.class,
-        section: "",
-        roll: index + 1,
+        className: item.approvedClass || item.class,
+        section: item.approvedSection || "",
+        roll: item.approvedRoll || index + 1,
+        monthlyFee: Number(item.approvedMonthlyFee || 0),
         guardianUid: "",
         status: "active" as const,
       })),
@@ -120,6 +124,7 @@ const buildStudentsFromGuardians = async (): Promise<StudentRecord[]> => {
         className: String(data.className ?? ""),
         section: String(data.section ?? ""),
         roll: Number(data.roll ?? 0),
+        monthlyFee: Number(data.monthlyFee ?? 0),
         guardianUid: String(data.uid ?? item.id),
         guardianName: String(data.fullName ?? ""),
         guardianPhone: data.phone ? String(data.phone) : undefined,
@@ -151,6 +156,7 @@ const buildStudentsFromAttendanceRecords = async (): Promise<StudentRecord[]> =>
         className: String(data.className ?? ""),
         section: String(data.section ?? ""),
         roll: Number(data.roll ?? 0),
+        monthlyFee: Number(data.monthlyFee ?? 0),
         guardianUid: String(data.guardianUid ?? "").trim(),
         status: "active",
       } satisfies StudentRecord;
@@ -168,7 +174,9 @@ export const listStudents = async (): Promise<StudentRecord[]> => {
 
   const students = snapshot.docs.map(toStudentRecord).filter((item) => item.status === "active");
 
-  return mergeStudentRecords([...students, ...guardianStudents, ...attendanceStudents, ...fallbackStudents]);
+  // Keep the canonical `students` collection last so manual edits are not overwritten
+  // by older fallback data from guardians, attendance records, or admissions.
+  return mergeStudentRecords([...fallbackStudents, ...attendanceStudents, ...guardianStudents, ...students]);
 };
 
 export const listStudentsByGuardian = async (guardianUid: string): Promise<StudentRecord[]> => {
@@ -195,6 +203,7 @@ export const listStudentsByGuardian = async (guardianUid: string): Promise<Stude
       className: String(data.className ?? ""),
       section: String(data.section ?? ""),
       roll: Number(data.roll ?? 0),
+      monthlyFee: Number(data.monthlyFee ?? 0),
       guardianUid: guardianUid.trim(),
       guardianName: String(data.fullName ?? ""),
       guardianPhone: data.phone ? String(data.phone) : undefined,
@@ -209,6 +218,7 @@ export interface SyncStudentInput {
   className: string;
   section: string;
   roll: number;
+  monthlyFee?: number;
   guardianUid: string;
   guardianName?: string;
   guardianPhone?: string;
@@ -216,21 +226,56 @@ export interface SyncStudentInput {
 }
 
 export const syncStudentRecord = async (payload: SyncStudentInput) => {
+  const studentId = payload.studentId.trim();
+  const guardianUid = payload.guardianUid.trim();
+  const guardianName = payload.guardianName?.trim() || "";
+  const guardianPhone = payload.guardianPhone?.trim() || "";
+
   await setDoc(
-    doc(db, STUDENTS_COLLECTION, payload.studentId.trim()),
+    doc(db, STUDENTS_COLLECTION, studentId),
     {
-      studentId: payload.studentId.trim(),
+      studentId,
       studentName: payload.studentName.trim(),
       className: payload.className.trim(),
       section: payload.section.trim(),
       roll: Number(payload.roll || 0),
-      guardianUid: payload.guardianUid.trim(),
-      guardianName: payload.guardianName?.trim() || "",
-      guardianPhone: payload.guardianPhone?.trim() || "",
+      monthlyFee: Number(payload.monthlyFee || 0),
+      guardianUid,
+      guardianName,
+      guardianPhone,
       status: payload.status,
     },
     { merge: true },
   );
+
+  if (guardianUid) {
+    await Promise.all([
+      setDoc(
+        doc(db, GUARDIANS_COLLECTION, guardianUid),
+        {
+          studentId,
+          studentName: payload.studentName.trim(),
+          className: payload.className.trim(),
+          section: payload.section.trim(),
+          roll: Number(payload.roll || 0),
+          monthlyFee: Number(payload.monthlyFee || 0),
+          ...(guardianName ? { fullName: guardianName } : {}),
+          ...(guardianPhone ? { phone: guardianPhone } : {}),
+          status: payload.status,
+        },
+        { merge: true },
+      ),
+      setDoc(
+        doc(db, USERS_COLLECTION, guardianUid),
+        {
+          ...(guardianName ? { fullName: guardianName } : {}),
+          ...(guardianPhone ? { phone: guardianPhone } : {}),
+          status: payload.status,
+        },
+        { merge: true },
+      ),
+    ]);
+  }
 };
 
 export const deleteStudentRecord = async (studentId: string) => {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Award, BellRing, CalendarDays, ChevronDown, ExternalLink, FileText, ImageIcon, Link2, MessageSquareQuote, Pencil, Radio, Save, Search, Trash2 } from "lucide-react";
+import { Award, BellRing, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, ImageIcon, Link2, MessageSquareQuote, Pencil, Radio, Save, Search, Trash2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import { getDownloadUrl } from "@/lib/upload";
@@ -31,6 +31,186 @@ import {
   shellCardClass,
   BellFileIcon,
 } from "./AdminPagePrimitives";
+
+const eventTypePreviewColors: Record<Event["type"], string> = {
+  exam: "bg-red-500",
+  holiday: "bg-green-500",
+  event: "bg-blue-500",
+  other: "bg-amber-500",
+};
+
+const monthNamesBn = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
+const monthNamesEn = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const weekDaysBn = ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহস্পতি", "শুক্র", "শনি"];
+const weekDaysEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+
+const isEventOnDate = (item: Event, date: Date) => {
+  const startDate = new Date(`${item.startDate}T00:00:00`);
+  const endDate = new Date(`${item.endDate || item.startDate}T23:59:59`);
+  return date >= startDate && date <= endDate;
+};
+
+const EventsCalendarPreview = ({ items }: { items: Event[] }) => {
+  const { t, lang } = useLanguage();
+  const today = useMemo(() => new Date(), []);
+  const sortedItems = useMemo(
+    () => [...items].sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()),
+    [items],
+  );
+
+  const initialPreviewDate = useMemo(() => {
+    const nextUpcoming =
+      sortedItems.find((item) => new Date(`${item.endDate || item.startDate}T23:59:59`) >= today) ?? sortedItems[0];
+    return nextUpcoming ? new Date(`${nextUpcoming.startDate}T00:00:00`) : today;
+  }, [sortedItems, today]);
+
+  const [selectedMonth, setSelectedMonth] = useState(initialPreviewDate.getMonth());
+  const [selectedYear, setSelectedYear] = useState(initialPreviewDate.getFullYear());
+
+  useEffect(() => {
+    setSelectedMonth(initialPreviewDate.getMonth());
+    setSelectedYear(initialPreviewDate.getFullYear());
+  }, [initialPreviewDate]);
+
+  const upcomingEvents = useMemo(
+    () => sortedItems.filter((item) => new Date(`${item.endDate || item.startDate}T23:59:59`) >= today).slice(0, 5),
+    [sortedItems, today],
+  );
+
+  const navigateMonth = (direction: number) => {
+    const nextDate = new Date(selectedYear, selectedMonth + direction, 1);
+    setSelectedMonth(nextDate.getMonth());
+    setSelectedYear(nextDate.getFullYear());
+  };
+
+  const getEventsForDay = (day: number) => {
+    const currentDate = new Date(selectedYear, selectedMonth, day);
+    return sortedItems.filter((item) => isEventOnDate(item, currentDate));
+  };
+
+  return (
+    <Card className={shellCardClass}>
+      <CardContent className="space-y-6 p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+              <CalendarDays className="h-4 w-4" />
+              {t("পাবলিক প্রিভিউ", "Public Preview")}
+            </div>
+            <h3 className="font-bengali text-xl font-semibold text-foreground">
+              {t("পাবলিক সাইটে ইভেন্ট ক্যালেন্ডার যেমন দেখাবে", "How the public event calendar will appear")}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {t("নতুন ইভেন্ট যোগ করলে ক্যালেন্ডারে তার প্রভাব এখানেই দেখে নিতে পারবেন।", "Check how new events will show in the calendar before opening the public page.")}
+            </p>
+          </div>
+          <Button asChild variant="outline" className="rounded-2xl">
+            <a href="/events" target="_blank" rel="noreferrer">
+              <ExternalLink className="h-4 w-4" />
+              {t("পাবলিক পেজ খুলুন", "Open public page")}
+            </a>
+          </Button>
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+          <div className="rounded-3xl border border-border/70 bg-background/70 p-4 shadow-sm">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <Button type="button" variant="ghost" size="icon" className="rounded-full" onClick={() => navigateMonth(-1)}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <h4 className="font-bengali text-lg font-semibold">
+                {(lang === "bn" ? monthNamesBn : monthNamesEn)[selectedMonth]} {selectedYear}
+              </h4>
+              <Button type="button" variant="ghost" size="icon" className="rounded-full" onClick={() => navigateMonth(1)}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="mb-2 grid grid-cols-7 gap-2">
+              {(lang === "bn" ? weekDaysBn : weekDaysEn).map((day) => (
+                <div key={day} className="py-2 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-7 gap-2">
+              {Array.from({ length: getFirstDayOfMonth(selectedYear, selectedMonth) }).map((_, index) => (
+                <div key={`empty-${index}`} className="min-h-[96px] rounded-2xl border border-dashed border-transparent" />
+              ))}
+              {Array.from({ length: getDaysInMonth(selectedYear, selectedMonth) }).map((_, index) => {
+                const day = index + 1;
+                const dayEvents = getEventsForDay(day);
+                const isToday =
+                  day === today.getDate() &&
+                  selectedMonth === today.getMonth() &&
+                  selectedYear === today.getFullYear();
+
+                return (
+                  <div
+                    key={day}
+                    className={`min-h-[96px] rounded-2xl border p-2.5 transition-colors ${
+                      isToday ? "border-primary bg-primary/5" : "border-border/70 bg-card"
+                    }`}
+                  >
+                    <div className={`text-sm ${isToday ? "font-bold text-primary" : "font-medium text-foreground"}`}>{day}</div>
+                    <div className="mt-2 space-y-1">
+                      {dayEvents.slice(0, 2).map((item) => (
+                        <div
+                          key={`${item.id || item.titleEn}-${day}`}
+                          className={`truncate rounded-full px-2 py-1 text-[10px] font-medium text-white ${eventTypePreviewColors[item.type]}`}
+                          title={lang === "bn" ? item.titleBn : item.titleEn}
+                        >
+                          {lang === "bn" ? item.titleBn : item.titleEn}
+                        </div>
+                      ))}
+                      {dayEvents.length > 2 ? <div className="text-[10px] font-medium text-muted-foreground">+{dayEvents.length - 2}</div> : null}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-border/70 bg-background/70 p-4 shadow-sm">
+            <h4 className="mb-4 font-bengali text-lg font-semibold">{t("আসন্ন ইভেন্ট", "Upcoming Events")}</h4>
+            {upcomingEvents.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t("এখনও কোনো আসন্ন ইভেন্ট নেই।", "There are no upcoming events yet.")}</p>
+            ) : (
+              <div className="space-y-3">
+                {upcomingEvents.map((item) => (
+                  <div key={item.id || `${item.titleEn}-${item.startDate}`} className="rounded-2xl bg-secondary/40 p-3">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <p className="font-bengali text-sm font-semibold text-foreground">
+                        {lang === "bn" ? item.titleBn : item.titleEn}
+                      </p>
+                      <Badge variant="secondary" className="rounded-full capitalize">
+                        {item.type}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {item.endDate && item.endDate !== item.startDate
+                        ? `${new Date(`${item.startDate}T00:00:00`).toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US")} - ${new Date(`${item.endDate}T00:00:00`).toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US")}`
+                        : new Date(`${item.startDate}T00:00:00`).toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US")}
+                    </p>
+                    {item.descriptionBn || item.descriptionEn ? (
+                      <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
+                        {lang === "bn" ? item.descriptionBn || item.descriptionEn : item.descriptionEn || item.descriptionBn}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 export const NewsManagerPage = ({
   items,
@@ -120,7 +300,15 @@ export const NewsManagerPage = ({
 
       <Card className={shellCardClass}>
         <CardContent className="space-y-4 p-6">
-          {items.length === 0 ? <EmptyState text={t("এখনও কোনো সংবাদ প্রকাশ করা হয়নি", "No news has been published yet")} /> : items.map((item) => (
+          {items.length === 0 ? (
+            <EmptyState
+              text={t("এখনও কোনো সংবাদ প্রকাশ করা হয়নি", "No news posts yet")}
+              description={t("শুরু করতে একটি ছোট আপডেট বা ঘোষণা প্রকাশ করুন", "Start with a short update or announcement")}
+              actionLabel={t("সংবাদ যোগ করুন", "Add news")}
+              onAction={() => setShowForm(true)}
+              icon={<FileText className="h-5 w-5" />}
+            />
+          ) : items.map((item) => (
             <ItemCard
               key={item.id}
               title={item.titleBn}
@@ -265,6 +453,8 @@ export const EventsManagerPage = ({
           <BilingualTextarea labelBn="বিবরণ" labelEn="Description" valueBn={form.descriptionBn} valueEn={form.descriptionEn} onBnChange={(value) => setForm((current) => ({ ...current, descriptionBn: value }))} onEnChange={(value) => setForm((current) => ({ ...current, descriptionEn: value }))} />
         </FormCard>
       )}
+
+      <EventsCalendarPreview items={items} />
 
       <Card className={shellCardClass}>
         <CardContent className="space-y-4 p-6">

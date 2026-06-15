@@ -1,11 +1,16 @@
-﻿import { CreditCard, ReceiptText, WalletCards, WalletMinimal } from "lucide-react";
+import { CreditCard, ReceiptText, WalletCards, WalletMinimal } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { FeeSummary } from "@/lib/feeHelpers";
 import { Card, CardContent } from "@/components/ui/card";
 
 const formatCurrency = (value: number) => `৳${value.toLocaleString("en-US")}`;
 
-const FeeSummaryCards = ({ summary }: { summary: FeeSummary }) => {
+interface FeeSummaryCardsProps {
+  summary: FeeSummary;
+  allTimeDue: number;
+}
+
+const FeeSummaryCards = ({ summary, allTimeDue }: FeeSummaryCardsProps) => {
   const { t } = useLanguage();
 
   const cards = [
@@ -13,10 +18,11 @@ const FeeSummaryCards = ({ summary }: { summary: FeeSummary }) => {
     { key: "paid", titleBn: "পরিশোধিত", titleEn: "Paid", value: formatCurrency(summary.totalPaid), icon: WalletCards },
     { key: "due", titleBn: "মোট বাকি", titleEn: "Due", value: formatCurrency(summary.totalDue), icon: WalletMinimal },
     { key: "month", titleBn: "এই মাস", titleEn: "This Month", value: formatCurrency(summary.thisMonthAmount), icon: ReceiptText },
+    { key: "all-time-due", titleBn: "সর্বমোট বাকি", titleEn: "All Time Due", value: formatCurrency(allTimeDue), icon: WalletMinimal },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
       {cards.map((card) => {
         const Icon = card.icon;
 

@@ -7,6 +7,21 @@ const isPdfFile = (file: File): boolean => {
   return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
 };
 
+const normalizeAssetUrl = (url: string): string => {
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+
+  if (/^(?:[a-z]+:)?\/\//i.test(trimmed) || trimmed.startsWith("blob:") || trimmed.startsWith("data:")) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith("/")) {
+    return trimmed;
+  }
+
+  return `/${trimmed.replace(/^\.?\//, "")}`;
+};
+
 const uploadToCloudinary = async (file: File, resourceType: CloudinaryResourceType): Promise<string> => {
   if (!cloudName || !uploadPreset) {
     throw new Error("Cloudinary is not configured. Set VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET.");
@@ -43,15 +58,17 @@ export const uploadDocument = async (file: File): Promise<string> => {
 };
 
 export const getDownloadUrl = (url: string): string => {
-  if (!url.includes("/res.cloudinary.com/") || !url.includes("/upload/")) {
-    return url;
+  const normalizedUrl = normalizeAssetUrl(url);
+
+  if (!normalizedUrl.includes("/res.cloudinary.com/") || !normalizedUrl.includes("/upload/")) {
+    return normalizedUrl;
   }
 
-  if (url.includes("/upload/fl_attachment/")) {
-    return url;
+  if (normalizedUrl.includes("/upload/fl_attachment/")) {
+    return normalizedUrl;
   }
 
-  return url.replace("/upload/", "/upload/fl_attachment/");
+  return normalizedUrl.replace("/upload/", "/upload/fl_attachment/");
 };
 
 const sanitizeFilename = (value: string, fallback: string) => {
@@ -60,9 +77,11 @@ const sanitizeFilename = (value: string, fallback: string) => {
 };
 
 export const downloadFile = async (url: string, filename: string) => {
+  const resolvedUrl = getDownloadUrl(url);
+  const inferredName = resolvedUrl.split("/").pop() || "download";
   const anchor = document.createElement("a");
-  anchor.href = getDownloadUrl(url);
-  anchor.download = sanitizeFilename(filename, "document.pdf");
+  anchor.href = resolvedUrl;
+  anchor.download = sanitizeFilename(filename, inferredName);
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();

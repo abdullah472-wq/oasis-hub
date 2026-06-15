@@ -17,8 +17,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
 import { submitAdmission } from "@/lib/admission";
 import { uploadImage } from "@/lib/upload";
+import { CLASS_NAME_OPTIONS } from "@/lib/attendanceHelpers";
 
-const classOptions = Array.from({ length: 10 }, (_, index) => index + 1);
+const classOptions = CLASS_NAME_OPTIONS;
 const defaultInterviewReferences = Array.from({ length: 3 }, () => ({
   name: "",
   relation: "",
@@ -470,8 +471,14 @@ const AdmissionFormPage = () => {
                   >
                     <option value="">{t("নির্বাচন করুন", "Select one")}</option>
                     {classOptions.map((value) => (
-                      <option key={value} value={`Class ${value}`}>
-                        {lang === "bn" ? `${value}ম শ্রেণি` : `Class ${value}`}
+                      <option key={value} value={value}>
+                        {lang === "bn"
+                          ? value === "Play"
+                            ? "প্লে"
+                            : value === "Nursery"
+                            ? "নার্সারি"
+                            : `${value.replace("Class ", "")}ম শ্রেণি`
+                          : value}
                       </option>
                     ))}
                   </select>

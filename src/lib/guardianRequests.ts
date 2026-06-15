@@ -9,7 +9,6 @@ import {
   query,
   serverTimestamp,
   updateDoc,
-  where,
   type DocumentData,
   type QueryDocumentSnapshot,
 } from "firebase/firestore";
@@ -46,18 +45,6 @@ const toGuardianRequest = (snapshot: QueryDocumentSnapshot<DocumentData>): Guard
   };
 };
 
-export interface CreateGuardianRequestInput {
-  guardianUid: string;
-  studentId: string;
-  guardianPhone?: string;
-  className?: string;
-  section?: string;
-  guardianName: string;
-  studentName: string;
-  topic: string;
-  message: string;
-}
-
 export interface CreateGuardianRequestByAdminInput {
   guardianUid?: string;
   studentId?: string;
@@ -83,51 +70,6 @@ export const subscribeGuardianRequests = (callback: (items: GuardianRequest[]) =
       callback(snapshot.docs.map(toGuardianRequest));
     },
   );
-
-export const listGuardianRequestsByGuardian = async (guardianUid: string): Promise<GuardianRequest[]> => {
-  const snapshot = await getDocs(
-    query(collection(db, GUARDIAN_REQUESTS_COLLECTION), where("guardianUid", "==", guardianUid)),
-  );
-  return snapshot.docs.map(toGuardianRequest).sort((a, b) => b.createdAt - a.createdAt);
-};
-
-export const subscribeGuardianRequestsByGuardian = (
-  guardianUid: string,
-  callback: (items: GuardianRequest[]) => void,
-) =>
-  onSnapshot(
-    query(collection(db, GUARDIAN_REQUESTS_COLLECTION), where("guardianUid", "==", guardianUid)),
-    (snapshot) => {
-      const items = snapshot.docs.map(toGuardianRequest).sort((a, b) => b.createdAt - a.createdAt);
-      callback(items);
-    },
-  );
-
-export const createGuardianRequest = async (
-  payload: CreateGuardianRequestInput,
-): Promise<GuardianRequest> => {
-  const request = {
-    guardianUid: payload.guardianUid,
-    studentId: payload.studentId,
-    guardianPhone: payload.guardianPhone?.trim() || null,
-    className: payload.className?.trim() || null,
-    section: payload.section?.trim() || null,
-    guardianName: payload.guardianName.trim(),
-    studentName: payload.studentName.trim(),
-    topic: payload.topic.trim(),
-    message: payload.message.trim(),
-    status: "pending" as GuardianRequest["status"],
-    createdAt: serverTimestamp(),
-  };
-
-  const ref = await addDoc(collection(db, GUARDIAN_REQUESTS_COLLECTION), request);
-
-  return {
-    id: ref.id,
-    ...request,
-    createdAt: Date.now(),
-  };
-};
 
 export const createGuardianRequestByAdmin = async (
   payload: CreateGuardianRequestByAdminInput,

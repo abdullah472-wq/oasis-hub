@@ -1,5 +1,5 @@
 import { db } from "./firebase";
-import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc, where } from "firebase/firestore";
 
 export type RamadanSponsorStatus = "pending" | "approved" | "rejected";
 
@@ -69,8 +69,15 @@ export const listRamadanSponsorRequests = async (): Promise<RamadanSponsor[]> =>
 };
 
 export const getRamadanSponsors = async (): Promise<RamadanSponsor[]> => {
-  const allSponsors = await listRamadanSponsorRequests();
-  return allSponsors.filter((item) => item.status === "approved");
+  const snapshot = await getDocs(
+    query(
+      collection(db, SPONSORS_COLLECTION),
+      where("status", "==", "approved"),
+      orderBy("createdAt", "desc"),
+    ),
+  );
+
+  return snapshot.docs.map((item) => normalizeSponsor({ id: item.id, ...(item.data() as Partial<RamadanSponsor>) }));
 };
 
 export const updateRamadanSponsor = async (id: string, payload: RamadanSponsorUpdateInput) => {

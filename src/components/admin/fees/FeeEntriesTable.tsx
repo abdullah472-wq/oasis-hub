@@ -1,17 +1,20 @@
-﻿import React, { useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, Edit3, Receipt, Trash2 } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { ChevronDown, ChevronRight, Edit3, MoreHorizontal, Receipt, Trash2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { FeeEntry } from "@/lib/feeEntries";
 import { feeStatusOptions } from "@/lib/feeHelpers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface FeeEntriesTableProps {
   entries: FeeEntry[];
   onEdit: (entry: FeeEntry) => void;
   onPayment: (entry: FeeEntry) => void;
+  onPaymentGroup: (entries: FeeEntry[]) => void;
   onDelete: (id: string) => Promise<void>;
+  onDeleteGroup: (entries: FeeEntry[]) => Promise<void>;
 }
 
 const statusVariant: Record<FeeEntry["status"], "default" | "secondary" | "outline"> = {
@@ -20,7 +23,7 @@ const statusVariant: Record<FeeEntry["status"], "default" | "secondary" | "outli
   unpaid: "outline",
 };
 
-const FeeEntriesTable = ({ entries, onEdit, onPayment, onDelete }: FeeEntriesTableProps) => {
+const FeeEntriesTable = ({ entries, onEdit, onPayment, onPaymentGroup, onDelete, onDeleteGroup }: FeeEntriesTableProps) => {
   const { t } = useLanguage();
   const [expandedKeys, setExpandedKeys] = useState<Record<string, boolean>>({});
 
@@ -45,9 +48,11 @@ const FeeEntriesTable = ({ entries, onEdit, onPayment, onDelete }: FeeEntriesTab
       );
 
       const representative = items[0];
+      const sortedItems = [...items].sort((a, b) => b.billingMonth.localeCompare(a.billingMonth));
+
       return {
         studentId,
-        items: [...items].sort((a, b) => b.billingMonth.localeCompare(a.billingMonth)),
+        items: sortedItems,
         studentName: representative.studentName,
         className: representative.className,
         guardianName: representative.guardianName,
@@ -85,13 +90,21 @@ const FeeEntriesTable = ({ entries, onEdit, onPayment, onDelete }: FeeEntriesTab
                           {group.guardianName || t("অভিভাবক উল্লেখ নেই", "Guardian not set")}
                         </p>
                       </div>
-                      <button
-                        type="button"
-                        className="rounded-full border border-border p-1 text-muted-foreground transition hover:text-foreground"
-                        onClick={() => toggleExpand(group.studentId)}
-                      >
-                        {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <GroupActionsMenu
+                          isOpen={isOpen}
+                          onDelete={() => void onDeleteGroup(group.items)}
+                          onPayment={() => onPaymentGroup(group.items)}
+                          onToggle={() => toggleExpand(group.studentId)}
+                        />
+                        <button
+                          type="button"
+                          className="rounded-full border border-border p-1 text-muted-foreground transition hover:text-foreground"
+                          onClick={() => toggleExpand(group.studentId)}
+                        >
+                          {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                        </button>
+                      </div>
                     </div>
 
                     <div className="mt-4 grid gap-2 rounded-2xl bg-muted/20 p-3">
@@ -122,30 +135,23 @@ const FeeEntriesTable = ({ entries, onEdit, onPayment, onDelete }: FeeEntriesTab
                       <div className="mt-4 space-y-3">
                         {group.items.map((entry) => (
                           <div key={entry.id} className="rounded-2xl border border-border/60 bg-muted/10 p-3">
-                            <div className="space-y-1">
-                              <p className="font-bengali text-sm font-semibold text-foreground">{entry.title}</p>
-                              <p className="text-xs text-muted-foreground">{entry.category}</p>
-                              <p className="font-bengali text-xs text-muted-foreground">{entry.billingMonth}</p>
-                              <div className="flex flex-wrap gap-2 text-xs">
-                                <span className="font-display">৳{entry.amount.toLocaleString("en-US")}</span>
-                                <span className="font-display text-muted-foreground">৳{entry.paidAmount.toLocaleString("en-US")}</span>
-                                <span className="font-display text-muted-foreground">৳{entry.dueAmount.toLocaleString("en-US")}</span>
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="space-y-1">
+                                <p className="font-bengali text-sm font-semibold text-foreground">{entry.title}</p>
+                                <p className="text-xs text-muted-foreground">{entry.category}</p>
+                                <p className="font-bengali text-xs text-muted-foreground">{entry.billingMonth}</p>
+                                <div className="flex flex-wrap gap-2 text-xs">
+                                  <span className="font-display">৳{entry.amount.toLocaleString("en-US")}</span>
+                                  <span className="font-display text-muted-foreground">৳{entry.paidAmount.toLocaleString("en-US")}</span>
+                                  <span className="font-display text-muted-foreground">৳{entry.dueAmount.toLocaleString("en-US")}</span>
+                                </div>
+                                {entry.note && <p className="font-bengali text-xs text-muted-foreground">{entry.note}</p>}
                               </div>
-                              {entry.note && <p className="font-bengali text-xs text-muted-foreground">{entry.note}</p>}
-                            </div>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              <Button type="button" variant="outline" size="sm" className="rounded-xl font-bengali" onClick={() => onPayment(entry)}>
-                                <Receipt className="mr-2 h-4 w-4" />
-                                {t("পেমেন্ট", "Payment")}
-                              </Button>
-                              <Button type="button" variant="outline" size="sm" className="rounded-xl font-bengali" onClick={() => onEdit(entry)}>
-                                <Edit3 className="mr-2 h-4 w-4" />
-                                {t("এডিট", "Edit")}
-                              </Button>
-                              <Button type="button" variant="outline" size="sm" className="rounded-xl font-bengali text-red-600 hover:text-red-600" onClick={() => void onDelete(entry.id)}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                {t("মুছুন", "Delete")}
-                              </Button>
+                              <ItemActionsMenu
+                                onDelete={() => void onDelete(entry.id)}
+                                onEdit={() => onEdit(entry)}
+                                onPayment={() => onPayment(entry)}
+                              />
                             </div>
                           </div>
                         ))}
@@ -156,7 +162,7 @@ const FeeEntriesTable = ({ entries, onEdit, onPayment, onDelete }: FeeEntriesTab
               })}
             </div>
 
-            <table className="min-w-full text-sm hidden md:table">
+            <table className="min-w-full hidden text-sm md:table">
               <thead className="border-b border-border/70 bg-muted/30">
                 <tr className="text-left">
                   {[
@@ -180,7 +186,7 @@ const FeeEntriesTable = ({ entries, onEdit, onPayment, onDelete }: FeeEntriesTab
                   const isOpen = Boolean(expandedKeys[group.studentId]);
                   return (
                     <React.Fragment key={group.studentId}>
-                      <tr key={group.studentId} className="border-b border-border/50 align-top bg-background/60">
+                      <tr className="border-b border-border/50 align-top bg-background/60">
                         <td className="px-4 py-4">
                           <div className="flex items-start gap-3">
                             <button
@@ -217,38 +223,22 @@ const FeeEntriesTable = ({ entries, onEdit, onPayment, onDelete }: FeeEntriesTab
                           </Badge>
                         </td>
                         <td className="px-4 py-4">
-                          {group.items[0] ? (
-                            <div className="flex flex-wrap gap-2">
-                              <Button type="button" variant="outline" size="sm" className="rounded-xl font-bengali" onClick={() => onPayment(group.items[0])}>
-                                <Receipt className="mr-2 h-4 w-4" />
-                                {t("পেমেন্ট", "Payment")}
-                              </Button>
-                              <Button type="button" variant="outline" size="sm" className="rounded-xl font-bengali" onClick={() => onEdit(group.items[0])}>
-                                <Edit3 className="mr-2 h-4 w-4" />
-                                {t("এডিট", "Edit")}
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="rounded-xl font-bengali text-red-600 hover:text-red-600"
-                                onClick={() => void onDelete(group.items[0].id)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                {t("মুছুন", "Delete")}
-                              </Button>
-                            </div>
-                          ) : null}
+                          <GroupActionsMenu
+                            isOpen={isOpen}
+                            onDelete={() => void onDeleteGroup(group.items)}
+                            onPayment={() => onPaymentGroup(group.items)}
+                            onToggle={() => toggleExpand(group.studentId)}
+                          />
                         </td>
                       </tr>
                       {isOpen && (
-                        <tr key={`${group.studentId}-details`} className="border-b border-border/50">
+                        <tr className="border-b border-border/50">
                           <td colSpan={8} className="px-4 pb-6 pt-0">
                             <div className="mt-2 rounded-2xl border border-border/60 bg-muted/10 p-3">
                               <div className="grid gap-3">
                                 {group.items.map((entry) => (
                                   <div key={entry.id} className="rounded-2xl border border-border/60 bg-background px-4 py-3">
-                                    <div className="grid gap-3 md:grid-cols-[1.6fr_0.9fr_0.8fr_0.9fr_0.9fr_0.9fr_1fr]">
+                                    <div className="grid gap-3 md:grid-cols-[1.6fr_0.9fr_0.8fr_0.9fr_0.9fr_0.9fr_auto]">
                                       <div className="space-y-1">
                                         <p className="font-bengali font-medium text-foreground">{entry.title}</p>
                                         <p className="text-xs text-muted-foreground">{entry.category}</p>
@@ -266,19 +256,12 @@ const FeeEntriesTable = ({ entries, onEdit, onPayment, onDelete }: FeeEntriesTab
                                           )}
                                         </Badge>
                                       </div>
-                                      <div className="flex flex-wrap gap-2">
-                                        <Button type="button" variant="outline" size="sm" className="rounded-xl font-bengali" onClick={() => onPayment(entry)}>
-                                          <Receipt className="mr-2 h-4 w-4" />
-                                          {t("পেমেন্ট", "Payment")}
-                                        </Button>
-                                        <Button type="button" variant="outline" size="sm" className="rounded-xl font-bengali" onClick={() => onEdit(entry)}>
-                                          <Edit3 className="mr-2 h-4 w-4" />
-                                          {t("এডিট", "Edit")}
-                                        </Button>
-                                        <Button type="button" variant="outline" size="sm" className="rounded-xl font-bengali text-red-600 hover:text-red-600" onClick={() => void onDelete(entry.id)}>
-                                          <Trash2 className="mr-2 h-4 w-4" />
-                                          {t("মুছুন", "Delete")}
-                                        </Button>
+                                      <div className="justify-self-end">
+                                        <ItemActionsMenu
+                                          onDelete={() => void onDelete(entry.id)}
+                                          onEdit={() => onEdit(entry)}
+                                          onPayment={() => onPayment(entry)}
+                                        />
                                       </div>
                                     </div>
                                   </div>
@@ -297,6 +280,80 @@ const FeeEntriesTable = ({ entries, onEdit, onPayment, onDelete }: FeeEntriesTab
         )}
       </CardContent>
     </Card>
+  );
+};
+
+const GroupActionsMenu = ({
+  isOpen,
+  onDelete,
+  onPayment,
+  onToggle,
+}: {
+  isOpen: boolean;
+  onDelete: () => void;
+  onPayment: () => void;
+  onToggle: () => void;
+}) => {
+  const { t } = useLanguage();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-full">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52 rounded-2xl">
+        <DropdownMenuItem className="font-bengali" onClick={onPayment}>
+          <Receipt className="mr-2 h-4 w-4" />
+          {t("সব আইটেম পেমেন্ট", "All Items Payment")}
+        </DropdownMenuItem>
+        <DropdownMenuItem className="font-bengali" onClick={onToggle}>
+          {isOpen ? <ChevronDown className="mr-2 h-4 w-4" /> : <ChevronRight className="mr-2 h-4 w-4" />}
+          {t(isOpen ? "বিস্তারিত লুকান" : "বিস্তারিত দেখুন", isOpen ? "Hide Details" : "Show Details")}
+        </DropdownMenuItem>
+        <DropdownMenuItem className="font-bengali text-red-600 focus:text-red-600" onClick={onDelete}>
+          <Trash2 className="mr-2 h-4 w-4" />
+          {t("সব আইটেম মুছুন", "Delete All Items")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+const ItemActionsMenu = ({
+  onDelete,
+  onEdit,
+  onPayment,
+}: {
+  onDelete: () => void;
+  onEdit: () => void;
+  onPayment: () => void;
+}) => {
+  const { t } = useLanguage();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-full">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-44 rounded-2xl">
+        <DropdownMenuItem className="font-bengali" onClick={onPayment}>
+          <Receipt className="mr-2 h-4 w-4" />
+          {t("পেমেন্ট", "Payment")}
+        </DropdownMenuItem>
+        <DropdownMenuItem className="font-bengali" onClick={onEdit}>
+          <Edit3 className="mr-2 h-4 w-4" />
+          {t("এডিট", "Edit")}
+        </DropdownMenuItem>
+        <DropdownMenuItem className="font-bengali text-red-600 focus:text-red-600" onClick={onDelete}>
+          <Trash2 className="mr-2 h-4 w-4" />
+          {t("মুছুন", "Delete")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

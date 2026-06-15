@@ -1,15 +1,22 @@
 ﻿import { useEffect, useMemo, useState } from "react";
-import { BellRing, CheckCircle2, Download, Eye, FileText, Printer, UserCheck, Users, Video } from "lucide-react";
+import { BarChart3, BellRing, CheckCircle2, Download, Eye, Pencil, Printer, UserCheck, Users, Video } from "lucide-react";
+import { jsPDF } from "jspdf";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
-import type { AdmissionForm } from "@/lib/admission";
+import type { AdmissionForm, AdmissionStatus } from "@/lib/admission";
 import type { AppDownloadSettings } from "@/lib/appDownloadSettings";
 import type { MobileAppNotification, MobileNotificationAudience } from "@/lib/mobileNotifications";
 import type { StudentRecord } from "@/lib/students";
 import type { Teacher } from "@/lib/teachers";
 import type { VirtualTour } from "@/lib/virtualTour";
 import type { AttendanceRecord, DashboardSettings, FeeRecord, GuardianRequest } from "@/lib/adminDashboard";
-import type { GuardianRegistrationInput, GuardianRelationship } from "@/lib/guardianRegistration";
+import {
+  GUARDIAN_CLASS_OPTIONS,
+  GUARDIAN_SECTION_OPTIONS,
+  normalizeGuardianStudentId,
+  type GuardianRegistrationInput,
+  type GuardianRelationship,
+} from "@/lib/guardianRegistration";
 import { getDownloadUrl } from "@/lib/upload";
 import { createClientId } from "@/lib/uuid";
 import LanguageToggle from "@/components/LanguageToggle";
@@ -175,6 +182,23 @@ const inferStudentAvatarVariant = (student: StudentRecord): "boys" | "girls" => 
   return hash % 2 === 0 ? "boys" : "girls";
 };
 
+type StudentExportScope = "all" | "girls" | "boys";
+type StudentExportFormat = "pdf" | "excel";
+
+const detectStudentExportGroup = (student: StudentRecord): "girls" | "boys" => {
+  const studentId = (student.studentId || "").trim().toLowerCase();
+
+  if (studentId.startsWith("g-")) return "girls";
+  if (/^\d+$/.test(studentId)) return "boys";
+
+  return inferStudentAvatarVariant(student);
+};
+
+const filterStudentsByScope = (students: StudentRecord[], scope: StudentExportScope) => {
+  if (scope === "all") return students;
+  return students.filter((student) => detectStudentExportGroup(student) === scope);
+};
+
 const StudentAvatarCard = ({ variant }: { variant: "boys" | "girls" }) => (
   <div
     className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] border shadow-sm sm:h-16 sm:w-16 ${
@@ -201,17 +225,92 @@ const StudentAvatarCard = ({ variant }: { variant: "boys" | "girls" }) => (
 
 export const StudentListPage = ({
   students,
+  onUpdate,
   onDelete,
 }: {
   students: StudentRecord[];
+  onUpdate: (student: StudentRecord) => Promise<void>;
   onDelete: (student: StudentRecord) => Promise<void>;
 }) => {
+  const STUDENT_CLASS_SEQUENCE = ["Play", "Nursery", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"] as const;
+  const normalizeStudentClassName = (value: string) => {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return "";
+
+    if (normalized === "play" || normalized === "pre-play" || normalized === "pre play" || normalized === "play group") {
+      return "Play";
+    }
+
+    if (normalized === "nursery") {
+      return "Nursery";
+    }
+
+    const digitMatch = normalized.match(/\d+/);
+    if (digitMatch) {
+      const digit = digitMatch[0];
+      if (STUDENT_CLASS_SEQUENCE.includes(digit as (typeof STUDENT_CLASS_SEQUENCE)[number])) {
+        return digit;
+      }
+    }
+
+    return value.trim();
+  };
+
+  const buildStudentClassSummary = (items: StudentRecord[]) => {
+    const counts = new Map<string, number>();
+
+    items.forEach((student) => {
+      const className = normalizeStudentClassName(student.className) || t("অশ্রেণিবদ্ধ", "Unassigned");
+      counts.set(className, (counts.get(className) ?? 0) + 1);
+    });
+
+    const maxCount = Math.max(0, ...counts.values());
+
+    return Array.from(counts.entries())
+      .map(([className, count]) => ({
+        className,
+        count,
+        barPercent: maxCount === 0 ? 0 : (count / maxCount) * 100,
+        sharePercent: items.length === 0 ? 0 : (count / items.length) * 100,
+      }))
+      .sort((a, b) => {
+        const aIndex = STUDENT_CLASS_SEQUENCE.indexOf(a.className as (typeof STUDENT_CLASS_SEQUENCE)[number]);
+        const bIndex = STUDENT_CLASS_SEQUENCE.indexOf(b.className as (typeof STUDENT_CLASS_SEQUENCE)[number]);
+
+        if (aIndex !== -1 || bIndex !== -1) {
+          if (aIndex === -1) return 1;
+          if (bIndex === -1) return -1;
+          return aIndex - bIndex;
+        }
+
+        return a.className.localeCompare(b.className, undefined, { numeric: true });
+      });
+  };
+
   const { t } = useLanguage();
   const [query, setQuery] = useState("");
+  const [activeClassFilter, setActiveClassFilter] = useState("");
+  const [classListPreview, setClassListPreview] = useState("");
+  const [viewingStudent, setViewingStudent] = useState<StudentRecord | null>(null);
+  const [editingStudent, setEditingStudent] = useState<StudentRecord | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<StudentRecord | null>(null);
   const [deletingId, setDeletingId] = useState("");
+  const [savingStudent, setSavingStudent] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportStep, setExportStep] = useState<1 | 2>(1);
+  const [exportFormat, setExportFormat] = useState<StudentExportFormat>("pdf");
+  const [exportScope, setExportScope] = useState<StudentExportScope>("all");
+  const [studentForm, setStudentForm] = useState({
+    studentName: "",
+    className: "",
+    section: "",
+    roll: "",
+    monthlyFee: "",
+    guardianName: "",
+    guardianPhone: "",
+  });
 
-  const filteredStudents = useMemo(() => {
+  const searchMatchedStudents = useMemo(() => {
     const keyword = query.trim().toLowerCase();
     if (!keyword) return students;
 
@@ -227,6 +326,308 @@ export const StudentListPage = ({
     );
   }, [query, students]);
 
+  const filteredStudents = useMemo(() => {
+    if (!activeClassFilter) return searchMatchedStudents;
+
+    return searchMatchedStudents.filter(
+      (student) => (normalizeStudentClassName(student.className) || t("অশ্রেণিবদ্ধ", "Unassigned")) === activeClassFilter,
+    );
+  }, [activeClassFilter, searchMatchedStudents, t]);
+
+  const classSummary = useMemo(() => buildStudentClassSummary(searchMatchedStudents), [searchMatchedStudents]);
+
+  const mostPopulatedClass = useMemo(() => {
+    if (classSummary.length === 0) return null;
+    return [...classSummary].sort((a, b) => b.count - a.count || a.className.localeCompare(b.className, undefined, { numeric: true }))[0];
+  }, [classSummary]);
+
+  const genderSummary = useMemo(() => {
+    return filteredStudents.reduce(
+      (acc, student) => {
+        if (detectStudentExportGroup(student) === "girls") {
+          acc.girls += 1;
+        } else {
+          acc.boys += 1;
+        }
+
+        return acc;
+      },
+      { boys: 0, girls: 0 },
+    );
+  }, [filteredStudents]);
+
+  const previewStudents = useMemo(() => {
+    if (!classListPreview) return [];
+
+    return searchMatchedStudents.filter(
+      (student) => (normalizeStudentClassName(student.className) || t("অশ্রেণিবদ্ধ", "Unassigned")) === classListPreview,
+    );
+  }, [classListPreview, searchMatchedStudents, t]);
+
+  useEffect(() => {
+    if (!editingStudent) return;
+
+    setStudentForm({
+      studentName: editingStudent.studentName || "",
+      className: editingStudent.className || "",
+      section: editingStudent.section || "",
+      roll: editingStudent.roll ? String(editingStudent.roll) : "",
+      monthlyFee: editingStudent.monthlyFee ? String(editingStudent.monthlyFee) : "",
+      guardianName: editingStudent.guardianName || "",
+      guardianPhone: editingStudent.guardianPhone || "",
+    });
+  }, [editingStudent]);
+
+  const exportStudents = useMemo(() => filterStudentsByScope(students, exportScope), [exportScope, students]);
+
+  const exportScopeLabel = useMemo(() => {
+    switch (exportScope) {
+      case "girls":
+        return t("বালিকা", "Girls");
+      case "boys":
+        return t("বালক", "Boys");
+      default:
+        return t("সকল শিক্ষার্থী", "All Students");
+    }
+  }, [exportScope, t]);
+
+  const buildStudentExportRows = (items: StudentRecord[]) =>
+    items.map((student, index) => ({
+      serial: index + 1,
+      studentId: student.studentId || "-",
+      studentName: student.studentName || "-",
+      guardianName: student.guardianName || "-",
+      className: student.className || "-",
+      section: student.section || "-",
+      roll: student.roll ? String(student.roll) : "-",
+      group: detectStudentExportGroup(student) === "girls" ? t("বালিকা", "Girls") : t("বালক", "Boys"),
+    }));
+
+  const downloadStudentPdf = () => {
+    const rows = buildStudentExportRows(exportStudents);
+    const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 10;
+    const lineHeight = 4.5;
+    const cellPadding = 1.5;
+    const columns = [
+      { key: "serial", label: t("SL", "SL"), width: 12 },
+      { key: "studentId", label: t("Student ID", "Student ID"), width: 30 },
+      { key: "studentName", label: t("Name", "Name"), width: 56 },
+      { key: "guardianName", label: t("Guardian", "Guardian"), width: 56 },
+      { key: "className", label: t("Class", "Class"), width: 24 },
+      { key: "section", label: t("Section", "Section"), width: 22 },
+      { key: "roll", label: t("Roll", "Roll"), width: 18 },
+      { key: "group", label: t("Group", "Group"), width: 24 },
+    ] as const;
+
+    const drawHeader = () => {
+      let currentY = 14;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text(t("Student List", "Student List"), margin, currentY);
+      currentY += 6;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`${t("Scope", "Scope")}: ${exportScopeLabel}`, margin, currentY);
+      currentY += 5;
+      doc.text(`${t("Total Students", "Total Students")}: ${rows.length}`, margin, currentY);
+      currentY += 6;
+
+      let x = margin;
+      const headerHeight = 9;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      columns.forEach((column) => {
+        doc.rect(x, currentY, column.width, headerHeight);
+        doc.text(column.label, x + cellPadding, currentY + 5.5);
+        x += column.width;
+      });
+
+      return currentY + headerHeight;
+    };
+
+    let y = drawHeader();
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+
+    rows.forEach((row) => {
+      const cellLines = columns.map((column) =>
+        doc.splitTextToSize(String(row[column.key] ?? ""), column.width - cellPadding * 2),
+      );
+      const rowHeight = Math.max(...cellLines.map((lines) => Math.max(lines.length, 1))) * lineHeight + cellPadding * 2;
+
+      if (y + rowHeight > pageHeight - margin) {
+        doc.addPage();
+        y = drawHeader();
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+      }
+
+      let x = margin;
+      columns.forEach((column, columnIndex) => {
+        doc.rect(x, y, column.width, rowHeight);
+        doc.text(cellLines[columnIndex], x + cellPadding, y + 4.2);
+        x += column.width;
+      });
+
+      y += rowHeight;
+    });
+
+    doc.save(`student-list-${exportScope}.pdf`);
+  };
+
+  const downloadStudentExcel = () => {
+    const rows = buildStudentExportRows(exportStudents);
+    const tableRows = rows
+      .map(
+        (row) => `
+          <tr>
+            <td>${row.serial}</td>
+            <td>${row.studentId}</td>
+            <td>${row.studentName}</td>
+            <td>${row.guardianName}</td>
+            <td>${row.className}</td>
+            <td>${row.section}</td>
+            <td>${row.roll}</td>
+            <td>${row.group}</td>
+          </tr>
+        `,
+      )
+      .join("");
+
+    const html = `
+      <html>
+        <head><meta charset="utf-8" /></head>
+        <body>
+          <table border="1">
+            <thead>
+              <tr>
+                <th>${t("ক্রম", "SL")}</th>
+                <th>${t("স্টুডেন্ট আইডি", "Student ID")}</th>
+                <th>${t("নাম", "Name")}</th>
+                <th>${t("অভিভাবক", "Guardian")}</th>
+                <th>${t("শ্রেণি", "Class")}</th>
+                <th>${t("সেকশন", "Section")}</th>
+                <th>${t("রোল", "Roll")}</th>
+                <th>${t("বিভাগ", "Group")}</th>
+              </tr>
+            </thead>
+            <tbody>${tableRows}</tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    const blob = new Blob([`\uFEFF${html}`], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `student-list-${exportScope}.xls`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleStudentExport = () => {
+    if (exportFormat === "excel") {
+      downloadStudentExcel();
+      return;
+    }
+
+    downloadStudentPdf();
+  };
+
+  const exportScopeCounts = useMemo(
+    () => ({
+      all: filterStudentsByScope(students, "all").length,
+      girls: filterStudentsByScope(students, "girls").length,
+      boys: filterStudentsByScope(students, "boys").length,
+    }),
+    [students],
+  );
+
+  const printClassStudents = (className: string) => {
+    const classStudents = searchMatchedStudents.filter(
+      (student) => (normalizeStudentClassName(student.className) || t("অশ্রেণিবদ্ধ", "Unassigned")) === className,
+    );
+
+    if (classStudents.length === 0) {
+      toast.error(t("এই ক্লাসে দেখানোর মতো কোনো শিক্ষার্থী নেই", "No students available in this class"));
+      return;
+    }
+
+    const rows = classStudents
+      .map(
+        (student, index) => `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${student.studentId || "-"}</td>
+            <td>${student.studentName || "-"}</td>
+            <td>${student.guardianName || "-"}</td>
+            <td>${student.section || "-"}</td>
+            <td>${student.roll ? String(student.roll) : "-"}</td>
+          </tr>
+        `,
+      )
+      .join("");
+
+    const html = `
+      <!doctype html>
+      <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <title>${className} Student List</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 24px; color: #0f172a; }
+            .header { margin-bottom: 20px; }
+            .title { font-size: 24px; font-weight: 700; margin: 0 0 8px; }
+            .meta { font-size: 14px; color: #475569; margin: 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+            th, td { border: 1px solid #cbd5e1; padding: 10px 12px; text-align: left; font-size: 14px; }
+            th { background: #e2e8f0; }
+            tr:nth-child(even) td { background: #f8fafc; }
+            @media print { body { padding: 0; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1 class="title">${t("শ্রেণিভিত্তিক শিক্ষার্থী তালিকা", "Class-wise student list")} - ${className}</h1>
+            <p class="meta">${t("মোট শিক্ষার্থী", "Total students")}: ${classStudents.length}</p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>${t("ক্রম", "SL")}</th>
+                <th>${t("স্টুডেন্ট আইডি", "Student ID")}</th>
+                <th>${t("নাম", "Name")}</th>
+                <th>${t("অভিভাবক", "Guardian")}</th>
+                <th>${t("সেকশন", "Section")}</th>
+                <th>${t("রোল", "Roll")}</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open("", "_blank", "width=1000,height=700");
+    if (!printWindow) return;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+
+    const runPrint = () => {
+      printWindow.focus();
+      printWindow.print();
+    };
+
+    printWindow.addEventListener("load", () => setTimeout(runPrint, 250), { once: true });
+    setTimeout(runPrint, 600);
+  };
+
   return (
     <>
       <ModuleShell
@@ -239,7 +640,212 @@ export const StudentListPage = ({
       >
         <Card className={shellCardClass}>
           <CardContent className="space-y-5 p-6">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="overflow-hidden rounded-[28px] border border-border/70 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.16),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] p-5 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.35)]">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-primary">
+                    <BarChart3 className="h-4 w-4" />
+                    <span className="font-bengali text-sm font-semibold uppercase tracking-[0.18em]">
+                      {t("ক্লাস ভিজুয়াল", "Class Visual")}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-bengali text-lg font-semibold text-foreground">
+                      {t("কোন ক্লাসে কতজন শিক্ষার্থী", "Students by class")}
+                    </h3>
+                    <p className="font-bengali text-sm leading-6 text-muted-foreground">
+                      {query.trim()
+                        ? t(
+                            "বর্তমান সার্চ ফলাফলের ভিত্তিতে প্রতিটি শ্রেণিতে কতজন শিক্ষার্থী দেখানো হচ্ছে তা এখানে এক নজরে দেখা যাবে।",
+                            "This shows how many students appear in each class for the current search results.",
+                          )
+                        : t(
+                            "সব দৃশ্যমান শিক্ষার্থীকে শ্রেণিভিত্তিক ভাগ করে উপরে থেকেই দ্রুত সংখ্যা দেখা যাবে।",
+                            "This groups all visible students by class so you can compare counts at a glance.",
+                          )}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary" className="rounded-full px-4 py-1 font-bengali">
+                    {t("মোট ক্লাস", "Total Classes")}: {classSummary.length}
+                  </Badge>
+                  <Badge variant="outline" className="rounded-full px-4 py-1 font-bengali">
+                    {t("সবচেয়ে বেশি", "Highest")}:{" "}
+                    {mostPopulatedClass
+                      ? `${mostPopulatedClass.className} (${mostPopulatedClass.count})`
+                      : t("তথ্য নেই", "No data")}
+                  </Badge>
+                </div>
+              </div>
+
+              {classSummary.length === 0 ? (
+                <div className="mt-5">
+                  <EmptyState text={t("ক্লাসভিত্তিক দেখানোর মতো কোনো শিক্ষার্থী নেই", "No students available for class summary")} />
+                </div>
+              ) : (
+                <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {classSummary.map((item, index) => {
+                    const tones = [
+                      {
+                        shell:
+                          "border-sky-200/80 bg-[linear-gradient(145deg,rgba(240,249,255,0.98),rgba(224,242,254,0.92))]",
+                        orb: "bg-sky-300/35",
+                        accent: "bg-sky-600",
+                        ringColor: "#0284c7",
+                        soft: "bg-sky-600/10 text-sky-800",
+                        track: "bg-sky-100/90",
+                        fill: "bg-[linear-gradient(90deg,rgba(2,132,199,0.95),rgba(14,116,144,0.82))]",
+                      },
+                      {
+                        shell:
+                          "border-emerald-200/80 bg-[linear-gradient(145deg,rgba(236,253,245,0.98),rgba(209,250,229,0.92))]",
+                        orb: "bg-emerald-300/35",
+                        accent: "bg-emerald-600",
+                        ringColor: "#059669",
+                        soft: "bg-emerald-600/10 text-emerald-800",
+                        track: "bg-emerald-100/90",
+                        fill: "bg-[linear-gradient(90deg,rgba(5,150,105,0.95),rgba(4,120,87,0.82))]",
+                      },
+                      {
+                        shell:
+                          "border-amber-200/80 bg-[linear-gradient(145deg,rgba(255,251,235,0.98),rgba(254,243,199,0.92))]",
+                        orb: "bg-amber-300/35",
+                        accent: "bg-amber-500",
+                        ringColor: "#f59e0b",
+                        soft: "bg-amber-500/10 text-amber-900",
+                        track: "bg-amber-100/90",
+                        fill: "bg-[linear-gradient(90deg,rgba(245,158,11,0.95),rgba(217,119,6,0.82))]",
+                      },
+                      {
+                        shell:
+                          "border-rose-200/80 bg-[linear-gradient(145deg,rgba(255,241,242,0.98),rgba(255,228,230,0.92))]",
+                        orb: "bg-rose-300/35",
+                        accent: "bg-rose-500",
+                        ringColor: "#f43f5e",
+                        soft: "bg-rose-500/10 text-rose-900",
+                        track: "bg-rose-100/90",
+                        fill: "bg-[linear-gradient(90deg,rgba(244,63,94,0.95),rgba(225,29,72,0.82))]",
+                      },
+                    ][index % 4];
+
+                    const isLeader = mostPopulatedClass?.className === item.className && mostPopulatedClass?.count === item.count;
+
+                    return (
+                      <div
+                        key={item.className}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setActiveClassFilter((current) => (current === item.className ? "" : item.className))}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            setActiveClassFilter((current) => (current === item.className ? "" : item.className));
+                          }
+                        }}
+                        className={`relative overflow-hidden rounded-[26px] border p-4 shadow-[0_20px_45px_-42px_rgba(15,23,42,0.42)] transition-transform duration-200 hover:-translate-y-1 cursor-pointer ${tones.shell} ${
+                          activeClassFilter === item.className ? "ring-2 ring-slate-900/80 ring-offset-2" : ""
+                        }`}
+                      >
+                        <div className={`absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl ${tones.orb}`} />
+                        <div className="relative">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <span className={`h-2.5 w-2.5 rounded-full ${tones.accent}`} />
+                                <span className="font-bengali text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                                  {t("শ্রেণি ভিত্তিক", "By Class")}
+                                </span>
+                              </div>
+                              <div>
+                                <h4 className="font-display text-[1.7rem] font-semibold leading-none text-slate-900">{item.className}</h4>
+                                <p className="mt-1 font-bengali text-sm text-slate-600">
+                                  {t("মোট শিক্ষার্থী", "Total students")} : {item.count}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col items-end gap-2">
+                              <div
+                                className="flex h-14 w-14 items-center justify-center rounded-full"
+                                style={{
+                                  background: `conic-gradient(${tones.ringColor} ${Math.max(item.barPercent, 8)}%, rgba(255,255,255,0.55) 0)`,
+                                }}
+                              >
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[11px] font-semibold text-slate-900 shadow-sm">
+                                  #{index + 1}
+                                </div>
+                              </div>
+                              {isLeader ? (
+                                <div className="rounded-full bg-slate-900 px-3 py-1 font-bengali text-[11px] font-medium text-white">
+                                  {t("সর্বোচ্চ", "Top")}
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <Button
+                              type="button"
+                              variant={activeClassFilter === item.className ? "default" : "outline"}
+                              size="icon"
+                              className="rounded-2xl"
+                              aria-label={
+                                activeClassFilter === item.className
+                                  ? t("ফিল্টার সরান", "Clear Filter")
+                                  : t("এই ক্লাস দেখুন", "Filter Class")
+                              }
+                              title={
+                                activeClassFilter === item.className
+                                  ? t("ফিল্টার সরান", "Clear Filter")
+                                  : t("এই ক্লাস দেখুন", "Filter Class")
+                              }
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setActiveClassFilter((current) => (current === item.className ? "" : item.className));
+                              }}
+                            >
+                              <BarChart3 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              className="rounded-2xl"
+                              aria-label={t("লিস্ট দেখুন", "View List")}
+                              title={t("লিস্ট দেখুন", "View List")}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setClassListPreview(item.className);
+                              }}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              className="rounded-2xl"
+                              aria-label={t("লিস্ট প্রিন্ট", "Print List")}
+                              title={t("লিস্ট প্রিন্ট", "Print List")}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                printClassStudents(item.className);
+                              }}
+                            >
+                              <Printer className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-3 rounded-[26px] border border-border/70 bg-background/80 p-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="secondary" className="rounded-full px-4 py-1 font-bengali">
                   {t("মোট শিক্ষার্থী", "Total Students")}: {students.length}
@@ -247,20 +853,55 @@ export const StudentListPage = ({
                 <Badge variant="outline" className="rounded-full px-4 py-1 font-bengali">
                   {t("দেখানো হচ্ছে", "Showing")}: {filteredStudents.length}
                 </Badge>
+                <Badge variant="outline" className="rounded-full px-4 py-1 font-bengali">
+                  {t("বালক", "Boys")}: {genderSummary.boys}
+                </Badge>
+                <Badge variant="outline" className="rounded-full px-4 py-1 font-bengali">
+                  {t("বালিকা", "Girls")}: {genderSummary.girls}
+                </Badge>
+                {activeClassFilter ? (
+                  <Badge variant="outline" className="rounded-full px-4 py-1 font-bengali">
+                    {t("ফিল্টার ক্লাস", "Filtered class")}: {activeClassFilter}
+                  </Badge>
+                ) : null}
               </div>
-              <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                className="h-11 w-full rounded-2xl lg:max-w-sm"
-                placeholder={t("আইডি, নাম, অভিভাবক বা শ্রেণি দিয়ে খুঁজুন", "Search by ID, name, guardian, or class")}
-              />
+              <div className="flex w-full flex-col gap-3 lg:max-w-4xl lg:flex-row lg:items-center lg:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-2xl font-bengali"
+                  onClick={() => {
+                    setExportStep(1);
+                    setExportDialogOpen(true);
+                  }}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  {t("শিক্ষার্থী তালিকা ডাউনলোড", "Download student list")}
+                </Button>
+                <Input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  className="h-11 w-full rounded-2xl lg:max-w-sm"
+                  placeholder={t("আইডি, নাম, অভিভাবক বা শ্রেণি দিয়ে খুঁজুন", "Search by ID, name, guardian, or class")}
+                />
+                {activeClassFilter ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-2xl font-bengali"
+                    onClick={() => setActiveClassFilter("")}
+                  >
+                    {t("ক্লাস ফিল্টার সরান", "Clear class filter")}
+                  </Button>
+                ) : null}
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {filteredStudents.length === 0 ? (
                 <EmptyState
                   text={t("কোনো শিক্ষার্থী পাওয়া যায়নি", "No students found")}
-                  className="sm:col-span-2 xl:col-span-3 2xl:col-span-4"
+                  className="sm:col-span-2 xl:col-span-4"
                 />
               ) : (
                 filteredStudents.map((student) => {
@@ -269,32 +910,60 @@ export const StudentListPage = ({
                   return (
                   <div
                     key={student.studentId || student.id}
-                    className="relative overflow-hidden rounded-[22px] border border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] p-3 shadow-[0_20px_50px_-38px_rgba(15,23,42,0.45)] sm:rounded-[24px] sm:p-3.5"
+                    className="relative overflow-hidden rounded-[24px] border border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,252,0.96))] p-4 shadow-[0_20px_50px_-38px_rgba(15,23,42,0.45)] sm:p-4"
                   >
                     <div className="absolute inset-x-0 top-0 h-1.5 bg-[linear-gradient(90deg,rgba(14,116,144,0.9),rgba(245,158,11,0.88),rgba(225,29,72,0.85))]" />
-                    <div className="relative flex min-h-[205px] flex-col gap-3 sm:min-h-[220px]">
+                    <div className="relative flex min-h-[250px] flex-col gap-4">
                       <div className="flex items-start justify-between gap-2">
                         <div className="rounded-full bg-background/80 px-2.5 py-1 font-bengali text-[10px] text-muted-foreground">
                           {t("স্টুডেন্ট কার্ড", "Student Card")}
                         </div>
-                        <DeleteIconButton onClick={() => setSelectedStudent(student)} />
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="rounded-2xl"
+                            onClick={() => setViewingStudent(student)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="rounded-2xl"
+                            onClick={() => setEditingStudent(student)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <DeleteIconButton onClick={() => setSelectedStudent(student)} />
+                        </div>
                       </div>
 
-                      <div className="flex items-start gap-2.5">
-                        <StudentAvatarCard variant={variant} />
-                        <div className="min-w-0 flex-1 space-y-1.5">
-                          <p className="font-bengali text-[11px] leading-5 text-muted-foreground">
-                            {t("নাম", "Name")} :{" "}
-                            <span className="font-semibold text-foreground">
-                              {student.studentName || t("নাম পাওয়া যায়নি", "Name unavailable")}
-                            </span>
-                          </p>
-                          <p className="font-bengali text-[11px] leading-5 text-muted-foreground">
-                            {t("অভিভাবক", "Guardian")} :{" "}
-                            <span className="font-semibold text-foreground">
-                              {student.guardianName || t("তথ্য নেই", "No data")}
-                            </span>
-                          </p>
+                      <div className="space-y-3 text-center">
+                        <div className="flex justify-center">
+                          <StudentAvatarCard variant={variant} />
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="rounded-2xl bg-sky-50/70 px-3 py-2.5">
+                            <p className="font-bengali text-sm font-semibold leading-6 text-foreground">
+                              {t("নাম", "Name")} :{" "}
+                              <span className="font-normal">
+                                {student.studentName || t("নাম পাওয়া যায়নি", "Name unavailable")}
+                              </span>
+                            </p>
+                          </div>
+
+                          <div className="rounded-2xl bg-amber-50/80 px-3 py-2.5">
+                            <p className="font-bengali text-sm font-semibold leading-6 text-foreground">
+                              {t("অভিভাবকের নাম", "Guardian name")} :{" "}
+                              <span className="font-normal">
+                                {student.guardianName || t("তথ্য নেই", "No data")}
+                              </span>
+                            </p>
+                          </div>
                         </div>
                       </div>
 
@@ -327,6 +996,357 @@ export const StudentListPage = ({
           </CardContent>
         </Card>
       </ModuleShell>
+
+      <Dialog
+        open={exportDialogOpen}
+        onOpenChange={(open) => {
+          setExportDialogOpen(open);
+          if (!open) {
+            setExportStep(1);
+          }
+        }}
+      >
+        <DialogContent className="max-w-2xl rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="font-bengali text-xl">
+              {t("শিক্ষার্থী তালিকা ডাউনলোড", "Download student list")}
+            </DialogTitle>
+            <DialogDescription className="font-bengali text-sm leading-6">
+              {t(
+                "ধাপে ধাপে ফরম্যাট ও শিক্ষার্থীর ধরন নির্বাচন করে তালিকা ডাউনলোড করুন।",
+                "Choose the format and student scope step by step before downloading the list.",
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex items-center gap-3">
+            <div className={`flex h-9 w-9 items-center justify-center rounded-full font-bengali text-sm font-semibold ${exportStep === 1 ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"}`}>
+              1
+            </div>
+            <div className={`h-1 flex-1 rounded-full ${exportStep === 2 ? "bg-primary/50" : "bg-muted"}`} />
+            <div className={`flex h-9 w-9 items-center justify-center rounded-full font-bengali text-sm font-semibold ${exportStep === 2 ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"}`}>
+              2
+            </div>
+          </div>
+
+          {exportStep === 1 ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {[
+                {
+                  key: "pdf" as const,
+                  title: t("PDF", "PDF"),
+                  description: t("প্রিন্ট বা শেয়ার করার জন্য সুন্দর ফরম্যাট", "Best for printing or sharing"),
+                },
+                {
+                  key: "excel" as const,
+                  title: t("Excel", "Excel"),
+                  description: t("টেবিল আকারে ডেটা খোলার জন্য উপযোগী", "Best for opening data as a table"),
+                },
+              ].map((option) => (
+                <button
+                  key={option.key}
+                  type="button"
+                  onClick={() => setExportFormat(option.key)}
+                  className={`rounded-3xl border p-5 text-left transition ${
+                    exportFormat === option.key
+                      ? "border-primary bg-primary/5 shadow-[0_15px_40px_-30px_rgba(15,23,42,0.35)]"
+                      : "border-border/70 bg-background hover:border-primary/40"
+                  }`}
+                >
+                  <p className="font-display text-2xl font-semibold text-foreground">{option.title}</p>
+                  <p className="mt-2 font-bengali text-sm leading-6 text-muted-foreground">{option.description}</p>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-3">
+              {[
+                { key: "all" as const, title: t("সকল শিক্ষার্থী", "All Students"), count: exportScopeCounts.all },
+                { key: "girls" as const, title: t("বালিকা", "Girls"), count: exportScopeCounts.girls },
+                { key: "boys" as const, title: t("বালক", "Boys"), count: exportScopeCounts.boys },
+              ].map((option) => (
+                <button
+                  key={option.key}
+                  type="button"
+                  onClick={() => setExportScope(option.key)}
+                  className={`rounded-3xl border p-5 text-left transition ${
+                    exportScope === option.key
+                      ? "border-primary bg-primary/5 shadow-[0_15px_40px_-30px_rgba(15,23,42,0.35)]"
+                      : "border-border/70 bg-background hover:border-primary/40"
+                  }`}
+                >
+                  <p className="font-bengali text-base font-semibold text-foreground">{option.title}</p>
+                  <p className="mt-2 font-display text-3xl font-semibold text-foreground">{option.count}</p>
+                  <p className="mt-1 font-bengali text-xs text-muted-foreground">{t("শিক্ষার্থী", "Students")}</p>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-2xl font-bengali"
+              onClick={() => {
+                if (exportStep === 1) {
+                  setExportDialogOpen(false);
+                  return;
+                }
+                setExportStep(1);
+              }}
+            >
+              {exportStep === 1 ? t("বন্ধ করুন", "Close") : t("পেছনে যান", "Back")}
+            </Button>
+            {exportStep === 1 ? (
+              <Button type="button" className="rounded-2xl font-bengali" onClick={() => setExportStep(2)}>
+                {t("পরের ধাপ", "Next Step")}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                className="rounded-2xl font-bengali"
+                onClick={() => {
+                  handleStudentExport();
+                  setExportDialogOpen(false);
+                  setExportStep(1);
+                }}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                {t("ডাউনলোড করুন", "Download")}
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(classListPreview)} onOpenChange={(open) => !open && setClassListPreview("")}>
+        <DialogContent className="max-w-4xl rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="font-bengali text-xl">
+              {t("ক্লাসভিত্তিক শিক্ষার্থী তালিকা", "Class-wise student list")}
+              {classListPreview ? ` - ${classListPreview}` : ""}
+            </DialogTitle>
+            <DialogDescription className="font-bengali text-sm leading-6">
+              {t("নির্বাচিত শ্রেণির সব শিক্ষার্থী এখানে তালিকা আকারে দেখা যাবে।", "Students from the selected class appear here in list format.")}
+            </DialogDescription>
+          </DialogHeader>
+
+          {previewStudents.length === 0 ? (
+            <EmptyState text={t("এই শ্রেণির জন্য কোনো শিক্ষার্থী পাওয়া যায়নি", "No students found for this class")} />
+          ) : (
+            <div className="overflow-hidden rounded-3xl border border-border/70">
+              <div className="max-h-[60vh] overflow-auto">
+                <table className="w-full border-collapse">
+                  <thead className="sticky top-0 bg-muted/90 backdrop-blur">
+                    <tr className="border-b border-border/70 text-left">
+                      <th className="px-4 py-3 font-bengali text-xs uppercase tracking-[0.18em] text-muted-foreground">{t("ক্রম", "SL")}</th>
+                      <th className="px-4 py-3 font-bengali text-xs uppercase tracking-[0.18em] text-muted-foreground">{t("স্টুডেন্ট আইডি", "Student ID")}</th>
+                      <th className="px-4 py-3 font-bengali text-xs uppercase tracking-[0.18em] text-muted-foreground">{t("নাম", "Name")}</th>
+                      <th className="px-4 py-3 font-bengali text-xs uppercase tracking-[0.18em] text-muted-foreground">{t("অভিভাবক", "Guardian")}</th>
+                      <th className="px-4 py-3 font-bengali text-xs uppercase tracking-[0.18em] text-muted-foreground">{t("সেকশন", "Section")}</th>
+                      <th className="px-4 py-3 font-bengali text-xs uppercase tracking-[0.18em] text-muted-foreground">{t("রোল", "Roll")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {previewStudents.map((student, index) => (
+                      <tr key={student.studentId || student.id} className="border-b border-border/60 bg-background/80">
+                        <td className="px-4 py-3 font-bengali text-sm text-foreground">{index + 1}</td>
+                        <td className="px-4 py-3 font-bengali text-sm text-foreground">{student.studentId || "-"}</td>
+                        <td className="px-4 py-3 font-bengali text-sm font-semibold text-foreground">{student.studentName || "-"}</td>
+                        <td className="px-4 py-3 font-bengali text-sm text-foreground">{student.guardianName || "-"}</td>
+                        <td className="px-4 py-3 font-bengali text-sm text-foreground">{student.section || "-"}</td>
+                        <td className="px-4 py-3 font-bengali text-sm text-foreground">{student.roll ? String(student.roll) : "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-2xl font-bengali"
+              onClick={() => classListPreview && printClassStudents(classListPreview)}
+              disabled={!classListPreview || previewStudents.length === 0}
+            >
+              <Printer className="mr-2 h-4 w-4" />
+              {t("প্রিন্ট", "Print")}
+            </Button>
+            <Button type="button" variant="outline" className="rounded-2xl font-bengali" onClick={() => setClassListPreview("")}>
+              {t("বন্ধ করুন", "Close")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(viewingStudent)} onOpenChange={(open) => !open && setViewingStudent(null)}>
+        <DialogContent className="max-w-2xl rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="font-bengali text-xl">
+              {t("শিক্ষার্থীর বিস্তারিত", "Student details")}
+            </DialogTitle>
+            <DialogDescription className="font-bengali text-sm leading-6">
+              {t("কার্ডের সব তথ্য এখানে পরিষ্কারভাবে দেখা যাবে।", "All student information appears here in a cleaner layout.")}
+            </DialogDescription>
+          </DialogHeader>
+
+          {viewingStudent ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {[
+                { label: t("স্টুডেন্ট আইডি", "Student ID"), value: viewingStudent.studentId || "-" },
+                { label: t("নাম", "Name"), value: viewingStudent.studentName || "-" },
+                { label: t("অভিভাবকের নাম", "Guardian name"), value: viewingStudent.guardianName || "-" },
+                { label: t("অভিভাবকের ফোন", "Guardian phone"), value: viewingStudent.guardianPhone || "-" },
+                { label: t("শ্রেণি", "Class"), value: viewingStudent.className || "-" },
+                { label: t("সেকশন", "Section"), value: viewingStudent.section || "-" },
+                { label: t("রোল", "Roll"), value: viewingStudent.roll ? String(viewingStudent.roll) : "-" },
+                { label: t("মাসিক ফি", "Monthly fee"), value: viewingStudent.monthlyFee ? String(viewingStudent.monthlyFee) : "-" },
+                { label: t("গার্ডিয়ান UID", "Guardian UID"), value: viewingStudent.guardianUid || "-" },
+                { label: t("স্ট্যাটাস", "Status"), value: viewingStudent.status || "-" },
+              ].map((item) => (
+                <div key={item.label} className="rounded-3xl border border-border/70 bg-muted/20 p-4">
+                  <p className="font-bengali text-xs uppercase tracking-[0.18em] text-muted-foreground">{item.label}</p>
+                  <p className="mt-2 font-bengali text-base font-semibold text-foreground break-words">{item.value}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="flex justify-end">
+            <Button type="button" variant="outline" className="rounded-2xl font-bengali" onClick={() => setViewingStudent(null)}>
+              {t("বন্ধ করুন", "Close")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(editingStudent)}
+        onOpenChange={(open) => !open && !savingStudent && setEditingStudent(null)}
+      >
+        <DialogContent className="max-w-2xl rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="font-bengali text-xl">
+              {t("শিক্ষার্থীর তথ্য সম্পাদনা", "Edit student information")}
+            </DialogTitle>
+            <DialogDescription className="font-bengali text-sm leading-6">
+              {t(
+                "স্টুডেন্ট আইডি অপরিবর্তিত থাকবে। নাম, শ্রেণি, সেকশন, রোল, ফি ও অভিভাবকের তথ্য আপডেট করা যাবে।",
+                "Student ID stays unchanged. You can update name, class, section, roll, fee, and guardian information.",
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {editingStudent ? (
+            <form
+              className="space-y-4"
+              onSubmit={async (event) => {
+                event.preventDefault();
+                setSavingStudent(true);
+                try {
+                  await onUpdate({
+                    ...editingStudent,
+                    studentName: studentForm.studentName.trim(),
+                    className: studentForm.className.trim(),
+                    section: studentForm.section.trim(),
+                    roll: Number(studentForm.roll || 0),
+                    monthlyFee: Number(studentForm.monthlyFee || 0),
+                    guardianName: studentForm.guardianName.trim(),
+                    guardianPhone: studentForm.guardianPhone.trim(),
+                    status: editingStudent.status || "active",
+                  });
+                  setEditingStudent(null);
+                } finally {
+                  setSavingStudent(false);
+                }
+              }}
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label={t("স্টুডেন্ট আইডি", "Student ID")}>
+                  <Input value={editingStudent.studentId} className="rounded-2xl" disabled />
+                </Field>
+                <Field label={t("গার্ডিয়ান UID", "Guardian UID")}>
+                  <Input value={editingStudent.guardianUid || ""} className="rounded-2xl" disabled />
+                </Field>
+                <Field label={t("নাম", "Name")}>
+                  <Input
+                    value={studentForm.studentName}
+                    onChange={(event) => setStudentForm((current) => ({ ...current, studentName: event.target.value }))}
+                    className="rounded-2xl"
+                    required
+                  />
+                </Field>
+                <Field label={t("অভিভাবকের নাম", "Guardian name")}>
+                  <Input
+                    value={studentForm.guardianName}
+                    onChange={(event) => setStudentForm((current) => ({ ...current, guardianName: event.target.value }))}
+                    className="rounded-2xl"
+                  />
+                </Field>
+                <Field label={t("শ্রেণি", "Class")}>
+                  <Input
+                    value={studentForm.className}
+                    onChange={(event) => setStudentForm((current) => ({ ...current, className: event.target.value }))}
+                    className="rounded-2xl"
+                    required
+                  />
+                </Field>
+                <Field label={t("সেকশন", "Section")}>
+                  <Input
+                    value={studentForm.section}
+                    onChange={(event) => setStudentForm((current) => ({ ...current, section: event.target.value }))}
+                    className="rounded-2xl"
+                  />
+                </Field>
+                <Field label={t("রোল", "Roll")}>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={studentForm.roll}
+                    onChange={(event) => setStudentForm((current) => ({ ...current, roll: event.target.value }))}
+                    className="rounded-2xl"
+                  />
+                </Field>
+                <Field label={t("মাসিক ফি", "Monthly fee")}>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={studentForm.monthlyFee}
+                    onChange={(event) => setStudentForm((current) => ({ ...current, monthlyFee: event.target.value }))}
+                    className="rounded-2xl"
+                  />
+                </Field>
+                <Field label={t("অভিভাবকের ফোন", "Guardian phone")}>
+                  <Input
+                    value={studentForm.guardianPhone}
+                    onChange={(event) => setStudentForm((current) => ({ ...current, guardianPhone: event.target.value }))}
+                    className="rounded-2xl md:col-span-2"
+                  />
+                </Field>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-2xl font-bengali"
+                  disabled={savingStudent}
+                  onClick={() => setEditingStudent(null)}
+                >
+                  {t("বাতিল", "Cancel")}
+                </Button>
+                <Button type="submit" className="rounded-2xl font-bengali" disabled={savingStudent}>
+                  {savingStudent ? t("সংরক্ষণ হচ্ছে...", "Saving...") : t("সংরক্ষণ করুন", "Save")}
+                </Button>
+              </div>
+            </form>
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={Boolean(selectedStudent)} onOpenChange={(open) => !open && !deletingId && setSelectedStudent(null)}>
         <DialogContent className="max-w-xl rounded-3xl">
@@ -792,13 +1812,30 @@ export const MobileNotificationsPage = ({
 
 export const AdmissionsManagerPage = ({
   items,
+  onSaveStatus,
   onDelete,
 }: {
   items: AdmissionForm[];
+  onSaveStatus: (
+    item: AdmissionForm,
+    status: AdmissionStatus,
+    updates?: Partial<Pick<AdmissionForm, "approvedStudentId" | "approvedRoll" | "approvedClass" | "approvedSection" | "approvedMonthlyFee">>,
+  ) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }) => {
   const { t } = useLanguage();
   const [selectedItem, setSelectedItem] = useState<AdmissionForm | null>(null);
+  const [updatingId, setUpdatingId] = useState("");
+  const [approvalItem, setApprovalItem] = useState<AdmissionForm | null>(null);
+  const [approvalDraft, setApprovalDraft] = useState({
+    studentId: "",
+    roll: "",
+    className: "",
+    section: "",
+    monthlyFee: "",
+  });
+
+  const formatCurrency = (value: number) => `৳${value.toLocaleString("en-US")}`;
 
   const escapeHtml = (value: string) =>
     value
@@ -846,6 +1883,15 @@ export const AdmissionsManagerPage = ({
         : ["-"]),
       "",
       `${t("স্ট্যাটাস", "Status")}: ${item.status}`,
+      ...(item.status === "approved"
+        ? [
+            `${t("স্টুডেন্ট আইডি", "Student ID")}: ${item.approvedStudentId || "-"}`,
+            `${t("রোল", "Roll")}: ${item.approvedRoll ? String(item.approvedRoll) : "-"}`,
+            `${t("ক্লাস", "Class")}: ${item.approvedClass || "-"}`,
+            `${t("সেকশন", "Section")}: ${item.approvedSection || "-"}`,
+            `${t("মাসিক ফি", "Monthly fee")}: ${item.approvedMonthlyFee ? formatCurrency(item.approvedMonthlyFee) : "-"}`,
+          ]
+        : []),
       `${t("জমার সময়", "Submitted at")}: ${new Date(item.createdAt).toLocaleString("bn-BD")}`,
     ].join("\n");
 
@@ -1375,6 +2421,112 @@ export const AdmissionsManagerPage = ({
 
   const selectedSummary = useMemo(() => (selectedItem ? buildAdmissionSummary(selectedItem) : ""), [selectedItem]);
 
+  const statusMeta: Record<AdmissionStatus, { labelBn: string; labelEn: string; className: string }> = {
+    pending: {
+      labelBn: "পেন্ডিং",
+      labelEn: "Pending",
+      className: "border-amber-200 bg-amber-50 text-amber-700",
+    },
+    approved: {
+      labelBn: "অনুমোদিত",
+      labelEn: "Approved",
+      className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    },
+    rejected: {
+      labelBn: "রিজেক্টেড",
+      labelEn: "Rejected",
+      className: "border-rose-200 bg-rose-50 text-rose-700",
+    },
+  };
+
+  const getStatusLabel = (status: AdmissionStatus) => {
+    const meta = statusMeta[status];
+    return t(meta.labelBn, meta.labelEn);
+  };
+
+  const openApprovalDialog = (item: AdmissionForm) => {
+    setApprovalItem(item);
+    setApprovalDraft({
+      studentId: item.approvedStudentId || item.id || "",
+      roll: item.approvedRoll ? String(item.approvedRoll) : "",
+      className: item.approvedClass || item.class || "",
+      section: item.approvedSection || "",
+      monthlyFee: item.approvedMonthlyFee ? String(item.approvedMonthlyFee) : "",
+    });
+  };
+
+  const handleStatusChange = async (item: AdmissionForm, nextValue: string) => {
+    if (!item.id) return;
+
+    if (nextValue === "approved") {
+      openApprovalDialog(item);
+      return;
+    }
+
+    const nextStatus = nextValue as AdmissionStatus;
+    if (nextStatus === item.status) return;
+
+    setUpdatingId(item.id);
+    try {
+      await onSaveStatus(item, nextStatus);
+      if (selectedItem?.id === item.id) {
+        setSelectedItem({ ...selectedItem, status: nextStatus });
+      }
+    } finally {
+      setUpdatingId("");
+    }
+  };
+
+  const submitApproval = async () => {
+    if (!approvalItem?.id) return;
+
+    const studentId = approvalDraft.studentId.trim();
+    const className = approvalDraft.className.trim();
+    const section = approvalDraft.section.trim();
+    const roll = Number(approvalDraft.roll);
+    const monthlyFee = Number(approvalDraft.monthlyFee);
+
+    if (
+      !studentId ||
+      !className ||
+      !section ||
+      !approvalDraft.roll.trim() ||
+      !approvalDraft.monthlyFee.trim() ||
+      Number.isNaN(roll) ||
+      Number.isNaN(monthlyFee)
+    ) {
+      toast.error(t("স্টুডেন্ট আইডি, রোল, ক্লাস, সেকশন এবং মাসিক ফি পূরণ করুন", "Fill in student ID, roll, class, section, and monthly fee"));
+      return;
+    }
+
+    setUpdatingId(approvalItem.id);
+    try {
+      await onSaveStatus(approvalItem, "approved", {
+        approvedStudentId: studentId,
+        approvedRoll: roll,
+        approvedClass: className,
+        approvedSection: section,
+        approvedMonthlyFee: monthlyFee,
+      });
+
+      if (selectedItem?.id === approvalItem.id) {
+        setSelectedItem({
+          ...selectedItem,
+          status: "approved",
+          approvedStudentId: studentId,
+          approvedRoll: roll,
+          approvedClass: className,
+          approvedSection: section,
+          approvedMonthlyFee: monthlyFee,
+        });
+      }
+
+      setApprovalItem(null);
+    } finally {
+      setUpdatingId("");
+    }
+  };
+
   const downloadSummary = (item: AdmissionForm) => {
     const blob = new Blob([buildAdmissionPrintHtml(item)], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -1422,6 +2574,16 @@ export const AdmissionsManagerPage = ({
               onDelete={() => item.id && void onDelete(item.id)}
               trailing={
                 <>
+                  <select
+                    value={item.status}
+                    disabled={!item.id || updatingId === item.id}
+                    onChange={(event) => void handleStatusChange(item, event.target.value)}
+                    className="h-9 rounded-2xl border border-input bg-background px-3 text-sm outline-none"
+                  >
+                    <option value="pending">{t("পেন্ডিং", "Pending")}</option>
+                    <option value="approved">{t("অনুমোদিত", "Approved")}</option>
+                    <option value="rejected">{t("রিজেক্টেড", "Rejected")}</option>
+                  </select>
                   <Button variant="outline" size="sm" className="rounded-2xl" onClick={() => setSelectedItem(item)}>
                     <Eye className="mr-2 h-4 w-4" />
                     {t("ভিউ", "View")}
@@ -1437,7 +2599,22 @@ export const AdmissionsManagerPage = ({
                 </>
               }
             >
-              <div className="space-y-1 font-bengali text-sm text-muted-foreground">
+              <div className="space-y-3 font-bengali text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className={`rounded-full ${statusMeta[item.status].className}`}>
+                    {getStatusLabel(item.status)}
+                  </Badge>
+                  {item.status === "approved" && item.approvedStudentId ? (
+                    <Badge variant="secondary" className="rounded-full">
+                      {t("স্টুডেন্ট আইডি", "Student ID")}: {item.approvedStudentId}
+                    </Badge>
+                  ) : null}
+                  {item.status === "approved" && item.approvedMonthlyFee ? (
+                    <Badge variant="secondary" className="rounded-full">
+                      {t("মাসিক ফি", "Monthly fee")}: {formatCurrency(item.approvedMonthlyFee)}
+                    </Badge>
+                  ) : null}
+                </div>
                 <p>{t("পিতা", "Father")}: {item.fatherNameBn || item.fatherName} • {item.fatherPhone}</p>
                 <p>{t("মাতা", "Mother")}: {item.motherNameBn || item.motherName} • {item.motherPhone}</p>
                 <p>{t("ঠিকানা", "Address")}: {item.presentAddressBn || item.presentAddress}</p>
@@ -1446,6 +2623,91 @@ export const AdmissionsManagerPage = ({
           ))}
         </CardContent>
       </Card>
+
+      <Dialog
+        open={Boolean(approvalItem)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setApprovalItem(null);
+          }
+        }}
+      >
+        <DialogContent className="rounded-3xl sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="font-bengali text-2xl">{t("ভর্তি অনুমোদন", "Approve admission")}</DialogTitle>
+            <DialogDescription className="font-bengali text-sm">
+              {t("স্টুডেন্ট আইডি, রোল, ক্লাস, সেকশন এবং মাসিক ফি ঠিক করে তারপর অনুমোদন দিন", "Set the student ID, roll, class, section, and monthly fee before approving")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label={t("স্টুডেন্ট আইডি", "Student ID")}>
+              <Input
+                value={approvalDraft.studentId}
+                onChange={(event) => setApprovalDraft((current) => ({ ...current, studentId: event.target.value }))}
+                className="rounded-2xl"
+                placeholder="STD-2026-001"
+              />
+            </Field>
+            <Field label={t("রোল", "Roll")}>
+              <Input
+                type="number"
+                value={approvalDraft.roll}
+                onChange={(event) => setApprovalDraft((current) => ({ ...current, roll: event.target.value }))}
+                className="rounded-2xl"
+                placeholder="1"
+              />
+            </Field>
+            <Field label={t("ক্লাস", "Class")}>
+              <select
+                value={approvalDraft.className}
+                onChange={(event) => setApprovalDraft((current) => ({ ...current, className: event.target.value }))}
+                className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+              >
+                <option value="">{t("ক্লাস নির্বাচন করুন", "Select class")}</option>
+                {GUARDIAN_CLASS_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label={t("সেকশন", "Section")}>
+              <select
+                value={approvalDraft.section}
+                onChange={(event) => setApprovalDraft((current) => ({ ...current, section: event.target.value }))}
+                className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+              >
+                <option value="">{t("সেকশন নির্বাচন করুন", "Select section")}</option>
+                {GUARDIAN_SECTION_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label={t("মাসিক ফি", "Monthly fee")}>
+              <Input
+                type="number"
+                min="0"
+                value={approvalDraft.monthlyFee}
+                onChange={(event) => setApprovalDraft((current) => ({ ...current, monthlyFee: event.target.value }))}
+                className="rounded-2xl"
+                placeholder="1500"
+              />
+            </Field>
+          </div>
+
+          <div className="flex flex-wrap justify-end gap-3">
+            <Button variant="outline" className="rounded-2xl" onClick={() => setApprovalItem(null)}>
+              {t("বাতিল", "Cancel")}
+            </Button>
+            <Button className="rounded-2xl" disabled={!approvalItem?.id || updatingId === approvalItem?.id} onClick={() => void submitApproval()}>
+              {t("অনুমোদন", "Approve")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={Boolean(selectedItem)} onOpenChange={(open) => !open && setSelectedItem(null)}>
         <DialogContent className="max-h-[85vh] overflow-y-auto rounded-3xl sm:max-w-3xl">
@@ -1456,6 +2718,11 @@ export const AdmissionsManagerPage = ({
                 <DialogDescription className="font-bengali text-sm">
                   {t("ভর্তি আবেদন ফর্মের সম্পূর্ণ সারাংশ", "Full admission application summary")}
                 </DialogDescription>
+                <div>
+                  <Badge variant="outline" className={`rounded-full ${statusMeta[selectedItem.status].className}`}>
+                    {getStatusLabel(selectedItem.status)}
+                  </Badge>
+                </div>
               </DialogHeader>
 
               <div className="grid gap-4 md:grid-cols-2">
@@ -1513,6 +2780,19 @@ export const AdmissionsManagerPage = ({
                     ))}
                 </div>
               </div>
+
+              {selectedItem.status === "approved" ? (
+                <div className="rounded-3xl border border-border/70 bg-muted/20 p-5">
+                  <h3 className="mb-3 font-bengali text-base font-semibold">{t("অনুমোদন তথ্য", "Approval information")}</h3>
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    <p><span className="font-medium text-foreground">{t("স্টুডেন্ট আইডি", "Student ID")}:</span> {selectedItem.approvedStudentId || "-"}</p>
+                    <p><span className="font-medium text-foreground">{t("রোল", "Roll")}:</span> {selectedItem.approvedRoll ? String(selectedItem.approvedRoll) : "-"}</p>
+                    <p><span className="font-medium text-foreground">{t("ক্লাস", "Class")}:</span> {selectedItem.approvedClass || "-"}</p>
+                    <p><span className="font-medium text-foreground">{t("সেকশন", "Section")}:</span> {selectedItem.approvedSection || "-"}</p>
+                    <p><span className="font-medium text-foreground">{t("মাসিক ফি", "Monthly fee")}:</span> {selectedItem.approvedMonthlyFee ? formatCurrency(selectedItem.approvedMonthlyFee) : "-"}</p>
+                  </div>
+                </div>
+              ) : null}
 
               <div className="rounded-3xl border border-border/70 bg-background p-5">
                 <pre className="whitespace-pre-wrap font-bengali text-sm leading-7 text-muted-foreground">{selectedSummary}</pre>
@@ -1677,6 +2957,7 @@ export const GuardianRequestsPage = ({
     studentName: "",
     className: "",
     section: "",
+    monthlyFee: undefined,
   });
 
 
@@ -1687,7 +2968,10 @@ export const GuardianRequestsPage = ({
     setAccountSuccess("");
 
     try {
-      await onCreateGuardianAccount(accountForm);
+      await onCreateGuardianAccount({
+        ...accountForm,
+        studentId: normalizeGuardianStudentId(accountForm.studentId, accountForm.gender),
+      });
       setAccountForm({
         fullName: "",
         phone: "",
@@ -1701,6 +2985,7 @@ export const GuardianRequestsPage = ({
         studentName: "",
         className: "",
         section: "",
+        monthlyFee: undefined,
       });
       setAccountSuccess(t("গার্ডিয়ান অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে", "Guardian account created successfully"));
       setShowAccountForm(false);
@@ -1711,7 +2996,9 @@ export const GuardianRequestsPage = ({
           : "";
       const message = error instanceof Error ? error.message : "";
 
-      if (message === "student-already-linked") {
+      if (message === "student-id-required") {
+        setAccountError(t("সঠিক স্টুডেন্ট আইডি দিন", "Please enter a valid student ID"));
+      } else if (message === "student-already-linked") {
         setAccountError(t("এই স্টুডেন্ট আইডির সাথে আগে থেকেই একটি গার্ডিয়ান যুক্ত আছে", "This student ID is already linked to a guardian"));
       } else if (message === "permission-denied" || code === "permission-denied") {
         setAccountError(
@@ -1780,6 +3067,7 @@ export const GuardianRequestsPage = ({
                   setAccountForm((current) => ({
                     ...current,
                     gender: event.target.value as GuardianRegistrationInput["gender"],
+                    studentId: normalizeGuardianStudentId(current.studentId, event.target.value as GuardianRegistrationInput["gender"]),
                   }))
                 }
                 className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
@@ -1813,7 +3101,16 @@ export const GuardianRequestsPage = ({
           </Field>
           <div className="grid gap-4 md:grid-cols-2">
             <Field label={t("স্টুডেন্ট আইডি", "Student ID")}>
-              <Input value={accountForm.studentId} onChange={(event) => setAccountForm((current) => ({ ...current, studentId: event.target.value }))} className="rounded-2xl" />
+              <Input
+                value={accountForm.studentId}
+                onChange={(event) =>
+                  setAccountForm((current) => ({
+                    ...current,
+                    studentId: normalizeGuardianStudentId(event.target.value, current.gender),
+                  }))
+                }
+                className="rounded-2xl"
+              />
             </Field>
             <Field label={t("শিক্ষার্থীর নাম", "Student name")}>
               <Input value={accountForm.studentName} onChange={(event) => setAccountForm((current) => ({ ...current, studentName: event.target.value }))} className="rounded-2xl" />
@@ -1821,10 +3118,47 @@ export const GuardianRequestsPage = ({
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <Field label={t("শ্রেণি", "Class")}>
-              <Input value={accountForm.className} onChange={(event) => setAccountForm((current) => ({ ...current, className: event.target.value }))} className="rounded-2xl" />
+              <select
+                value={accountForm.className}
+                onChange={(event) => setAccountForm((current) => ({ ...current, className: event.target.value }))}
+                className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+              >
+                <option value="">{t("শ্রেণি নির্বাচন করুন", "Select class")}</option>
+                {GUARDIAN_CLASS_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </Field>
             <Field label={t("সেকশন", "Section")}>
-              <Input value={accountForm.section} onChange={(event) => setAccountForm((current) => ({ ...current, section: event.target.value }))} className="rounded-2xl" />
+              <select
+                value={accountForm.section}
+                onChange={(event) => setAccountForm((current) => ({ ...current, section: event.target.value }))}
+                className="h-11 w-full rounded-2xl border border-input bg-background px-4 text-sm outline-none"
+              >
+                <option value="">{t("সেকশন নির্বাচন করুন", "Select section")}</option>
+                {GUARDIAN_SECTION_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label={t("মাসিক ফি", "Monthly fee")}>
+              <Input
+                type="number"
+                min="0"
+                value={accountForm.monthlyFee ?? ""}
+                onChange={(event) =>
+                  setAccountForm((current) => ({
+                    ...current,
+                    monthlyFee: event.target.value ? Number(event.target.value) : undefined,
+                  }))
+                }
+                className="rounded-2xl"
+                placeholder="1500"
+              />
             </Field>
           </div>
           {accountError ? <p className="font-bengali text-sm text-red-600">{accountError}</p> : null}
@@ -1857,7 +3191,13 @@ export const GuardianRequestsPage = ({
             const isRegistration = item.topic?.includes("রেজিস্ট্রেশন") || item.topic?.toLowerCase().includes("registration");
             return requestFilter === "registration" ? isRegistration : !isRegistration;
           }).length === 0 ? (
-            <EmptyState text={t("কোনো গার্ডিয়ান রিকোয়েস্ট নেই", "No guardian requests")} />
+            <EmptyState
+              text={t("কোনো গার্ডিয়ান রিকোয়েস্ট নেই", "No guardian requests")}
+              description={t("নতুন support message এলে সেগুলো এখানে দেখা যাবে", "New support messages will appear here")}
+              actionLabel={t("গার্ডিয়ান তৈরি করুন", "Create guardian")}
+              onAction={() => setShowAccountForm(true)}
+              icon={<Users className="h-5 w-5" />}
+            />
           ) : items.filter((item) => {
             if (requestFilter === "all") return true;
             const isRegistration = item.topic?.includes("রেজিস্ট্রেশন") || item.topic?.toLowerCase().includes("registration");
@@ -1976,7 +3316,7 @@ export const SettingsPage = ({
   settings: DashboardSettings;
   appDownloadSettings: AppDownloadSettings;
   onSave: (settings: DashboardSettings) => void | Promise<void>;
-  onSaveAppDownloadSettings: (settings: Omit<AppDownloadSettings, "updatedAt">, file: File | null) => Promise<void>;
+  onSaveAppDownloadSettings: (settings: Omit<AppDownloadSettings, "updatedAt">) => Promise<void>;
 }) => {
   const { t } = useLanguage();
   const [draft, setDraft] = useState(settings);
@@ -1989,7 +3329,6 @@ export const SettingsPage = ({
     fileName: appDownloadSettings.fileName,
     fileSizeLabel: appDownloadSettings.fileSizeLabel,
   });
-  const [apkFile, setApkFile] = useState<File | null>(null);
   const [savingApk, setSavingApk] = useState(false);
   const [apkError, setApkError] = useState("");
 
@@ -2018,15 +3357,14 @@ export const SettingsPage = ({
     event.preventDefault();
     setApkError("");
 
-    if (appDraft.enabled && !apkFile && !appDraft.apkUrl.trim()) {
-      setApkError(t("একটি APK ফাইল আপলোড করুন", "Upload an APK file first"));
+    if (appDraft.enabled && !appDraft.apkUrl.trim()) {
+      setApkError(t("APK ফাইলের public path দিন", "Enter the public path for the APK file"));
       return;
     }
 
     setSavingApk(true);
     try {
-      await onSaveAppDownloadSettings(appDraft, apkFile);
-      setApkFile(null);
+      await onSaveAppDownloadSettings(appDraft);
     } catch (error) {
       setApkError(error instanceof Error ? error.message : t("APK সেটিংস সংরক্ষণ করা যায়নি", "Could not save APK settings"));
     } finally {
@@ -2068,7 +3406,7 @@ export const SettingsPage = ({
           <div className="space-y-2">
             <h3 className="font-bengali text-lg font-semibold text-foreground">{t("গার্ডিয়ান অ্যাপ APK", "Guardian app APK")}</h3>
             <p className="font-bengali text-sm text-muted-foreground">
-              {t("এখান থেকে public download page-এর জন্য সর্বশেষ APK ফাইল, version এবং release note আপডেট করুন", "Upload the latest APK file, version, and release notes for the public download page from here")}
+              {t("APK ফাইলটি আগে cPanel-এর public folder-এ আপলোড করুন, তারপর নিচে তার path, version এবং release note সংরক্ষণ করুন", "Upload the APK to your cPanel public folder first, then save its path, version, and release notes here")}
             </p>
           </div>
 
@@ -2089,12 +3427,17 @@ export const SettingsPage = ({
               </Field>
             </div>
 
-            <FilePicker
-              label={t("APK ফাইল আপলোড", "Upload APK file")}
-              file={apkFile}
-              onFileChange={setApkFile}
-              accept=".apk,application/vnd.android.package-archive,application/octet-stream"
-            />
+            <Field label={t("APK public path", "APK public path")}>
+              <Input
+                value={appDraft.apkUrl}
+                onChange={(event) => setAppDraft((current) => ({ ...current, apkUrl: event.target.value }))}
+                className="rounded-2xl"
+                placeholder="/downloads/annoor-guardian.apk"
+              />
+            </Field>
+            <p className="-mt-1 font-bengali text-xs text-muted-foreground">
+              {t("উদাহরণ: /downloads/annoor-guardian.apk অথবা সম্পূর্ণ URL", "Example: /downloads/annoor-guardian.apk or a full URL")}
+            </p>
 
             <div className="grid gap-4 md:grid-cols-2">
               <Field label={t("ফাইলের নাম", "File name")}>
@@ -2135,7 +3478,7 @@ export const SettingsPage = ({
                   rel="noreferrer"
                   className="mt-2 inline-flex text-sm font-semibold text-primary hover:underline"
                 >
-                  {t("বর্তমান APK লিংক খুলুন", "Open current APK link")}
+                  {t("বর্তমান APK লিংক পরীক্ষা করুন", "Check current APK link")}
                 </a>
               ) : (
                 <p className="mt-2 font-bengali text-sm text-muted-foreground">
