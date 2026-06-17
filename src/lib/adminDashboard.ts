@@ -278,6 +278,10 @@ export const sidebarGroups: SidebarGroup[] = [
         icon: BookOpen,
         children: [
           { key: "fees", labelBn: "ফি ম্যানেজমেন্ট", labelEn: "Fee Management", path: "/admin/accounting/fees", permission: "fees.manage", icon: CreditCard },
+          { key: "accounts", labelBn: "অ্যাকাউন্ট", labelEn: "Accounts", path: "/admin/accounting/accounts", permission: "fees.manage", icon: BookOpen },
+          { key: "journal", labelBn: "জার্নাল", labelEn: "Journal", path: "/admin/accounting/journal", permission: "fees.manage", icon: FileText },
+          { key: "donations", labelBn: "দান", labelEn: "Donations", path: "/admin/accounting/donations", permission: "fees.manage", icon: FileText },
+          { key: "banks", labelBn: "ব্যাংক", labelEn: "Banks", path: "/admin/accounting/banks", permission: "fees.manage", icon: CreditCard },
         ],
       },
       { key: "students", labelBn: "শিক্ষার্থী তালিকা", labelEn: "Student List", path: "/admin/students", permission: "attendance.manage", icon: Users },
@@ -503,11 +507,18 @@ export const getDefaultRouteForUser = (user: AdminUser | null): string => {
   if (user.role === "guardian") return "/admin";
   if (user.role === "admin") return "/admin/dashboard";
 
-  const firstAllowed = sidebarGroups
-    .flatMap((group) => group.items)
-    .find((item) => item.key !== "logout" && canAccessPermission(user, item.permission));
+  for (const group of sidebarGroups) {
+    for (const item of group.items) {
+      if (item.key === "logout") continue;
 
-  return firstAllowed?.path ?? "/admin/dashboard";
+      if (!canAccessPermission(user, item.permission)) continue;
+
+      const firstAllowedChild = item.children?.find((child) => child.key !== "logout" && canAccessPermission(user, child.permission));
+      return firstAllowedChild?.path ?? item.path;
+    }
+  }
+
+  return "/admin/dashboard";
 };
 
 export const findSidebarItem = (path: string): SidebarItem | undefined =>

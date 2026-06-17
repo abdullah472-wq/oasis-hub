@@ -365,6 +365,32 @@ const AdminDashboardPage = () => {
   ]);
 
   const renderCurrentPage = () => {
+    const renderAccountingPage = (initialTab?: "dashboard" | "accounts" | "journal" | "donations" | "banks" | "fees") => (
+      <AccountingPage
+        initialTab={initialTab}
+        accounts={data.accounts}
+        journals={data.journals}
+        donations={data.donations}
+        bankAccounts={data.bankAccounts}
+        feeEntries={data.feeEntries}
+        feeStudents={data.feeStudents}
+        budgets={[]}
+        onSaveAccount={data.actions.saveAccountItem}
+        onDeleteAccount={data.actions.deleteAccountItem}
+        onSaveJournal={data.actions.saveJournalItem}
+        onDeleteJournal={data.actions.deleteJournalItem}
+        onUpdateJournalStatus={data.actions.updateJournalStatusItem}
+        onSaveDonation={data.actions.saveDonationItem}
+        onSaveBank={data.actions.saveBankItem}
+        onDeleteBank={data.actions.deleteBankItem}
+        onCreateFeeBatch={data.actions.addFeeBatchItems}
+        onCreateFeeBulk={data.actions.addFeeBulkBatchItems}
+        onUpdateFeeEntry={data.actions.updateFeeEntryItem}
+        onUpdateFeePayment={data.actions.updateFeePaymentItem}
+        onDeleteFeeEntry={data.actions.removeFeeEntryItem}
+      />
+    );
+
     switch (normalizedPathname) {
       case "/admin/dashboard":
         return (
@@ -500,56 +526,17 @@ const AdminDashboardPage = () => {
           />
         );
       case "/admin/accounting":
-        return (
-          <AccountingPage
-            accounts={data.accounts}
-            journals={data.journals}
-            donations={data.donations}
-            bankAccounts={data.bankAccounts}
-            feeEntries={data.feeEntries}
-            feeStudents={data.feeStudents}
-            budgets={[]}
-            onSaveAccount={data.actions.saveAccountItem}
-            onDeleteAccount={data.actions.deleteAccountItem}
-            onSaveJournal={data.actions.saveJournalItem}
-            onDeleteJournal={data.actions.deleteJournalItem}
-            onUpdateJournalStatus={data.actions.updateJournalStatusItem}
-            onSaveDonation={data.actions.saveDonationItem}
-            onSaveBank={data.actions.saveBankItem}
-            onDeleteBank={data.actions.deleteBankItem}
-            onCreateFeeBatch={data.actions.addFeeBatchItems}
-            onCreateFeeBulk={data.actions.addFeeBulkBatchItems}
-            onUpdateFeeEntry={data.actions.updateFeeEntryItem}
-            onUpdateFeePayment={data.actions.updateFeePaymentItem}
-            onDeleteFeeEntry={data.actions.removeFeeEntryItem}
-          />
-        );
+        return renderAccountingPage();
       case "/admin/accounting/fees":
-        return (
-          <AccountingPage
-            initialTab="fees"
-            accounts={data.accounts}
-            journals={data.journals}
-            donations={data.donations}
-            bankAccounts={data.bankAccounts}
-            feeEntries={data.feeEntries}
-            feeStudents={data.feeStudents}
-            budgets={[]}
-            onSaveAccount={data.actions.saveAccountItem}
-            onDeleteAccount={data.actions.deleteAccountItem}
-            onSaveJournal={data.actions.saveJournalItem}
-            onDeleteJournal={data.actions.deleteJournalItem}
-            onUpdateJournalStatus={data.actions.updateJournalStatusItem}
-            onSaveDonation={data.actions.saveDonationItem}
-            onSaveBank={data.actions.saveBankItem}
-            onDeleteBank={data.actions.deleteBankItem}
-            onCreateFeeBatch={data.actions.addFeeBatchItems}
-            onCreateFeeBulk={data.actions.addFeeBulkBatchItems}
-            onUpdateFeeEntry={data.actions.updateFeeEntryItem}
-            onUpdateFeePayment={data.actions.updateFeePaymentItem}
-            onDeleteFeeEntry={data.actions.removeFeeEntryItem}
-          />
-        );
+        return renderAccountingPage("fees");
+      case "/admin/accounting/accounts":
+        return renderAccountingPage("accounts");
+      case "/admin/accounting/journal":
+        return renderAccountingPage("journal");
+      case "/admin/accounting/donations":
+        return renderAccountingPage("donations");
+      case "/admin/accounting/banks":
+        return renderAccountingPage("banks");
       case "/admin/students":
         return (
           <StudentListPage
