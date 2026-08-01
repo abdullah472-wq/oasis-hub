@@ -5,6 +5,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  increment,
   limit as fbLimit,
   orderBy,
   query,
@@ -429,4 +430,41 @@ export const updateMediaDownload = async (id: string, updates: Partial<MediaDown
 export const deleteMediaDownload = async (id: string, title = "") => {
   await deleteDoc(doc(db, DOWNLOADS, id));
   await logMediaActivity("download.deleted", title || id);
+};
+
+/* ------------------------------------------------------------------ */
+/* Public (visitor) helpers                                            */
+/* ------------------------------------------------------------------ */
+
+export const getPublishedPlaylists = async (): Promise<MediaPlaylist[]> => {
+  const items = await getMediaPlaylists().catch(() => [] as MediaPlaylist[]);
+  return items.filter((item) => item.status === "published");
+};
+
+export const getPublishedGalleryItems = async (): Promise<MediaGalleryItem[]> => {
+  const items = await getMediaGalleryItems().catch(() => [] as MediaGalleryItem[]);
+  return items.filter((item) => item.status === "published");
+};
+
+export const getPublishedDownloads = async (): Promise<MediaDownload[]> => {
+  const items = await getMediaDownloads().catch(() => [] as MediaDownload[]);
+  return items.filter((item) => item.status === "published");
+};
+
+export const getActiveLiveStream = async (): Promise<MediaLiveStream | null> => {
+  const stream = await getMediaLiveStream().catch(() => null);
+  return stream && stream.status === "live" ? stream : null;
+};
+
+export const getFeaturedVideo = async (): Promise<MediaVideo | null> => {
+  const videos = await getPublishedVideos();
+  return videos.find((item) => item.featured) ?? videos[0] ?? null;
+};
+
+export const incrementVideoViews = async (id: string) => {
+  await updateDoc(doc(db, VIDEOS, id), { views: increment(1) }).catch(() => undefined);
+};
+
+export const incrementDownloadCount = async (id: string) => {
+  await updateDoc(doc(db, DOWNLOADS, id), { downloads: increment(1) }).catch(() => undefined);
 };
