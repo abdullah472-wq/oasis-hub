@@ -24,6 +24,7 @@ const Results = lazy(() => import("./pages/Results"));
 const VirtualTour = lazy(() => import("./pages/VirtualTour"));
 const Admission = lazy(() => import("./pages/Admission"));
 const Gallery = lazy(() => import("./pages/Gallery"));
+const MediaCenter = lazy(() => import("./pages/MediaCenter"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Ramadan = lazy(() => import("./pages/Ramadan"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -110,6 +111,7 @@ const AppShell = () => {
             <Route path="/virtual-tour" element={<VirtualTour />} />
             <Route path="/admission" element={<Admission />} />
             <Route path="/gallery" element={<Gallery />} />
+            <Route path="/media" element={<MediaCenter />} />
             <Route path="/news" element={<News />} />
             <Route path="/events" element={<Events />} />
             <Route path="/admission-form" element={<AdmissionForm />} />
