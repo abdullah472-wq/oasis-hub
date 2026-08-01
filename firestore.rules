@@ -322,4 +322,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
   }
+
+    match /media_videos/{docId} { allow read: if true; allow write: if isStaff(); }
+    match /media_playlists/{docId} { allow read: if true; allow write: if isStaff(); }
+    match /media_gallery/{docId} { allow read: if true; allow write: if isStaff(); }
+    match /media_downloads/{docId} { allow read: if true; allow write: if isStaff(); }
+    match /media_settings/{docId} { allow read: if true; allow write: if isStaff(); }
+    match /media_activity_logs/{docId} { allow read: if isStaff(); allow write: if isStaff(); }
 }
