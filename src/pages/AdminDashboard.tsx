@@ -54,6 +54,13 @@ import {
 import AttendancePage from "@/components/admin/attendance/AttendancePage";
 import RamadanManagerPage from "@/components/admin/ramadan/RamadanManagerPage";
 import AccountingPage from "@/components/admin/accounting/AccountingPage";
+import MediaDashboardPage from "@/components/admin/media/MediaDashboardPage";
+import MediaVideosPage from "@/components/admin/media/MediaVideosPage";
+import MediaPlaylistsPage from "@/components/admin/media/MediaPlaylistsPage";
+import MediaLiveStreamPage from "@/components/admin/media/MediaLiveStreamPage";
+import MediaGalleryPage from "@/components/admin/media/MediaGalleryPage";
+import MediaDownloadsPage from "@/components/admin/media/MediaDownloadsPage";
+import { useMediaCenter } from "@/hooks/useMediaCenter";
 
 const TODO_STORAGE_KEY = "oasis_admin_dashboard_todos_v1";
 const LAST_LOGIN_STORAGE_KEY = "oasis_admin_last_login_at_v1";
@@ -112,6 +119,7 @@ const moduleRoutes: Record<string, string> = {
   managers: "/admin/managers",
   ramadan: "/admin/ramadan",
   settings: "/admin/settings",
+  media: "/admin/media",
 };
 
 const normalizeAdminPath = (pathname: string) => {
@@ -139,6 +147,8 @@ const AdminDashboardPage = () => {
   const [, setLastLoginAt] = useState(() => readLastLoginStorage());
   const currentUser = localAdminSession ?? (authUser && authUser.role !== "guardian" ? authUser : null);
   const data = useAdminDashboardData(Boolean(currentUser) && !authLoading);
+  const media = useMediaCenter(Boolean(currentUser) && !authLoading);
+  const canManageMedia = canAccessPermission(currentUser, "media.manage");
   const normalizedPathname = normalizeAdminPath(location.pathname);
 
   useEffect(() => {
@@ -575,6 +585,61 @@ const AdminDashboardPage = () => {
             onSaveSettings={data.actions.saveRamadanSettingsItem}
             onSaveRequest={data.actions.saveRamadanRequestItem}
             onDeleteRequest={data.actions.removeRamadanRequestItem}
+          />
+        );
+      case "/admin/media":
+        return <MediaDashboardPage state={media} />;
+      case "/admin/media/videos":
+        return (
+          <MediaVideosPage
+            videos={media.videos}
+            playlists={media.playlists}
+            loading={media.loading}
+            canManage={canManageMedia}
+            onSave={media.actions.saveVideo}
+            onDelete={media.actions.deleteVideo}
+            onToggleStatus={media.actions.toggleVideoStatus}
+            onToggleFeatured={media.actions.toggleVideoFeatured}
+          />
+        );
+      case "/admin/media/playlists":
+        return (
+          <MediaPlaylistsPage
+            playlists={media.playlists}
+            videos={media.videos}
+            loading={media.loading}
+            canManage={canManageMedia}
+            onSave={media.actions.savePlaylist}
+            onDelete={media.actions.deletePlaylist}
+          />
+        );
+      case "/admin/media/live":
+        return (
+          <MediaLiveStreamPage
+            liveStream={media.liveStream}
+            loading={media.loading}
+            canManage={canManageMedia}
+            onSave={media.actions.saveLiveStream}
+          />
+        );
+      case "/admin/media/gallery":
+        return (
+          <MediaGalleryPage
+            items={media.gallery}
+            loading={media.loading}
+            canManage={canManageMedia}
+            onSave={media.actions.saveGalleryItem}
+            onDelete={media.actions.deleteGalleryItem}
+          />
+        );
+      case "/admin/media/downloads":
+        return (
+          <MediaDownloadsPage
+            items={media.downloads}
+            loading={media.loading}
+            canManage={canManageMedia}
+            onSave={media.actions.saveDownload}
+            onDelete={media.actions.deleteDownload}
           />
         );
       case "/admin/settings":
