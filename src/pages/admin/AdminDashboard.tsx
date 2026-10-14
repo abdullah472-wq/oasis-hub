@@ -1,0 +1,31 @@
+import { useLanguage } from "@/contexts/LanguageContext";
+import { AdminLayout } from "@/components/admin/layout/AdminLayout";
+import { DashboardMetrics } from "@/components/admin/dashboard/DashboardMetrics";
+import { RecentActivityList } from "@/components/admin/dashboard/RecentActivityList";
+import { QuickActions } from "@/components/admin/dashboard/QuickActions";
+
+export const AdminDashboard = () => {
+  const { t } = useLanguage();
+
+  return (
+    <AdminLayout
+      title={t("ড্যাশবোর্ড ওভারভিউ", "Dashboard Overview")}
+      subtitle={t("আননূর শিক্ষা পরিবার - সেন্ট্রাল সিএমএস সারাংশ", "Annoor Education Family - CMS Summary")}
+    >
+      <div className="space-y-8">
+        {/* KPI Metrics */}
+        <section>
+          <DashboardMetrics />
+        </section>
+
+        {/* Action Shortcuts & Recent Activity */}
+        <section className="grid gap-6 lg:grid-cols-2">
+          <QuickActions />
+          <RecentActivityList />
+        </section>
+      </div>
+    </AdminLayout>
+  );
+};
+
+export default AdminDashboard;

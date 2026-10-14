@@ -141,6 +141,7 @@ export interface SidebarItem {
   permission?: AdminPermission;
   icon: LucideIcon;
   badge?: string;
+  divider?: boolean;
   children?: SidebarItem[];
 }
 
@@ -247,14 +248,13 @@ export const sidebarGroups: SidebarGroup[] = [
         path: "/admin/results/dashboard",
         permission: "results.manage",
         icon: BarChart3,
-        children: [
-          { key: "results", labelBn: "ফলাফল", labelEn: "Results", path: "/admin/results", permission: "results.manage", icon: FileCheck2 },
-          { key: "marks-entry", labelBn: "মার্কস এন্ট্রি", labelEn: "Marks Entry", path: "/admin/marks-entry", permission: "results.manage", icon: FileText },
-          { key: "exams", labelBn: "পরীক্ষা ব্যবস্থাপনা", labelEn: "Exam Management", path: "/admin/exams", permission: "results.manage", icon: CalendarDays },
-          { key: "merit-list", labelBn: "মেধা তালিকা", labelEn: "Merit List", path: "/admin/merit-list", permission: "results.manage", icon: Award },
-          { key: "grading-system", labelBn: "গ্রেডিং সিস্টেম", labelEn: "Grading System", path: "/admin/grading-system", permission: "results.manage", icon: BookOpen },
-        ],
       },
+      { key: "results", labelBn: "ফলাফল", labelEn: "Results", path: "/admin/results", permission: "results.manage", icon: FileCheck2 },
+      { key: "marks-entry", labelBn: "মার্কস এন্ট্রি", labelEn: "Marks Entry", path: "/admin/marks-entry", permission: "results.manage", icon: FileText },
+      { key: "exams", labelBn: "পরীক্ষা ব্যবস্থাপনা", labelEn: "Exam Management", path: "/admin/exams", permission: "results.manage", icon: CalendarDays },
+      { key: "merit-list", labelBn: "মেধা তালিকা", labelEn: "Merit List", path: "/admin/merit-list", permission: "results.manage", icon: Award },
+      { key: "grading-system", labelBn: "গ্রেডিং সিস্টেম", labelEn: "Grading System", path: "/admin/grading-system", permission: "results.manage", icon: BookOpen },
+      { key: "divider-results", labelBn: "", labelEn: "", path: "", icon: BarChart3, divider: true },
       {
         key: "subject-dashboard",
         labelBn: "বিষয় ড্যাশবোর্ড",
@@ -262,13 +262,12 @@ export const sidebarGroups: SidebarGroup[] = [
         path: "/admin/subject-dashboard",
         permission: "results.manage",
         icon: BarChart3,
-        children: [
-          { key: "subjects", labelBn: "বিষয় তালিকা", labelEn: "Subjects", path: "/admin/subjects", permission: "results.manage", icon: BookOpen },
-          { key: "subject-groups", labelBn: "বিষয় গ্রুপ", labelEn: "Subject Groups", path: "/admin/subject-groups", permission: "results.manage", icon: Layers },
-          { key: "class-subjects", labelBn: "ক্লাস ও বিষয়", labelEn: "Class Subjects", path: "/admin/class-subjects", permission: "results.manage", icon: BookOpen },
-          { key: "class-routine", labelBn: "ক্লাস রুটিন", labelEn: "Class Routine", path: "/admin/class-routine", permission: "attendance.manage", icon: CalendarDays },
-        ],
       },
+      { key: "subjects", labelBn: "বিষয় তালিকা", labelEn: "Subjects", path: "/admin/subjects", permission: "results.manage", icon: BookOpen },
+      { key: "subject-groups", labelBn: "বিষয় গ্রুপ", labelEn: "Subject Groups", path: "/admin/subject-groups", permission: "results.manage", icon: Layers },
+      { key: "class-subjects", labelBn: "ক্লাস ও বিষয়", labelEn: "Class Subjects", path: "/admin/class-subjects", permission: "results.manage", icon: BookOpen },
+      { key: "class-routine", labelBn: "ক্লাস রুটিন", labelEn: "Class Routine", path: "/admin/class-routine", permission: "attendance.manage", icon: CalendarDays },
+      { key: "divider-subjects", labelBn: "", labelEn: "", path: "", icon: BarChart3, divider: true },
       {
         key: "accounting",
         labelBn: "অ্যাকাউন্টিং",
@@ -276,14 +275,13 @@ export const sidebarGroups: SidebarGroup[] = [
         path: "/admin/accounting",
         permission: "fees.manage",
         icon: BookOpen,
-        children: [
-          { key: "fees", labelBn: "ফি ম্যানেজমেন্ট", labelEn: "Fee Management", path: "/admin/accounting/fees", permission: "fees.manage", icon: CreditCard },
-          { key: "accounts", labelBn: "অ্যাকাউন্ট", labelEn: "Accounts", path: "/admin/accounting/accounts", permission: "fees.manage", icon: BookOpen },
-          { key: "journal", labelBn: "জার্নাল", labelEn: "Journal", path: "/admin/accounting/journal", permission: "fees.manage", icon: FileText },
-          { key: "donations", labelBn: "দান", labelEn: "Donations", path: "/admin/accounting/donations", permission: "fees.manage", icon: FileText },
-          { key: "banks", labelBn: "ব্যাংক", labelEn: "Banks", path: "/admin/accounting/banks", permission: "fees.manage", icon: CreditCard },
-        ],
       },
+      { key: "fees", labelBn: "ফি ম্যানেজমেন্ট", labelEn: "Fee Management", path: "/admin/accounting/fees", permission: "fees.manage", icon: CreditCard },
+      { key: "accounts", labelBn: "অ্যাকাউন্ট", labelEn: "Accounts", path: "/admin/accounting/accounts", permission: "fees.manage", icon: BookOpen },
+      { key: "journal", labelBn: "জার্নাল", labelEn: "Journal", path: "/admin/accounting/journal", permission: "fees.manage", icon: FileText },
+      { key: "donations", labelBn: "দান", labelEn: "Donations", path: "/admin/accounting/donations", permission: "fees.manage", icon: FileText },
+      { key: "banks", labelBn: "ব্যাংক", labelEn: "Banks", path: "/admin/accounting/banks", permission: "fees.manage", icon: CreditCard },
+      { key: "divider-accounting", labelBn: "", labelEn: "", path: "", icon: BookOpen, divider: true },
       { key: "students", labelBn: "শিক্ষার্থী তালিকা", labelEn: "Student List", path: "/admin/students", permission: "attendance.manage", icon: Users },
       { key: "mobile-notifications", labelBn: "মোবাইল নোটিফিকেশন", labelEn: "Mobile Notifications", path: "/admin/mobile-notifications", permission: "notices.manage", icon: BellRing },
       { key: "attendance", labelBn: "উপস্থিতি", labelEn: "Attendance", path: "/admin/attendance", permission: "attendance.manage", icon: CalendarCheck2 },
@@ -510,16 +508,22 @@ export const getDefaultRouteForUser = (user: AdminUser | null): string => {
   for (const group of sidebarGroups) {
     for (const item of group.items) {
       if (item.key === "logout") continue;
+      if (item.divider) continue;
 
       if (!canAccessPermission(user, item.permission)) continue;
 
-      const firstAllowedChild = item.children?.find((child) => child.key !== "logout" && canAccessPermission(user, child.permission));
-      return firstAllowedChild?.path ?? item.path;
+      return item.path;
     }
   }
 
   return "/admin/dashboard";
 };
 
-export const findSidebarItem = (path: string): SidebarItem | undefined =>
-  sidebarGroups.flatMap((group) => group.items).find((item) => path.startsWith(item.path));
+export const findSidebarItem = (path: string): SidebarItem | undefined => {
+  const allItems = sidebarGroups.flatMap((group) => group.items);
+  return allItems.find((item) => {
+    if (path === item.path) return true;
+    if (item.key === "accounting" && path.startsWith("/admin/accounting")) return true;
+    return false;
+  });
+};

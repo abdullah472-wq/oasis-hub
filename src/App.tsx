@@ -1,20 +1,22 @@
 import { Suspense, lazy, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import NoticeTicker from "@/components/NoticeTicker";
 import ScrollToTop from "@/components/ScrollToTop";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
-import { isAdminEnabled } from "@/lib/admin";
 import { getTodayDateKey, trackAppDailyOpen, trackWebsiteDailyVisitor } from "@/lib/engagementAnalytics";
 import { trackAnalyticsEvent, trackPageView } from "@/lib/firebase";
+
+// Public Pages
 import Index from "./pages/Index";
 const About = lazy(() => import("./pages/About"));
 const Achievements = lazy(() => import("./pages/Achievements"));
@@ -26,12 +28,20 @@ const Admission = lazy(() => import("./pages/Admission"));
 const Gallery = lazy(() => import("./pages/Gallery"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Ramadan = lazy(() => import("./pages/Ramadan"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const News = lazy(() => import("./pages/News"));
 const Events = lazy(() => import("./pages/Events"));
 const AdmissionForm = lazy(() => import("./pages/AdmissionForm"));
 const GuardianRegisterPage = lazy(() => import("./pages/GuardianRegisterPage"));
+
+// Modular Supabase Single-Institution CMS Admin Pages
+const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminNotices = lazy(() => import("./pages/admin/AdminNotices"));
+const AdminMedia = lazy(() => import("./pages/admin/AdminMedia"));
+const AdminWebContent = lazy(() => import("./pages/admin/AdminWebContent"));
+const AdminManagement = lazy(() => import("./pages/admin/AdminManagement"));
+const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,7 +58,7 @@ const RouteFallback = () => (
   <div className="container mx-auto flex min-h-[40vh] items-center justify-center px-4 py-16">
     <div className="text-center">
       <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
-      <p className="font-display text-sm text-muted-foreground">Loading page...</p>
+      <p className="font-display text-sm text-muted-foreground">লোডিং হচ্ছে...</p>
     </div>
   </div>
 );
@@ -99,27 +109,42 @@ const AppShell = () => {
       {!isPortalRoute && <NoticeTicker />}
       {!isPortalRoute && <Navbar />}
       <main>
-        <Suspense fallback={<RouteFallback />}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/achievements" element={<Achievements />} />
-            <Route path="/apk" element={<AppDownloadPage />} />
-            <Route path="/notices" element={<NoticeBoard />} />
-            <Route path="/results" element={<Results />} />
-            <Route path="/virtual-tour" element={<VirtualTour />} />
-            <Route path="/admission" element={<Admission />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/news" element={<News />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/admission-form" element={<AdmissionForm />} />
-            <Route path="/guardian-register" element={<GuardianRegisterPage />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/ramadan" element={<Ramadan />} />
-            <Route path="/admin/*" element={isAdminEnabled ? <AdminDashboard /> : <NotFound />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<RouteFallback />}>
+            <Routes>
+              {/* Public Institutional Pages */}
+              <Route path="/" element={<Index />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/achievements" element={<Achievements />} />
+              <Route path="/apk" element={<AppDownloadPage />} />
+              <Route path="/notices" element={<NoticeBoard />} />
+              <Route path="/results" element={<Results />} />
+              <Route path="/virtual-tour" element={<VirtualTour />} />
+              <Route path="/admission" element={<Admission />} />
+              <Route path="/gallery" element={<Gallery />} />
+              <Route path="/news" element={<News />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/admission-form" element={<AdmissionForm />} />
+              <Route path="/guardian-register" element={<GuardianRegisterPage />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/ramadan" element={<Ramadan />} />
+
+              {/* Modular CMS Admin Routes */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/notices" element={<AdminNotices />} />
+              <Route path="/admin/media" element={<AdminMedia />} />
+              <Route path="/admin/content" element={<AdminWebContent />} />
+              <Route path="/admin/admins" element={<AdminManagement />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
+
+              {/* 404 Fallback */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
       </main>
       {!isPortalRoute && <Footer />}
       {!isPortalRoute && <WhatsAppFAB />}
@@ -136,7 +161,9 @@ const App = () => (
         <LanguageProvider>
           <AuthProvider>
             <BrowserRouter>
-              <AppShell />
+              <ErrorBoundary>
+                <AppShell />
+              </ErrorBoundary>
             </BrowserRouter>
           </AuthProvider>
         </LanguageProvider>

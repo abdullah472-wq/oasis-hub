@@ -1,5 +1,5 @@
 ﻿import { useMemo, useState } from "react";
-import { Bell, ChevronRight, ClipboardList, Globe2, Lock, LogOut, Search } from "lucide-react";
+import { Bell, ClipboardList, Globe2, Lock, LogOut, Search } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { AdminUser, SidebarGroup } from "@/lib/adminDashboard";
@@ -34,11 +34,6 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 
 export interface AdminNotificationItem {
   id: string;
@@ -387,12 +382,7 @@ const AdminLayout = ({
   const visibleGroups = groups
     .map((group) => ({
       ...group,
-      items: group.items
-        .map((item) => ({
-          ...item,
-          children: item.children?.filter((child) => child.key === "logout" || canAccessPermission(user, child.permission)),
-        }))
-        .filter((item) => item.key === "logout" || canAccessPermission(user, item.permission) || (item.children && item.children.length > 0)),
+      items: group.items.filter((item) => item.key === "logout" || item.divider || canAccessPermission(user, item.permission)),
     }))
     .filter((group) => group.items.length > 0);
 
@@ -445,10 +435,13 @@ const AdminLayout = ({
                     {group.items.map((item) => {
                       const Icon = item.icon;
                       const isLogout = item.key === "logout";
-                      const isActive = !isLogout && currentPath === item.path;
-                      const hasChildren = Boolean(item.children && item.children.length > 0);
-                      const childPaths = hasChildren ? item.children!.map((child) => child.path) : [];
-                      const isChildActive = hasChildren && childPaths.some((childPath) => currentPath === childPath);
+                      const isActive = !isLogout && (currentPath === item.path || (item.key === "accounting" && currentPath.startsWith("/admin/accounting")));
+
+                      if (item.divider) {
+                        return (
+                          <div key={`${item.key}-divider`} className="my-2 h-px bg-sidebar-border/60" />
+                        );
+                      }
 
                       if (isLogout) {
                         return (
@@ -463,71 +456,6 @@ const AdminLayout = ({
                                 <span>{t(item.labelBn, item.labelEn)}</span>
                               </button>
                             </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        );
-                      }
-
-                      if (hasChildren) {
-                        return (
-                          <SidebarMenuItem key={item.key}>
-                            <Collapsible defaultOpen={isChildActive}>
-                              <SidebarMenuItem className="relative p-0">
-                                <SidebarMenuButton
-                                  isActive={isActive || isChildActive}
-                                  tooltip={t(item.labelBn, item.labelEn)}
-                                  className={cn(
-                                    "h-11 rounded-2xl pl-3 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-                                    isActive || isChildActive
-                                      ? "border-l-primary bg-primary text-primary-foreground shadow-[0_18px_40px_-24px_hsl(var(--primary))] hover:bg-primary/95 hover:text-primary-foreground"
-                                      : "border-l-transparent hover:bg-sidebar-accent/70",
-                                  )}
-                                  onClick={() => navigate(item.path)}
-                                >
-                                  <div className="flex w-full items-center gap-3 pr-8 text-left">
-                                    <Icon />
-                                    <span className="flex-1 truncate">{t(item.labelBn, item.labelEn)}</span>
-                                    <ChevronRight className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200" />
-                                  </div>
-                                  <CollapsibleTrigger asChild>
-                                    <button
-                                      type="button"
-                                      className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-sidebar-foreground/70 transition hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
-                                      aria-label={t("সেকশন খুলুন বা বন্ধ করুন", "Toggle section")}
-                                      onClick={(event) => event.stopPropagation()}
-                                    >
-                                      <ChevronRight className="h-4 w-4 transition-transform duration-200" />
-                                    </button>
-                                  </CollapsibleTrigger>
-                                </SidebarMenuButton>
-                              </SidebarMenuItem>
-                              <CollapsibleContent className="ml-6 mt-1 space-y-1 border-l-2 border-sidebar-border/70 pl-3">
-                                {item.children!.map((child) => {
-                                  const childActive = currentPath === child.path;
-                                  const childIcon = child.icon;
-                                  return (
-                                    <SidebarMenuItem key={child.key}>
-                                      <SidebarMenuButton
-                                        asChild
-                                        isActive={childActive}
-                                        tooltip={t(child.labelBn, child.labelEn)}
-                                        className={cn(
-                                          "h-10 rounded-xl pl-3 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-sidebar-ring text-sm",
-                                          childActive
-                                            ? "border-l-primary bg-primary/10 text-primary font-semibold"
-                                            : "border-l-transparent hover:bg-sidebar-accent/70",
-                                        )}
-                                      >
-                                        <Link to={child.path} title={t(child.labelBn, child.labelEn)}>
-                                          <childIcon />
-                                          <span>{t(child.labelBn, child.labelEn)}</span>
-                                        </Link>
-                                      </SidebarMenuButton>
-                                      {child.badge ? <SidebarMenuBadge>{child.badge}</SidebarMenuBadge> : null}
-                                    </SidebarMenuItem>
-                                  );
-                                })}
-                              </CollapsibleContent>
-                            </Collapsible>
                           </SidebarMenuItem>
                         );
                       }

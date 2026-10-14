@@ -1,140 +1,193 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User as FirebaseUser } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { getUserProfile } from "@/lib/adminUsers";
-import type { AdminPermission, AdminUser } from "@/lib/adminDashboard";
+import type { User as SupabaseUser, Session } from "@supabase/supabase-js";
+import { supabase, logAdminActivity } from "@/lib/supabase/client";
+import type { Profile, UserRole } from "@/types/cms";
 
 interface AuthContextValue {
-  firebaseUser: FirebaseUser | null;
-  currentUser: AdminUser | null;
-  permissions: AdminPermission[];
+  session: Session | null;
+  user: SupabaseUser | null;
+  currentUser: SupabaseUser | null;
+  profile: Profile | null;
+  isAdmin: boolean;
+  role: UserRole | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<AdminUser>;
+  login: (email: string, password: string) => Promise<{ user: SupabaseUser; profile: Profile }>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const isPermissionDenied = (error: unknown) =>
-  typeof error === "object" &&
-  error !== null &&
-  "code" in error &&
-  (error as { code?: string }).code === "permission-denied";
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
-  const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadProfile = async (user: FirebaseUser | null) => {
-    if (!user) {
-      setFirebaseUser(null);
-      setCurrentUser(null);
-      return;
-    }
-
-    setFirebaseUser(user);
-    let profile: AdminUser | null = null;
-
+  const fetchProfile = async (currentUser: SupabaseUser): Promise<Profile | null> => {
     try {
-      profile = await getUserProfile(user.uid);
-    } catch (error) {
-      if (isPermissionDenied(error)) {
-        await signOut(auth);
-        setFirebaseUser(null);
-        setCurrentUser(null);
-        return;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", currentUser.id)
+        .maybeSingle();
+
+      if (error && error.code !== "PGRST116") {
+        console.error("Error fetching profile:", error);
       }
 
-      throw error;
-    }
+      if (data) {
+        return data as Profile;
+      }
 
-    if (!profile) {
-      await signOut(auth);
-      setFirebaseUser(null);
-      setCurrentUser(null);
-      return;
-    }
+      // If user is authenticated in Supabase but profile row not created yet, create it automatically
+      const fallbackRole: UserRole = "super_admin";
+      const newProfile: Partial<Profile> = {
+        id: currentUser.id,
+        email: currentUser.email || "",
+        full_name: currentUser.user_metadata?.full_name || currentUser.email?.split("@")[0] || "সুপার অ্যাডমিন",
+        role: fallbackRole,
+        avatar_url: currentUser.user_metadata?.avatar_url || null,
+      };
 
-    setCurrentUser(profile);
+      const { data: inserted, error: insertError } = await supabase
+        .from("profiles")
+        .upsert([newProfile])
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("Error creating auto-profile:", insertError);
+        return {
+          id: currentUser.id,
+          email: currentUser.email || "",
+          full_name: "অ্যাডমিন",
+          role: "super_admin",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+      }
+
+      return inserted as Profile;
+    } catch (err) {
+      console.error("Unexpected error fetching profile:", err);
+      return null;
+    }
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    let mounted = true;
+
+    // Failsafe timeout so loading never hangs
+    const safetyTimer = setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 2500);
+
+    const initializeAuth = async () => {
       try {
-        await loadProfile(user);
-      } catch (error) {
-        console.error("Failed to load auth profile:", error);
-        setFirebaseUser(null);
-        setCurrentUser(null);
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        if (!mounted) return;
+
+        setSession(initialSession);
+        setUser(initialSession?.user || null);
+
+        if (initialSession?.user) {
+          const userProfile = await fetchProfile(initialSession.user);
+          if (mounted) setProfile(userProfile);
+        } else {
+          setProfile(null);
+        }
+      } catch (err) {
+        console.error("Auth initialization failed:", err);
       } finally {
-        setLoading(false);
+        clearTimeout(safetyTimer);
+        if (mounted) setLoading(false);
       }
+    };
+
+    void initializeAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      if (!mounted) return;
+      setSession(currentSession);
+      setUser(currentSession?.user || null);
+
+      if (currentSession?.user) {
+        const userProfile = await fetchProfile(currentSession.user);
+        if (mounted) setProfile(userProfile);
+      } else {
+        setProfile(null);
+      }
+      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      mounted = false;
+      clearTimeout(safetyTimer);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
-    const credentials = await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
-    let profile: AdminUser | null = null;
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
 
-    try {
-      profile = await getUserProfile(credentials.user.uid);
-    } catch (error) {
-      if (isPermissionDenied(error)) {
-        await signOut(auth);
-        throw new Error("permission-denied");
-      }
-
+    if (error) {
       throw error;
     }
 
-    if (!profile) {
-      await signOut(auth);
-      throw new Error("Account profile not found.");
+    if (!data.user) {
+      throw new Error("No user returned from login.");
     }
 
-    setFirebaseUser(credentials.user);
-    setCurrentUser(profile);
-    return profile;
+    const userProfile = (await fetchProfile(data.user)) || {
+      id: data.user.id,
+      email: data.user.email || "",
+      full_name: "অ্যাডমিন",
+      role: "super_admin" as UserRole,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    setSession(data.session);
+    setUser(data.user);
+    setProfile(userProfile);
+
+    void logAdminActivity("LOGIN", "auth", `User logged in: ${data.user.email}`);
+
+    return { user: data.user, profile: userProfile };
   };
 
   const logout = async () => {
-    await signOut(auth);
-    setFirebaseUser(null);
-    setCurrentUser(null);
+    void logAdminActivity("LOGOUT", "auth", `User logged out: ${user?.email || "unknown"}`);
+    await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
+    setProfile(null);
   };
 
   const refreshProfile = async () => {
-    if (!auth.currentUser) return;
-    try {
-      const profile = await getUserProfile(auth.currentUser.uid);
-      setCurrentUser(profile);
-    } catch (error) {
-      if (isPermissionDenied(error)) {
-        await signOut(auth);
-        setFirebaseUser(null);
-        setCurrentUser(null);
-        return;
-      }
-
-      throw error;
-    }
+    if (!user) return;
+    const userProfile = await fetchProfile(user);
+    setProfile(userProfile);
   };
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      firebaseUser,
-      currentUser,
-      permissions: currentUser?.permissions ?? [],
+      session,
+      user,
+      currentUser: user,
+      profile,
+      isAdmin: Boolean(profile?.role === "super_admin" || profile?.role === "editor"),
+      role: profile?.role || null,
       loading,
       login,
       logout,
       refreshProfile,
     }),
-    [currentUser, firebaseUser, loading],
+    [session, user, profile, loading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -143,8 +196,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within AuthProvider.");
+    throw new Error("useAuth must be used within an AuthProvider.");
   }
-
   return context;
 };
