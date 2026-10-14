@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown } from "lucide-react";
@@ -45,13 +45,11 @@ const Navbar = () => {
   const admissionLinks = [
     { to: "/admission", label: t("ভর্তি তথ্য", "Admission Info") },
     { to: "/admission-form", label: t("অনলাইন ভর্তি", "Online Admission") },
-    { to: "/guardian-register", label: t("গার্ডিয়ান রেজিস্ট্রেশন", "Guardian Registration") },
   ];
 
   const academicLinks = [
     { to: "/achievements", label: t("আমাদের অর্জন", "Our Achievements") },
     { to: "/notices", label: t("নোটিশ বোর্ড", "Notice") },
-    { to: "/results", label: t("পরীক্ষার ফলাফল", "Results") },
     { to: "/gallery", label: t("গ্যালারি", "Gallery") },
     { to: "/events", label: t("ইভেন্ট ক্যালেন্ডার", "Events") },
   ];

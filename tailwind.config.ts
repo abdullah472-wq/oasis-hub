@@ -15,9 +15,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["'Fraunces'", "'Noto Sans Bengali'", "'Hind Siliguri'", "serif"],
-        bengali: ["'Noto Sans Bengali'", "'Hind Siliguri'", "sans-serif"],
-        body: ["'Plus Jakarta Sans'", "sans-serif"],
+        bengali: ["'Noto Serif Bengali'", "'Plus Jakarta Sans'", "serif"],
+        display: ["'Noto Serif Bengali'", "'Fraunces'", "'Plus Jakarta Sans'", "serif"],
+        body: ["'Noto Serif Bengali'", "'Plus Jakarta Sans'", "sans-serif"],
+        sans: ["'Noto Serif Bengali'", "'Plus Jakarta Sans'", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

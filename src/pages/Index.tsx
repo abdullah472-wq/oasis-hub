@@ -12,11 +12,6 @@ import { getNotices, type Notice } from "@/lib/notices";
 
 import { springIn, springInDelay } from "@/lib/animations";
 
-const tahfizLogo = "/logos/tahfiz-logo.jpeg";
-const islamiaLogo = "/logos/islamia-logo.jpeg";
-const girlsHifzLogo = "/logos/girls-hifz-logo.jpeg";
-const girlsIslamiaLogo = "/logos/girls-islamia-logo.jpeg";
-
 const AnimatedCounter = ({ value }: { value: string }) => {
   const num = parseInt(value.replace(/[^0-9]/g, ""), 10);
   const suffix = value.replace(/[0-9]/g, "");
@@ -27,6 +22,10 @@ const AnimatedCounter = ({ value }: { value: string }) => {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setCount(num);
+      return;
+    }
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !hasAnimated) {
@@ -478,110 +477,6 @@ const Index = () => {
               </p>
             </div>
           </motion.div>
-        </div>
-      </section>
-
-      {/* We Are At Your Service */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <motion.h2
-            {...springIn}
-            className="font-bengali text-center text-foreground mb-4"
-            style={{ fontSize: "clamp(1.75rem, 5vw, 2.5rem)" }}>
-            {t("আমরা আপনার সেবায়", "We Are at Your Service")}
-          </motion.h2>
-          <motion.p
-            {...springIn}
-            className="font-bengali text-center text-muted-foreground mb-10"
-          >
-            {t("একই সময়ে · একই খরচে · একই স্থানে", "At the same time · At the same cost · At the same place")}
-          </motion.p>
-
-          {/* USP Box */}
-          <motion.div
-            {...springIn}
-            className="max-w-3xl mx-auto mb-12"
-          >
-            <div className="bg-card rounded-2xl p-6 md:p-8 text-center">
-              <h3 className="font-bengali text-xl font-bold text-foreground mb-3">
-                {t("Quadruple Education System — Islamic & General Education Together", "Quadruple Education System — Islamic & General Education Together")}
-              </h3>
-              <p className="font-bengali text-muted-foreground">
-                {t("আমরা একটি অনন্য চতুর্মাত্রিক শিক্ষা ব্যবস্থা প্রদান করি যেখানে ইসলামিক জ্ঞান ও সাধারণ শিক্ষা একসাথে এগিয়ে চলে।", "We offer a unique Quadruple Education System — where Islamic knowledge and General education grow hand in hand.")}
-              </p>
-              <div className="flex flex-wrap justify-center gap-4 mt-6">
-                <span className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-sm font-bengali text-foreground">
-                  🕌 4 {t("প্রতিষ্ঠান", "Institutions")}
-                </span>
-                <span className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-sm font-bengali text-foreground">
-                  👦 {t("ছেলে ও মেয়ে আলাদা", "Boys & Girls Separate")}
-                </span>
-                <span className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-sm font-bengali text-foreground">
-                  📍 {t("একই স্থান", "One Location")}
-                </span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Institutions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-            {[
-              {
-                title: t("আননূর তাহফিজুল কোরআন মাদরাসা ও মডেল একাডেমি (বালক শাখা)", "Annoor Tahfizul Quran Madrasah & Model Academy"),
-                subtitle: t("বালক শাখা", "Boys Branch"),
-                depts: t(["নূরানী — সাধারণ শিক্ষা সহ", "নাজারা — সাধারণ শিক্ষা সহ", "হিফজুল কোরআন — (সাধারণ শিক্ষা ছাড়া)", "হিফজ রিভিশন + কিতাব শাখা — সাধারণ শিক্ষা সহ"], ["Noorani — with General Education", "Nazara — with General Education", "Hifzul Quran — (without General Education", "Hifz Revision + Kitab Section — with General Education"]),
-                logo: tahfizLogo,
-              },
-              {
-                title: t("আননূর ইসলামিয়া মডেল মাদরাসা", "Annoor Islamia Model Madrasah"),
-                subtitle: t("বালক শাখা", "Boys Branch"),
-                depts: t(["নূরানী — সাধারণ শিক্ষা সহ", "নাজারা — সাধারণ শিক্ষা সহ", "হিফজুল কোরআন — (সাধারণ শিক্ষা ছাড়া)", "হিফজ রিভিশন + কিতাব শাখা — সাধারণ শিক্ষা সহ"], ["Nurani — with General Education", "Nazara — with General Education", "Hifzul Quran — (without General Education)", "Hifz Revision + Kitab Section — with General Education"]),
-                logo: islamiaLogo,
-              },
-              {
-                title: t("আননূর গার্লস হিফজুল কোরআন মাদরাসা", "Annoor Girls Hifzul Quran Madrasah"),
-                subtitle: t("মেয়ে শাখা", "Girls Branch"),
-                depts: t(["নূরানী", "নাজারা", "হিফজুল কোরআন", "হিফজ রিভিশন ডিভিশন"], ["Nurani", "Nazara", "Hifzul Quran", "Hifz Revision Division"]),
-                logo: girlsHifzLogo,
-              },
-              {
-                title: t("আননূর ইসলামিয়া গার্লস মাদরাসা", "Annoor Islamia Girls Madrasah"),
-                subtitle: t("মেয়ে শাখা", "Girls Branch"),
-                depts: t(["নূরানী — সাধারণ শিক্ষা সহ", "নাজারা — সাধারণ শিক্ষা সহ", "কিতাব শাখা — সাধারণ শিক্ষা সহ"], ["Nurani — with General Education", "Nazara — with General Education", "Kitab Section — with General Education"]),
-                logo: girlsIslamiaLogo,
-              },
-            ].map((inst, i) => (
-              <motion.div
-                key={i}
-                {...springIn}
-                transition={springInDelay(i * 0.1)}
-                className="card-institutional p-6"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <img
-                    src={inst.logo}
-                    alt={inst.title}
-                    className="h-12 w-auto object-contain shrink-0"
-                    loading="lazy"
-                    sizes="48px"
-                    decoding="async"
-                  />
-                  <div>
-                    <h3 className="font-bengali text-lg font-bold text-foreground">{inst.title}</h3>
-                    <p className="font-bengali text-sm text-accent">{inst.subtitle}</p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  {inst.depts.map((dept: string, j: number) => (
-                    <p key={j} className="font-bengali text-sm text-muted-foreground flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
-                      {dept}
-                    </p>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
-          </div>
         </div>
       </section>
 

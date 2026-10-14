@@ -20,10 +20,24 @@ const Calendar = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
-    getEvents()
-      .then(setEvents)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    let mounted = true;
+    const loadEvents = () => {
+      getEvents()
+        .then((items) => {
+          if (mounted) setEvents(items);
+        })
+        .catch(console.error)
+        .finally(() => {
+          if (mounted) setLoading(false);
+        });
+    };
+
+    loadEvents();
+    window.addEventListener("oasis-events-updated", loadEvents);
+    return () => {
+      mounted = false;
+      window.removeEventListener("oasis-events-updated", loadEvents);
+    };
   }, []);
 
   const months = [

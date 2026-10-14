@@ -1,4 +1,4 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Facebook, Youtube, MapPin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -46,11 +46,11 @@ const Footer = () => {
               <h4 className="mb-4 font-display text-lg font-semibold">{t("\u09a6\u09cd\u09b0\u09c1\u09a4 \u09b2\u09bf\u0982\u0995", "Quick Links")}</h4>
               <div className="flex flex-col gap-2">
                 {[
-                  { to: "/about", label: t("\u0986\u09ae\u09be\u09a6\u09c7\u09b0 \u09b8\u09ae\u09cd\u09aa\u09b0\u09cd\u0995\u09c7", "About Us") },
-                  { to: "/admission", label: t("\u09ad\u09b0\u09cd\u09a4\u09bf \u09a4\u09a5\u09cd\u09af", "Admission Info") },
-                  { to: "/news", label: t("\u09b8\u0982\u09ac\u09be\u09a6", "News") },
-                  { to: "/results", label: t("\u09aa\u09b0\u09c0\u0995\u09cd\u09b7\u09be\u09b0 \u09ab\u09b2\u09be\u09ab\u09b2", "Exam Results") },
-                  { to: "/contact", label: t("\u09af\u09cb\u0997\u09be\u09af\u09cb\u0997", "Contact") },
+                  { to: "/about", label: t("আমাদের সম্পর্কে", "About Us") },
+                  { to: "/admission", label: t("ভর্তি তথ্য", "Admission Info") },
+                  { to: "/notices", label: t("নোটিশ বোর্ড", "Notice") },
+                  { to: "/events", label: t("ইভেন্ট ক্যালেন্ডার", "Events") },
+                  { to: "/contact", label: t("যোগাযোগ", "Contact") },
                 ].map((link) => (
                   <Link key={link.to} to={link.to} className="font-bengali text-primary-foreground/70 transition-colors hover:text-accent">
                     {link.label}

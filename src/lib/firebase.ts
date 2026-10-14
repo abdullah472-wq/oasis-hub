@@ -1,4 +1,3 @@
-import { getAnalytics, isSupported, logEvent, type Analytics } from "firebase/analytics";
 import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
@@ -36,39 +35,19 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const realtimeDb = getDatabase(app);
 
-const createAnalytics = async (): Promise<Analytics | null> => {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  try {
-    return (await isSupported()) ? getAnalytics(app) : null;
-  } catch {
-    return null;
-  }
-};
-
-export const analyticsPromise = createAnalytics();
+// Safe stub for analytics to prevent browser ad-blockers and privacy shields
+// from blocking the entire ES module graph with net::ERR_BLOCKED_BY_CLIENT
+export const analyticsPromise = Promise.resolve(null);
 
 export const trackAnalyticsEvent = async (
-  eventName: string,
-  params?: Record<string, string | number | boolean | null | undefined>,
+  _eventName: string,
+  _params?: Record<string, string | number | boolean | null | undefined>,
 ) => {
-  const analytics = await analyticsPromise;
-
-  if (!analytics) {
-    return;
-  }
-
-  logEvent(analytics, eventName, params);
+  // Safe no-op without triggering ad-blocker filters
 };
 
-export const trackPageView = async (pagePath: string, pageTitle?: string) => {
-  await trackAnalyticsEvent("page_view", {
-    page_path: pagePath,
-    page_title: pageTitle ?? (typeof document !== "undefined" ? document.title : pagePath),
-    page_location: typeof window !== "undefined" ? window.location.href : pagePath,
-  });
+export const trackPageView = async (_pagePath: string, _pageTitle?: string) => {
+  // Safe no-op
 };
 
 export const isFirebaseConfigured = Boolean(

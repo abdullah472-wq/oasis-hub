@@ -57,7 +57,7 @@ const UpdateAlertsManager = ({ className = "" }: UpdateAlertsManagerProps) => {
     },
     result: {
       collectionName: "results",
-      href: "/results",
+      href: "/notices",
       title: (doc: LatestDoc) => {
         if (lang === "bn") {
           return [doc.exam, doc.className].filter(Boolean).join(" - ") || t("\u09a8\u09a4\u09c1\u09a8 \u09ab\u09b2\u09be\u09ab\u09b2", "New result");

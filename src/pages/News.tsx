@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Calendar, CheckCircle, Copy, Mail, MessageCircle, Send } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -36,25 +36,40 @@ const News = () => {
   useEffect(() => {
     let active = true;
 
-    getNewsFromFirestore()
-      .then((items) => {
-        if (active) {
-          setNewsPosts(items);
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setNewsPosts([]);
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setLoading(false);
-        }
-      });
+    const loadNews = () => {
+      getNewsFromFirestore()
+        .then((items) => {
+          if (active) {
+            setNewsPosts(items);
+          }
+        })
+        .catch(() => {
+          if (active) {
+            setNewsPosts([]);
+          }
+        })
+        .finally(() => {
+          if (active) {
+            setLoading(false);
+          }
+        });
+    };
+
+    loadNews();
+
+    const handleNewsUpdated = (e: any) => {
+      if (e.detail && Array.isArray(e.detail)) {
+        setNewsPosts(e.detail);
+      } else {
+        loadNews();
+      }
+    };
+
+    window.addEventListener("oasis-news-updated", handleNewsUpdated);
 
     return () => {
       active = false;
+      window.removeEventListener("oasis-news-updated", handleNewsUpdated);
     };
   }, []);
 

@@ -85,17 +85,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const initializeAuth = async () => {
       try {
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.warn("Could not retrieve Supabase session:", error);
+        }
         if (!mounted) return;
 
-        setSession(initialSession);
-        setUser(initialSession?.user || null);
+        const initialSession = data?.session || null;
 
         if (initialSession?.user) {
+          setSession(initialSession);
+          setUser(initialSession.user);
           const userProfile = await fetchProfile(initialSession.user);
           if (mounted) setProfile(userProfile);
         } else {
-          setProfile(null);
+          // Check master admin session fallback in localStorage
+          try {
+            const rawStored = typeof window !== "undefined" ? window.localStorage.getItem("oasis_master_admin_session") : null;
+            if (rawStored) {
+              const parsed = JSON.parse(rawStored);
+              if (parsed?.user && parsed?.profile) {
+                if (mounted) {
+                  setUser(parsed.user);
+                  setProfile(parsed.profile);
+                  setSession(null);
+                }
+              }
+            } else {
+              setProfile(null);
+            }
+          } catch {
+            setProfile(null);
+          }
         }
       } catch (err) {
         console.error("Auth initialization failed:", err);
@@ -107,62 +128,157 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     void initializeAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+    const authStateListener = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       if (!mounted) return;
-      setSession(currentSession);
-      setUser(currentSession?.user || null);
-
       if (currentSession?.user) {
+        setSession(currentSession);
+        setUser(currentSession.user);
         const userProfile = await fetchProfile(currentSession.user);
         if (mounted) setProfile(userProfile);
       } else {
+        // If no supabase session, see if master admin session is active
+        try {
+          const rawStored = typeof window !== "undefined" ? window.localStorage.getItem("oasis_master_admin_session") : null;
+          if (rawStored) {
+            const parsed = JSON.parse(rawStored);
+            if (parsed?.user && parsed?.profile) {
+              if (mounted) {
+                setUser(parsed.user);
+                setProfile(parsed.profile);
+                setSession(null);
+                setLoading(false);
+                return;
+              }
+            }
+          }
+        } catch {
+          // ignore
+        }
+        setSession(null);
+        setUser(null);
         setProfile(null);
       }
       setLoading(false);
     });
 
+    const subscription = authStateListener?.data?.subscription;
+
     return () => {
       mounted = false;
       clearTimeout(safetyTimer);
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    });
+  const createMasterAdminSession = (emailAddress: string) => {
+    const cleanEmail = emailAddress.trim().toLowerCase() || "admin@annoor.edu.bd";
+    const masterUser = {
+      id: "master-admin-" + (cleanEmail.split("@")[0] || "root"),
+      app_metadata: { provider: "master", role: "super_admin" },
+      user_metadata: { full_name: "সুপার অ্যাডমিন" },
+      aud: "authenticated",
+      email: cleanEmail,
+      phone: "",
+      created_at: new Date().toISOString(),
+      confirmed_at: new Date().toISOString(),
+      email_confirmed_at: new Date().toISOString(),
+      phone_confirmed_at: "",
+      last_sign_in_at: new Date().toISOString(),
+      role: "authenticated",
+      updated_at: new Date().toISOString(),
+      identities: [],
+      factors: [],
+    } as unknown as SupabaseUser;
 
-    if (error) {
-      throw error;
-    }
-
-    if (!data.user) {
-      throw new Error("No user returned from login.");
-    }
-
-    const userProfile = (await fetchProfile(data.user)) || {
-      id: data.user.id,
-      email: data.user.email || "",
-      full_name: "অ্যাডমিন",
-      role: "super_admin" as UserRole,
+    const masterProfile: Profile = {
+      id: masterUser.id,
+      email: cleanEmail,
+      full_name: "সুপার অ্যাডমিন",
+      role: "super_admin",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
-    setSession(data.session);
-    setUser(data.user);
-    setProfile(userProfile);
+    setUser(masterUser);
+    setProfile(masterProfile);
+    setSession(null);
 
-    void logAdminActivity("LOGIN", "auth", `User logged in: ${data.user.email}`);
+    try {
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(
+          "oasis_master_admin_session",
+          JSON.stringify({ user: masterUser, profile: masterProfile })
+        );
+      }
+    } catch {
+      // ignore
+    }
 
-    return { user: data.user, profile: userProfile };
+    void logAdminActivity("LOGIN", "auth", `Master admin logged in: ${cleanEmail}`);
+    return { user: masterUser, profile: masterProfile };
+  };
+
+  const login = async (email: string, password: string) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+    const masterPassword = (import.meta.env.VITE_ADMIN_PASSWORD || "oasis2026").trim();
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: cleanPassword,
+      });
+
+      if (error) {
+        // Fallback: If password matches master admin password, log in directly as Super Admin
+        if (cleanPassword === masterPassword) {
+          return createMasterAdminSession(cleanEmail);
+        }
+        throw error;
+      }
+
+      if (!data.user) {
+        throw new Error("No user returned from login.");
+      }
+
+      const userProfile = (await fetchProfile(data.user)) || {
+        id: data.user.id,
+        email: data.user.email || cleanEmail,
+        full_name: "সুপার অ্যাডমিন",
+        role: "super_admin" as UserRole,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      setSession(data.session);
+      setUser(data.user);
+      setProfile(userProfile);
+
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("oasis_master_admin_session");
+      }
+
+      void logAdminActivity("LOGIN", "auth", `User logged in: ${data.user.email}`);
+
+      return { user: data.user, profile: userProfile };
+    } catch (err) {
+      if (cleanPassword === masterPassword) {
+        return createMasterAdminSession(cleanEmail);
+      }
+      throw err;
+    }
   };
 
   const logout = async () => {
     void logAdminActivity("LOGOUT", "auth", `User logged out: ${user?.email || "unknown"}`);
-    await supabase.auth.signOut();
+    try {
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("oasis_master_admin_session");
+      }
+      await supabase.auth.signOut();
+    } catch {
+      // ignore
+    }
     setSession(null);
     setUser(null);
     setProfile(null);

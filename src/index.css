@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Noto+Serif+Bengali:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -89,7 +89,7 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%2306422c' stroke-width='0.6' opacity='0.07'%3E%3Cpolygon points='40,8 46,20 58,14 52,26 64,32 52,34 58,46 46,40 40,52 34,40 22,46 28,34 16,32 28,26 22,14 34,20'/%3E%3Cpolygon points='40,18 48,24 52,32 48,40 40,44 32,40 28,32 32,24'/%3E%3Cline x1='40' y1='0' x2='40' y2='8'/%3E%3Cline x1='40' y1='52' x2='40' y2='80'/%3E%3Cline x1='0' y1='32' x2='16' y2='32'/%3E%3Cline x1='64' y1='32' x2='80' y2='32'/%3E%3Cline x1='8' y1='8' x2='22' y2='14'/%3E%3Cline x1='58' y1='14' x2='72' y2='8'/%3E%3Cline x1='8' y1='56' x2='22' y2='46'/%3E%3Cline x1='58' y1='46' x2='72' y2='56'/%3E%3Cpath d='M0,0 L8,8 M80,0 L72,8 M0,80 L8,56 M80,80 L72,56'/%3E%3Cpolygon points='40,26 44,32 40,38 36,32'/%3E%3C/g%3E%3C/svg%3E");
     background-attachment: fixed;
     background-size: 80px 80px;
-    @apply bg-background text-foreground font-body antialiased;
+    @apply bg-background text-foreground font-bengali antialiased;
   }
 
   .dark body {
@@ -98,7 +98,7 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight;
-    font-family: 'Fraunces', 'Noto Sans Bengali', 'Hind Siliguri', serif;
+    font-family: 'Noto Serif Bengali', 'Fraunces', 'Plus Jakarta Sans', serif;
   }
 }
 
@@ -135,15 +135,15 @@
 
 @layer utilities {
   .font-display {
-    font-family: 'Fraunces', 'Noto Sans Bengali', 'Hind Siliguri', serif;
+    font-family: 'Noto Serif Bengali', 'Fraunces', 'Plus Jakarta Sans', serif;
   }
 
   .font-bengali {
-    font-family: 'Noto Sans Bengali', 'Hind Siliguri', sans-serif;
+    font-family: 'Noto Serif Bengali', 'Plus Jakarta Sans', serif;
   }
 
   .font-body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Noto Serif Bengali', 'Plus Jakarta Sans', sans-serif;
   }
 
   .text-balance {

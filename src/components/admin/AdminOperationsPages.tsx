@@ -1943,7 +1943,7 @@ export const AdmissionsManagerPage = ({
               margin: 0;
               background: #dbe8b7;
               color: #16332b;
-              font-family: 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
+              font-family: 'Hind Siliguri', 'Noto Serif Bengali', sans-serif;
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
             }

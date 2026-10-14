@@ -9,6 +9,8 @@ import {
   ExternalLink,
   LogOut,
   X,
+  CalendarDays,
+  Newspaper,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -36,10 +38,24 @@ export const adminNavItems = [
     badge: null,
   },
   {
+    titleBn: "সংবাদ প্রকাশ",
+    titleEn: "News Publish",
+    path: "/admin/news",
+    icon: Newspaper,
+    badge: null,
+  },
+  {
     titleBn: "মিডিয়া সেন্টার",
     titleEn: "Media Center",
     path: "/admin/media",
     icon: Film,
+    badge: null,
+  },
+  {
+    titleBn: "ইভেন্ট ক্যালেন্ডার",
+    titleEn: "Events Calendar",
+    path: "/admin/events",
+    icon: CalendarDays,
     badge: null,
   },
   {

@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, FileText, PhoneCall, ReceiptText } from "lucide-react";
+import { CalendarDays, GraduationCap, PhoneCall, ReceiptText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getEvents, type Event } from "@/lib/events";
 import { getNotices, type Notice } from "@/lib/notices";
-import { getResults, type Result } from "@/lib/results";
 
 const SUPPORT_PHONE = "8801581818368";
 
@@ -13,7 +12,6 @@ const PwaHomeCard = () => {
   const { lang, t } = useLanguage();
   const [isStandalone, setIsStandalone] = useState(false);
   const [latestNotice, setLatestNotice] = useState<Notice | null>(null);
-  const [latestResult, setLatestResult] = useState<Result | null>(null);
   const [nextEvent, setNextEvent] = useState<Event | null>(null);
 
   useEffect(() => {
@@ -44,14 +42,13 @@ const PwaHomeCard = () => {
 
     let isMounted = true;
 
-    Promise.all([getNotices(), getResults(), getEvents()])
-      .then(([notices, results, events]) => {
+    Promise.all([getNotices(), getEvents()])
+      .then(([notices, events]) => {
         if (!isMounted) {
           return;
         }
 
         setLatestNotice(notices[0] ?? null);
-        setLatestResult(results[0] ?? null);
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -140,24 +137,20 @@ const PwaHomeCard = () => {
               </div>
             </Link>
 
-            <Link to="/results" className="block">
+            <Link to="/admission" className="block">
               <div className="h-full rounded-2xl border border-border/80 bg-background/85 p-4 transition-transform hover:-translate-y-0.5">
                 <div className="mb-3 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/15 text-accent">
-                    <FileText className="h-5 w-5" />
+                    <GraduationCap className="h-5 w-5" />
                   </div>
                   <div>
                     <p className="font-bengali text-sm font-semibold text-foreground">
-                      {t("\u09b8\u09b0\u09cd\u09ac\u09b6\u09c7\u09b7 \u09ab\u09b2\u09be\u09ab\u09b2", "Latest Result")}
+                      {t("ভর্তি তথ্য", "Admission Info")}
                     </p>
                   </div>
                 </div>
                 <p className="font-bengali text-base font-medium leading-snug text-foreground">
-                  {latestResult
-                    ? lang === "bn"
-                      ? [latestResult.exam, latestResult.className].filter(Boolean).join(" - ")
-                      : [latestResult.examEn || latestResult.exam, latestResult.classNameEn || latestResult.className].filter(Boolean).join(" - ")
-                    : t("\u098f\u0996\u09a8\u09cb \u0995\u09cb\u09a8\u09cb \u09ab\u09b2\u09be\u09ab\u09b2 \u09a8\u09c7\u0987", "No result yet")}
+                  {t("নতুন সেশনে ভর্তি চলছে ও অনলাইন আবেদন", "New session admission open")}
                 </p>
               </div>
             </Link>
