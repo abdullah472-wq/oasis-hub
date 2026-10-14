@@ -19,7 +19,6 @@ import News from "@/pages/News";
 import Events from "@/pages/Events";
 import AdmissionForm from "@/pages/AdmissionForm";
 import Contact from "@/pages/Contact";
-import Ramadan from "@/pages/Ramadan";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +49,5 @@ describe("All Public Pages Rendering", () => {
   it("renders Events", () => { render(wrap(<Events />)); });
   it("renders AdmissionForm", () => { render(wrap(<AdmissionForm />)); });
   it("renders Contact", () => { render(wrap(<Contact />)); });
-  it("renders Ramadan", () => { render(wrap(<Ramadan />)); });
   it("renders NotFound", () => { render(wrap(<NotFound />)); });
 });

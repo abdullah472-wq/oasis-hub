@@ -25,7 +25,6 @@ const Admission = lazy(() => import("./pages/Admission"));
 const Gallery = lazy(() => import("./pages/Gallery"));
 const MediaCenter = lazy(() => import("./pages/MediaCenter"));
 const Contact = lazy(() => import("./pages/Contact"));
-const Ramadan = lazy(() => import("./pages/Ramadan"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const News = lazy(() => import("./pages/News"));
 const Events = lazy(() => import("./pages/Events"));
@@ -90,7 +89,6 @@ const AppShell = () => {
               <Route path="/events" element={<Events />} />
               <Route path="/admission-form" element={<AdmissionForm />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/ramadan" element={<Ramadan />} />
 
               {/* Modular CMS Admin Routes */}
               <Route path="/admin/login" element={<AdminLogin />} />

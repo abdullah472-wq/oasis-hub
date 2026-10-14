@@ -26,7 +26,6 @@ const Navbar = () => {
     { to: "/about", label: t("আমাদের সম্পর্কে", "About") },
     { to: "/news", label: t("সংবাদ", "News") },
     { to: "/contact", label: t("যোগাযোগ", "Contact") },
-    { to: "/ramadan", label: t("রমজান", "Ramadan") },
   ];
 
   const homeLinks = [
