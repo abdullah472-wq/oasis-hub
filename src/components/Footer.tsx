@@ -47,6 +47,10 @@ const Footer = () => {
               <div className="flex flex-col gap-2">
                 {[
                   { to: "/about", label: t("আমাদের সম্পর্কে", "About Us") },
+                  { to: "/curriculum", label: t("শিক্ষা কারিকুলাম", "Curriculum") },
+                  { to: "/downloads", label: t("ডাউনলোড কর্নার", "Download Corner") },
+                  { to: "/teachers", label: t("শিক্ষক ও পরিচালকমণ্ডলী", "Teachers & Staff") },
+                  { to: "/huffaz", label: t("কৃতি হাফেজ তালিকা", "Wall of Huffaz") },
                   { to: "/admission", label: t("ভর্তি তথ্য", "Admission Info") },
                   { to: "/notices", label: t("নোটিশ বোর্ড", "Notice") },
                   { to: "/events", label: t("ইভেন্ট ক্যালেন্ডার", "Events") },

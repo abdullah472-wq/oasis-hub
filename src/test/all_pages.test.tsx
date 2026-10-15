@@ -18,6 +18,10 @@ import MediaCenter from "@/pages/MediaCenter";
 import News from "@/pages/News";
 import Events from "@/pages/Events";
 import AdmissionForm from "@/pages/AdmissionForm";
+import Curriculum from "@/pages/Curriculum";
+import Downloads from "@/pages/Downloads";
+import Teachers from "@/pages/Teachers";
+import Huffaz from "@/pages/Huffaz";
 import Contact from "@/pages/Contact";
 import NotFound from "@/pages/NotFound";
 
@@ -48,6 +52,10 @@ describe("All Public Pages Rendering", () => {
   it("renders News", () => { render(wrap(<News />)); });
   it("renders Events", () => { render(wrap(<Events />)); });
   it("renders AdmissionForm", () => { render(wrap(<AdmissionForm />)); });
+  it("renders Curriculum", () => { render(wrap(<Curriculum />)); });
+  it("renders Downloads", () => { render(wrap(<Downloads />)); });
+  it("renders Teachers", () => { render(wrap(<Teachers />)); });
+  it("renders Huffaz", () => { render(wrap(<Huffaz />)); });
   it("renders Contact", () => { render(wrap(<Contact />)); });
   it("renders NotFound", () => { render(wrap(<NotFound />)); });
 });

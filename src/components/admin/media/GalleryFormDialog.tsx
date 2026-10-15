@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Loader2, UploadCloud, Image as ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
-import { supabase, uploadCmsFile, logAdminActivity } from "@/lib/supabase/client";
+import { uploadCmsFile } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { GalleryItem, GalleryCategory } from "@/types/cms";
+import { saveGalleryItem } from "@/lib/galleryService";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -45,6 +47,9 @@ export const GalleryFormDialog = ({
   const [formData, setFormData] = useState({
     title_bn: "",
     title_en: "",
+    caption_bn: "",
+    caption_en: "",
+    date_label: "",
     image_url: "",
     category: "campus" as GalleryCategory,
     order_index: 0,
@@ -55,6 +60,9 @@ export const GalleryFormDialog = ({
       setFormData({
         title_bn: itemToEdit.title_bn,
         title_en: itemToEdit.title_en || "",
+        caption_bn: itemToEdit.caption_bn || "",
+        caption_en: itemToEdit.caption_en || "",
+        date_label: itemToEdit.date_label || "",
         image_url: itemToEdit.image_url,
         category: itemToEdit.category || "campus",
         order_index: itemToEdit.order_index || 0,
@@ -64,6 +72,9 @@ export const GalleryFormDialog = ({
       setFormData({
         title_bn: "",
         title_en: "",
+        caption_bn: "",
+        caption_en: "",
+        date_label: "",
         image_url: "",
         category: "campus",
         order_index: 0,
@@ -121,45 +132,30 @@ export const GalleryFormDialog = ({
       const payload = {
         title_bn: formData.title_bn.trim(),
         title_en: formData.title_en.trim() || null,
+        caption_bn: formData.caption_bn.trim() || null,
+        caption_en: formData.caption_en.trim() || null,
+        date_label: formData.date_label.trim() || null,
         image_url: finalImageUrl,
         category: formData.category,
         order_index: Number(formData.order_index) || 0,
       };
 
-      if (itemToEdit) {
-        const { error } = await supabase
-          .from("gallery_items")
-          .update(payload)
-          .eq("id", itemToEdit.id);
+      await saveGalleryItem({
+        ...(itemToEdit?.id ? { id: itemToEdit.id } : {}),
+        ...payload,
+      });
 
-        if (error) throw error;
-
-        await logAdminActivity(
-          "UPDATE",
-          "gallery_items",
-          `গ্যালারি ছবি আপডেট: "${payload.title_bn}" (${payload.category})`
-        );
-        toast.success(t("গ্যালারি সফলভাবে আপডেট হয়েছে", "Gallery item updated successfully"));
-      } else {
-        const { error } = await supabase
-          .from("gallery_items")
-          .insert([payload]);
-
-        if (error) throw error;
-
-        await logAdminActivity(
-          "CREATE",
-          "gallery_items",
-          `নতুন গ্যালারি ছবি আপলোড: "${payload.title_bn}" (${payload.category})`
-        );
-        toast.success(t("নতুন ছবি গ্যালারিতে যোগ হয়েছে", "Image added to gallery successfully"));
-      }
+      toast.success(
+        itemToEdit
+          ? t("গ্যালারি সফলভাবে আপডেট হয়েছে", "Gallery item updated successfully")
+          : t("নতুন ছবি গ্যালারিতে যোগ হয়েছে", "Image added to gallery successfully")
+      );
 
       onSuccess();
       onClose();
     } catch (err: any) {
       console.error("Error saving gallery item:", err);
-      toast.error(err.message || t("ছবি সংরক্ষণ করতে সমস্যা হয়েছে", "Failed to save gallery image"));
+      toast.error(err.message || t("ছবি সংরক্ষণ করতে সমস্যা হয়েছে", "Failed to save image"));
     } finally {
       setLoading(false);
     }
@@ -258,13 +254,40 @@ export const GalleryFormDialog = ({
           {/* Title EN */}
           <div className="space-y-1.5">
             <Label htmlFor="gallery_title_en">
-              {t("ক্যাপশন (ইংরেজি)", "Caption (English)")}
+              {t("ক্যাপশন বা শিরোনাম (ইংরেজি)", "Caption or Title (English)")}
             </Label>
             <Input
               id="gallery_title_en"
               value={formData.title_en}
               onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
               placeholder="e.g. Annual Sports Competition 2026"
+            />
+          </div>
+
+          {/* Detailed Caption BN */}
+          <div className="space-y-1.5">
+            <Label htmlFor="gallery_caption_bn">
+              {t("বিস্তারিত বিবরণ (বাংলা)", "Detailed Description (Bangla)")}
+            </Label>
+            <Textarea
+              id="gallery_caption_bn"
+              rows={2}
+              value={formData.caption_bn}
+              onChange={(e) => setFormData({ ...formData, caption_bn: e.target.value })}
+              placeholder={t("ছবি সম্পর্কিত সংক্ষিপ্ত তথ্য বা স্মৃতি বিবরণ...", "Brief details or background context...")}
+            />
+          </div>
+
+          {/* Date / Occasion Label */}
+          <div className="space-y-1.5">
+            <Label htmlFor="gallery_date">
+              {t("তারিখ বা উপলক্ষ লেবেল", "Date / Event Label")}
+            </Label>
+            <Input
+              id="gallery_date"
+              value={formData.date_label}
+              onChange={(e) => setFormData({ ...formData, date_label: e.target.value })}
+              placeholder={t("যেমন: ফেব্রুয়ারি ২০২৬ বা বার্ষিক সমাবর্তন", "e.g. February 2026 or Annual Convocation")}
             />
           </div>
 

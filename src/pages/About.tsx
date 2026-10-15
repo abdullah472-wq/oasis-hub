@@ -1,227 +1,808 @@
-﻿import { motion } from "framer-motion";
-import { Eye, Quote, Target } from "lucide-react";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import {
+  Target,
+  Eye,
+  BookOpen,
+  Award,
+  Users,
+  GraduationCap,
+  ShieldCheck,
+  CheckCircle2,
+  Calendar,
+  MapPin,
+  Phone,
+  Sparkles,
+  ArrowRight,
+  HeartHandshake,
+  Compass,
+  Building2,
+  Layers,
+  Camera,
+  Check,
+  Briefcase,
+  Mail,
+} from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WaveDivider from "@/components/WaveDivider";
 import heroImg from "@/assets/hero-campus.jpg";
 import { springIn, springInDelay } from "@/lib/animations";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const About = () => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+
+  const stats = [
+    {
+      num: "৩৫০+",
+      numEn: "350+",
+      label: t("বর্তমান শিক্ষার্থী", "Active Students"),
+      sub: t("উভয় ক্যাম্পাসে পাঠরত", "Across both campuses"),
+      icon: Users,
+      color: "from-emerald-500/20 to-teal-500/10 text-emerald-600 dark:text-emerald-400",
+      border: "border-emerald-500/30",
+    },
+    {
+      num: "১১৫+",
+      numEn: "115+",
+      label: t("সনদপ্রাপ্ত হাফেজে কুরআন", "Certified Huffaz"),
+      sub: t("দস্তারবন্দী ও সম্মাননা প্রাপ্ত", "With Dastarbandi honors"),
+      icon: Award,
+      color: "from-amber-500/20 to-yellow-500/10 text-amber-600 dark:text-amber-400",
+      border: "border-amber-500/30",
+    },
+    {
+      num: "৩০+",
+      numEn: "30+",
+      label: t("বিজ্ঞ শিক্ষক ও শিক্ষিকা", "Dedicated Teachers"),
+      sub: t("অভিজ্ঞ ও দ্বীনদার ফ্যাকাল্টি", "Experienced scholars"),
+      icon: GraduationCap,
+      color: "from-blue-500/20 to-indigo-500/10 text-blue-600 dark:text-blue-400",
+      border: "border-blue-500/30",
+    },
+    {
+      num: "১৩+",
+      numEn: "13+",
+      label: t("বছরের গৌরবময় ঐতিহ্য", "Years of Trust"),
+      sub: t("২০১৩ খ্রি. হতে অবিচল পথচলা", "Founded in 2013"),
+      icon: Calendar,
+      color: "from-purple-500/20 to-pink-500/10 text-purple-600 dark:text-purple-400",
+      border: "border-purple-500/30",
+    },
+  ];
+
+  const corePillars = [
+    {
+      title: t("সহীহ কুরআন ও হিফজ", "Quranic Tajweed & Hifz"),
+      desc: t(
+        "বিশুদ্ধ মাখরাজ ও তাজবীদের সাথে কুরআন শিক্ষা এবং আন্তর্জাতিক মানের নিয়মিত হিফজুল কুরআন প্রশিক্ষণ।",
+        "Learning Quran with proper Tajweed and international-standard Hifz training.",
+      ),
+      icon: BookOpen,
+      badge: t("প্রথম স্তম্ভ", "Pillar 1"),
+    },
+    {
+      title: t("যুগোপযোগী আধুনিক জেনারেল শিক্ষা", "Modern General Education"),
+      desc: t(
+        "বাংলা, ইংরেজি, গণিত ও বিজ্ঞানে জাতীয় শিক্ষাক্রম অনুসারে শক্ত ভিত্তি যাতে শিক্ষার্থীরা ডাক্তার, ইঞ্জিনিয়ার ও বিশেষজ্ঞ হতে পারে।",
+        "Solid foundation in Bengali, English, Math, and Science according to national standards.",
+      ),
+      icon: Compass,
+      badge: t("দ্বিতীয় স্তম্ভ", "Pillar 2"),
+    },
+    {
+      title: t("সুন্নাহভিত্তিক চরিত্র ও তারবিয়াহ", "Sunnah-Based Tarbiyah & Akhlaq"),
+      desc: t(
+        "দৈনন্দিন মাসনূন দোয়া, শিষ্টাচার, সততা, দেশপ্রেম ও বড়দের সম্মান করার মাধ্যমে খাঁটি মুসলিম ও সুনাগরিক গঠন।",
+        "Cultivating character, modesty, ethics, Sunnah habits, and genuine civic responsibility.",
+      ),
+      icon: HeartHandshake,
+      badge: t("তৃতীয় স্তম্ভ", "Pillar 3"),
+    },
+    {
+      title: t("নিরাপদ ও সুশৃঙ্খল পরিবেশ", "Safe & Nurturing Environment"),
+      desc: t(
+        "সিসিটিভি নজরদারি, স্বাস্থ্যসম্মত পুষ্টিকর খাবার, সার্বক্ষণিক দায়িত্বশীল তত্ত্বাবধান এবং মেয়েদের সম্পূর্ণ স্বতন্ত্র ক্যাম্পাস।",
+        "24/7 CCTV surveillance, healthy boarding diet, caring supervision, and separate girls campus.",
+      ),
+      icon: ShieldCheck,
+      badge: t("চতুর্থ স্তম্ভ", "Pillar 4"),
+    },
+  ];
 
   const milestones = [
     {
-      year: "2013",
-      title: t("প্রতিষ্ঠা", "Founded"),
-      desc: t("আননূর শিক্ষা পরিবারের যাত্রা শুরু", "The journey of Annoor Education Family began"),
+      year: "২০১৩",
+      yearEn: "2013",
+      title: t("আননূর শিক্ষা পরিবারের সূচনা", "Foundation of Annoor Education Family"),
+      desc: t(
+        "গাজীপুরের কাপাসিয়া বাজারে মাত্র অল্প সংখ্যক শিক্ষার্থী নিয়ে দ্বীনি ও আধুনিক সমন্বিত শিক্ষার স্বপ্নযাত্রা শুরু হয়।",
+        "The visionary journey began in Kapasia Bazar, Gazipur, uniting Quranic learning with modern education.",
+      ),
+      tag: t("শুভ সূচনা", "Inception"),
     },
     {
-      year: "2013",
-      title: t("বালিকা ক্যাম্পাস", "Girls Campus"),
-      desc: t("মেয়েদের জন্য আলাদা ক্যাম্পাস চালু", "A separate campus for girls was launched"),
+      year: "২০১৩",
+      yearEn: "2013",
+      title: t("স্বতন্ত্র বালিকা ক্যাম্পাস প্রতিষ্ঠা", "Separate Girls Campus Inauguration"),
+      desc: t(
+        "মেয়েদের সম্পূর্ণ পর্দাঘেরা নিরাপদ পরিবেশে শিক্ষাদানের লক্ষ্যে বাঁশতলা মোড়ে পৃথক বালিকা শাখা চালু করা হয়।",
+        "To ensure complete purdah and dedicated female faculty, a separate campus was launched at Bashtola More.",
+      ),
+      tag: t("বালিকা শাখা", "Girls Campus"),
     },
     {
-      year: "2017",
-      title: t("২৫০+ শিক্ষার্থী", "250+ Students"),
-      desc: t("শিক্ষার্থীর সংখ্যা ২৫০+ অতিক্রম করে ", "The student count crossed two hundred and fifty"),
+      year: "২০১৭",
+      yearEn: "2017",
+      title: t("২৫০+ শিক্ষার্থী ও আবাসিক সম্প্রসারণ", "250+ Students & Hostel Expansion"),
+      desc: t(
+        "অভিভাবকদের আস্থার সুবাদে শিক্ষার্থী সংখ্যা ২৫০+ অতিক্রম করে এবং সুষম পুষ্টিসমৃদ্ধ আধুনিক আবাসিক হোস্টেল গড়ে তোলা হয়।",
+        "Student enrollment crossed 250 with expanded residential hostel facilities and hygienic dining.",
+      ),
+      tag: t("আবাসিক সুবিধা", "Boarding Growth"),
     },
     {
-      year: "2020",
-      title: t("ডিজিটাল শিক্ষা", "Digital Education"),
-      desc: t("আধুনিক প্রযুক্তিনির্ভর শিক্ষা ব্যবস্থার সূচনা", "A technology-supported learning system was introduced"),
+      year: "২০২০",
+      yearEn: "2020",
+      title: t("স্মার্ট ক্লাসরুম ও ডিজিটাল পরিচালনা", "Smart Classroom & Digital Management"),
+      desc: t(
+        "কম্পিউটার শিক্ষা, মাল্টিমিডিয়া প্রোজেক্টর ক্লাসরুম ও অভিভাবক এসএমএস নোটিফিকেশন সিস্টেমের সংযোজন।",
+        "Introduced smart classrooms, foundational computer learning, and parent digital communication.",
+      ),
+      tag: t("ডিজিটাল শিক্ষা", "Tech-Enabled"),
     },
     {
-      year: "2024",
-      title: t("জাতীয় শিক্ষাক্রমে অন্তভূক্তি", "National Recognition"),
-      desc: t("ইসলামি শিক্ষায় অবদানের জন্য বিশেষ স্বীকৃতি অর্জন", "Received notable recognition for contribution to Islamic education"),
+      year: "২০২২",
+      yearEn: "2022",
+      title: t("সরকারি নিবন্ধন লাভ (রেজি: ৩৩৮/২০২২)", "Official Registration (Reg: 338/2022)"),
+      desc: t(
+        "কর্তৃপক্ষ কর্তৃক প্রাতিষ্ঠানিক স্বীকৃতি ও বাংলাদেশ শিক্ষা সনদের আওতাভুক্ত হয়ে জাতীয় পর্যায়ে খ্যাতি অর্জন।",
+        "Achieved official registration certificate (No. 338/2022) cementing institutional credibility.",
+      ),
+      tag: t("রেজিস্ট্রেশন", "Govt Reg"),
+    },
+    {
+      year: "২০২৪-বর্তমান",
+      yearEn: "2024-Present",
+      title: t("১১৪+ কৃতি হাফেজের দস্তারবন্দী ও সম্মাননা", "115+ Huffaz Dastarbandi & Honors"),
+      desc: t(
+        "কৃতি শিক্ষার্থীদের বিশেষ পাগড়ি প্রদান, হিফজুল কুরআন বোর্ডে ধারাবাহিক সাফল্য এবং ৩৫০+ বর্তমান শিক্ষার্থীর অগ্রযাত্রা।",
+        "Conferred royal dastarbandi turbans to 115+ Quran memorizers with 350+ active learners.",
+      ),
+      tag: t("শ্রেষ্ঠত্ব", "Excellence"),
     },
   ];
 
   const leadership = [
     {
       name: t("হাফেজ আমানুল্লাহ", "Hafez Amanullah"),
-      role: t("প্রধান শিক্ষক", "Principal"),
+      role: t("প্রধান শিক্ষক ও হিফজ প্রধান", "Principal & Head of Hifz"),
+      qualification: t("আন্তর্জাতিক সনদপ্রাপ্ত ক্বারী ও সিনিয়র হাফেজে কুরআন", "Certified International Qari & Senior Hafez"),
       phone: "01820-811511",
+      email: "principal@annoor.edu.bd",
+      experience: t("১৪+ বছরের পাঠদান ও প্রাতিষ্ঠানিক পরিচালনা", "14+ Years in Teaching & Leadership"),
       quote: t(
-        "শিক্ষাই জাতির মেরুদণ্ড। আমরা চাই প্রতিটি শিক্ষার্থী ইসলামি মূল্যবোধের সাথে আধুনিক জ্ঞান অর্জন করুক।",
-        "Education is the backbone of a nation. We want every student to gain modern knowledge together with Islamic values.",
+        "কুরআন হলো জীবনের হেদায়েতের নূর। আমরা চাই আমাদের শিক্ষার্থীরা বিশুদ্ধ কুরআন বক্ষে ধারণ করে ডাক্তার, ইঞ্জিনিয়ার, অধ্যাপক বা আদর্শ আলেম হয়ে জাতির মুখ উজ্জ্বল করুক।",
+        "The Quran is the light of guidance. We strive for students who hold the Quran in their hearts while excelling as doctors, engineers, professors, or noble scholars.",
       ),
+      image: "/gallery/campus_main.jpg",
     },
     {
       name: t("মুফতি আব্দুল্লাহ আল মামুন", "Mufti Abdullah Al Mamon"),
-      role: t("ম্যানেজার", "Manager"),
-      phone: "01312200043, 01581818368",
+      role: t("ম্যানেজার ও প্রতিষ্ঠাতা পরিচালক", "Manager & Founding Director"),
+      qualification: t("দাওরায়ে হাদিস ও উচ্চতর ইফতা, শিক্ষাবিদ ও সংগঠক", "Dawra-e-Hadith & Higher Ifta, Islamic Scholar"),
+      phone: "01312-200043, 01581-818368",
+      email: "manager@annoor.edu.bd",
+      experience: t("১৫+ বছর শিক্ষা ব্যবস্থাপনা ও প্রাতিষ্ঠানিক উন্নয়ন", "15+ Years Education Administration"),
       quote: t(
-        "আমাদের লক্ষ্য সন্তানদের এমনভাবে গড়ে তোলা যাতে তারা দুনিয়া ও আখিরাতে সফল হয়।",
-        "Our goal is to shape children in a way that helps them succeed in both this world and the hereafter.",
+        "শিক্ষা শুধু বইয়ের পাতার মুখস্থ নয়, এটি শিশুর চিন্তা ও চরিত্রের আত্মিক পরিশুদ্ধি। আননূর শিক্ষা পরিবারে আমরা প্রতিটি সন্তানকে আন্তরিক ভালোবাসা ও দায়িত্বশীলতার সাথে গড়ে তুলি।",
+        "Education is not mere textbook cramming; it is the spiritual and intellectual purification of a child's character with deep love and institutional care.",
       ),
+      image: "/gallery/dastarbandi.jpg",
     },
   ];
 
-  const methodology = t(
-    [
-      "পবিত্র কোরআনের সহিহ-শুদ্ধ তিলাওয়াত শিক্ষা প্রদান।",
-      "সহজ ও কার্যকরভাবে তাজবীদ শিক্ষা।",
-      "নামাজ, সকাল-সন্ধ্যার দোয়া এবং প্রয়োজনীয় মাসনূন আমল শিক্ষা।",
-      "আকীদা, ইবাদত, আখলাক ও দৈনন্দিন জীবনের ইসলামী আদর্শভিত্তিক পাঠদান।",
-      "সপ্তাহে নির্ধারিত সময়ে ব্যবহারিক আমল ও জরুরি মাসআলা শেখানো।",
-      "নির্বাচিত শিক্ষার্থীদের জন্য কুরআনের আয়াত ও সূরার অর্থ ও সংক্ষিপ্ত ব্যাখ্যা।",
-      "বিভিন্ন ক্লাসশিট, অনুশীলনী ও পুনরাবৃত্তির ব্যবস্থা।",
-      "প্রতিদিন কুরআন বিভাগের শিক্ষার্থীদের জন্য সম্মিলিত মাশক।",
-      "শিশু-কিশোরদের আত্মউন্নয়নে নিয়মিত আনন্দ মাহফিল ও অনুপ্রেরণামূলক আয়োজন।",
-      "বিভিন্ন উপলক্ষে বিষয়ভিত্তিক আলোচনা ও তারবিয়ত সেশন।",
-    ],
-    [
-      "Correct and proper recitation of the Holy Quran.",
-      "Simple and effective Tajweed instruction.",
-      "Teaching prayer, morning-evening duas, and essential Sunnah practices.",
-      "Lessons grounded in aqeedah, worship, character, and Islamic life values.",
-      "Practical sessions for core acts of worship and essential masail.",
-      "Selected Quran translations and brief explanations for chosen students.",
-      "Class sheets, practice materials, and revision routines.",
-      "Daily group practice for Quran department students.",
-      "Regular motivational and joyful gatherings for children and teens.",
-      "Topic-based discussions and tarbiyah sessions on important occasions.",
-    ],
-  );
+  const methodologyPoints = [
+    {
+      title: t("সহীহ ও বিশুদ্ধ তিলাওয়াত", "Correct Recitation"),
+      desc: t("প্রতিটি হরফের মাখরাজ ও সিফাত তাজবীদের মূল নিয়ম অনুযায়ী মুখস্থ ও নিয়মিত মশকের মাধ্যমে পাঠদান।", "Systematic Tajweed rules, vocal drills, and accurate articulation from day one."),
+    },
+    {
+      title: t("হুসনে সওত ও সুন্দর লাহানে তেলাওয়াত", "Melodious Quranic Tone"),
+      desc: t("আন্তর্জাতিক ক্বারীদের অনুকরণে সুন্দর সুর ও সুমধুর কণ্ঠে কুরআন তিলাওয়াত শিক্ষা।", "Training in melodious recitation tones inspired by renowned international Qaris."),
+    },
+    {
+      title: t("ব্যবহারিক নামাজ ও মাসনূন আমল", "Practical Salah & Daily Sunnah"),
+      desc: t("ওযু, গোসল, ফরজ-ওয়াজিব নামাজ এবং সকাল-সন্ধ্যার প্রাত্যহিক দোয়ার নিয়মিত ব্যবহারিক প্রয়োগ।", "Daily hands-on practice of wudu, 5 daily prayers, and Sunnah supplications."),
+    },
+    {
+      title: t("আকীদা, ইবাদত ও আখলাক শিক্ষা", "Aqeedah, Worship & Akhlaq"),
+      desc: t("সহজ ভাষায় খাঁটি তাওহীদ, নবীপ্রেম, মা-বাবার আনুগত্য এবং সদাচরণের ক্লাসরুম প্রশিক্ষণ।", "Foundational lessons in pure Islamic monotheism, ethics, and devotion to parents."),
+    },
+    {
+      title: t("দুর্বল শিক্ষার্থীদের বিশেষ তত্ত্বাবধান", "Dedicated Care for Slow Learners"),
+      desc: t("প্রত্যেক শিক্ষার্থীর মানসিক ধারণক্ষমতা অনুযায়ী সান্ধ্যকালীন বিশেষ সাহায্য ও পুনরাবৃত্তি ক্লাস।", "Individualized evening reinforcement sessions tailored to each learner's pace."),
+    },
+    {
+      title: t("সাপ্তাহিক ও মাসিক প্রগ্রেস রিপোর্ট", "Periodic Progress Evaluation"),
+      desc: t("নিয়মিত পরীক্ষা, মূল্যায়ন ডায়েরি ও অভিভাবকদের সাথে ফলপ্রসূ আলোচনার মাধ্যমে অগ্রগতির পর্যবেক্ষণ।", "Consistent exams, progress logs, and constructive parent-teacher conferences."),
+    },
+  ];
+
+  const campusFeatures = [
+    {
+      campusName: t("বালক ক্যাম্পাস (Boys Campus)", "Boys Campus"),
+      location: t("কাপাসিয়া বাজার (সোনালী ব্যাংকের নিকটে), কাপাসিয়া, গাজীপুর", "Kapasia Bazar (Near Sonali Bank), Kapasia, Gazipur"),
+      phone: "01820-811511, 01312-200043",
+      highlights: [
+        t("নূরানী, নাজেরা ও হিফজুল কুরআন বিভাগ", "Nurani, Nazara & Hifz Sections"),
+        t("জেনারেল আধুনিক প্রাথমিক শিক্ষা (প্লে — ৫ম)", "Modern General Primary (Play - Class 5)"),
+        t("আধুনিক আবাসিক হোস্টেল ও স্বাস্থ্যসম্মত খাবার", "Boarding facilities with hygienic dining"),
+        t("সুবিশাল নামাজখানা ও অডিটোরিয়াম", "Spacious prayer hall and auditorium"),
+      ],
+      badgeColor: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+    },
+    {
+      campusName: t("বালিকা ক্যাম্পাস (Girls Campus)", "Girls Campus"),
+      location: t("বাঁশতলা মোড়, কলেজ রোড, কাপাসিয়া, গাজীপুর", "Bashtola More, College Road, Kapasia, Gazipur"),
+      phone: "01581-818368, 01312-200043",
+      highlights: [
+        t("সম্পূর্ণ পর্দাঘেরা সুরক্ষিত স্বতন্ত্র চারদেয়াল", "100% purdah-protected separate compound"),
+        t("দক্ষ ও অভিজ্ঞ বিদুষী নারী শিক্ষিকামণ্ডলী", "Qualified & caring female faculty exclusively"),
+        t("মহিলা ওয়ার্ডেনের অধীনে সার্বক্ষণিক নিরাপত্তা", "24/7 security under female warden care"),
+        t("মেয়েদের জন্য ইসলামী সাংস্কৃতিক ও হাতের কাজ", "Islamic cultural activities & crafts for girls"),
+      ],
+      badgeColor: "bg-pink-500/15 text-pink-700 dark:text-pink-400 border-pink-500/30",
+    },
+  ];
 
   return (
-    <div>
-      <section className="relative h-72 overflow-hidden md:h-96">
-        <img src={heroImg} alt="Campus" className="h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-primary/80" />
-        <div className="absolute inset-0 flex items-center justify-center">
+    <div className="min-h-screen bg-background">
+      {/* ================= HERO SECTION ================= */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-primary/95 via-primary to-primary/90 text-primary-foreground pt-32 pb-24 md:pt-40 md:pb-28">
+        <div className="absolute inset-0 z-0 opacity-15">
+          <img src={heroImg} alt="Annoor Campus Background" className="h-full w-full object-cover" />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-primary via-transparent to-primary/80 z-0" />
+
+        <div className="container relative z-10 mx-auto max-w-5xl px-4 text-center">
+          <motion.div {...springIn} className="flex flex-wrap items-center justify-center gap-2 mb-6">
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/20 px-4 py-1.5 text-xs sm:text-sm font-semibold tracking-wide text-emerald-200 backdrop-blur-md">
+              <Sparkles className="h-4 w-4 text-amber-300" />
+              <span>{t("স্থাপিত: ২০১৩ খ্রি. | রেজি নং ৩৩৮/২০২২", "Est. 2013 | Govt Reg No: 338/2022")}</span>
+            </span>
+          </motion.div>
+
           <motion.h1
             {...springIn}
-            className="font-bengali text-center text-primary-foreground"
-            style={{ fontSize: "clamp(2.5rem, 8vw, 4rem)" }}
+            transition={springInDelay(0.1)}
+            className="font-bengali font-extrabold tracking-tight text-white mb-6"
+            style={{ fontSize: "clamp(2.5rem, 6vw, 4rem)", lineHeight: 1.15 }}
           >
             {t("আমাদের সম্পর্কে", "About Us")}
           </motion.h1>
+
+          <motion.p
+            {...springIn}
+            transition={springInDelay(0.15)}
+            className="font-bengali text-lg sm:text-xl text-primary-foreground/90 max-w-3xl mx-auto leading-relaxed"
+          >
+            {t(
+              "আননূর শিক্ষা পরিবার — কুরআন-সুন্নাহর সঠিক দিকনির্দেশনা ও যুগোপযোগী আধুনিক শিক্ষার সমন্বয়ে এক অনন্য আদর্শ বিদ্যাপীঠ। গাজীপুরের কাপাসিয়ায় ২০১৩ সাল থেকে আস্থার সাথে গড়ে তুলছি আগামীর চরিত্রবান নেতৃত্ব।",
+              "Annoor Education Family — A prestigious educational institution harmonizing authentic Quranic values with modern academic excellence in Kapasia, Gazipur since 2013.",
+            )}
+          </motion.p>
+
+          <motion.div
+            {...springIn}
+            transition={springInDelay(0.2)}
+            className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4"
+          >
+            <Link to="/admission">
+              <Button size="lg" className="rounded-full bg-accent hover:bg-accent/90 text-accent-foreground font-bengali font-bold px-7 shadow-lg gap-2">
+                <GraduationCap className="h-5 w-5" />
+                <span>{t("ভর্তি আবেদন করুন", "Apply for Admission")}</span>
+              </Button>
+            </Link>
+            <Link to="/teachers">
+              <Button size="lg" variant="outline" className="rounded-full border-primary-foreground/30 bg-primary-foreground/10 hover:bg-primary-foreground/20 text-white font-bengali font-semibold px-6 backdrop-blur-sm gap-2">
+                <Users className="h-5 w-5" />
+                <span>{t("শিক্ষক পরিচিতি", "Meet Faculty")}</span>
+              </Button>
+            </Link>
+            <Link to="/contact">
+              <Button size="lg" variant="ghost" className="rounded-full text-white/90 hover:text-white hover:bg-white/10 font-bengali px-5 gap-2">
+                <Phone className="h-4 w-4" />
+                <span>{t("যোগাযোগ করুন", "Contact Us")}</span>
+              </Button>
+            </Link>
+          </motion.div>
         </div>
-        <WaveDivider className="absolute bottom-0" />
+
+        <WaveDivider className="absolute bottom-0 text-background" />
       </section>
 
-      <section className="py-20">
-        <div className="container mx-auto max-w-5xl px-4">
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="rounded-xl border border-gray-200 bg-[#F9FAFB] p-8">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-[#064E3B]">
-                <Target className="h-6 w-6" />
-              </div>
-              <h2 className="mb-4 font-bengali text-xl font-semibold text-[#064E3B]">
-                {t("আমাদের লক্ষ্য", "Our Mission")}
-              </h2>
-              <p className="font-bengali text-lg leading-8 text-muted-foreground">
-                {t(
-                  "ইসলামি মূল্যবোধ ও আধুনিক শিক্ষার এক অনন্য সমন্বয়ে প্রতিটি শিক্ষার্থীকে নৈতিকতা সম্পন্ন, দক্ষ এবং একজন আদর্শ মানুষ হিসেবে গড়ে তোলা।",
-                  "To shape every student into a principled, capable, and ideal human being through a unique blend of Islamic values and modern education.",
-                )}
-              </p>
-            </div>
-
-            <div className="rounded-xl border border-gray-200 bg-[#F9FAFB] p-8">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-[#064E3B]">
-                <Eye className="h-6 w-6" />
-              </div>
-              <h2 className="mb-4 font-bengali text-xl font-semibold text-[#064E3B]">
-                {t("আমাদের দৃষ্টিভঙ্গি", "Our Vision")}
-              </h2>
-              <p className="font-bengali text-lg leading-8 text-muted-foreground">
-                {t(
-                  "ইসলামি ও নৈতিক শিক্ষার প্রসারে একটি বিশ্বস্ত, মানসম্মত এবং অনুকরণীয় শিক্ষা প্রতিষ্ঠান হিসেবে পরিচিতি লাভ করা।",
-                  "To become a trusted, high-quality, and exemplary institution in promoting Islamic and moral education.",
-                )}
-              </p>
-            </div>
+      {/* ================= STATS SECTION ================= */}
+      <section className="py-12 -mt-10 relative z-20">
+        <div className="container mx-auto max-w-6xl px-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {stats.map((s, idx) => {
+              const Icon = s.icon;
+              return (
+                <motion.div
+                  key={idx}
+                  {...springIn}
+                  transition={springInDelay(idx * 0.08)}
+                  className={`rounded-2xl border ${s.border} bg-card/90 backdrop-blur-sm p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}
+                >
+                  <div className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${s.color}`}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <div className="text-3xl sm:text-4xl font-display font-extrabold text-foreground mb-1">
+                    {lang === "bn" ? s.num : s.numEn}
+                  </div>
+                  <h3 className="font-bengali font-bold text-sm sm:text-base text-foreground mb-1">
+                    {s.label}
+                  </h3>
+                  <p className="font-bengali text-xs text-muted-foreground">
+                    {s.sub}
+                  </p>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      <section className="py-20">
-        <div className="container mx-auto max-w-5xl px-4">
-          <motion.h2
-            {...springIn}
-            className="mb-10 text-center font-bengali font-bold text-foreground"
-            style={{ fontSize: "clamp(2.25rem, 5vw, 3rem)" }}
-          >
-            {t("শিক্ষা পদ্ধতি", "Teaching Methodology")}
-          </motion.h2>
+      {/* ================= MISSION & VISION ================= */}
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto max-w-6xl px-4">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <Badge variant="outline" className="mb-3 px-3.5 py-1 text-xs font-semibold text-primary border-primary/30 uppercase tracking-wider">
+              {t("আমাদের রূপকল্প ও লক্ষ্য", "Vision & Mission")}
+            </Badge>
+            <h2 className="font-bengali font-extrabold text-3xl sm:text-4xl text-foreground">
+              {t("দ্বীন ও আধুনিকতার সুষম সমন্বয়ে আত্মবিশ্বাসী প্রজন্ম", "Balancing Islamic Values with Modern Confidence")}
+            </h2>
+          </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {methodology.map((point, index) => (
+          <div className="grid gap-8 lg:grid-cols-2">
+            {/* Mission */}
+            <motion.div
+              {...springIn}
+              className="relative overflow-hidden rounded-3xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-card to-card p-8 sm:p-10 shadow-lg"
+            >
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-md">
+                <Target className="h-7 w-7" />
+              </div>
+              <h3 className="mb-4 font-bengali text-2xl font-bold text-foreground">
+                {t("আমাদের মিশন (লক্ষ্য ও উদ্দেশ্য)", "Our Mission")}
+              </h3>
+              <p className="font-bengali text-base sm:text-lg leading-relaxed text-muted-foreground mb-6">
+                {t(
+                  "পবিত্র কুরআন ও সুন্নাহর মৌলিক শিক্ষার আলোকবর্তিকা প্রতিটি শিশুর অন্তরে প্রজ্জ্বলিত করে তাদের চারিত্রিক পবিত্রতা, আধুনিক অ্যাকাডেমিক উৎকর্ষ এবং সামাজিক নেতৃত্বের উপযোগী করে গড়ে তোলা।",
+                  "To ignite the light of Quran and Sunnah within every child, nurturing moral integrity, modern academic distinction, and future leadership capabilities.",
+                )}
+              </p>
+              <ul className="space-y-3 font-bengali text-sm text-foreground">
+                <li className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+                  <span>{t("আন্তর্জাতিক মানের সহীহ কুরআন ও তাজবীদ প্রশিক্ষণ", "International Tajweed & Quranic excellence")}</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+                  <span>{t("জাতীয় শিক্ষাক্রম অনুযায়ী বাংলা, ইংরেজি ও গণিতে দক্ষতা", "Fluency in Bengali, English, Math per national syllabus")}</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+                  <span>{t("আদর্শ আখলাক, আদব ও মানবিক মূল্যবোধের নিরবচ্ছিন্ন চর্চা", "Continuous practice of adab, modesty, and civic values")}</span>
+                </li>
+              </ul>
+            </motion.div>
+
+            {/* Vision */}
+            <motion.div
+              {...springIn}
+              transition={springInDelay(0.1)}
+              className="relative overflow-hidden rounded-3xl border border-blue-500/25 bg-gradient-to-br from-blue-500/10 via-card to-card p-8 sm:p-10 shadow-lg"
+            >
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md">
+                <Eye className="h-7 w-7" />
+              </div>
+              <h3 className="mb-4 font-bengali text-2xl font-bold text-foreground">
+                {t("আমাদের ভিশন (দূরদৃষ্টি)", "Our Vision")}
+              </h3>
+              <p className="font-bengali text-base sm:text-lg leading-relaxed text-muted-foreground mb-6">
+                {t(
+                  "বাংলাদেশ ও বিশ্বমঞ্চে এমন একটি অনুকরণীয় আদর্শ ইসলামিক শিক্ষাপ্রতিষ্ঠান হিসেবে প্রতিষ্ঠিত হওয়া, যেখান থেকে উত্তীর্ণ শিক্ষার্থীরা হবে একাধারে কুরআনের ধারক এবং আধুনিক বিজ্ঞান ও প্রজ্ঞায় অগ্রসর আলোকবর্তিকা।",
+                  "To stand as an exemplary Islamic educational institution whose graduates embody the Quran in spirit while excelling in modern science, ethics, and intellectual wisdom.",
+                )}
+              </p>
+              <ul className="space-y-3 font-bengali text-sm text-foreground">
+                <li className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-blue-600 shrink-0" />
+                  <span>{t("১০০% দ্বীনি ও নিরাপদ আবাসিক-অনাবাসিক পরিবেশ", "100% Islamic, disciplined, and safe residential setup")}</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-blue-600 shrink-0" />
+                  <span>{t("মেয়েদের জন্য পূর্ণাঙ্গ পর্দাঘেরা স্বতন্ত্র ক্যাম্পাস ও নারীকেন্দ্রিক ব্যবস্থাপনা", "Complete purdah & exclusive female campus for girls")}</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-blue-600 shrink-0" />
+                  <span>{t("জাতি গঠনে সৎ, খোদাভীরু ও প্রতিভাবান নাগরিক উপহার দেওয়া", "Nurturing God-fearing, capable, and patriotic citizens")}</span>
+                </li>
+              </ul>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= 4 CORE PILLARS ================= */}
+      <section className="py-16 bg-muted/40 border-y border-border">
+        <div className="container mx-auto max-w-6xl px-4">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <Badge variant="outline" className="mb-3 px-3.5 py-1 text-xs font-semibold text-primary border-primary/30 uppercase tracking-wider">
+              {t("আমাদের মূল ভিত্তি", "Core Tenets")}
+            </Badge>
+            <h2 className="font-bengali font-extrabold text-3xl sm:text-4xl text-foreground">
+              {t("যে ৪টি স্তম্ভের ওপর আমাদের শিক্ষা ব্যবস্থা প্রতিষ্ঠিত", "Four Pillars of Our Educational Framework")}
+            </h2>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {corePillars.map((p, i) => {
+              const Icon = p.icon;
+              return (
+                <motion.div
+                  key={i}
+                  {...springIn}
+                  transition={springInDelay(i * 0.08)}
+                  className="rounded-3xl border border-border bg-card p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <span className="text-xs font-bold text-muted-foreground font-bengali bg-muted px-2.5 py-1 rounded-full">
+                        {p.badge}
+                      </span>
+                    </div>
+                    <h3 className="font-bengali text-lg font-bold text-foreground mb-2">
+                      {p.title}
+                    </h3>
+                    <p className="font-bengali text-sm text-muted-foreground leading-relaxed">
+                      {p.desc}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= DUAL CAMPUSES SHOWCASE ================= */}
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto max-w-6xl px-4">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <Badge variant="outline" className="mb-3 px-3.5 py-1 text-xs font-semibold text-primary border-primary/30 uppercase tracking-wider">
+              {t("ক্যাম্পাস পরিচিতি", "Our Campuses")}
+            </Badge>
+            <h2 className="font-bengali font-extrabold text-3xl sm:text-4xl text-foreground">
+              {t("আমাদের দুটি সম্পূর্ণ স্বতন্ত্র ও সুবিন্যস্ত ক্যাম্পাস", "Two Distinct & Dedicated Campuses")}
+            </h2>
+            <p className="mt-3 font-bengali text-muted-foreground text-base max-w-2xl mx-auto">
+              {t(
+                "ইসলামিক অনুশাসন ও পর্দার পূর্ণাঙ্গ বিধান মেনে বালক ও বালিকা শিক্ষার্থীদের জন্য কাপাসিয়ায় দুটি সম্পূর্ণ পৃথক শাখা পরিচালিত হচ্ছে।",
+                "Operating two fully separated campuses for boys and girls upholding strict Islamic values in Kapasia.",
+              )}
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2">
+            {campusFeatures.map((c, idx) => (
               <motion.div
-                key={`${index}-${point}`}
+                key={idx}
                 {...springIn}
-                transition={springInDelay(index * 0.05)}
-                className="flex items-start gap-3 rounded-xl bg-card p-4"
+                transition={springInDelay(idx * 0.1)}
+                className="rounded-3xl border border-border bg-card p-8 shadow-md flex flex-col justify-between"
               >
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                  {index + 1}
-                </span>
-                <p className="font-bengali text-sm leading-relaxed text-muted-foreground">{point}</p>
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border ${c.badgeColor}`}>
+                      <Building2 className="h-3.5 w-3.5" />
+                      <span>{c.campusName}</span>
+                    </span>
+                  </div>
+
+                  <div className="flex items-start gap-3 text-muted-foreground mb-4">
+                    <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <p className="font-bengali text-sm leading-relaxed text-foreground/90 font-medium">
+                      {c.location}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-muted-foreground mb-6">
+                    <Phone className="h-4 w-4 text-primary shrink-0" />
+                    <p className="font-bengali text-sm text-foreground/80 font-mono">
+                      {c.phone}
+                    </p>
+                  </div>
+
+                  <div className="border-t border-border pt-4 mb-6">
+                    <h4 className="font-bengali font-bold text-sm text-foreground mb-3">
+                      {t("প্রধান সুবিধাসমূহ:", "Key Highlights:")}
+                    </h4>
+                    <ul className="space-y-2.5 font-bengali text-sm text-muted-foreground">
+                      {c.highlights.map((h, hIdx) => (
+                        <li key={hIdx} className="flex items-start gap-2.5">
+                          <Check className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                          <span>{h}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <Link to="/virtual-tour" className="flex-1">
+                    <Button variant="outline" className="w-full rounded-2xl font-bengali text-xs gap-2">
+                      <Camera className="h-3.5 w-3.5" />
+                      <span>{t("ভার্চুয়াল ট্যুর দেখুন", "Virtual Tour")}</span>
+                    </Button>
+                  </Link>
+                  <Link to="/contact" className="flex-1">
+                    <Button variant="default" className="w-full rounded-2xl font-bengali text-xs gap-2">
+                      <MapPin className="h-3.5 w-3.5" />
+                      <span>{t("যোগাযোগ ও ম্যাপ", "Directions")}</span>
+                    </Button>
+                  </Link>
+                </div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-20">
-        <div className="container mx-auto max-w-4xl px-4">
-          <motion.h2
-            {...springIn}
-            className="mb-12 text-center font-bengali font-bold text-foreground"
-            style={{ fontSize: "clamp(2.25rem, 5vw, 3rem)" }}
-          >
-            {t("নেতৃত্ব", "Leadership")}
-          </motion.h2>
+      {/* ================= TEACHING METHODOLOGY ================= */}
+      <section className="py-16 md:py-24 bg-muted/30 border-y border-border">
+        <div className="container mx-auto max-w-6xl px-4">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <Badge variant="outline" className="mb-3 px-3.5 py-1 text-xs font-semibold text-primary border-primary/30 uppercase tracking-wider">
+              {t("শিক্ষা পদ্ধতি ও বৈশিষ্ট্য", "Teaching Methodology")}
+            </Badge>
+            <h2 className="font-bengali font-extrabold text-3xl sm:text-4xl text-foreground">
+              {t("আমাদের অনন্য পাঠদান কৌশল ও পরিচর্যা", "Our Distinctive Pedagogy & Care")}
+            </h2>
+            <p className="mt-3 font-bengali text-muted-foreground text-base max-w-2xl mx-auto">
+              {t(
+                "গতানুগতিক ধারার বাইরে প্রতিটি শিক্ষার্থীর জন্য আন্তরিক সান্নিধ্য, তাজবীদভিত্তিক ড্রিল ও সৃজনশীল পাঠদান প্রক্রিয়া।",
+                "Going beyond conventional rote learning with personalized mentorship and creative engagement.",
+              )}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {methodologyPoints.map((point, index) => (
+              <motion.div
+                key={index}
+                {...springIn}
+                transition={springInDelay(index * 0.06)}
+                className="rounded-3xl border border-border bg-card p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <div className="mb-4 flex items-center justify-between">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-xs font-bold text-primary-foreground font-mono">
+                      0{index + 1}
+                    </span>
+                    <BookOpen className="h-5 w-5 text-muted-foreground/50" />
+                  </div>
+                  <h3 className="font-bengali text-lg font-bold text-foreground mb-2">
+                    {point.title}
+                  </h3>
+                  <p className="font-bengali text-sm leading-relaxed text-muted-foreground">
+                    {point.desc}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-12 text-center">
+            <Link to="/curriculum">
+              <Button size="lg" className="rounded-2xl px-8 font-bengali font-bold gap-2">
+                <span>{t("সম্পূর্ণ শিক্ষাক্রম ও সিলেবাস বিস্তারিত দেখুন", "View Full Curriculum & Syllabus")}</span>
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= LEADERSHIP & GUIDING VISION ================= */}
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto max-w-6xl px-4">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <Badge variant="outline" className="mb-3 px-3.5 py-1 text-xs font-semibold text-primary border-primary/30 uppercase tracking-wider">
+              {t("পরিচালকমণ্ডলী ও নেতৃত্ব", "Leadership & Guidance")}
+            </Badge>
+            <h2 className="font-bengali font-extrabold text-3xl sm:text-4xl text-foreground">
+              {t("দিকনির্দেশনায় অভিজ্ঞ উলামায়ে কেরাম ও শিক্ষাবিদ", "Led by Renowned Scholars & Visionary Academics")}
+            </h2>
+          </div>
+
           <div className="grid gap-8 md:grid-cols-2">
             {leadership.map((leader, index) => (
-              <motion.div key={leader.name} {...springIn} transition={springInDelay(index * 0.15)} className="card-institutional p-8">
-                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full border border-border bg-emerald-50 text-sm font-semibold text-[#064E3B]">
-                      {t("ছবি", "Photo")}
+              <motion.div
+                key={leader.name}
+                {...springIn}
+                transition={springInDelay(index * 0.12)}
+                className="rounded-3xl border border-border bg-card p-8 shadow-lg flex flex-col justify-between relative overflow-hidden"
+              >
+                <div>
+                  <div className="flex items-start gap-5 mb-6">
+                    <div className="relative shrink-0">
+                      <div className="h-20 w-20 rounded-2xl overflow-hidden border-2 border-primary/20 shadow-md">
+                        <img
+                          src={leader.image}
+                          alt={leader.name}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="absolute -bottom-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white shadow">
+                        <Briefcase className="h-3.5 w-3.5" />
+                      </div>
                     </div>
-                    <Quote className="h-7 w-7 shrink-0 text-accent" />
+                    <div>
+                      <h3 className="font-bengali text-xl font-bold text-foreground">
+                        {leader.name}
+                      </h3>
+                      <p className="font-bengali font-semibold text-sm text-primary">
+                        {leader.role}
+                      </p>
+                      <p className="font-bengali text-xs text-muted-foreground mt-0.5">
+                        {leader.qualification}
+                      </p>
+                      <span className="inline-block mt-2 rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-foreground/80 font-bengali">
+                        {leader.experience}
+                      </span>
+                    </div>
                   </div>
-                  <p className="font-bengali italic leading-relaxed text-muted-foreground">{leader.quote}</p>
+
+                  <div className="rounded-2xl bg-muted/50 p-4 border border-border/60 mb-6">
+                    <p className="font-bengali italic text-sm leading-relaxed text-foreground/90">
+                      "{leader.quote}"
+                    </p>
+                  </div>
                 </div>
-                <div className="mt-4 border-t border-border pt-4">
-                  <h3 className="font-bengali text-xl font-bold text-foreground">{leader.name}</h3>
-                  <p className="font-bengali font-medium text-accent">{leader.role}</p>
-                  <p className="mt-1 font-bengali text-sm text-muted-foreground">{leader.phone}</p>
+
+                <div className="border-t border-border pt-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Phone className="h-3.5 w-3.5 text-primary" />
+                    <span className="font-mono text-foreground font-semibold">{leader.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Mail className="h-3.5 w-3.5 text-primary" />
+                    <span className="font-mono text-xs">{leader.email}</span>
+                  </div>
                 </div>
               </motion.div>
             ))}
           </div>
+
+          <div className="mt-10 text-center">
+            <Link to="/teachers">
+              <Button variant="outline" size="lg" className="rounded-full px-8 font-bengali font-bold gap-2">
+                <span>{t("আমাদের সকল শিক্ষক ও স্টাফ তালিকা দেখুন", "Meet All Faculty & Teachers")}</span>
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
-      <section className="py-20">
-        <div className="container mx-auto max-w-3xl px-4">
-          <motion.h2
-            {...springIn}
-            className="mb-12 text-center font-bengali font-bold text-foreground"
-            style={{ fontSize: "clamp(2.25rem, 5vw, 3rem)" }}
-          >
-            {t("আমাদের যাত্রা", "Our Journey")}
-          </motion.h2>
+      {/* ================= HISTORICAL MILESTONES (TIMELINE) ================= */}
+      <section className="py-16 md:py-24 bg-muted/40 border-y border-border">
+        <div className="container mx-auto max-w-4xl px-4">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <Badge variant="outline" className="mb-3 px-3.5 py-1 text-xs font-semibold text-primary border-primary/30 uppercase tracking-wider">
+              {t("আমাদের পথচলা", "Our Journey")}
+            </Badge>
+            <h2 className="font-bengali font-extrabold text-3xl sm:text-4xl text-foreground">
+              {t("২০১৩ থেকে আজকের সফলতার ঐতিহাসিক মাইলফলক", "Milestones from 2013 to Present Day")}
+            </h2>
+          </div>
+
           <div className="relative">
-            <div className="absolute left-6 top-0 h-full w-1.5 -translate-x-1/2 rounded-full bg-emerald-800/70 md:left-1/2" />
-            <div className="space-y-12">
+            {/* Center Line */}
+            <div className="absolute left-6 top-0 h-full w-1 -translate-x-1/2 rounded-full bg-primary/30 md:left-1/2" />
+
+            <div className="space-y-10">
               {milestones.map((item, index) => (
-                <motion.div key={`${item.year}-${item.title}`} {...springIn} transition={springInDelay(index * 0.1)} className={`relative flex items-center gap-6 ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
-                  <div className="absolute left-6 z-10 flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full border-4 border-emerald-800 bg-white text-sm font-bold text-emerald-800 md:left-1/2">
-                    {item.year}
+                <motion.div
+                  key={index}
+                  {...springIn}
+                  transition={springInDelay(index * 0.08)}
+                  className={`relative flex items-center gap-6 ${
+                    index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
+                  }`}
+                >
+                  {/* Badge Marker */}
+                  <div className="absolute left-6 z-10 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-2xl border-4 border-background bg-primary text-primary-foreground font-mono text-xs sm:text-sm font-bold shadow-lg md:left-1/2">
+                    {lang === "bn" ? item.year : item.yearEn}
                   </div>
-                  <div className={`ml-16 md:ml-0 md:w-1/2 ${index % 2 === 0 ? "md:pr-12 md:text-right" : "md:pl-12"}`}>
-                    <div className="card-institutional p-6">
-                      <h3 className="font-bengali text-lg font-bold text-foreground">{item.title}</h3>
-                      <p className="mt-1 font-bengali text-sm text-muted-foreground">{item.desc}</p>
+
+                  {/* Content Card */}
+                  <div
+                    className={`ml-16 md:ml-0 md:w-1/2 ${
+                      index % 2 === 0 ? "md:pr-12 md:text-right" : "md:pl-12"
+                    }`}
+                  >
+                    <div className="rounded-3xl border border-border bg-card p-6 shadow-sm hover:shadow-md transition-all">
+                      <span className="inline-block rounded-full bg-primary/10 px-3 py-0.5 text-xs font-bold text-primary mb-2 font-bengali">
+                        {item.tag}
+                      </span>
+                      <h3 className="font-bengali text-lg font-bold text-foreground">
+                        {item.title}
+                      </h3>
+                      <p className="mt-2 font-bengali text-sm text-muted-foreground leading-relaxed">
+                        {item.desc}
+                      </p>
                     </div>
                   </div>
                 </motion.div>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= FINAL CALL TO ACTION ================= */}
+      <section className="py-20">
+        <div className="container mx-auto max-w-5xl px-4">
+          <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-primary via-primary/95 to-emerald-900 text-primary-foreground p-8 sm:p-14 text-center shadow-2xl">
+            <div className="relative z-10 max-w-3xl mx-auto space-y-6">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs sm:text-sm font-semibold tracking-wide text-white backdrop-blur-md">
+                <Sparkles className="h-4 w-4 text-amber-300" />
+                <span>{t("নতুন শিক্ষাবর্ষে সীমিত আসনে ভর্তি চলছে", "Admissions Open for New Academic Session")}</span>
+              </span>
+
+              <h2 className="font-bengali font-extrabold text-3xl sm:text-5xl text-white tracking-tight leading-tight">
+                {t(
+                  "আপনার প্রিয় সন্তানের উজ্জ্বল দ্বীনি ও আধুনিক ভবিষ্যৎ গড়ুন",
+                  "Build a Bright Islamic & Academic Future for Your Child",
+                )}
+              </h2>
+
+              <p className="font-bengali text-base sm:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
+                {t(
+                  "সহীহ কুরআন তেলাওয়াত, চরিত্র গঠন ও আধুনিক সাধারণ শিক্ষার অপূর্ব সমন্বয়ে আননূর শিক্ষা পরিবারে এখনই যোগাযোগ অথবা অনলাইনে ভর্তি আবেদন করুন।",
+                  "Connect with Annoor Education Family or apply online today to ensure your child's moral, spiritual, and intellectual excellence.",
+                )}
+              </p>
+
+              <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+                <Link to="/admission">
+                  <Button size="lg" className="rounded-full bg-accent hover:bg-accent/90 text-accent-foreground font-bengali font-bold px-8 shadow-xl gap-2">
+                    <GraduationCap className="h-5 w-5" />
+                    <span>{t("অনলাইন ভর্তি আবেদন", "Online Admission")}</span>
+                  </Button>
+                </Link>
+                <Link to="/downloads">
+                  <Button size="lg" variant="outline" className="rounded-full border-white/30 bg-white/10 hover:bg-white/20 text-white font-bengali font-semibold px-7 backdrop-blur-sm gap-2">
+                    <Layers className="h-5 w-5" />
+                    <span>{t("সিলেবাস ও প্রসপেক্টাস", "Syllabus & Routine")}</span>
+                  </Button>
+                </Link>
+                <Link to="/contact">
+                  <Button size="lg" variant="ghost" className="rounded-full text-white hover:bg-white/10 font-bengali px-6 gap-2">
+                    <Phone className="h-4 w-4" />
+                    <span>{t("সরাসরি ক্যাম্পাস যোগাযোগ", "Campus Contact")}</span>
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>

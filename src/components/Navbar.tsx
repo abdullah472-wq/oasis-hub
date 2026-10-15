@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown } from "lucide-react";
 import LanguageToggle from "./LanguageToggle";
-import UpdateAlertsManager from "./UpdateAlertsManager";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const siteLogo = "/site-logo.png";
@@ -21,6 +20,7 @@ const Navbar = () => {
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
+  const isHomePage = location.pathname === "/";
 
   const mainLinks = [
     { to: "/about", label: t("আমাদের সম্পর্কে", "About") },
@@ -47,6 +47,10 @@ const Navbar = () => {
   ];
 
   const academicLinks = [
+    { to: "/curriculum", label: t("আমাদের শিক্ষা কারিকুলাম", "Our Curriculum") },
+    { to: "/downloads", label: t("ডাউনলোড কর্নার (সিলেবাস ও রুটিন)", "Download Corner (Syllabus & Routine)") },
+    { to: "/teachers", label: t("শিক্ষক ও পরিচালকমণ্ডলী", "Teachers & Staff") },
+    { to: "/huffaz", label: t("কৃতি হাফেজদের তালিকা", "Wall of Huffaz") },
     { to: "/achievements", label: t("আমাদের অর্জন", "Our Achievements") },
     { to: "/notices", label: t("নোটিশ বোর্ড", "Notice") },
     { to: "/gallery", label: t("গ্যালারি", "Gallery") },
@@ -88,17 +92,39 @@ const Navbar = () => {
 
   if (!ENABLE_EXPERIMENTAL_NAVBAR) {
     return (
-      <nav className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-lg">
+      <nav
+        className={`sticky top-0 z-40 transition-all duration-300 ${
+          isHomePage && !isCompact
+            ? "border-transparent bg-transparent"
+            : "border-b border-border bg-card/80 backdrop-blur-lg"
+        }`}
+      >
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
           <Link to="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary">
+            <div
+              className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full transition-colors ${
+                isHomePage && !isCompact
+                  ? "border border-white/30 bg-white/15 backdrop-blur-md"
+                  : "bg-primary"
+              }`}
+            >
               <img src={siteLogo} alt="Annoor Education Family logo" className="h-full w-full object-contain" sizes="40px" decoding="async" />
             </div>
             <div>
-              <h1 className="text-lg font-display font-bold leading-tight text-foreground">
+              <h1
+                className={`text-lg font-display font-bold leading-tight transition-colors ${
+                  isHomePage && !isCompact ? "text-white drop-shadow-md" : "text-foreground"
+                }`}
+              >
                 {t("আননূর শিক্ষা পরিবার", "Annoor Education Family")}
               </h1>
-              <p className="text-xs font-display text-muted-foreground">EMIS Code: 307030265</p>
+              <p
+                className={`text-xs font-display transition-colors ${
+                  isHomePage && !isCompact ? "text-white/85 drop-shadow-sm" : "text-muted-foreground"
+                }`}
+              >
+                EMIS Code: 307030265
+              </p>
             </div>
           </Link>
 
@@ -198,12 +224,10 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
 
-            <UpdateAlertsManager className="h-10 w-10" />
             <LanguageToggle />
           </div>
 
           <div className="flex items-center gap-3">
-            <UpdateAlertsManager className="h-10 w-10 lg:hidden" />
             <button onClick={() => setIsOpen(!isOpen)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-foreground lg:hidden">
               {isOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -332,30 +356,59 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-primary/10 backdrop-blur-md">
+    <nav
+      className={`sticky top-0 z-40 transition-all duration-300 ${
+        isHomePage && !isCompact
+          ? "border-transparent bg-transparent"
+          : "border-b border-border/70 bg-card/90 backdrop-blur-xl shadow-sm"
+      }`}
+    >
       <div className="container mx-auto px-4 pb-3 pt-4">
         <div className="flex items-center justify-between lg:hidden">
           <Link to="/" className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-primary/20 bg-primary/5 shadow-sm">
+            <div
+              className={`flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border shadow-sm transition-colors ${
+                isHomePage && !isCompact
+                  ? "border-white/30 bg-white/15 backdrop-blur-md"
+                  : "border-primary/20 bg-primary/5"
+              }`}
+            >
               <img src={siteLogo} alt="Annoor Education Family logo" className="h-full w-full object-contain p-1" decoding="async" />
             </div>
             <div>
-              <h1 className="font-display text-lg font-bold leading-tight text-foreground sm:text-xl">
+              <h1
+                className={`font-display text-lg font-bold leading-tight sm:text-xl transition-colors ${
+                  isHomePage && !isCompact ? "text-white drop-shadow-md" : "text-foreground"
+                }`}
+              >
                 {t("আননূর শিক্ষা পরিবার", "Annoor Education Family")}
               </h1>
-              <p className="text-xs text-muted-foreground">EMIS Code: 307030265</p>
+              <p
+                className={`text-xs transition-colors ${
+                  isHomePage && !isCompact ? "text-white/85 drop-shadow-sm" : "text-muted-foreground"
+                }`}
+              >
+                EMIS Code: 307030265
+              </p>
             </div>
           </Link>
 
           <div className="flex items-center gap-2">
-            <UpdateAlertsManager className="h-10 w-10" />
-            <button onClick={() => setIsOpen(!isOpen)} className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card/80 text-foreground shadow-sm">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className={`flex h-10 w-10 items-center justify-center rounded-full border shadow-sm transition-colors ${
+                isHomePage && !isCompact
+                  ? "border-white/30 bg-black/25 text-white backdrop-blur-md"
+                  : "border-border bg-card/80 text-foreground"
+              }`}
+            >
               {isOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
 
         <div className="hidden lg:block">
+          {/* Logo and Institution Title */}
           <motion.div
             initial={false}
             animate={{
@@ -367,20 +420,43 @@ const Navbar = () => {
           >
             <div className="flex justify-center">
               <Link to="/" className="group flex flex-col items-center text-center">
-                <div className="relative flex h-24 w-24 items-center justify-center rounded-full border border-primary/15 bg-gradient-to-br from-primary/10 via-background to-primary/5 shadow-[0_18px_40px_rgba(12,74,62,0.12)] transition-transform duration-300 group-hover:scale-[1.02]">
-                  <div className="absolute inset-2 rounded-full border border-primary/10" />
+                <div
+                  className={`relative flex h-24 w-24 items-center justify-center rounded-full border shadow-[0_18px_40px_rgba(0,0,0,0.25)] transition-transform duration-300 group-hover:scale-[1.02] ${
+                    isHomePage && !isCompact
+                      ? "border-white/35 bg-white/15 backdrop-blur-md ring-2 ring-white/20"
+                      : "border-primary/15 bg-gradient-to-br from-primary/10 via-background to-primary/5 shadow-[0_18px_40px_rgba(12,74,62,0.12)]"
+                  }`}
+                >
+                  <div className="absolute inset-2 rounded-full border border-white/20" />
                   <img src={siteLogo} alt="Annoor Education Family logo" className="relative h-full w-full object-contain p-2" decoding="async" />
                 </div>
-                <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground">
+                <h1
+                  className={`mt-3 font-display text-3xl font-bold tracking-tight transition-colors ${
+                    isHomePage && !isCompact ? "text-white drop-shadow-lg" : "text-foreground"
+                  }`}
+                >
                   {t("আননূর শিক্ষা পরিবার", "Annoor Education Family")}
                 </h1>
-                <p className="mt-1 text-sm text-muted-foreground">EMIS Code: 307030265</p>
+                <p
+                  className={`mt-1 text-sm transition-colors ${
+                    isHomePage && !isCompact ? "text-white/85 drop-shadow-sm" : "text-muted-foreground"
+                  }`}
+                >
+                  EMIS Code: 307030265
+                </p>
               </Link>
             </div>
           </motion.div>
 
+          {/* Navigation Menu Bar - Placed below the institution name */}
           <div className={`relative ${isCompact ? "mt-0" : "mt-5"} flex justify-center`}>
-            <div className="flex items-center gap-3 rounded-full border border-white/55 px-3 py-2 shadow-[0_20px_45px_rgba(15,23,42,0.12)] ring-1 ring-primary/5 backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/60">
+            <div
+              className={`flex items-center gap-3 rounded-full border px-3 py-2 shadow-[0_20px_45px_rgba(15,23,42,0.18)] ring-1 backdrop-blur-xl transition-all duration-300 ${
+                isHomePage && !isCompact
+                  ? "border-white/40 bg-white/95 text-foreground ring-black/5"
+                  : "border-white/55 bg-card/90 ring-primary/5 dark:border-white/10 dark:bg-slate-900/60"
+              }`}
+            >
               {isCompact && (
                 <>
                   <div className="hidden xl:flex items-center gap-3 pl-1">
@@ -517,7 +593,6 @@ const Navbar = () => {
               </div>
 
               <div className="mx-2 h-8 w-px bg-border/70" />
-              <UpdateAlertsManager className="h-10 w-10" />
               <LanguageToggle />
             </div>
           </div>

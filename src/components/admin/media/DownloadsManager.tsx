@@ -7,14 +7,22 @@ import {
   Pencil,
   Trash2,
   RotateCw,
-  Download,
   Eye,
   EyeOff,
+  BookOpen,
+  Clock,
+  Calendar,
+  Layers,
+  FileDown,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase, logAdminActivity } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { DownloadItem } from "@/types/cms";
+import {
+  getDownloadsList,
+  saveDownloadItem,
+  deleteDownloadItem,
+} from "@/lib/downloadsService";
 import { DownloadFormDialog } from "./DownloadFormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +52,7 @@ export const DownloadsManager = () => {
   const [downloads, setDownloads] = useState<DownloadItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedDownload, setSelectedDownload] = useState<DownloadItem | null>(null);
@@ -52,14 +61,8 @@ export const DownloadsManager = () => {
   const fetchDownloads = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("downloads")
-        .select("*")
-        .order("order_index", { ascending: true })
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setDownloads((data as DownloadItem[]) || []);
+      const data = await getDownloadsList();
+      setDownloads(data);
     } catch (err: any) {
       console.error("Error fetching downloads:", err);
       toast.error(t("রিসোর্স তালিকা লোড করতে সমস্যা হয়েছে", "Failed to load downloads"));
@@ -75,21 +78,13 @@ export const DownloadsManager = () => {
   const handleToggleActive = async (item: DownloadItem) => {
     try {
       const updatedStatus = !item.is_active;
-      const { error } = await supabase
-        .from("downloads")
-        .update({ is_active: updatedStatus, updated_at: new Date().toISOString() })
-        .eq("id", item.id);
-
-      if (error) throw error;
+      await saveDownloadItem({
+        ...item,
+        is_active: updatedStatus,
+      });
 
       setDownloads((prev) =>
         prev.map((d) => (d.id === item.id ? { ...d, is_active: updatedStatus } : d))
-      );
-
-      await logAdminActivity(
-        "UPDATE",
-        "downloads",
-        `ডাউনলোড স্ট্যাটাস পরিবর্তন: "${item.title_bn}" -> ${updatedStatus ? "Active" : "Inactive"}`
       );
 
       toast.success(
@@ -107,19 +102,7 @@ export const DownloadsManager = () => {
     if (!deletingDownload) return;
 
     try {
-      const { error } = await supabase
-        .from("downloads")
-        .delete()
-        .eq("id", deletingDownload.id);
-
-      if (error) throw error;
-
-      await logAdminActivity(
-        "DELETE",
-        "downloads",
-        `ডাউনলোড ফাইল মুছে ফেলা: "${deletingDownload.title_bn}"`
-      );
-
+      await deleteDownloadItem(deletingDownload.id);
       toast.success(t("ফাইল সফলভাবে মুছে ফেলা হয়েছে", "Resource deleted successfully"));
       setDownloads((prev) => prev.filter((d) => d.id !== deletingDownload.id));
       setDeletingDownload(null);
@@ -129,8 +112,55 @@ export const DownloadsManager = () => {
     }
   };
 
+  const categoryFilterOptions = [
+    { id: "all", labelBn: "সবগুলো", labelEn: "All" },
+    { id: "syllabus", labelBn: "সিলেবাস", labelEn: "Syllabus" },
+    { id: "routine", labelBn: "রুটিন", labelEn: "Routine" },
+    { id: "admission", labelBn: "ভর্তি", labelEn: "Admission" },
+    { id: "calendar", labelBn: "ক্যালেন্ডার", labelEn: "Calendar" },
+    { id: "other", labelBn: "অন্যান্য", labelEn: "Other" },
+  ];
+
+  const getCategoryBadge = (category?: string) => {
+    switch (category) {
+      case "syllabus":
+        return (
+          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[11px]">
+            {t("সিলেবাস", "Syllabus")}
+          </Badge>
+        );
+      case "routine":
+        return (
+          <Badge variant="outline" className="bg-sky-50 text-sky-700 border-sky-200 text-[11px]">
+            {t("রুটিন", "Routine")}
+          </Badge>
+        );
+      case "admission":
+        return (
+          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-[11px]">
+            {t("ভর্তি তথ্য", "Admission")}
+          </Badge>
+        );
+      case "calendar":
+        return (
+          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[11px]">
+            {t("ক্যালেন্ডার", "Calendar")}
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-[11px]">
+            {t("সাধারণ", "General")}
+          </Badge>
+        );
+    }
+  };
+
   const filteredDownloads = useMemo(() => {
     return downloads.filter((item) => {
+      if (selectedCategory !== "all" && (item.category || "syllabus") !== selectedCategory) {
+        return false;
+      }
       const matchesSearch =
         !searchQuery.trim() ||
         item.title_bn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -139,43 +169,76 @@ export const DownloadsManager = () => {
 
       return matchesSearch;
     });
-  }, [downloads, searchQuery]);
+  }, [downloads, searchQuery, selectedCategory]);
 
   return (
     <div className="space-y-6">
       {/* Controls Bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border/60 bg-card p-4 shadow-xs">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder={t("রিসোর্স বা ফাইল খুঁজুন...", "Search downloads...")}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
+      <div className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card p-4 shadow-xs">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder={t("রিসোর্স বা ফাইল খুঁজুন...", "Search downloads...")}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <a
+              href="/downloads"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-md border border-border/70 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              <span>{t("পাবলিক ভিউ দেখুন", "View Public Page")}</span>
+            </a>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={fetchDownloads}
+              disabled={loading}
+              title={t("রিফ্রেশ", "Refresh")}
+            >
+              <RotateCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            </Button>
+
+            <Button
+              onClick={() => {
+                setSelectedDownload(null);
+                setIsFormOpen(true);
+              }}
+              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+            >
+              <Plus className="h-4 w-4" />
+              <span>{t("ফাইল যোগ করুন", "Add File")}</span>
+            </Button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={fetchDownloads}
-            disabled={loading}
-            title={t("রিফ্রেশ", "Refresh")}
-          >
-            <RotateCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          </Button>
-
-          <Button
-            onClick={() => {
-              setSelectedDownload(null);
-              setIsFormOpen(true);
-            }}
-            className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
-          >
-            <Plus className="h-4 w-4" />
-            <span>{t("ফাইল যোগ করুন", "Add File")}</span>
-          </Button>
+        {/* Category Filter Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 border-t border-border/40">
+          <span className="text-xs font-medium text-muted-foreground mr-1 flex items-center gap-1">
+            <Layers className="h-3.5 w-3.5" />
+            {t("ফিল্টার:", "Filter:")}
+          </span>
+          {categoryFilterOptions.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                selectedCategory === cat.id
+                  ? "bg-emerald-600 text-white shadow-xs"
+                  : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              {t(cat.labelBn, cat.labelEn)}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -184,12 +247,12 @@ export const DownloadsManager = () => {
         <Table>
           <TableHeader className="bg-muted/40">
             <TableRow>
-              <TableHead className="w-[80px]">{t("ধরন", "Type")}</TableHead>
-              <TableHead>{t("ফাইলের শিরোনাম", "Title")}</TableHead>
-              <TableHead className="w-[120px]">{t("ফাইলের সাইজ", "File Size")}</TableHead>
-              <TableHead className="w-[120px] text-center">{t("ডাউনলোড", "Downloads")}</TableHead>
+              <TableHead className="w-[70px]">{t("ধরন", "Type")}</TableHead>
+              <TableHead>{t("ফাইলের শিরোনাম ও বিভাগ", "Title & Category")}</TableHead>
+              <TableHead className="w-[110px]">{t("ফাইলের সাইজ", "File Size")}</TableHead>
+              <TableHead className="w-[100px] text-center">{t("ডাউনলোড", "Downloads")}</TableHead>
               <TableHead className="w-[120px] text-center">{t("স্ট্যাটাস", "Status")}</TableHead>
-              <TableHead className="w-[150px] text-right">{t("অ্যাকশন", "Actions")}</TableHead>
+              <TableHead className="w-[140px] text-right">{t("অ্যাকশন", "Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -220,8 +283,11 @@ export const DownloadsManager = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="space-y-0.5">
-                      <p className="font-semibold text-foreground text-sm">{item.title_bn}</p>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold text-foreground text-sm">{item.title_bn}</p>
+                        {getCategoryBadge(item.category)}
+                      </div>
                       {item.title_en && (
                         <p className="text-xs text-muted-foreground">{item.title_en}</p>
                       )}

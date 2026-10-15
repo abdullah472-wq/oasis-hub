@@ -13,6 +13,7 @@ import Footer from "@/components/Footer";
 import NoticeTicker from "@/components/NoticeTicker";
 import ScrollToTop from "@/components/ScrollToTop";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
+import AdmissionFloatingFAB from "@/components/admission/AdmissionFloatingFAB";
 
 // Public Pages
 import Index from "./pages/Index";
@@ -29,11 +30,21 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const News = lazy(() => import("./pages/News"));
 const Events = lazy(() => import("./pages/Events"));
 const AdmissionForm = lazy(() => import("./pages/AdmissionForm"));
+const Curriculum = lazy(() => import("./pages/Curriculum"));
+const Teachers = lazy(() => import("./pages/Teachers"));
+const Huffaz = lazy(() => import("./pages/Huffaz"));
+const Downloads = lazy(() => import("./pages/Downloads"));
 
 // Modular Supabase Single-Institution CMS Admin Pages
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminNotices = lazy(() => import("./pages/admin/AdminNotices"));
+const AdminCurriculum = lazy(() => import("./pages/admin/AdminCurriculum"));
+const AdminTeachers = lazy(() => import("./pages/admin/AdminTeachers"));
+const AdminHuffaz = lazy(() => import("./pages/admin/AdminHuffaz"));
+const AdminAdmissionInfo = lazy(() => import("./pages/admin/AdminAdmissionInfo"));
+const AdminAdmissions = lazy(() => import("./pages/admin/AdminAdmissions"));
+const AdminDownloads = lazy(() => import("./pages/admin/AdminDownloads"));
 const AdminNews = lazy(() => import("./pages/admin/AdminNews"));
 const AdminMedia = lazy(() => import("./pages/admin/AdminMedia"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
@@ -87,6 +98,10 @@ const AppShell = () => {
               <Route path="/media" element={<MediaCenter />} />
               <Route path="/news" element={<News />} />
               <Route path="/events" element={<Events />} />
+              <Route path="/curriculum" element={<Curriculum />} />
+              <Route path="/downloads" element={<Downloads />} />
+              <Route path="/teachers" element={<Teachers />} />
+              <Route path="/huffaz" element={<Huffaz />} />
               <Route path="/admission-form" element={<AdmissionForm />} />
               <Route path="/contact" element={<Contact />} />
 
@@ -95,6 +110,12 @@ const AppShell = () => {
               <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/notices" element={<AdminNotices />} />
+              <Route path="/admin/curriculum" element={<AdminCurriculum />} />
+              <Route path="/admin/downloads" element={<AdminDownloads />} />
+              <Route path="/admin/teachers" element={<AdminTeachers />} />
+              <Route path="/admin/huffaz" element={<AdminHuffaz />} />
+              <Route path="/admin/admission-info" element={<AdminAdmissionInfo />} />
+              <Route path="/admin/admissions" element={<AdminAdmissions />} />
               <Route path="/admin/news" element={<AdminNews />} />
               <Route path="/admin/media" element={<AdminMedia />} />
               <Route path="/admin/events" element={<AdminEvents />} />
@@ -110,7 +131,12 @@ const AppShell = () => {
         </ErrorBoundary>
       </main>
       {!isPortalRoute && <Footer />}
-      {!isPortalRoute && <WhatsAppFAB />}
+      {!isPortalRoute && (
+        <>
+          <AdmissionFloatingFAB />
+          <WhatsAppFAB />
+        </>
+      )}
     </>
   );
 };

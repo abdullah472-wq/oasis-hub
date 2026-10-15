@@ -12,9 +12,12 @@ import {
   Maximize2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase, logAdminActivity } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { GalleryItem, GalleryCategory } from "@/types/cms";
+import {
+  getGalleryList,
+  deleteGalleryItem,
+} from "@/lib/galleryService";
 import { GalleryFormDialog } from "./GalleryFormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,14 +63,8 @@ export const GalleryManager = () => {
   const fetchGalleryItems = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("gallery_items")
-        .select("*")
-        .order("order_index", { ascending: true })
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setItems((data as GalleryItem[]) || []);
+      const data = await getGalleryList();
+      setItems(data);
     } catch (err: any) {
       console.error("Error fetching gallery items:", err);
       toast.error(t("গ্যালারি লোড করতে সমস্যা হয়েছে", "Failed to load gallery"));
@@ -91,19 +88,7 @@ export const GalleryManager = () => {
     if (!deletingItem) return;
 
     try {
-      const { error } = await supabase
-        .from("gallery_items")
-        .delete()
-        .eq("id", deletingItem.id);
-
-      if (error) throw error;
-
-      await logAdminActivity(
-        "DELETE",
-        "gallery_items",
-        `গ্যালারি ছবি মুছে ফেলা: "${deletingItem.title_bn}"`
-      );
-
+      await deleteGalleryItem(deletingItem.id);
       toast.success(t("ছবি সফলভাবে মুছে ফেলা হয়েছে", "Image deleted successfully"));
       setItems((prev) => prev.filter((i) => i.id !== deletingItem.id));
       setDeletingItem(null);
@@ -171,7 +156,17 @@ export const GalleryManager = () => {
           </Select>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <a
+            href="/gallery"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-md border border-border/70 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            <span>{t("পাবলিক গ্যালারি দেখুন", "View Public Gallery")}</span>
+          </a>
+
           <Button
             variant="outline"
             size="icon"

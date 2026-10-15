@@ -11,6 +11,12 @@ import {
   X,
   CalendarDays,
   Newspaper,
+  BookOpen,
+  CreditCard,
+  Users,
+  Crown,
+  FileDown,
+  UserCheck,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -35,6 +41,48 @@ export const adminNavItems = [
     titleEn: "Notice Management",
     path: "/admin/notices",
     icon: BellRing,
+    badge: null,
+  },
+  {
+    titleBn: "শিক্ষা কারিকুলাম",
+    titleEn: "Curriculum",
+    path: "/admin/curriculum",
+    icon: BookOpen,
+    badge: null,
+  },
+  {
+    titleBn: "ডাউনলোড কর্নার",
+    titleEn: "Download Corner",
+    path: "/admin/downloads",
+    icon: FileDown,
+    badge: null,
+  },
+  {
+    titleBn: "শিক্ষক ও স্টাফ",
+    titleEn: "Teachers & Staff",
+    path: "/admin/teachers",
+    icon: Users,
+    badge: null,
+  },
+  {
+    titleBn: "কৃতি হাফেজ তালিকা",
+    titleEn: "Wall of Huffaz",
+    path: "/admin/huffaz",
+    icon: Crown,
+    badge: null,
+  },
+  {
+    titleBn: "অনলাইন ভর্তি আবেদন",
+    titleEn: "Online Admissions",
+    path: "/admin/admissions",
+    icon: UserCheck,
+    badge: "নতুন",
+  },
+  {
+    titleBn: "ফি ও ভর্তি তথ্য",
+    titleEn: "Fees & Admission",
+    path: "/admin/admission-info",
+    icon: CreditCard,
     badge: null,
   },
   {

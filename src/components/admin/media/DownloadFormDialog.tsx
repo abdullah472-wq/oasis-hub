@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Loader2, UploadCloud, FileText, X } from "lucide-react";
 import { toast } from "sonner";
-import { supabase, uploadCmsFile, logAdminActivity } from "@/lib/supabase/client";
+import { uploadCmsFile } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { DownloadItem } from "@/types/cms";
+import { saveDownloadItem } from "@/lib/downloadsService";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DownloadFormDialogProps {
   isOpen: boolean;
@@ -41,6 +49,7 @@ export const DownloadFormDialog = ({
     title_en: "",
     description_bn: "",
     description_en: "",
+    category: "syllabus" as "syllabus" | "routine" | "admission" | "calendar" | "other",
     file_url: "",
     file_size_label: "",
     file_type: "PDF",
@@ -61,6 +70,7 @@ export const DownloadFormDialog = ({
         title_en: itemToEdit.title_en || "",
         description_bn: itemToEdit.description_bn || "",
         description_en: itemToEdit.description_en || "",
+        category: (itemToEdit.category || "syllabus") as "syllabus" | "routine" | "admission" | "calendar" | "other",
         file_url: itemToEdit.file_url,
         file_size_label: itemToEdit.file_size_label || "",
         file_type: itemToEdit.file_type || "PDF",
@@ -73,6 +83,7 @@ export const DownloadFormDialog = ({
         title_en: "",
         description_bn: "",
         description_en: "",
+        category: "syllabus",
         file_url: "",
         file_size_label: "",
         file_type: "PDF",
@@ -130,42 +141,24 @@ export const DownloadFormDialog = ({
         title_en: formData.title_en.trim() || null,
         description_bn: formData.description_bn.trim() || null,
         description_en: formData.description_en.trim() || null,
+        category: formData.category,
         file_url: finalFileUrl,
         file_size_label: finalFileSize || null,
         file_type: finalFileType || "PDF",
         is_active: formData.is_active,
         order_index: Number(formData.order_index) || 0,
-        updated_at: new Date().toISOString(),
       };
 
-      if (itemToEdit) {
-        const { error } = await supabase
-          .from("downloads")
-          .update(payload)
-          .eq("id", itemToEdit.id);
+      await saveDownloadItem({
+        ...(itemToEdit?.id ? { id: itemToEdit.id } : {}),
+        ...payload,
+      });
 
-        if (error) throw error;
-
-        await logAdminActivity(
-          "UPDATE",
-          "downloads",
-          `ডাউনলোড রিসোর্স আপডেট: "${payload.title_bn}"`
-        );
-        toast.success(t("রিসোর্স সফলভাবে আপডেট করা হয়েছে", "Resource updated successfully"));
-      } else {
-        const { error } = await supabase
-          .from("downloads")
-          .insert([payload]);
-
-        if (error) throw error;
-
-        await logAdminActivity(
-          "CREATE",
-          "downloads",
-          `নতুন ডাউনলোড ফাইল আপলোড: "${payload.title_bn}"`
-        );
-        toast.success(t("নতুন ফাইল সফলভাবে যোগ করা হয়েছে", "File added successfully"));
-      }
+      toast.success(
+        itemToEdit
+          ? t("রিসোর্স সফলভাবে আপডেট করা হয়েছে", "Resource updated successfully")
+          : t("নতুন ফাইল সফলভাবে যোগ করা হয়েছে", "File added successfully")
+      );
 
       onSuccess();
       onClose();
@@ -254,6 +247,26 @@ export const DownloadFormDialog = ({
                 />
               </div>
             )}
+          </div>
+
+          {/* Category Selection */}
+          <div className="space-y-1.5">
+            <Label className="font-semibold">{t("ক্যাটাগরি / বিভাগ *", "Category *")}</Label>
+            <Select
+              value={formData.category}
+              onValueChange={(val: any) => setFormData({ ...formData, category: val })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("ক্যাটাগরি নির্বাচন করুন", "Select Category")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="syllabus">{t("বার্ষিক সিলেবাস (Syllabus)", "Annual Syllabus")}</SelectItem>
+                <SelectItem value="routine">{t("ক্লাস ও পরীক্ষার রুটিন (Routine)", "Class & Exam Routine")}</SelectItem>
+                <SelectItem value="admission">{t("ভর্তি ফরম ও প্রসপেক্টাস (Admission)", "Admission & Prospectus")}</SelectItem>
+                <SelectItem value="calendar">{t("ক্যালেন্ডার ও ছুটি (Calendar & Holidays)", "Academic Calendar")}</SelectItem>
+                <SelectItem value="other">{t("অন্যান্য প্রাতিষ্ঠানিক ফাইল (Other)", "Other Documents")}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Title BN */}

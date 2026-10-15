@@ -52,9 +52,12 @@ export interface GalleryItem {
   id: string;
   title_bn: string;
   title_en?: string | null;
+  caption_bn?: string | null;
+  caption_en?: string | null;
   image_url: string;
   thumbnail_url?: string | null;
   category: GalleryCategory;
+  date_label?: string | null;
   order_index: number;
   created_at: string;
 }
@@ -65,6 +68,7 @@ export interface DownloadItem {
   title_en?: string | null;
   description_bn?: string | null;
   description_en?: string | null;
+  category?: 'syllabus' | 'routine' | 'admission' | 'calendar' | 'other';
   file_url: string;
   file_size_label?: string | null;
   file_type?: string | null;
@@ -157,3 +161,107 @@ export interface ActivityLog {
   details: string;
   created_at: string;
 }
+
+export interface CurriculumProgram {
+  id: string;
+  department_bn: string;
+  department_en: string;
+  category: "nurani" | "nazara" | "hifz" | "general" | "tarbiya";
+  age_group_bn: string;
+  age_group_en: string;
+  duration_bn: string;
+  duration_en: string;
+  description_bn: string;
+  description_en: string;
+  subjects_bn: string[];
+  subjects_en: string[];
+  features_bn: string[];
+  features_en: string[];
+  order_index: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface FeeStructureItem {
+  id: string;
+  type_bn: string;
+  type_en: string;
+  amount_bn: string;
+  amount_en: string;
+  note_bn: string;
+  note_en: string;
+  category?: 'tuition' | 'admission' | 'exam' | 'other';
+  highlight?: boolean;
+  order_index: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AdmissionRuleItem {
+  id: string;
+  rule_bn: string;
+  rule_en: string;
+  type: 'rule' | 'document' | 'step';
+  is_required: boolean;
+  order_index: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type FacultyRoleCategory = 'management' | 'teacher' | 'staff';
+export type CampusType = 'boys' | 'girls' | 'both';
+
+export interface FacultyMember {
+  id: string;
+  name_bn: string;
+  name_en: string;
+  designation_bn: string;
+  designation_en: string;
+  category: FacultyRoleCategory;
+  campus: CampusType;
+  qualification_bn?: string;
+  qualification_en?: string;
+  subject_bn?: string;
+  subject_en?: string;
+  experience_bn?: string;
+  experience_en?: string;
+  image_url?: string;
+  phone?: string;
+  email?: string;
+  bio_bn?: string;
+  bio_en?: string;
+  order_index: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface HafezRecord {
+  id: string;
+  name_bn: string;
+  name_en: string;
+  father_name_bn?: string;
+  father_name_en?: string;
+  completion_year: string;
+  duration_bn?: string;
+  duration_en?: string;
+  age_at_completion?: string;
+  campus: 'boys' | 'girls';
+  teacher_name_bn?: string;
+  teacher_name_en?: string;
+  district_bn?: string;
+  district_en?: string;
+  award_title_bn?: string;
+  award_title_en?: string;
+  image_url?: string;
+  is_featured?: boolean;
+  order_index: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+
+

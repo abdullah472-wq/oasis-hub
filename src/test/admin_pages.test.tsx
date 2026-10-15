@@ -14,6 +14,13 @@ import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminEvents from "@/pages/admin/AdminEvents";
 import AdminNews from "@/pages/admin/AdminNews";
+import AdminCurriculum from "@/pages/admin/AdminCurriculum";
+import AdminDownloads from "@/pages/admin/AdminDownloads";
+import AdminTeachers from "@/pages/admin/AdminTeachers";
+import AdminHuffaz from "@/pages/admin/AdminHuffaz";
+import AdminAdmissionInfo from "@/pages/admin/AdminAdmissionInfo";
+import AdminAdmissions from "@/pages/admin/AdminAdmissions";
+import { AdmissionsManager } from "@/components/admin/admissions/AdmissionsManager";
 
 // Also test the layout and components
 import { AdminLayout } from "@/components/admin/layout/AdminLayout";
@@ -108,5 +115,31 @@ describe("Admin CMS Modules and Pages", () => {
 
   it("renders AdminSettings", () => {
     renderWithProviders(<AdminSettings />);
+  });
+
+  it("renders AdminCurriculum", () => {
+    renderWithProviders(<AdminCurriculum />);
+  });
+
+  it("renders AdminDownloads", () => {
+    renderWithProviders(<AdminDownloads />);
+  });
+
+  it("renders AdminTeachers", () => {
+    renderWithProviders(<AdminTeachers />);
+  });
+
+  it("renders AdminHuffaz", () => {
+    renderWithProviders(<AdminHuffaz />);
+  });
+
+  it("renders AdminAdmissionInfo", () => {
+    renderWithProviders(<AdminAdmissionInfo />);
+  });
+
+  it("renders AdminAdmissions and AdmissionsManager", () => {
+    expect(AdminAdmissions).toBeDefined();
+    expect(AdmissionsManager).toBeDefined();
+    renderWithProviders(<AdminAdmissions />);
   });
 });
