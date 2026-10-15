@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Lock, Mail, Loader2, ArrowLeft, Shield, Eye, EyeOff, Sparkles, KeyRound, CheckCircle2 } from "lucide-react";
+import { Lock, Mail, Loader2, ArrowLeft, Shield, Eye, EyeOff, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ export const AdminLogin = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("admin@gmail.com");
+  const [email, setEmail] = useState("abdullahalmamon472@gmail.com");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -38,20 +38,14 @@ export const AdminLogin = () => {
     } catch (err: unknown) {
       console.error("Login failed:", err);
       const message = err instanceof Error ? err.message : "লগইন ব্যর্থ হয়েছে। অনুগ্রহ করে ইমেইল ও পাসওয়ার্ড যাচাই করুন।";
-      if (message.includes("Invalid login credentials")) {
-        setError(t("ভুল ইমেইল বা পাসওয়ার্ড। পুনরায় চেষ্টা করুন।", "Invalid email or password. Please try again."));
+      if (message.includes("Invalid login credentials") || message.includes("invalid_credentials")) {
+        setError(t("ভুল ইমেইল বা পাসওয়ার্ড। অনুগ্রহ করে পুনরায় সঠিক তথ্য দিয়ে চেষ্টা করুন।", "Invalid email or password. Please try again."));
       } else {
         setError(message);
       }
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleUseMasterCredentials = () => {
-    setEmail("admin@gmail.com");
-    setPassword("oasis2026");
-    setError(null);
   };
 
   return (
@@ -145,18 +139,9 @@ export const AdminLogin = () => {
 
             {/* Password Field */}
             <div className="space-y-1.5 text-left">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="font-bengali text-xs font-semibold text-foreground">
-                  {t("পাসওয়ার্ড", "Password")}
-                </Label>
-                <button
-                  type="button"
-                  onClick={handleUseMasterCredentials}
-                  className="font-bengali text-[11px] font-medium text-primary hover:underline"
-                >
-                  {t("পাসওয়ার্ড সাহায্য?", "Password Help?")}
-                </button>
-              </div>
+              <Label htmlFor="password" className="font-bengali text-xs font-semibold text-foreground">
+                {t("পাসওয়ার্ড", "Password")}
+              </Label>
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors" />
                 <Input
@@ -180,30 +165,15 @@ export const AdminLogin = () => {
               </div>
             </div>
 
-            {/* Helper Master Key Pill */}
-            <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-3 text-left">
-              <div className="flex items-start gap-2.5">
-                <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <div className="text-xs">
-                  <p className="font-bengali font-semibold text-foreground">
-                    {t("মাস্টার অ্যাডমিন অ্যাক্সেস", "Master Admin Access")}
-                  </p>
-                  <p className="mt-0.5 font-bengali text-[11px] text-muted-foreground">
-                    {t(
-                      "মাস্টার পাসওয়ার্ড: oasis2026 (ইমেইল যেকোনো বৈধ ইমেইল যেমন admin@gmail.com ব্যবহার করলেই লগইন হবে)",
-                      "Master password: oasis2026 (Enter any email like admin@gmail.com to sign in directly)"
-                    )}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleUseMasterCredentials}
-                    className="mt-1.5 inline-flex items-center gap-1 font-bengali text-[11px] font-bold text-primary hover:underline"
-                  >
-                    <CheckCircle2 className="h-3 w-3" />
-                    {t("এক ক্লিকে অটো-ফিল করুন", "Auto-fill Credentials")}
-                  </button>
-                </div>
-              </div>
+            {/* Security Notice */}
+            <div className="flex items-center gap-2.5 rounded-2xl border border-border/60 bg-muted/30 p-3 text-left">
+              <Shield className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <p className="font-bengali text-[11px] leading-tight text-muted-foreground">
+                {t(
+                  "অননুমোদিত প্রবেশ দণ্ডনীয় অপরাধ। প্রতিটি অ্যাডমিন সেশন ও অ্যাক্টিভিটি ডাটাবেস অডিট লগে রেকর্ড করা হয়।",
+                  "Unauthorized access prohibited. All admin sessions and activities are recorded in audit logs."
+                )}
+              </p>
             </div>
 
             {/* Submit Button */}

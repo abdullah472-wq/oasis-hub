@@ -171,14 +171,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const createMasterAdminSession = (emailAddress: string) => {
-    const cleanEmail = emailAddress.trim().toLowerCase() || "admin@annoor.edu.bd";
+    const cleanEmail = emailAddress.trim().toLowerCase() || "abdullahalmamon472@gmail.com";
     const masterUser = {
-      id: "master-admin-" + (cleanEmail.split("@")[0] || "root"),
-      app_metadata: { provider: "master", role: "super_admin" },
-      user_metadata: { full_name: "সুপার অ্যাডমিন" },
+      id: "admin-abdullahalmamon472",
+      app_metadata: { provider: "supabase", role: "super_admin" },
+      user_metadata: { full_name: "মুফতি আব্দুল্লাহ আল মামুন" },
       aud: "authenticated",
       email: cleanEmail,
-      phone: "",
+      phone: "01312200043",
       created_at: new Date().toISOString(),
       confirmed_at: new Date().toISOString(),
       email_confirmed_at: new Date().toISOString(),
@@ -193,7 +193,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const masterProfile: Profile = {
       id: masterUser.id,
       email: cleanEmail,
-      full_name: "সুপার অ্যাডমিন",
+      full_name: "মুফতি আব্দুল্লাহ আল মামুন",
       role: "super_admin",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -214,13 +214,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // ignore
     }
 
-    void logAdminActivity("LOGIN", "auth", `Master admin logged in: ${cleanEmail}`);
+    void logAdminActivity("LOGIN", "auth", `Admin logged in: ${cleanEmail}`);
     return { user: masterUser, profile: masterProfile };
   };
 
   const login = async (email: string, password: string) => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPassword = password.trim();
+    const masterEmail = (import.meta.env.VITE_ADMIN_EMAIL || "abdullahalmamon472@gmail.com").trim().toLowerCase();
     const masterPassword = (import.meta.env.VITE_ADMIN_PASSWORD || "oasis2026").trim();
 
     try {
@@ -230,8 +231,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        // Fallback: If password matches master admin password, log in directly as Super Admin
-        if (cleanPassword === masterPassword) {
+        // Fallback: If credentials match the authorized admin, log in directly as Super Admin
+        if (cleanEmail === masterEmail && cleanPassword === masterPassword) {
           return createMasterAdminSession(cleanEmail);
         }
         throw error;
@@ -244,7 +245,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const userProfile = (await fetchProfile(data.user)) || {
         id: data.user.id,
         email: data.user.email || cleanEmail,
-        full_name: "সুপার অ্যাডমিন",
+        full_name: "মুফতি আব্দুল্লাহ আল মামুন",
         role: "super_admin" as UserRole,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -262,7 +263,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       return { user: data.user, profile: userProfile };
     } catch (err) {
-      if (cleanPassword === masterPassword) {
+      if (cleanEmail === masterEmail && cleanPassword === masterPassword) {
         return createMasterAdminSession(cleanEmail);
       }
       throw err;
