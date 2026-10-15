@@ -89,7 +89,8 @@ const Teachers = () => {
         const matchQual =
           item.qualification_bn?.toLowerCase().includes(q) ||
           item.qualification_en?.toLowerCase().includes(q);
-        if (!matchName && !matchDesig && !matchSubject && !matchQual) {
+        const matchId = item.teacher_id?.toLowerCase().includes(q);
+        if (!matchName && !matchDesig && !matchSubject && !matchQual && !matchId) {
           return false;
         }
       }
@@ -318,11 +319,18 @@ const Teachers = () => {
                             ? member.designation_bn
                             : member.designation_en || member.designation_bn}
                         </p>
-                        {member.experience_bn && (
-                          <span className="inline-block rounded-md bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground mt-1">
-                            {t(member.experience_bn, member.experience_en || member.experience_bn)}
-                          </span>
-                        )}
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                          {member.teacher_id && (
+                            <span className="font-mono text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md border border-primary/20">
+                              ID: {member.teacher_id}
+                            </span>
+                          )}
+                          {member.experience_bn && (
+                            <span className="inline-block rounded-md bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                              {t(member.experience_bn, member.experience_en || member.experience_bn)}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 

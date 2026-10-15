@@ -215,6 +215,9 @@ export type CampusType = 'boys' | 'girls' | 'both';
 
 export interface FacultyMember {
   id: string;
+  teacher_id?: string;
+  nid?: string;
+  joining_year?: string;
   name_bn: string;
   name_en: string;
   designation_bn: string;

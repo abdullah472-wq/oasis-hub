@@ -50,6 +50,9 @@ CREATE TABLE IF NOT EXISTS public.notices (
 -- ৫. Faculty Members Table (শিক্ষক ও পরিচালকমণ্ডলী)
 CREATE TABLE IF NOT EXISTS public.faculty_members (
   id TEXT PRIMARY KEY,
+  teacher_id TEXT,
+  nid TEXT,
+  joining_year TEXT,
   name_bn TEXT NOT NULL,
   name_en TEXT,
   designation_bn TEXT NOT NULL,

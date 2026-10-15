@@ -3,6 +3,25 @@ import type { FacultyMember, FacultyRoleCategory, CampusType } from "@/types/cms
 
 export type { FacultyMember, FacultyRoleCategory, CampusType };
 
+/**
+ * Auto-generates Teacher ID according to institutional formula:
+ * Format: AT-[YY]-[NID]
+ * A = Annoor, T = Tahfiz, YY = last two digits of join year, NID = National ID Card number
+ * Example: AT-24-1235468452
+ */
+export const generateTeacherId = (
+  joiningYear: string | number | undefined,
+  nid: string | undefined
+): string => {
+  const cleanNid = (nid || "").replace(/\D/g, "").trim();
+  const rawYear = String(joiningYear || new Date().getFullYear()).trim();
+  const shortYear = rawYear.length >= 2 ? rawYear.slice(-2) : rawYear.padStart(2, "0");
+  if (!cleanNid) {
+    return `AT-${shortYear}-...`;
+  }
+  return `AT-${shortYear}-${cleanNid}`;
+};
+
 const FACULTY_CACHE_KEY = "oasis_faculty_cache_v1";
 
 export const defaultFacultyList: FacultyMember[] = [
@@ -422,6 +441,11 @@ export async function getFacultyList(): Promise<FacultyMember[]> {
 
     const mapped: FacultyMember[] = data.map((item: any, idx: number) => ({
       id: item.id || `fac-${idx}`,
+      teacher_id:
+        item.teacher_id ||
+        (item.nid ? generateTeacherId(item.joining_year, item.nid) : undefined),
+      nid: item.nid || undefined,
+      joining_year: item.joining_year || undefined,
       name_bn: item.name_bn || "",
       name_en: item.name_en || "",
       designation_bn: item.designation_bn || "",
@@ -460,9 +484,16 @@ export async function saveFacultyMember(
   const isEditing = Boolean(item.id);
   const targetId = item.id || `fac-${Date.now()}`;
 
+  const computedTeacherId =
+    item.teacher_id?.trim() ||
+    (item.nid ? generateTeacherId(item.joining_year, item.nid) : undefined);
+
   const prepared: FacultyMember = {
     ...item,
     id: targetId,
+    teacher_id: computedTeacherId,
+    nid: item.nid?.trim() || undefined,
+    joining_year: item.joining_year?.trim() || undefined,
     order_index: item.order_index ?? (current.length + 1),
     is_active: item.is_active ?? true,
     updated_at: new Date().toISOString(),
@@ -474,6 +505,9 @@ export async function saveFacultyMember(
   try {
     await supabase.from("faculty_members").upsert({
       id: prepared.id,
+      teacher_id: prepared.teacher_id,
+      nid: prepared.nid,
+      joining_year: prepared.joining_year,
       name_bn: prepared.name_bn,
       name_en: prepared.name_en,
       designation_bn: prepared.designation_bn,

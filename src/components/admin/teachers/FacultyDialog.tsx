@@ -6,8 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { CreditCard, Hash, Sparkles } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { saveFacultyMember, type FacultyMember, type FacultyRoleCategory, type CampusType } from "@/lib/faculty";
+import {
+  saveFacultyMember,
+  generateTeacherId,
+  type FacultyMember,
+  type FacultyRoleCategory,
+  type CampusType,
+} from "@/lib/faculty";
 
 interface FacultyDialogProps {
   isOpen: boolean;
@@ -27,6 +34,9 @@ export const FacultyDialog = ({
 
   const [nameBn, setNameBn] = useState("");
   const [nameEn, setNameEn] = useState("");
+  const [nid, setNid] = useState("");
+  const [joiningYear, setJoiningYear] = useState(new Date().getFullYear().toString());
+  const [teacherId, setTeacherId] = useState("");
   const [designationBn, setDesignationBn] = useState("");
   const [designationEn, setDesignationEn] = useState("");
   const [category, setCategory] = useState<FacultyRoleCategory>("teacher");
@@ -47,6 +57,17 @@ export const FacultyDialog = ({
     if (facultyItem) {
       setNameBn(facultyItem.name_bn || "");
       setNameEn(facultyItem.name_en || "");
+      setNid(facultyItem.nid || "");
+      setJoiningYear(
+        facultyItem.joining_year ||
+          (facultyItem.created_at
+            ? new Date(facultyItem.created_at).getFullYear().toString()
+            : new Date().getFullYear().toString())
+      );
+      setTeacherId(
+        facultyItem.teacher_id ||
+          generateTeacherId(facultyItem.joining_year, facultyItem.nid)
+      );
       setDesignationBn(facultyItem.designation_bn || "");
       setDesignationEn(facultyItem.designation_en || "");
       setCategory(facultyItem.category || "teacher");
@@ -65,6 +86,9 @@ export const FacultyDialog = ({
     } else {
       setNameBn("");
       setNameEn("");
+      setNid("");
+      setJoiningYear(new Date().getFullYear().toString());
+      setTeacherId("");
       setDesignationBn("");
       setDesignationEn("");
       setCategory("teacher");
@@ -83,6 +107,13 @@ export const FacultyDialog = ({
     }
   }, [facultyItem, isOpen]);
 
+  // Keep teacher ID synchronized when NID or joining year changes
+  useEffect(() => {
+    if (nid || joiningYear) {
+      setTeacherId(generateTeacherId(joiningYear, nid));
+    }
+  }, [nid, joiningYear]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nameBn.trim() || !designationBn.trim()) {
@@ -90,10 +121,16 @@ export const FacultyDialog = ({
       return;
     }
 
+    const cleanNid = nid.replace(/\D/g, "").trim();
+    const computedTeacherId = teacherId.trim() || generateTeacherId(joiningYear, cleanNid);
+
     try {
       setLoading(true);
       await saveFacultyMember({
         id: facultyItem?.id,
+        teacher_id: computedTeacherId,
+        nid: cleanNid || undefined,
+        joining_year: joiningYear.trim() || undefined,
         name_bn: nameBn.trim(),
         name_en: nameEn.trim() || nameBn.trim(),
         designation_bn: designationBn.trim(),
@@ -163,6 +200,72 @@ export const FacultyDialog = ({
                 value={nameEn}
                 onChange={(e) => setNameEn(e.target.value)}
               />
+            </div>
+          </div>
+
+          {/* Teacher ID & NID Details Card */}
+          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-primary" />
+                <span className="font-semibold text-xs text-foreground">
+                  {t("জাতীয় পরিচয়পত্র ও শিক্ষক আইডি (Teacher ID)", "NID & Teacher ID Generator")}
+                </span>
+              </div>
+              <span className="font-mono text-[11px] font-bold text-primary bg-primary/15 border border-primary/30 px-2.5 py-0.5 rounded-lg shadow-xs">
+                {generateTeacherId(joiningYear, nid)}
+              </span>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3">
+              {/* NID Input */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold flex items-center justify-between">
+                  <span>{t("জাতীয় পরিচয়পত্র নম্বর (NID) *", "National ID (NID) *")}</span>
+                  <span className="text-[10px] text-muted-foreground font-normal">
+                    {nid ? `${nid.length} ডিজিট` : t("১০/১৩/১৭ সংখ্যা", "10/13/17 digits")}
+                  </span>
+                </Label>
+                <Input
+                  placeholder="যেমন: 1235468452"
+                  value={nid}
+                  onChange={(e) => setNid(e.target.value.replace(/\D/g, ""))}
+                  required
+                  className="font-mono"
+                />
+              </div>
+
+              {/* Joining Year Input */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">
+                  {t("যোগদানের বছর (Joining Year) *", "Joining Year *")}
+                </Label>
+                <Input
+                  type="number"
+                  min="2000"
+                  max="2099"
+                  placeholder="যেমন: 2024"
+                  value={joiningYear}
+                  onChange={(e) => setJoiningYear(e.target.value)}
+                  required
+                  className="font-mono"
+                />
+              </div>
+            </div>
+
+            {/* Formula explanation & Computed Teacher ID Preview */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 rounded-xl bg-background/80 border border-border/70 px-3 py-2 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground font-medium">
+                  {t("শিক্ষক আইডি:", "Teacher ID:")}
+                </span>
+                <span className="font-mono font-bold text-primary tracking-wide text-sm">
+                  {generateTeacherId(joiningYear, nid)}
+                </span>
+              </div>
+              <span className="text-[10px] text-muted-foreground">
+                (A: Annoor • T: Tahfiz • {joiningYear ? String(joiningYear).slice(-2) : "YY"}: যোগদানের সাল • NID)
+              </span>
             </div>
           </div>
 

@@ -115,7 +115,9 @@ export const FacultyManager = () => {
           item.designation_bn.toLowerCase().includes(q) ||
           item.designation_en.toLowerCase().includes(q);
         const matchSubject = item.subject_bn?.toLowerCase().includes(q);
-        if (!matchName && !matchDesig && !matchSubject) return false;
+        const matchId = item.teacher_id?.toLowerCase().includes(q);
+        const matchNid = item.nid?.toLowerCase().includes(q);
+        if (!matchName && !matchDesig && !matchSubject && !matchId && !matchNid) return false;
       }
       return true;
     });
@@ -292,8 +294,20 @@ export const FacultyManager = () => {
                           {member.name_en && (
                             <p className="text-[11px] text-muted-foreground">{member.name_en}</p>
                           )}
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            {member.teacher_id && (
+                              <span className="font-mono text-[10px] font-bold text-primary bg-primary/10 border border-primary/25 px-1.5 py-0.5 rounded-md">
+                                ID: {member.teacher_id}
+                              </span>
+                            )}
+                            {member.nid && (
+                              <span className="font-mono text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-md">
+                                NID: {member.nid}
+                              </span>
+                            )}
+                          </div>
                           {member.qualification_bn && (
-                            <p className="text-[11px] text-muted-foreground line-clamp-1">
+                            <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
                               {member.qualification_bn}
                             </p>
                           )}
