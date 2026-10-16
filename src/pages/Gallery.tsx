@@ -203,7 +203,7 @@ const Gallery = () => {
               </div>
               <div className="flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 border border-white/10 backdrop-blur-sm text-xs font-medium text-emerald-50">
                 <School className="h-4 w-4 text-sky-300" />
-                <span>{t("আধুনিক বালক ও বালিকা ক্যাম্পাস", "Boys & Girls Campuses")}</span>
+                <span>{t("আধুনিক ও সুবিন্যস্ত ক্যাম্পাস", "Modern Madrasa Campus")}</span>
               </div>
             </div>
           </motion.div>

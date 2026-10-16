@@ -9,7 +9,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Index from "@/pages/Index";
 import About from "@/pages/About";
 import Achievements from "@/pages/Achievements";
-import AppDownloadPage from "@/pages/AppDownloadPage";
 import NoticeBoard from "@/pages/NoticeBoard";
 import VirtualTour from "@/pages/VirtualTour";
 import Admission from "@/pages/Admission";
@@ -24,6 +23,7 @@ import Teachers from "@/pages/Teachers";
 import Huffaz from "@/pages/Huffaz";
 import Contact from "@/pages/Contact";
 import NotFound from "@/pages/NotFound";
+import Sitemap from "@/pages/Sitemap";
 
 const queryClient = new QueryClient();
 
@@ -43,7 +43,6 @@ describe("All Public Pages Rendering", () => {
   it("renders Index", () => { render(wrap(<Index />)); });
   it("renders About", () => { render(wrap(<About />)); });
   it("renders Achievements", () => { render(wrap(<Achievements />)); });
-  it("renders AppDownloadPage", () => { render(wrap(<AppDownloadPage />)); });
   it("renders NoticeBoard", () => { render(wrap(<NoticeBoard />)); });
   it("renders VirtualTour", () => { render(wrap(<VirtualTour />)); });
   it("renders Admission", () => { render(wrap(<Admission />)); });
@@ -58,4 +57,5 @@ describe("All Public Pages Rendering", () => {
   it("renders Huffaz", () => { render(wrap(<Huffaz />)); });
   it("renders Contact", () => { render(wrap(<Contact />)); });
   it("renders NotFound", () => { render(wrap(<NotFound />)); });
+  it("renders Sitemap", () => { render(wrap(<Sitemap />)); });
 });

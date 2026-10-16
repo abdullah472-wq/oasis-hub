@@ -14,12 +14,12 @@ import NoticeTicker from "@/components/NoticeTicker";
 import ScrollToTop from "@/components/ScrollToTop";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
 import AdmissionFloatingFAB from "@/components/admission/AdmissionFloatingFAB";
+import NasheedPlayer from "@/components/NasheedPlayer";
 
 // Public Pages
 import Index from "./pages/Index";
 const About = lazy(() => import("./pages/About"));
 const Achievements = lazy(() => import("./pages/Achievements"));
-const AppDownloadPage = lazy(() => import("./pages/AppDownloadPage"));
 const NoticeBoard = lazy(() => import("./pages/NoticeBoard"));
 const VirtualTour = lazy(() => import("./pages/VirtualTour"));
 const Admission = lazy(() => import("./pages/Admission"));
@@ -34,6 +34,7 @@ const Curriculum = lazy(() => import("./pages/Curriculum"));
 const Teachers = lazy(() => import("./pages/Teachers"));
 const Huffaz = lazy(() => import("./pages/Huffaz"));
 const Downloads = lazy(() => import("./pages/Downloads"));
+const Sitemap = lazy(() => import("./pages/Sitemap"));
 
 // Modular Supabase Single-Institution CMS Admin Pages
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
@@ -90,7 +91,6 @@ const AppShell = () => {
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<About />} />
               <Route path="/achievements" element={<Achievements />} />
-              <Route path="/apk" element={<AppDownloadPage />} />
               <Route path="/notices" element={<NoticeBoard />} />
               <Route path="/virtual-tour" element={<VirtualTour />} />
               <Route path="/admission" element={<Admission />} />
@@ -104,6 +104,7 @@ const AppShell = () => {
               <Route path="/huffaz" element={<Huffaz />} />
               <Route path="/admission-form" element={<AdmissionForm />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/sitemap" element={<Sitemap />} />
 
               {/* Modular CMS Admin Routes */}
               <Route path="/admin/login" element={<AdminLogin />} />
@@ -133,6 +134,7 @@ const AppShell = () => {
       {!isPortalRoute && <Footer />}
       {!isPortalRoute && (
         <>
+          <NasheedPlayer />
           <AdmissionFloatingFAB />
           <WhatsAppFAB />
         </>

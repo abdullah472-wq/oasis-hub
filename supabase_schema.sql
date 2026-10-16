@@ -1,10 +1,10 @@
 -- ==============================================================================
--- OASIS HUB / ANNOOR CMS - SUPABASE DATABASE SCHEMA & ADMIN SETUP
+-- OASIS HUB / ANNOOR CMS - COMPLETE SUPABASE DATABASE SCHEMA & ADMIN SETUP
 -- ==============================================================================
 -- এই SQL স্ক্রিপ্টটি আপনার Supabase Dashboard -> SQL Editor-এ গিয়ে রান (Run) করুন।
 -- এটি আপনার অ্যাডমিন প্যানেলের জন্য প্রয়োজনীয় সকল টেবিল, রোল ও পারমিশন তৈরি করবে।
 
--- ১. Enable UUID extension if not already enabled
+-- ১. Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ২. Profiles Table (অ্যাডমিন প্রোফাইল ও রোলস)
@@ -29,7 +29,56 @@ CREATE TABLE IF NOT EXISTS public.activity_logs (
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ৪. Notices Table (নোটিশ বোর্ড)
+-- ৪. Site Settings Table (সাধারণ প্রতিষ্ঠান তথ্য, যোগাযোগ, সোশ্যাল লিঙ্ক ও ব্র্যান্ডিং)
+CREATE TABLE IF NOT EXISTS public.site_settings (
+  id INTEGER PRIMARY KEY DEFAULT 1,
+  institution_name_bn TEXT NOT NULL DEFAULT 'আননূর তাহফিজুল কুরআন মাদরাসা',
+  institution_name_en TEXT DEFAULT 'Annoor Tahfizul Quran Madrasa',
+  emis_code TEXT,
+  founding_year TEXT DEFAULT '2021',
+  phone_primary TEXT NOT NULL DEFAULT '01820811511',
+  phone_secondary TEXT,
+  whatsapp_number TEXT NOT NULL DEFAULT '01581818368',
+  email_primary TEXT NOT NULL DEFAULT 'info@annoor.edu.bd',
+  admission_status TEXT NOT NULL DEFAULT 'open' CHECK (admission_status IN ('open', 'closed', 'upcoming')),
+  address_boys_campus_bn TEXT,
+  address_boys_campus_en TEXT,
+  address_girls_campus_bn TEXT,
+  address_girls_campus_en TEXT,
+  google_maps_url TEXT,
+  facebook_url TEXT,
+  youtube_url TEXT,
+  logo_url TEXT,
+  favicon_url TEXT,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Seed initial row in site_settings if empty
+INSERT INTO public.site_settings (
+  id,
+  institution_name_bn,
+  institution_name_en,
+  emis_code,
+  founding_year,
+  phone_primary,
+  whatsapp_number,
+  email_primary,
+  admission_status
+) VALUES (
+  1,
+  'আননূর তাহফিজুল কুরআন মাদরাসা',
+  'Annoor Tahfizul Quran Madrasa',
+  '12345678',
+  '2021',
+  '01820811511',
+  '01581818368',
+  'info@annoor.edu.bd',
+  'open'
+) ON CONFLICT (id) DO NOTHING;
+
+-- ৫. Notices Table (নোটিশ বোর্ড)
 CREATE TABLE IF NOT EXISTS public.notices (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title_bn TEXT NOT NULL,
@@ -47,7 +96,34 @@ CREATE TABLE IF NOT EXISTS public.notices (
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ৫. Faculty Members Table (শিক্ষক ও পরিচালকমণ্ডলী)
+-- ৬. Marquee Notices Table (হেডারের রানিং নোটিশ টিকার)
+CREATE TABLE IF NOT EXISTS public.marquee_notices (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  text_bn TEXT NOT NULL,
+  text_en TEXT,
+  link_url TEXT,
+  priority INTEGER DEFAULT 1,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- ৭. Hero Banners Table (হোমপেজ ব্যানার স্লাইডার)
+CREATE TABLE IF NOT EXISTS public.hero_banners (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title_bn TEXT NOT NULL,
+  title_en TEXT,
+  subtitle_bn TEXT,
+  subtitle_en TEXT,
+  image_url TEXT NOT NULL,
+  cta_text_bn TEXT,
+  cta_text_en TEXT,
+  cta_link TEXT,
+  order_index INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- ৮. Faculty Members Table (শিক্ষক ও পরিচালকমণ্ডলী)
 CREATE TABLE IF NOT EXISTS public.faculty_members (
   id TEXT PRIMARY KEY,
   teacher_id TEXT,
@@ -74,7 +150,7 @@ CREATE TABLE IF NOT EXISTS public.faculty_members (
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ৬. News & Press Table (সংবাদ ও আপডেট)
+-- ৯. News & Press Table (সংবাদ ও আপডেট)
 CREATE TABLE IF NOT EXISTS public.news (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title_bn TEXT NOT NULL,
@@ -88,7 +164,7 @@ CREATE TABLE IF NOT EXISTS public.news (
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ৭. Events Table (ইভেন্টস ও অনুষ্ঠান)
+-- ১০. Events Table (ইভেন্টস ও অনুষ্ঠান)
 CREATE TABLE IF NOT EXISTS public.events (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title_bn TEXT NOT NULL,
@@ -102,7 +178,55 @@ CREATE TABLE IF NOT EXISTS public.events (
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ৮. Downloads Table (ডাউনলোড কর্নার / সিলেবাস / রুটিন)
+-- ১১. Achievements Table (সাফল্য ও অর্জন)
+CREATE TABLE IF NOT EXISTS public.achievements (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title_bn TEXT NOT NULL,
+  title_en TEXT,
+  year TEXT NOT NULL,
+  category_bn TEXT,
+  description_bn TEXT NOT NULL,
+  description_en TEXT,
+  image_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- ১২. Testimonials Table (মতামত ও রিভিউ)
+CREATE TABLE IF NOT EXISTS public.testimonials (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  author_name TEXT NOT NULL,
+  relation_title_bn TEXT NOT NULL,
+  relation_title_en TEXT,
+  review_text_bn TEXT NOT NULL,
+  review_text_en TEXT,
+  rating INTEGER DEFAULT 5,
+  is_approved BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- ১৩. Curriculum Table (শিক্ষা কার্যক্রম ও বিভাগ)
+CREATE TABLE IF NOT EXISTS public.curriculum (
+  id TEXT PRIMARY KEY,
+  department_bn TEXT NOT NULL,
+  department_en TEXT,
+  category TEXT DEFAULT 'general',
+  age_group_bn TEXT,
+  age_group_en TEXT,
+  duration_bn TEXT,
+  duration_en TEXT,
+  description_bn TEXT,
+  description_en TEXT,
+  subjects_bn TEXT[] DEFAULT '{}',
+  subjects_en TEXT[] DEFAULT '{}',
+  features_bn TEXT[] DEFAULT '{}',
+  features_en TEXT[] DEFAULT '{}',
+  order_index INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- ১৪. Downloads Table (ডাউনলোড কর্নার / সিলেবাস / রুটিন)
 CREATE TABLE IF NOT EXISTS public.downloads (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title_bn TEXT NOT NULL,
@@ -120,7 +244,91 @@ CREATE TABLE IF NOT EXISTS public.downloads (
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ৯. Admissions Table (অনলাইন ভর্তি আবেদন)
+-- ১৫. Gallery Items Table (ছবি গ্যালারি)
+CREATE TABLE IF NOT EXISTS public.gallery_items (
+  id TEXT PRIMARY KEY,
+  title_bn TEXT NOT NULL,
+  title_en TEXT,
+  caption_bn TEXT,
+  caption_en TEXT,
+  image_url TEXT NOT NULL,
+  thumbnail_url TEXT,
+  category TEXT DEFAULT 'academic',
+  date_label TEXT,
+  order_index INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- ১৬. Media Videos Table (ভিডিও গ্যালারি ও ইউটিউব প্লেলিস্ট)
+CREATE TABLE IF NOT EXISTS public.media_videos (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title_bn TEXT NOT NULL,
+  title_en TEXT,
+  youtube_url TEXT NOT NULL,
+  youtube_video_id TEXT NOT NULL,
+  type TEXT DEFAULT 'video' CHECK (type IN ('video', 'playlist')),
+  is_featured BOOLEAN DEFAULT false,
+  order_index INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- ১৭. Wall of Huffaz Table (হিফজ সমাপনকারী শিক্ষার্থীদের তালিকা)
+CREATE TABLE IF NOT EXISTS public.wall_of_huffaz (
+  id TEXT PRIMARY KEY,
+  name_bn TEXT NOT NULL,
+  name_en TEXT,
+  father_name_bn TEXT,
+  father_name_en TEXT,
+  completion_year TEXT NOT NULL,
+  duration_bn TEXT,
+  duration_en TEXT,
+  age_at_completion TEXT,
+  campus TEXT DEFAULT 'boys' CHECK (campus IN ('boys', 'girls')),
+  teacher_name_bn TEXT,
+  teacher_name_en TEXT,
+  district_bn TEXT,
+  district_en TEXT,
+  award_title_bn TEXT,
+  award_title_en TEXT,
+  image_url TEXT,
+  is_featured BOOLEAN DEFAULT false,
+  order_index INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- ১৮. Fee Structures Table (ভর্তি ও বেতন কাঠামো)
+CREATE TABLE IF NOT EXISTS public.fee_structures (
+  id TEXT PRIMARY KEY,
+  type_bn TEXT NOT NULL,
+  type_en TEXT,
+  amount_bn TEXT NOT NULL,
+  amount_en TEXT,
+  note_bn TEXT,
+  note_en TEXT,
+  category TEXT DEFAULT 'tuition',
+  highlight BOOLEAN DEFAULT false,
+  order_index INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- ১৯. Admission Rules Table (ভর্তি নিয়মাবলী ও নির্দেশিকা)
+CREATE TABLE IF NOT EXISTS public.admission_rules (
+  id TEXT PRIMARY KEY,
+  rule_bn TEXT NOT NULL,
+  rule_en TEXT,
+  type TEXT DEFAULT 'rule',
+  is_required BOOLEAN DEFAULT true,
+  order_index INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- ২০. Admissions Table (অনলাইন ভর্তি আবেদন)
 CREATE TABLE IF NOT EXISTS public.admissions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   student_name_bn TEXT NOT NULL,
@@ -141,93 +349,273 @@ CREATE TABLE IF NOT EXISTS public.admissions (
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.marquee_notices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.hero_banners ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.faculty_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.news ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.achievements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.testimonials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.curriculum ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.downloads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.gallery_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.media_videos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.wall_of_huffaz ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.fee_structures ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.admission_rules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admissions ENABLE ROW LEVEL SECURITY;
 
--- Profiles Policies
+-- 1. Profiles Policies
+DROP POLICY IF EXISTS "Public profiles are viewable by authenticated users" ON public.profiles;
 CREATE POLICY "Public profiles are viewable by authenticated users"
   ON public.profiles FOR SELECT
   TO authenticated
   USING (true);
 
+DROP POLICY IF EXISTS "Super admins can manage all profiles" ON public.profiles;
 CREATE POLICY "Super admins can manage all profiles"
   ON public.profiles FOR ALL
   TO authenticated
   USING (true)
   WITH CHECK (true);
 
--- Activity Logs Policies
+-- 2. Activity Logs Policies
+DROP POLICY IF EXISTS "Authenticated users can view activity logs" ON public.activity_logs;
 CREATE POLICY "Authenticated users can view activity logs"
   ON public.activity_logs FOR SELECT
   TO authenticated
   USING (true);
 
+DROP POLICY IF EXISTS "Authenticated users can insert activity logs" ON public.activity_logs;
 CREATE POLICY "Authenticated users can insert activity logs"
   ON public.activity_logs FOR INSERT
   TO authenticated
   WITH CHECK (true);
 
--- Public Read Policies for Website Content
+-- 3. Site Settings Policies
+DROP POLICY IF EXISTS "Public can view site settings" ON public.site_settings;
+CREATE POLICY "Public can view site settings"
+  ON public.site_settings FOR SELECT
+  USING (true);
+
+DROP POLICY IF EXISTS "Authenticated admins can manage site settings" ON public.site_settings;
+CREATE POLICY "Authenticated admins can manage site settings"
+  ON public.site_settings FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- 4. Notices Policies
+DROP POLICY IF EXISTS "Public can view published notices" ON public.notices;
 CREATE POLICY "Public can view published notices"
   ON public.notices FOR SELECT
   USING (is_published = true OR auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Admins can manage notices" ON public.notices;
 CREATE POLICY "Admins can manage notices"
   ON public.notices FOR ALL
   TO authenticated
   USING (true)
   WITH CHECK (true);
 
+-- 5. Marquee Notices Policies
+DROP POLICY IF EXISTS "Public can view active marquee notices" ON public.marquee_notices;
+CREATE POLICY "Public can view active marquee notices"
+  ON public.marquee_notices FOR SELECT
+  USING (is_active = true OR auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Admins can manage marquee notices" ON public.marquee_notices;
+CREATE POLICY "Admins can manage marquee notices"
+  ON public.marquee_notices FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- 6. Hero Banners Policies
+DROP POLICY IF EXISTS "Public can view active hero banners" ON public.hero_banners;
+CREATE POLICY "Public can view active hero banners"
+  ON public.hero_banners FOR SELECT
+  USING (is_active = true OR auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Admins can manage hero banners" ON public.hero_banners;
+CREATE POLICY "Admins can manage hero banners"
+  ON public.hero_banners FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- 7. Faculty Policies
+DROP POLICY IF EXISTS "Public can view active faculty" ON public.faculty_members;
 CREATE POLICY "Public can view active faculty"
   ON public.faculty_members FOR SELECT
   USING (is_active = true OR auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Admins can manage faculty" ON public.faculty_members;
 CREATE POLICY "Admins can manage faculty"
   ON public.faculty_members FOR ALL
   TO authenticated
   USING (true)
   WITH CHECK (true);
 
+-- 8. News Policies
+DROP POLICY IF EXISTS "Public can view published news" ON public.news;
 CREATE POLICY "Public can view published news"
   ON public.news FOR SELECT
   USING (is_published = true OR auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Admins can manage news" ON public.news;
 CREATE POLICY "Admins can manage news"
   ON public.news FOR ALL
   TO authenticated
   USING (true)
   WITH CHECK (true);
 
+-- 9. Events Policies
+DROP POLICY IF EXISTS "Public can view events" ON public.events;
 CREATE POLICY "Public can view events"
   ON public.events FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Admins can manage events" ON public.events;
 CREATE POLICY "Admins can manage events"
   ON public.events FOR ALL
   TO authenticated
   USING (true)
   WITH CHECK (true);
 
+-- 10. Achievements Policies
+DROP POLICY IF EXISTS "Public can view achievements" ON public.achievements;
+CREATE POLICY "Public can view achievements"
+  ON public.achievements FOR SELECT
+  USING (true);
+
+DROP POLICY IF EXISTS "Admins can manage achievements" ON public.achievements;
+CREATE POLICY "Admins can manage achievements"
+  ON public.achievements FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- 11. Testimonials Policies
+DROP POLICY IF EXISTS "Public can view approved testimonials" ON public.testimonials;
+CREATE POLICY "Public can view approved testimonials"
+  ON public.testimonials FOR SELECT
+  USING (is_approved = true OR auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Public can submit testimonials" ON public.testimonials;
+CREATE POLICY "Public can submit testimonials"
+  ON public.testimonials FOR INSERT
+  TO anon, authenticated
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admins can manage testimonials" ON public.testimonials;
+CREATE POLICY "Admins can manage testimonials"
+  ON public.testimonials FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- 12. Curriculum Policies
+DROP POLICY IF EXISTS "Public can view active curriculum" ON public.curriculum;
+CREATE POLICY "Public can view active curriculum"
+  ON public.curriculum FOR SELECT
+  USING (is_active = true OR auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Admins can manage curriculum" ON public.curriculum;
+CREATE POLICY "Admins can manage curriculum"
+  ON public.curriculum FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- 13. Downloads Policies
+DROP POLICY IF EXISTS "Public can view active downloads" ON public.downloads;
 CREATE POLICY "Public can view active downloads"
   ON public.downloads FOR SELECT
   USING (is_active = true OR auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Admins can manage downloads" ON public.downloads;
 CREATE POLICY "Admins can manage downloads"
   ON public.downloads FOR ALL
   TO authenticated
   USING (true)
   WITH CHECK (true);
 
--- Admissions Policies
+-- 14. Gallery Items Policies
+DROP POLICY IF EXISTS "Public can view gallery items" ON public.gallery_items;
+CREATE POLICY "Public can view gallery items"
+  ON public.gallery_items FOR SELECT
+  USING (true);
+
+DROP POLICY IF EXISTS "Admins can manage gallery items" ON public.gallery_items;
+CREATE POLICY "Admins can manage gallery items"
+  ON public.gallery_items FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- 15. Media Videos Policies
+DROP POLICY IF EXISTS "Public can view media videos" ON public.media_videos;
+CREATE POLICY "Public can view media videos"
+  ON public.media_videos FOR SELECT
+  USING (true);
+
+DROP POLICY IF EXISTS "Admins can manage media videos" ON public.media_videos;
+CREATE POLICY "Admins can manage media videos"
+  ON public.media_videos FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- 16. Wall of Huffaz Policies
+DROP POLICY IF EXISTS "Public can view active huffaz" ON public.wall_of_huffaz;
+CREATE POLICY "Public can view active huffaz"
+  ON public.wall_of_huffaz FOR SELECT
+  USING (is_active = true OR auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Admins can manage huffaz" ON public.wall_of_huffaz;
+CREATE POLICY "Admins can manage huffaz"
+  ON public.wall_of_huffaz FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- 17. Fee Structures Policies
+DROP POLICY IF EXISTS "Public can view active fee structures" ON public.fee_structures;
+CREATE POLICY "Public can view active fee structures"
+  ON public.fee_structures FOR SELECT
+  USING (is_active = true OR auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Admins can manage fee structures" ON public.fee_structures;
+CREATE POLICY "Admins can manage fee structures"
+  ON public.fee_structures FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- 18. Admission Rules Policies
+DROP POLICY IF EXISTS "Public can view admission rules" ON public.admission_rules;
+CREATE POLICY "Public can view admission rules"
+  ON public.admission_rules FOR SELECT
+  USING (true);
+
+DROP POLICY IF EXISTS "Admins can manage admission rules" ON public.admission_rules;
+CREATE POLICY "Admins can manage admission rules"
+  ON public.admission_rules FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- 19. Admissions Policies
+DROP POLICY IF EXISTS "Public can submit admission application" ON public.admissions;
 CREATE POLICY "Public can submit admission application"
   ON public.admissions FOR INSERT
   TO anon, authenticated
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Admins can view and manage admissions" ON public.admissions;
 CREATE POLICY "Admins can view and manage admissions"
   ON public.admissions FOR ALL
   TO authenticated
@@ -237,9 +625,6 @@ CREATE POLICY "Admins can view and manage admissions"
 -- ==============================================================================
 -- AUTOMATIC PROFILE CREATION TRIGGER
 -- ==============================================================================
--- যখনই কোনো ইউজার Supabase Auth-এ সাইনআপ করবে বা তৈরি হবে, 
--- স্বয়ংক্রিয়ভাবে তার একটি প্রোফাইল public.profiles টেবিলে তৈরি হবে।
-
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -263,7 +648,7 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
 -- ==============================================================================
--- STORAGE BUCKETS SETUP (Optional but recommended)
+-- STORAGE BUCKETS SETUP
 -- ==============================================================================
 INSERT INTO storage.buckets (id, name, public)
 VALUES 
@@ -273,27 +658,19 @@ VALUES
   ('cms-branding', 'cms-branding', true)
 ON CONFLICT (id) DO NOTHING;
 
--- Public Storage Access Policies
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
 CREATE POLICY "Public Access"
   ON storage.objects FOR SELECT
   USING (bucket_id IN ('cms-notices', 'cms-gallery', 'cms-downloads', 'cms-branding'));
 
+DROP POLICY IF EXISTS "Authenticated users can upload objects" ON storage.objects;
 CREATE POLICY "Authenticated users can upload objects"
   ON storage.objects FOR INSERT
   TO authenticated
   WITH CHECK (bucket_id IN ('cms-notices', 'cms-gallery', 'cms-downloads', 'cms-branding'));
 
+DROP POLICY IF EXISTS "Authenticated users can update/delete objects" ON storage.objects;
 CREATE POLICY "Authenticated users can update/delete objects"
   ON storage.objects FOR ALL
   TO authenticated
   USING (bucket_id IN ('cms-notices', 'cms-gallery', 'cms-downloads', 'cms-branding'));
-
--- ==============================================================================
--- অ্যাডমিন অ্যাকাউন্ট তৈরির নির্দেশিকা:
--- ১. Supabase Dashboard -> Authentication -> Users এ যান।
--- ২. "Add user" -> "Create user" বাটনে ক্লিক করুন।
--- ৩. Email দিন: abdullahalmamon472@gmail.com
--- ৪. Password দিন: oasis2026
--- ৫. "Auto Confirm User?" অপশনে টিক দিন (Checked)।
--- ৬. "Create user" চাপুন। ওপরের Trigger ফাংশনটি স্বয়ংক্রিয়ভাবে Profiles টেবিলে সুপার অ্যাডমিন প্রোফাইল তৈরি করবে।
--- ==============================================================================

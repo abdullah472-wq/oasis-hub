@@ -4,6 +4,21 @@ import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc 
 
 export type AdmissionStatus = "pending" | "approved" | "rejected";
 
+export const CLASS_NAME_OPTIONS = [
+  "Play",
+  "Nursery",
+  "Class 1",
+  "Class 2",
+  "Class 3",
+  "Class 4",
+  "Class 5",
+  "Class 6",
+  "Class 7",
+  "Class 8",
+  "Class 9",
+  "Class 10",
+] as const;
+
 export interface AdmissionForm {
   id?: string;
   trackingId?: string;
@@ -93,7 +108,7 @@ export const defaultAdmissions: AdmissionForm[] = [
     permanentAddress: "College Road, Kapasia",
     permanentAddressBn: "কলেজ রোড, বাঁশতলা, কাপাসিয়া",
     class: "নূরানী ১ম শ্রেণি",
-    campus: "বালিকা শাখা (বাঁশতলা মোড়)",
+    campus: "প্রধান ক্যাম্পাস (কাপাসিয়া বাজার)",
     residencyType: "non-residential",
     status: "pending",
     createdAt: Date.now() - 86400000,
@@ -117,7 +132,7 @@ export const defaultAdmissions: AdmissionForm[] = [
     permanentAddress: "Thana Road, Kapasia",
     permanentAddressBn: "থানা রোড, কাপাসিয়া, গাজীপুর",
     class: "৩য় শ্রেণি",
-    campus: "বালক শাখা (কাপাসিয়া বাজার)",
+    campus: "প্রধান ক্যাম্পাস (কাপাসিয়া বাজার)",
     residencyType: "day-care",
     status: "pending",
     createdAt: Date.now() - 3600000 * 5,

@@ -65,12 +65,12 @@ export const defaultDownloadsList: DownloadItem[] = [
   // ================= 2. ROUTINE =================
   {
     id: "dl-rtn-1",
-    title_bn: "বালক ও বালিকা ক্যাম্পাস বার্ষিক মাস্টার ক্লাস রুটিন ২০২৬",
-    title_en: "Boys & Girls Campus Master Class Routine 2026",
+    title_bn: "বার্ষিক মাস্টার ক্লাস রুটিন ২০২৬",
+    title_en: "Annual Master Class Routine 2026",
     description_bn:
-      "উভয় ক্যাম্পাসের সকল বিভাগ ও শ্রেণির দৈনিক পিরিয়ডভিত্তিক ক্লাসের পূর্ণাঙ্গ সময়সূচি।",
+      "মাদরাসার সকল বিভাগ ও শ্রেণির দৈনিক পিরিয়ডভিত্তিক ক্লাসের পূর্ণাঙ্গ সময়সূচি।",
     description_en:
-      "Full period-by-period daily schedule across all sections of both campuses.",
+      "Full period-by-period daily schedule across all class sections.",
     category: "routine",
     file_url: "/documents/master_class_routine_2026.pdf",
     file_size_label: "980 KB",
@@ -124,7 +124,7 @@ export const defaultDownloadsList: DownloadItem[] = [
     title_bn: "আননূর শিক্ষা পরিবার পূর্ণাঙ্গ প্রাতিষ্ঠানিক প্রসপেক্টাস ২০২৬",
     title_en: "Annoor Education Family Institutional Prospectus 2026",
     description_bn:
-      "প্রতিষ্ঠানের লক্ষ্য, বৈশিষ্ট্য, বালক-বালিকা ক্যাম্পাস সুবিধা, পরিবেশ ও সার্বিক তথ্যাবলী।",
+      "প্রতিষ্ঠানের লক্ষ্য, বৈশিষ্ট্য, ক্যাম্পাস সুবিধা, পরিবেশ ও সার্বিক তথ্যাবলী।",
     description_en:
       "Full institutional prospectus featuring campus facilities, educational vision, and policies.",
     category: "admission",

@@ -61,7 +61,7 @@ const NoticeTicker = () => {
   }, []);
 
   return (
-    <div className="relative z-50 overflow-hidden border-b border-border/70 bg-white dark:bg-card text-foreground shadow-xs">
+    <div className="relative z-30 overflow-hidden border-b border-border/70 bg-white dark:bg-card text-foreground shadow-xs">
       <div className="flex items-center">
         {/* Notice Badge */}
         <div className="z-10 flex items-center gap-1.5 bg-primary px-3.5 py-1.5 text-xs font-bold font-bengali text-primary-foreground shadow-xs uppercase tracking-wider shrink-0">
@@ -77,7 +77,7 @@ const NoticeTicker = () => {
         <motion.div
           className="flex gap-16 whitespace-nowrap py-1.5"
           animate={{ x: ["100%", "-100%"] }}
-          transition={{ duration: Math.max(22, notices.length * 10), repeat: Infinity, ease: "linear" }}
+          transition={{ duration: Math.max(50, notices.length * 25), repeat: Infinity, ease: "linear" }}
         >
           {notices.concat(notices).map((notice, index) => {
             const text = t(notice.text_bn, notice.text_en || notice.text_bn);

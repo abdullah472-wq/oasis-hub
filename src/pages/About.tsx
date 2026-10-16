@@ -65,7 +65,7 @@ const About = () => {
       num: "১৩+",
       numEn: "13+",
       label: t("বছরের গৌরবময় ঐতিহ্য", "Years of Trust"),
-      sub: t("২০১৩ খ্রি. হতে অবিচল পথচলা", "Founded in 2013"),
+      sub: t("২০২১ খ্রি. হতে অবিচল পথচলা", "Founded in 2021"),
       icon: Calendar,
       color: "from-purple-500/20 to-pink-500/10 text-purple-600 dark:text-purple-400",
       border: "border-purple-500/30",
@@ -111,76 +111,14 @@ const About = () => {
     },
   ];
 
-  const milestones = [
-    {
-      year: "২০১৩",
-      yearEn: "2013",
-      title: t("আননূর শিক্ষা পরিবারের সূচনা", "Foundation of Annoor Education Family"),
-      desc: t(
-        "গাজীপুরের কাপাসিয়া বাজারে মাত্র অল্প সংখ্যক শিক্ষার্থী নিয়ে দ্বীনি ও আধুনিক সমন্বিত শিক্ষার স্বপ্নযাত্রা শুরু হয়।",
-        "The visionary journey began in Kapasia Bazar, Gazipur, uniting Quranic learning with modern education.",
-      ),
-      tag: t("শুভ সূচনা", "Inception"),
-    },
-    {
-      year: "২০১৩",
-      yearEn: "2013",
-      title: t("স্বতন্ত্র বালিকা ক্যাম্পাস প্রতিষ্ঠা", "Separate Girls Campus Inauguration"),
-      desc: t(
-        "মেয়েদের সম্পূর্ণ পর্দাঘেরা নিরাপদ পরিবেশে শিক্ষাদানের লক্ষ্যে বাঁশতলা মোড়ে পৃথক বালিকা শাখা চালু করা হয়।",
-        "To ensure complete purdah and dedicated female faculty, a separate campus was launched at Bashtola More.",
-      ),
-      tag: t("বালিকা শাখা", "Girls Campus"),
-    },
-    {
-      year: "২০১৭",
-      yearEn: "2017",
-      title: t("২৫০+ শিক্ষার্থী ও আবাসিক সম্প্রসারণ", "250+ Students & Hostel Expansion"),
-      desc: t(
-        "অভিভাবকদের আস্থার সুবাদে শিক্ষার্থী সংখ্যা ২৫০+ অতিক্রম করে এবং সুষম পুষ্টিসমৃদ্ধ আধুনিক আবাসিক হোস্টেল গড়ে তোলা হয়।",
-        "Student enrollment crossed 250 with expanded residential hostel facilities and hygienic dining.",
-      ),
-      tag: t("আবাসিক সুবিধা", "Boarding Growth"),
-    },
-    {
-      year: "২০২০",
-      yearEn: "2020",
-      title: t("স্মার্ট ক্লাসরুম ও ডিজিটাল পরিচালনা", "Smart Classroom & Digital Management"),
-      desc: t(
-        "কম্পিউটার শিক্ষা, মাল্টিমিডিয়া প্রোজেক্টর ক্লাসরুম ও অভিভাবক এসএমএস নোটিফিকেশন সিস্টেমের সংযোজন।",
-        "Introduced smart classrooms, foundational computer learning, and parent digital communication.",
-      ),
-      tag: t("ডিজিটাল শিক্ষা", "Tech-Enabled"),
-    },
-    {
-      year: "২০২২",
-      yearEn: "2022",
-      title: t("সরকারি নিবন্ধন লাভ (রেজি: ৩৩৮/২০২২)", "Official Registration (Reg: 338/2022)"),
-      desc: t(
-        "কর্তৃপক্ষ কর্তৃক প্রাতিষ্ঠানিক স্বীকৃতি ও বাংলাদেশ শিক্ষা সনদের আওতাভুক্ত হয়ে জাতীয় পর্যায়ে খ্যাতি অর্জন।",
-        "Achieved official registration certificate (No. 338/2022) cementing institutional credibility.",
-      ),
-      tag: t("রেজিস্ট্রেশন", "Govt Reg"),
-    },
-    {
-      year: "২০২৪-বর্তমান",
-      yearEn: "2024-Present",
-      title: t("১১৪+ কৃতি হাফেজের দস্তারবন্দী ও সম্মাননা", "115+ Huffaz Dastarbandi & Honors"),
-      desc: t(
-        "কৃতি শিক্ষার্থীদের বিশেষ পাগড়ি প্রদান, হিফজুল কুরআন বোর্ডে ধারাবাহিক সাফল্য এবং ৩৫০+ বর্তমান শিক্ষার্থীর অগ্রযাত্রা।",
-        "Conferred royal dastarbandi turbans to 115+ Quran memorizers with 350+ active learners.",
-      ),
-      tag: t("শ্রেষ্ঠত্ব", "Excellence"),
-    },
-  ];
 
   const leadership = [
     {
       name: t("হাফেজ আমানুল্লাহ", "Hafez Amanullah"),
-      role: t("প্রধান শিক্ষক ও হিফজ প্রধান", "Principal & Head of Hifz"),
+      role: t("প্রতিষ্ঠাতা পরিচালক", "Founder Director"),
       qualification: t("আন্তর্জাতিক সনদপ্রাপ্ত ক্বারী ও সিনিয়র হাফেজে কুরআন", "Certified International Qari & Senior Hafez"),
       phone: "01820-811511",
-      email: "principal@annoor.edu.bd",
+      email: "[EMAIL_ADDRESS]",
       experience: t("১৪+ বছরের পাঠদান ও প্রাতিষ্ঠানিক পরিচালনা", "14+ Years in Teaching & Leadership"),
       quote: t(
         "কুরআন হলো জীবনের হেদায়েতের নূর। আমরা চাই আমাদের শিক্ষার্থীরা বিশুদ্ধ কুরআন বক্ষে ধারণ করে ডাক্তার, ইঞ্জিনিয়ার, অধ্যাপক বা আদর্শ আলেম হয়ে জাতির মুখ উজ্জ্বল করুক।",
@@ -190,7 +128,7 @@ const About = () => {
     },
     {
       name: t("মুফতি আব্দুল্লাহ আল মামুন", "Mufti Abdullah Al Mamon"),
-      role: t("ম্যানেজার ও প্রতিষ্ঠাতা পরিচালক", "Manager & Founding Director"),
+      role: t("নায়েবে মুহতামিম ও প্রধান শিক্ষক", "Vice Principal & Head Teacher"),
       qualification: t("দাওরায়ে হাদিস ও উচ্চতর ইফতা, শিক্ষাবিদ ও সংগঠক", "Dawra-e-Hadith & Higher Ifta, Islamic Scholar"),
       phone: "01312-200043, 01581-818368",
       email: "manager@annoor.edu.bd",
@@ -199,7 +137,7 @@ const About = () => {
         "শিক্ষা শুধু বইয়ের পাতার মুখস্থ নয়, এটি শিশুর চিন্তা ও চরিত্রের আত্মিক পরিশুদ্ধি। আননূর শিক্ষা পরিবারে আমরা প্রতিটি সন্তানকে আন্তরিক ভালোবাসা ও দায়িত্বশীলতার সাথে গড়ে তুলি।",
         "Education is not mere textbook cramming; it is the spiritual and intellectual purification of a child's character with deep love and institutional care.",
       ),
-      image: "/gallery/dastarbandi.jpg",
+      image: "/public/abdullah.png",
     },
   ];
 
@@ -232,35 +170,35 @@ const About = () => {
 
   const campusFeatures = [
     {
-      campusName: t("বালক ক্যাম্পাস (Boys Campus)", "Boys Campus"),
-      location: t("কাপাসিয়া বাজার (সোনালী ব্যাংকের নিকটে), কাপাসিয়া, গাজীপুর", "Kapasia Bazar (Near Sonali Bank), Kapasia, Gazipur"),
-      phone: "01820-811511, 01312-200043",
+      campusName: t("প্রধান একাডেমিক ভবন (Main Academic Wing)", "Main Academic Wing"),
+      location: t("মেইন রোড, কলেজ রোড মোড়, কাপাসিয়া বাজার (সিঙ্গার শোরুম সংলগ্ন), কাপাসিয়া, গাজীপুর", "Main Road, College Road Mor, Kapasia Bazar (Near Singer Showroom), Kapasia, Gazipur"),
+      phone: "01820-811511, 01581-818368",
       highlights: [
         t("নূরানী, নাজেরা ও হিফজুল কুরআন বিভাগ", "Nurani, Nazara & Hifz Sections"),
         t("জেনারেল আধুনিক প্রাথমিক শিক্ষা (প্লে — ৫ম)", "Modern General Primary (Play - Class 5)"),
-        t("আধুনিক আবাসিক হোস্টেল ও স্বাস্থ্যসম্মত খাবার", "Boarding facilities with hygienic dining"),
-        t("সুবিশাল নামাজখানা ও অডিটোরিয়াম", "Spacious prayer hall and auditorium"),
+        t("মাল্টিমিডিয়া স্মার্ট ক্লাসরুম ও সেন্ট্রাল লাইব্রেরি", "Multimedia Smart Classrooms & Central Library"),
+        t("সুবিশাল নামাজখানা ও নিয়মিত সাংস্কৃতিক আয়োজন", "Spacious prayer hall and Islamic cultural events"),
       ],
       badgeColor: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
     },
     {
-      campusName: t("বালিকা ক্যাম্পাস (Girls Campus)", "Girls Campus"),
-      location: t("বাঁশতলা মোড়, কলেজ রোড, কাপাসিয়া, গাজীপুর", "Bashtola More, College Road, Kapasia, Gazipur"),
-      phone: "01581-818368, 01312-200043",
+      campusName: t("আবাসিক ছাত্রাবাস ও সুবিধা (Boarding & Student Care)", "Boarding & Student Care"),
+      location: t("মাদরাসা ক্যাম্পাস সংলগ্ন নিজস্ব আবাসিক ভবন, কাপাসিয়া, গাজীপুর", "Campus residential building, Kapasia, Gazipur"),
+      phone: "01312-200043, 01820-811511",
       highlights: [
-        t("সম্পূর্ণ পর্দাঘেরা সুরক্ষিত স্বতন্ত্র চারদেয়াল", "100% purdah-protected separate compound"),
-        t("দক্ষ ও অভিজ্ঞ বিদুষী নারী শিক্ষিকামণ্ডলী", "Qualified & caring female faculty exclusively"),
-        t("মহিলা ওয়ার্ডেনের অধীনে সার্বক্ষণিক নিরাপত্তা", "24/7 security under female warden care"),
-        t("মেয়েদের জন্য ইসলামী সাংস্কৃতিক ও হাতের কাজ", "Islamic cultural activities & crafts for girls"),
+        t("স্বাস্থ্যসম্মত নিজস্ব ডাইনিং ও পুষ্টিকর ৩ বেলা খাবার", "In-house hygienic dining with nutritious meals"),
+        t("সার্বক্ষণিক ওস্তাদগণের স্নেহময় তত্ত্বাবধান ও সান্নিধ্য", "24/7 caring supervision and direct teacher mentorship"),
+        t("সিসিটিভি ক্যামেরা ও সার্বক্ষণিক নিরাপত্তা ব্যবস্থা", "Full CCTV surveillance and 24/7 security care"),
+        t("সার্বক্ষণিক বিদ্যুৎ ব্যাকআপ ও নিরাপদ বিশুদ্ধ পানি", "24/7 power backup and pure drinking water supply"),
       ],
-      badgeColor: "bg-pink-500/15 text-pink-700 dark:text-pink-400 border-pink-500/30",
+      badgeColor: "bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-500/30",
     },
   ];
 
   return (
     <div className="min-h-screen bg-background">
       {/* ================= HERO SECTION ================= */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-primary/95 via-primary to-primary/90 text-primary-foreground pt-32 pb-24 md:pt-40 md:pb-28">
+      <section className="relative overflow-hidden bg-gradient-to-b from-primary/95 via-primary to-primary/90 text-primary-foreground pt-8 pb-14 sm:pt-10 sm:pb-16 md:pt-12 md:pb-18">
         <div className="absolute inset-0 z-0 opacity-15">
           <img src={heroImg} alt="Annoor Campus Background" className="h-full w-full object-cover" />
         </div>
@@ -270,7 +208,7 @@ const About = () => {
           <motion.div {...springIn} className="flex flex-wrap items-center justify-center gap-2 mb-6">
             <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/20 px-4 py-1.5 text-xs sm:text-sm font-semibold tracking-wide text-emerald-200 backdrop-blur-md">
               <Sparkles className="h-4 w-4 text-amber-300" />
-              <span>{t("স্থাপিত: ২০১৩ খ্রি. | রেজি নং ৩৩৮/২০২২", "Est. 2013 | Govt Reg No: 338/2022")}</span>
+              <span>{t("স্থাপিত: ২০২১ খ্রি. | রেজি নং ৩৩৮/২০২২", "Est. 2021 | Govt Reg No: 338/2022")}</span>
             </span>
           </motion.div>
 
@@ -289,8 +227,8 @@ const About = () => {
             className="font-bengali text-lg sm:text-xl text-primary-foreground/90 max-w-3xl mx-auto leading-relaxed"
           >
             {t(
-              "আননূর শিক্ষা পরিবার — কুরআন-সুন্নাহর সঠিক দিকনির্দেশনা ও যুগোপযোগী আধুনিক শিক্ষার সমন্বয়ে এক অনন্য আদর্শ বিদ্যাপীঠ। গাজীপুরের কাপাসিয়ায় ২০১৩ সাল থেকে আস্থার সাথে গড়ে তুলছি আগামীর চরিত্রবান নেতৃত্ব।",
-              "Annoor Education Family — A prestigious educational institution harmonizing authentic Quranic values with modern academic excellence in Kapasia, Gazipur since 2013.",
+              "আননূর তাহফিজুল কুরআন মাদ্রাসা — কুরআন-সুন্নাহর সঠিক দিকনির্দেশনা ও যুগোপযোগী আধুনিক শিক্ষার সমন্বয়ে এক অনন্য আদর্শ বিদ্যাপীঠ। গাজীপুরের কাপাসিয়ায় ২০২১ সাল থেকে আস্থার সাথে গড়ে তুলছি আগামীর চরিত্রবান নেতৃত্ব।",
+              "Annoor Tahfizul Quran Madrasa — A prestigious educational institution harmonizing authentic Quranic values with modern academic excellence in Kapasia, Gazipur since 2021.",
             )}
           </motion.p>
 
@@ -491,12 +429,12 @@ const About = () => {
               {t("ক্যাম্পাস পরিচিতি", "Our Campuses")}
             </Badge>
             <h2 className="font-bengali font-extrabold text-3xl sm:text-4xl text-foreground">
-              {t("আমাদের দুটি সম্পূর্ণ স্বতন্ত্র ও সুবিন্যস্ত ক্যাম্পাস", "Two Distinct & Dedicated Campuses")}
+              {t("আমাদের আধুনিক ও সুবিন্যস্ত ক্যাম্পাস", "Our Modern & Well-Organized Campus")}
             </h2>
             <p className="mt-3 font-bengali text-muted-foreground text-base max-w-2xl mx-auto">
               {t(
-                "ইসলামিক অনুশাসন ও পর্দার পূর্ণাঙ্গ বিধান মেনে বালক ও বালিকা শিক্ষার্থীদের জন্য কাপাসিয়ায় দুটি সম্পূর্ণ পৃথক শাখা পরিচালিত হচ্ছে।",
-                "Operating two fully separated campuses for boys and girls upholding strict Islamic values in Kapasia.",
+                "কাপাসিয়ার প্রাণকেন্দ্রে আধুনিক সুযোগ-সুবিধা, নিরাপদ আবাসন ও মনোরম পরিবেশে পবিত্র কুরআন ও সাধারণ শিক্ষার সমন্বিত পাঠদান।",
+                "Operating modern campus facilities with safe boarding and serene environment in Kapasia.",
               )}
             </p>
           </div>
@@ -703,61 +641,6 @@ const About = () => {
         </div>
       </section>
 
-      {/* ================= HISTORICAL MILESTONES (TIMELINE) ================= */}
-      <section className="py-16 md:py-24 bg-muted/40 border-y border-border">
-        <div className="container mx-auto max-w-4xl px-4">
-          <div className="text-center max-w-3xl mx-auto mb-14">
-            <Badge variant="outline" className="mb-3 px-3.5 py-1 text-xs font-semibold text-primary border-primary/30 uppercase tracking-wider">
-              {t("আমাদের পথচলা", "Our Journey")}
-            </Badge>
-            <h2 className="font-bengali font-extrabold text-3xl sm:text-4xl text-foreground">
-              {t("২০১৩ থেকে আজকের সফলতার ঐতিহাসিক মাইলফলক", "Milestones from 2013 to Present Day")}
-            </h2>
-          </div>
-
-          <div className="relative">
-            {/* Center Line */}
-            <div className="absolute left-6 top-0 h-full w-1 -translate-x-1/2 rounded-full bg-primary/30 md:left-1/2" />
-
-            <div className="space-y-10">
-              {milestones.map((item, index) => (
-                <motion.div
-                  key={index}
-                  {...springIn}
-                  transition={springInDelay(index * 0.08)}
-                  className={`relative flex items-center gap-6 ${
-                    index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
-                  }`}
-                >
-                  {/* Badge Marker */}
-                  <div className="absolute left-6 z-10 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-2xl border-4 border-background bg-primary text-primary-foreground font-mono text-xs sm:text-sm font-bold shadow-lg md:left-1/2">
-                    {lang === "bn" ? item.year : item.yearEn}
-                  </div>
-
-                  {/* Content Card */}
-                  <div
-                    className={`ml-16 md:ml-0 md:w-1/2 ${
-                      index % 2 === 0 ? "md:pr-12 md:text-right" : "md:pl-12"
-                    }`}
-                  >
-                    <div className="rounded-3xl border border-border bg-card p-6 shadow-sm hover:shadow-md transition-all">
-                      <span className="inline-block rounded-full bg-primary/10 px-3 py-0.5 text-xs font-bold text-primary mb-2 font-bengali">
-                        {item.tag}
-                      </span>
-                      <h3 className="font-bengali text-lg font-bold text-foreground">
-                        {item.title}
-                      </h3>
-                      <p className="mt-2 font-bengali text-sm text-muted-foreground leading-relaxed">
-                        {item.desc}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ================= FINAL CALL TO ACTION ================= */}
       <section className="py-20">

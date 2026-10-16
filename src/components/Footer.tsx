@@ -10,25 +10,36 @@ import {
   Check,
   ExternalLink,
   Shield,
-  Smartphone,
   Sparkles,
   ChevronRight,
   CreditCard,
   MessageCircle,
   Clock,
+  Compass,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/lib/siteSettings";
 
-const GOOGLE_MAPS_URL =
+const DEFAULT_MAPS_URL =
   "https://www.google.com/maps/place/%E0%A6%86%E0%A6%A8%E0%A6%A8%E0%A7%82%E0%A6%B0+%E0%A6%A4%E0%A6%BE%E0%A6%B9%E0%A6%AB%E0%A6%BF%E0%A6%9C%E0%A7%81%E0%A6%B2+%E0%A6%95%E0%A7%81%E0%A6%B0%E0%A6%86%E0%A6%A8+%E0%A6%AE%E0%A6%BE%E0%A6%A6%E0%A6%B0%E0%A6%BE%E0%A6%B8%E0%A6%BE+%E0%A6%93+%E0%A6%AE%E0%A6%A1%E0%A7%87%E0%A6%B2+%E0%A6%8F%E0%A6%95%E0%A6%BE%E0%A6%A1%E0%A7%87%E0%A6%AE%E0%A7%80/@24.1119189,90.5677945,21z/data=!4m6!3m5!1s0x3755d59d76b2ffd9:0xde5de9aa6b8378aa!8m2!3d24.1118467!4d90.5680587!16s%2Fg%2F11khdsnx7w?entry=ttu&g_ep=EgoyMDI2MDMzMS4wIKXMDSoASAFQAw%3D%3D";
+const GOOGLE_MAPS_URL = DEFAULT_MAPS_URL;
 
-const siteLogo = "/site-logo.png";
+const DEFAULT_LOGO = "/site-logo.png";
 const BANK_ACCOUNT_NUMBER = "20503760201161316";
 
 const Footer = () => {
   const { t } = useLanguage();
+  const { settings } = useSiteSettings();
   const [copiedBank, setCopiedBank] = useState(false);
+
+  const siteLogo = settings.logo_url || DEFAULT_LOGO;
+  const mapsUrl = settings.google_maps_url || DEFAULT_MAPS_URL;
+  const facebookUrl = settings.facebook_url || "https://www.facebook.com/AnnoorTahfizolQoranMadrashaKapasia";
+  const youtubeUrl = settings.youtube_url || "https://www.youtube.com/@ANNOORMADRASA";
+  const hotline = settings.phone_primary || "01820811511";
+  const cleanWhatsapp = (settings.whatsapp_number || "01581818368").replace(/[^0-9]/g, "");
+  const whatsappUrl = `https://wa.me/88${cleanWhatsapp.startsWith("88") ? cleanWhatsapp.slice(2) : cleanWhatsapp}`;
 
   const handleCopyBank = () => {
     navigator.clipboard.writeText(BANK_ACCOUNT_NUMBER);
@@ -38,7 +49,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="relative overflow-hidden border-t border-emerald-900/40 bg-gradient-to-b from-[#073328] via-[#05261d] to-[#031712] text-primary-foreground">
+    <footer className="relative overflow-hidden border-t border-primary/40 bg-gradient-to-b from-[#08185A] via-[#061244] to-[#040D33] text-primary-foreground">
       {/* Subtle Islamic Geometric Accent Background */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.035]"
@@ -49,19 +60,19 @@ const Footer = () => {
       />
 
       {/* Top Ambient Glow Line */}
-      <div className="h-1 w-full bg-gradient-to-r from-emerald-500/20 via-accent/60 to-emerald-500/20" />
+      <div className="h-1 w-full bg-gradient-to-r from-accent/20 via-accent to-accent/20" />
 
       {/* Institutional Top Strip: Hotline & Fast Action */}
-      <div className="border-b border-white/10 bg-black/20 py-3.5 backdrop-blur-md">
+      <div className="border-b border-white/10 bg-black/25 py-3.5 backdrop-blur-md">
         <div className="container mx-auto flex flex-col items-center justify-between gap-3 px-4 text-xs font-bengali sm:flex-row sm:text-sm">
-          <div className="flex flex-wrap items-center justify-center gap-2 text-emerald-100 sm:justify-start">
-            <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-300 border border-emerald-500/30">
+          <div className="flex flex-wrap items-center justify-center gap-2 text-slate-100 sm:justify-start">
+            <span className="flex items-center gap-1.5 rounded-full bg-accent/20 px-2.5 py-0.5 text-xs font-semibold text-accent border border-accent/40">
               <Sparkles className="h-3 w-3" />
               {t("ভর্তি তথ্য ও সেবা", "Admissions & Info")}
             </span>
             <span className="hidden sm:inline text-white/40">•</span>
             <span className="text-white/80">
-              {t("বালক ও বালিকা ক্যাম্পাস, কাপাসিয়া, গাজীপুর", "Boys & Girls Campus, Kapasia, Gazipur")}
+              {t("মেইন রোড, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর", "Main Road, Kapasia Bazar, Kapasia, Gazipur")}
             </span>
           </div>
 
@@ -88,7 +99,7 @@ const Footer = () => {
       {/* Main 4-Column Footer Content */}
       <div className="container relative mx-auto px-4 py-14 lg:py-16">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-12">
-          
+
           {/* Column 1: Brand & Identity (4 Cols on LG) */}
           <div className="space-y-5 lg:col-span-4">
             <div className="flex items-center gap-3.5">
@@ -103,18 +114,18 @@ const Footer = () => {
               </div>
               <div>
                 <h3 className="font-bengali text-xl font-bold tracking-tight text-white drop-shadow-sm">
-                  {t("আননূর শিক্ষা পরিবার", "Annoor Education Family")}
+                  {t("আননূর তাহফিজুল কুরআন মাদ্রাসা", "Annoor Tahfizul Quran Madrasa")}
                 </h3>
                 <p className="font-bengali text-xs font-medium text-accent">
-                  {t("প্রতিষ্ঠিত: ২০১৩ • কাপাসিয়া, গাজীপুর", "Est. 2013 • Kapasia, Gazipur")}
+                  {t("প্রতিষ্ঠিত: ২০২১ • কাপাসিয়া, গাজীপুর", "Est. 2021 • Kapasia, Gazipur")}
                 </p>
               </div>
             </div>
 
             <p className="font-bengali text-sm leading-relaxed text-emerald-100/75">
               {t(
-                "সাধারণ শিক্ষার যুগোপযোগী সিলেবাস এবং পবিত্র কুরআনের নূর—এই দুইয়ের মেলবন্ধনে আপনার সন্তানকে পরিপূর্ণ নৈতিকতা, আধুনিক জ্ঞান ও ইসলামিক আদর্শে গড়ে তুলতে আমরা বদ্ধপরিকর।",
-                "Dedicated to nurturing your child through the unique harmony of modern schooling and the light of the Holy Quran, fostering academic excellence with ethical leadership."
+                "সাধারণ শিক্ষার যুগোপযোগী আধুনিক সিলেবাস এবং পবিত্র কুরআনের ঐশী আলো—এই দুইয়ের অনন্য মেলবন্ধনে প্রতিটি শিক্ষার্থীকে বিশুদ্ধ কুরআন তিলাওয়াত, পূর্ণাঙ্গ হিফজ, প্রাতিষ্ঠানিক মেধা ও সুন্নতি আদব-আখলাকে একজন আলোকিত মানুষ হিসেবে গড়ে তুলতে আমরা বদ্ধপরিকর।",
+                "Dedicated to nurturing each student through the unique harmony of modern academic excellence, authentic Quranic memorization, and pristine Islamic ethics to build an enlightened generation."
               )}
             </p>
 
@@ -125,7 +136,7 @@ const Footer = () => {
               </p>
               <div className="flex items-center gap-2.5">
                 <a
-                  href="https://www.facebook.com/share/17MH16oxjo/"
+                  href={facebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Facebook Page"
@@ -135,7 +146,7 @@ const Footer = () => {
                 </a>
 
                 <a
-                  href="https://youtube.com/@annooreducationfamily"
+                  href={youtubeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="YouTube Channel"
@@ -145,7 +156,7 @@ const Footer = () => {
                 </a>
 
                 <a
-                  href="https://wa.me/8801820811511"
+                  href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="WhatsApp Helpline"
@@ -155,7 +166,7 @@ const Footer = () => {
                 </a>
 
                 <a
-                  href={GOOGLE_MAPS_URL}
+                  href={mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Google Maps"
@@ -182,6 +193,7 @@ const Footer = () => {
                 { to: "/achievements", label: t("সাফল্য ও অর্জন", "Achievements") },
                 { to: "/gallery", label: t("ফটো গ্যালারি", "Gallery") },
                 { to: "/events", label: t("ইভেন্ট ক্যালেন্ডার", "Events") },
+                { to: "/sitemap", label: t("সাইটম্যাপ ডিরেক্টরি", "Sitemap Directory") },
               ].map((link) => (
                 <li key={link.to}>
                   <Link
@@ -215,11 +227,6 @@ const Footer = () => {
                 },
                 { to: "/notices", label: t("নোটিশ বোর্ড", "Notice Board") },
                 { to: "/downloads", label: t("সিলেবাস ও ডাউনলোড", "Download Corner") },
-                {
-                  to: "/apk",
-                  label: t("অ্যান্ড্রয়েড মোবাইল অ্যাপ", "Android Mobile App"),
-                  icon: <Smartphone className="h-3.5 w-3.5 text-emerald-400" />,
-                },
                 { to: "/virtual-tour", label: t("ভার্চুয়াল ক্যাম্পাস ট্যুর", "Virtual Tour") },
                 { to: "/contact", label: t("যোগাযোগ ও পরামর্শ", "Contact & Support") },
               ].map((link) => (
@@ -254,7 +261,7 @@ const Footer = () => {
               {/* Address with Map Link */}
               <div className="rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm">
                 <a
-                  href={GOOGLE_MAPS_URL}
+                  href={mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex items-start gap-2.5 transition-colors hover:text-accent"
@@ -266,8 +273,8 @@ const Footer = () => {
                     </p>
                     <p className="text-emerald-100/70">
                       {t(
-                        "মেইন রোড, কাপাসিয়া বাজার (পুরাতন সোনালী ব্যাংকের বিপরীতে), কাপাসিয়া, গাজীপুর।",
-                        "Main Road, Kapasia Bazar (Opposite Old Sonali Bank), Kapasia, Gazipur."
+                        settings.address_boys_campus_bn || "মেইন রোড, কলেজ রোড মোড়, কাপাসিয়া বাজার (সিঙ্গার শো-রুম সংলগ্ন), কাপাসিয়া, গাজীপুর।",
+                        settings.address_boys_campus_en || "Main Road, College Road Moor, Kapasia Bazar (Near Singer Showroom), Kapasia, Gazipur."
                       )}
                     </p>
                   </div>
@@ -279,10 +286,10 @@ const Footer = () => {
                 <div className="flex items-center justify-between border-b border-white/10 pb-2">
                   <div>
                     <span className="font-semibold text-white">
-                      {t("প্রধান শিক্ষক:", "Principal:")}
+                      {t("প্রতিষ্ঠাতা পরিচালক:", "Founder Director:")}
                     </span>{" "}
                     <span className="text-emerald-200">
-                      {t("হাফেজ আমানুল্লাহ", "Hafez Amanullah")}
+                      {t("হাফেজ আমানউল্লাহ", "Hafez Amanullah")}
                     </span>
                   </div>
                   <a
@@ -296,7 +303,7 @@ const Footer = () => {
                 <div className="flex items-center justify-between pt-1">
                   <div>
                     <span className="font-semibold text-white">
-                      {t("ম্যানেজার:", "Manager:")}
+                      {t("নায়েবে মুহতামিম :", "Vice Principal:")}
                     </span>{" "}
                     <span className="text-emerald-200">
                       {t("মুফতি আব্দুল্লাহ আল মামুন", "Mufti Abdullah Al Mamon")}
@@ -351,7 +358,7 @@ const Footer = () => {
         {/* Bottom Sub-Footer Bar */}
         <div className="mt-12 border-t border-white/10 pt-6">
           <div className="flex flex-col items-center justify-between gap-4 text-xs font-bengali text-emerald-100/60 md:flex-row">
-            
+
             {/* Left: Copyright */}
             <div className="text-center md:text-left">
               <p>
@@ -377,8 +384,16 @@ const Footer = () => {
               </a>
             </div>
 
-            {/* Right: CMS Admin Access Link */}
+            {/* Right: Sitemap & CMS Admin Access Link */}
             <div className="flex items-center gap-3">
+              <Link
+                to="/sitemap"
+                className="group inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-emerald-200/80 transition-colors hover:border-emerald-400/40 hover:bg-white/10 hover:text-white"
+              >
+                <Compass className="h-3 w-3 text-accent transition-transform group-hover:scale-110" />
+                <span>{t("সাইটম্যাপ", "Sitemap")}</span>
+              </Link>
+
               <Link
                 to="/admin/login"
                 className="group inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-emerald-200/80 transition-colors hover:border-emerald-400/40 hover:bg-white/10 hover:text-white"

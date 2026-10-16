@@ -21,8 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updateAdmission, type AdmissionForm, type AdmissionStatus } from "@/lib/admission";
-import { CLASS_NAME_OPTIONS } from "@/lib/attendanceHelpers";
+import { updateAdmission, type AdmissionForm, type AdmissionStatus, CLASS_NAME_OPTIONS } from "@/lib/admission";
 
 interface AdmissionEditDialogProps {
   isOpen: boolean;

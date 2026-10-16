@@ -130,8 +130,8 @@ const Teachers = () => {
             className="font-bengali text-base sm:text-lg text-white/85 max-w-2xl mx-auto mb-8 leading-relaxed"
           >
             {t(
-              "আননূর শিক্ষা পরিবারের গৌরব আমাদের প্রথিতযশা ওস্তাদবৃন্দ ও অভিজ্ঞ শিক্ষকমণ্ডলী। যাদের আন্তরিক স্নেহ, গভীর জ্ঞান ও সার্বক্ষণিক তত্ত্বাবধানে গড়ে উঠছে আদর্শ হাফেজ ও সুনাগরিক।",
-              "The pride of Annoor Education Family is our distinguished scholars, teachers, and governing board who nurture students with care, profound knowledge, and mentorship."
+              "আননূর তাহফিজুল কুরআন মাদরাসার গৌরব আমাদের প্রথিতযশা ওস্তাদবৃন্দ ও অভিজ্ঞ শিক্ষকমণ্ডলী। যাদের আন্তরিক স্নেহ, গভীর জ্ঞান ও সার্বক্ষণিক তত্ত্বাবধানে গড়ে উঠছে আদর্শ হাফেজ ও সুনাগরিক।",
+              "The pride of Annoor Tahfizul Quran Madrasha is our distinguished scholars, teachers, and governing board who nurture students with care, profound knowledge, and mentorship."
             )}
           </motion.p>
 
@@ -151,7 +151,7 @@ const Teachers = () => {
             </div>
             <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 backdrop-blur-md flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-amber-300" />
-              <span>{t("পৃথক বালক ও বালিকা ক্যাম্পাস", "Separate Campuses")}</span>
+              <span>{t("নিরাপদ ও সুশৃঙ্খল পরিবেশ", "Safe & Disciplined Campus")}</span>
             </div>
           </motion.div>
         </div>
@@ -173,11 +173,10 @@ const Teachers = () => {
                   <button
                     key={tab.id}
                     onClick={() => setSelectedCategory(tab.id)}
-                    className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bengali font-medium transition-all ${
-                      isActive
+                    className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bengali font-medium transition-all ${isActive
                         ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-102"
                         : "border border-border/80 bg-card text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-                    }`}
+                      }`}
                   >
                     <Icon className="h-4 w-4" />
                     <span>{t(tab.labelBn, tab.labelEn)}</span>
@@ -197,31 +196,6 @@ const Teachers = () => {
                 className="w-full rounded-xl border border-border bg-card pl-10 pr-4 py-2 text-xs sm:text-sm font-bengali text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/30"
               />
             </div>
-          </div>
-
-          {/* Campus Sub-filter (When not strictly management) */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/60">
-            <span className="text-xs font-semibold text-muted-foreground font-bengali flex items-center gap-1.5 mr-2">
-              <Filter className="h-3.5 w-3.5" />
-              {t("ক্যাম্পাস ফিল্টার:", "Campus Filter:")}
-            </span>
-            {[
-              { id: "all", labelBn: "সকল ক্যাম্পাস", labelEn: "All Campuses" },
-              { id: "boys", labelBn: "বালক ক্যাম্পাস", labelEn: "Boys Campus" },
-              { id: "girls", labelBn: "বালিকা ক্যাম্পাস", labelEn: "Girls Campus" },
-            ].map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setSelectedCampus(c.id as any)}
-                className={`rounded-lg px-3 py-1 text-xs font-bengali font-medium transition-colors ${
-                  selectedCampus === c.id
-                    ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30"
-                    : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                {t(c.labelBn, c.labelEn)}
-              </button>
-            ))}
           </div>
         </div>
 
@@ -251,37 +225,31 @@ const Teachers = () => {
                   key={member.id}
                   {...springIn}
                   transition={springInDelay(Math.min(idx * 0.05, 0.3))}
-                  className={`group relative rounded-2xl border p-6 transition-all duration-300 hover:shadow-xl flex flex-col justify-between ${
-                    isManagement
+                  className={`group relative rounded-2xl border p-6 transition-all duration-300 hover:shadow-xl flex flex-col justify-between ${isManagement
                       ? "border-primary/30 bg-gradient-to-b from-primary/5 via-card to-card shadow-sm hover:border-primary/50"
                       : "border-border/80 bg-card shadow-xs hover:border-primary/30"
-                  }`}
+                    }`}
                 >
                   <div>
                     {/* Top Row: Category & Campus Badge */}
                     <div className="flex items-center justify-between gap-2 mb-4">
                       <span
-                        className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold font-bengali ${
-                          member.category === "management"
+                        className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold font-bengali ${member.category === "management"
                             ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
                             : member.category === "teacher"
-                            ? "bg-primary/10 text-primary"
-                            : "bg-blue-500/10 text-blue-700 dark:text-blue-400"
-                        }`}
+                              ? "bg-primary/10 text-primary"
+                              : "bg-blue-500/10 text-blue-700 dark:text-blue-400"
+                          }`}
                       >
                         {member.category === "management"
                           ? t("পরিচালনা পরিষদ", "Governing Body")
                           : member.category === "teacher"
-                          ? t("শিক্ষক", "Teacher")
-                          : t("প্রশাসনিক স্টাফ", "Staff")}
+                            ? t("শিক্ষক", "Teacher")
+                            : t("প্রশাসনিক স্টাফ", "Staff")}
                       </span>
 
                       <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground font-bengali">
-                        {member.campus === "boys"
-                          ? t("বালক ক্যাম্পাস", "Boys Campus")
-                          : member.campus === "girls"
-                          ? t("বালিকা ক্যাম্পাস", "Girls Campus")
-                          : t("উভয় ক্যাম্পাস", "Both Campuses")}
+                        {t("মূল ক্যাম্পাস", "Main Campus")}
                       </span>
                     </div>
 

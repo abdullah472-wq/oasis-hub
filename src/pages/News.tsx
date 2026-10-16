@@ -260,7 +260,7 @@ const News = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* ================= HERO HEADER ================= */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-primary/95 via-primary to-primary/90 text-primary-foreground pt-32 pb-20 md:pt-40 md:pb-24">
+      <section className="relative overflow-hidden bg-gradient-to-b from-primary/95 via-primary to-primary/90 text-primary-foreground pt-8 pb-14 sm:pt-10 sm:pb-16 md:pt-12 md:pb-18">
         <div className="absolute inset-0 z-0 opacity-15">
           <img src={heroImg} alt="Annoor News Campus" className="h-full w-full object-cover" />
         </div>

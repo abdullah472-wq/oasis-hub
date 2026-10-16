@@ -6,78 +6,111 @@
 
 @layer base {
   :root {
-    --background: 40 30% 98%;
-    --foreground: 165 85% 10%;
+    /* 1. Background & Surface (Crisp White & Subtle Slate Gray) */
+    --background: 210 25% 98%; /* #F8FAFC */
+    --foreground: 228 84% 12%; /* #071343 - Deep Readable Brand Navy */
 
-    --card: 40 30% 100%;
-    --card-foreground: 165 85% 10%;
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 228 84% 12%;
 
-    --popover: 40 30% 100%;
-    --popover-foreground: 165 85% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 228 84% 12%;
 
-    --primary: 165 85% 15%;
-    --primary-foreground: 40 30% 98%;
+    /* 2. Official Brand Primary: #08185A (Deep Royal Navy) */
+    --primary: 228 84% 19%;
+    --primary-foreground: 0 0% 100%; /* Crisp White */
 
-    --secondary: 165 20% 94%;
-    --secondary-foreground: 165 85% 10%;
+    /* 3. Official Brand Accent: #F15A24 (Flame Orange) */
+    --accent: 16 88% 54%;
+    --accent-foreground: 0 0% 100%;
 
-    --muted: 165 20% 94%;
-    --muted-foreground: 165 20% 40%;
+    /* 4. Secondary & Muted (Clean Slate Gray Surfaces) */
+    --secondary: 215 25% 95%; /* #F1F5F9 */
+    --secondary-foreground: 228 84% 19%; /* Brand Navy */
 
-    --accent: 45 70% 50%;
-    --accent-foreground: 165 85% 10%;
+    --muted: 215 25% 95%;
+    --muted-foreground: 215 16% 47%; /* #64748B - Balanced Slate Gray */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* 5. Status Colors (Success, Error, Warning, Info) */
+    --destructive: 0 84% 60%; /* Red #EF4444 */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 165 20% 88%;
-    --input: 165 20% 88%;
-    --ring: 165 85% 15%;
+    --success: 158 64% 42%; /* Emerald Green #10B981 */
+    --success-foreground: 0 0% 100%;
 
-    --radius: 1.5rem;
+    --warning: 38 92% 50%; /* Amber/Yellow #F59E0B */
+    --warning-foreground: 0 0% 100%;
 
-    --shadow-soft: 0 10px 30px -10px rgba(6, 78, 59, 0.12);
-    --shadow-squish: 0 6px 0 0 #042f24;
+    --info: 217 91% 60%; /* Royal Blue #3B82F6 */
+    --info-foreground: 0 0% 100%;
 
-    --sidebar-background: 40 24% 97%;
-    --sidebar-foreground: 165 50% 16%;
-    --sidebar-primary: 165 85% 15%;
-    --sidebar-primary-foreground: 40 30% 98%;
-    --sidebar-accent: 165 18% 93%;
-    --sidebar-accent-foreground: 165 55% 12%;
-    --sidebar-border: 165 16% 86%;
-    --sidebar-ring: 45 70% 50%;
+    /* 6. Borders, Focus Rings & Radii */
+    --border: 215 25% 90%; /* #E2E8F0 */
+    --input: 215 25% 90%;
+    --ring: 228 84% 19%;
+
+    --radius: 1.25rem;
+
+    --shadow-soft: 0 10px 30px -10px rgba(8, 24, 90, 0.09);
+    --shadow-squish: 0 6px 0 0 #040D33;
+
+    /* 7. Sidebar Palette (Admin Panel) */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 228 84% 15%;
+    --sidebar-primary: 228 84% 19%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 25% 95%;
+    --sidebar-accent-foreground: 228 84% 19%;
+    --sidebar-border: 215 25% 90%;
+    --sidebar-ring: 16 88% 54%;
   }
 
   .dark {
-    --background: 165 38% 8%;
-    --foreground: 40 30% 98%;
-    --card: 165 32% 11%;
-    --card-foreground: 40 30% 98%;
-    --popover: 165 32% 11%;
-    --popover-foreground: 40 30% 98%;
-    --primary: 45 70% 50%;
-    --primary-foreground: 165 85% 10%;
-    --secondary: 165 28% 16%;
-    --secondary-foreground: 40 30% 98%;
-    --muted: 165 22% 15%;
-    --muted-foreground: 165 10% 72%;
-    --accent: 45 70% 50%;
-    --accent-foreground: 165 85% 10%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 165 22% 20%;
-    --input: 165 22% 20%;
-    --ring: 45 70% 50%;
+    --background: 228 50% 6%; /* #050B1E - Midnight Dark Navy */
+    --foreground: 210 40% 98%;
 
-    --sidebar-background: 165 34% 10%;
-    --sidebar-foreground: 40 30% 96%;
-    --sidebar-primary: 45 70% 50%;
-    --sidebar-primary-foreground: 165 85% 10%;
-    --sidebar-accent: 165 25% 16%;
-    --sidebar-accent-foreground: 40 30% 96%;
-    --sidebar-border: 165 22% 20%;
-    --sidebar-ring: 45 70% 50%;
+    --card: 228 45% 9%; /* #09122C */
+    --card-foreground: 210 40% 98%;
+
+    --popover: 228 45% 9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 228 80% 65%;
+    --primary-foreground: 228 84% 12%;
+
+    --secondary: 228 30% 15%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 228 30% 14%;
+    --muted-foreground: 215 20% 70%;
+
+    --accent: 16 88% 54%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 158 64% 42%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 228 30% 18%;
+    --input: 228 30% 18%;
+    --ring: 16 88% 54%;
+
+    --sidebar-background: 228 45% 8%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 16 88% 54%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 228 30% 14%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 228 30% 18%;
+    --sidebar-ring: 16 88% 54%;
   }
 
   * {
@@ -86,14 +119,14 @@
 
   body {
     background-color: hsl(var(--background));
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%2306422c' stroke-width='0.6' opacity='0.07'%3E%3Cpolygon points='40,8 46,20 58,14 52,26 64,32 52,34 58,46 46,40 40,52 34,40 22,46 28,34 16,32 28,26 22,14 34,20'/%3E%3Cpolygon points='40,18 48,24 52,32 48,40 40,44 32,40 28,32 32,24'/%3E%3Cline x1='40' y1='0' x2='40' y2='8'/%3E%3Cline x1='40' y1='52' x2='40' y2='80'/%3E%3Cline x1='0' y1='32' x2='16' y2='32'/%3E%3Cline x1='64' y1='32' x2='80' y2='32'/%3E%3Cline x1='8' y1='8' x2='22' y2='14'/%3E%3Cline x1='58' y1='14' x2='72' y2='8'/%3E%3Cline x1='8' y1='56' x2='22' y2='46'/%3E%3Cline x1='58' y1='46' x2='72' y2='56'/%3E%3Cpath d='M0,0 L8,8 M80,0 L72,8 M0,80 L8,56 M80,80 L72,56'/%3E%3Cpolygon points='40,26 44,32 40,38 36,32'/%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%2308185a' stroke-width='0.6' opacity='0.04'%3E%3Cpolygon points='40,8 46,20 58,14 52,26 64,32 52,34 58,46 46,40 40,52 34,40 22,46 28,34 16,32 28,26 22,14 34,20'/%3E%3Cpolygon points='40,18 48,24 52,32 48,40 40,44 32,40 28,32 32,24'/%3E%3Cline x1='40' y1='0' x2='40' y2='8'/%3E%3Cline x1='40' y1='52' x2='40' y2='80'/%3E%3Cline x1='0' y1='32' x2='16' y2='32'/%3E%3Cline x1='64' y1='32' x2='80' y2='32'/%3E%3Cline x1='8' y1='8' x2='22' y2='14'/%3E%3Cline x1='58' y1='14' x2='72' y2='8'/%3E%3Cline x1='8' y1='56' x2='22' y2='46'/%3E%3Cline x1='58' y1='46' x2='72' y2='56'/%3E%3Cpath d='M0,0 L8,8 M80,0 L72,8 M0,80 L8,56 M80,80 L72,56'/%3E%3Cpolygon points='40,26 44,32 40,38 36,32'/%3E%3C/g%3E%3C/svg%3E");
     background-attachment: fixed;
     background-size: 80px 80px;
     @apply bg-background text-foreground font-bengali antialiased;
   }
 
   .dark body {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23f5e6b3' stroke-width='0.6' opacity='0.045'%3E%3Cpolygon points='40,8 46,20 58,14 52,26 64,32 52,34 58,46 46,40 40,52 34,40 22,46 28,34 16,32 28,26 22,14 34,20'/%3E%3Cpolygon points='40,18 48,24 52,32 48,40 40,44 32,40 28,32 32,24'/%3E%3Cline x1='40' y1='0' x2='40' y2='8'/%3E%3Cline x1='40' y1='52' x2='40' y2='80'/%3E%3Cline x1='0' y1='32' x2='16' y2='32'/%3E%3Cline x1='64' y1='32' x2='80' y2='32'/%3E%3Cline x1='8' y1='8' x2='22' y2='14'/%3E%3Cline x1='58' y1='14' x2='72' y2='8'/%3E%3Cline x1='8' y1='56' x2='22' y2='46'/%3E%3Cline x1='58' y1='46' x2='72' y2='56'/%3E%3Cpath d='M0,0 L8,8 M80,0 L72,8 M0,80 L8,56 M80,80 L72,56'/%3E%3Cpolygon points='40,26 44,32 40,38 36,32'/%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23f15a24' stroke-width='0.6' opacity='0.035'%3E%3Cpolygon points='40,8 46,20 58,14 52,26 64,32 52,34 58,46 46,40 40,52 34,40 22,46 28,34 16,32 28,26 22,14 34,20'/%3E%3Cpolygon points='40,18 48,24 52,32 48,40 40,44 32,40 28,32 32,24'/%3E%3Cline x1='40' y1='0' x2='40' y2='8'/%3E%3Cline x1='40' y1='52' x2='40' y2='80'/%3E%3Cline x1='0' y1='32' x2='16' y2='32'/%3E%3Cline x1='64' y1='32' x2='80' y2='32'/%3E%3Cline x1='8' y1='8' x2='22' y2='14'/%3E%3Cline x1='58' y1='14' x2='72' y2='8'/%3E%3Cline x1='8' y1='56' x2='22' y2='46'/%3E%3Cline x1='58' y1='46' x2='72' y2='56'/%3E%3Cpath d='M0,0 L8,8 M80,0 L72,8 M0,80 L8,56 M80,80 L72,56'/%3E%3Cpolygon points='40,26 44,32 40,38 36,32'/%3E%3C/g%3E%3C/svg%3E");
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -104,24 +137,24 @@
 
 @layer components {
   .squishy-button {
-    @apply px-8 py-4 bg-primary text-primary-foreground rounded-[2rem] font-bold 
-           shadow-[0_6px_0_0_#042f24] hover:-translate-y-1 active:translate-y-1 
+    @apply px-4 py-2 sm:px-7 sm:py-3.5 bg-primary text-primary-foreground rounded-[2rem] font-bold 
+           shadow-[0_4px_0_0_#040D33] sm:shadow-[0_6px_0_0_#040D33] hover:-translate-y-1 active:translate-y-1 
            active:shadow-none transition-all duration-200 cursor-pointer
-           text-base select-none;
+           text-xs sm:text-base select-none;
   }
 
   .squishy-button-gold {
-    @apply px-8 py-4 bg-accent text-foreground rounded-[2rem] font-bold 
-           shadow-[0_6px_0_0_#8b6914] hover:-translate-y-1 active:translate-y-1 
+    @apply px-4 py-2 sm:px-7 sm:py-3.5 bg-accent text-accent-foreground rounded-[2rem] font-bold 
+           shadow-[0_4px_0_0_#9A3412] sm:shadow-[0_6px_0_0_#9A3412] hover:-translate-y-1 active:translate-y-1 
            active:shadow-none transition-all duration-200 cursor-pointer
-           text-base select-none;
+           text-xs sm:text-base select-none;
   }
 
   .squishy-button-outline {
-    @apply px-8 py-4 bg-transparent text-primary border-2 border-primary rounded-[2rem] font-bold 
-           shadow-[0_6px_0_0_#042f24] hover:-translate-y-1 active:translate-y-1 
+    @apply px-4 py-2 sm:px-7 sm:py-3.5 bg-transparent text-primary border-2 border-primary rounded-[2rem] font-bold 
+           shadow-[0_4px_0_0_#040D33] sm:shadow-[0_6px_0_0_#040D33] hover:-translate-y-1 active:translate-y-1 
            active:shadow-none transition-all duration-200 cursor-pointer
-           text-base select-none;
+           text-xs sm:text-base select-none;
   }
 
   .card-institutional {
@@ -129,7 +162,7 @@
   }
 
   .notice-ticker {
-    @apply bg-accent text-foreground py-3 px-4 font-semibold;
+    @apply bg-accent text-accent-foreground py-3 px-4 font-semibold;
   }
 }
 

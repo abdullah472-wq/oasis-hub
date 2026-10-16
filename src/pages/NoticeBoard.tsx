@@ -20,10 +20,18 @@ const NoticeBoard = () => {
   const [activeTab, setActiveTab] = useState("current");
 
   useEffect(() => {
+    let isMounted = true;
     getNotices()
-      .then(setNotices)
+      .then((items) => {
+        if (isMounted) setNotices(items);
+      })
       .catch(console.error)
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const currentNotices = useMemo(() => {

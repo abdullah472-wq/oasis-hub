@@ -58,9 +58,9 @@ import {
   deleteAdmission,
   type AdmissionForm,
   type AdmissionStatus,
+  CLASS_NAME_OPTIONS,
 } from "@/lib/admission";
 import { AdmissionEditDialog } from "./AdmissionEditDialog";
-import { CLASS_NAME_OPTIONS } from "@/lib/attendanceHelpers";
 
 export const AdmissionsManager = () => {
   const { t, lang } = useLanguage();

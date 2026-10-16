@@ -29,6 +29,17 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          50: "#EEF2FF",
+          100: "#E0E7FF",
+          200: "#C7D2FE",
+          300: "#A5B4FC",
+          400: "#818CF8",
+          500: "#3B4CCA",
+          600: "#223399",
+          700: "#142277",
+          800: "#0D1D66",
+          900: "#08185A", /* Official Brand Navy: #08185A */
+          950: "#040D33",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -38,6 +49,33 @@ export default {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+          50: "#ECFDF5",
+          100: "#D1FAE5",
+          500: "#10B981",
+          600: "#059669",
+          700: "#047857",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+          50: "#FFFBEB",
+          100: "#FEF3C7",
+          500: "#F59E0B",
+          600: "#D97706",
+          700: "#B45309",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
+          50: "#EFF6FF",
+          100: "#DBEAFE",
+          500: "#3B82F6",
+          600: "#2563EB",
+          700: "#1D4ED8",
+        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
@@ -45,6 +83,16 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          50: "#FFF7ED",
+          100: "#FFEDD5",
+          200: "#FED7AA",
+          300: "#FDBA74",
+          400: "#FB923C",
+          500: "#F15A24", /* Official Brand Accent Orange: #F15A24 */
+          600: "#EA580C",
+          700: "#C2410C",
+          800: "#9A3412",
+          900: "#7C2D12",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -64,15 +112,13 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        gold: {
-          DEFAULT: "hsl(45, 70%, 50%)",
-          light: "hsl(45, 70%, 85%)",
-          dark: "hsl(45, 70%, 35%)",
-        },
-        forest: {
-          DEFAULT: "hsl(165, 85%, 15%)",
-          deep: "hsl(165, 85%, 10%)",
-          light: "hsl(165, 40%, 30%)",
+        brand: {
+          navy: "#08185A",
+          orange: "#F15A24",
+          midnight: "#040D33",
+          royal: "#122579",
+          amber: "#F59E0B",
+          surface: "#F8FAFC",
         },
       },
       borderRadius: {

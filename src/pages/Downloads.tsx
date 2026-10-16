@@ -50,18 +50,26 @@ const Downloads = () => {
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
   useEffect(() => {
+    let isMounted = true;
     async function loadData() {
       try {
         setLoading(true);
         const data = await getDownloadsList();
-        setItems(data.filter((d) => d.is_active));
+        if (isMounted) {
+          setItems(data.filter((d) => d.is_active));
+        }
       } catch (err) {
         console.error("Failed to load downloads:", err);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
     loadData();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleDownload = async (item: DownloadItem) => {

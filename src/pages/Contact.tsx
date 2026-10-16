@@ -33,20 +33,26 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useSiteSettings } from "@/lib/siteSettings";
 
-const GOOGLE_MAPS_URL =
+const DEFAULT_MAPS_URL =
   "https://www.google.com/maps/place/%E0%A6%86%E0%A6%A8%E0%A6%A8%E0%A7%82%E0%A6%B0+%E0%A6%A4%E0%A6%BE%E0%A6%B9%E0%A6%AB%E0%A6%BF%E0%A6%9C%E0%A7%81%E0%A6%B2+%E0%A6%95%E0%A7%81%E0%A6%B0%E0%A6%86%E0%A6%A8+%E0%A6%AE%E0%A6%BE%E0%A6%A6%E0%A6%B0%E0%A6%BE%E0%A6%B8%E0%A6%BE+%E0%A6%93+%E0%A6%AE%E0%A6%A1%E0%A7%87%E0%A6%B2+%E0%A6%8F%E0%A6%95%E0%A6%BE%E0%A6%A1%E0%A7%87%E0%A6%AE%E0%A7%80/@24.1119189,90.5677945,21z/data=!4m6!3m5!1s0x3755d59d76b2ffd9:0xde5de9aa6b8378aa!8m2!3d24.1118467!4d90.5680587!16s%2Fg%2F11khdsnx7w?entry=ttu&g_ep=EgoyMDI2MDMzMS4wIKXMDSoASAFQAw%3D%3D";
+const GOOGLE_MAPS_URL = DEFAULT_MAPS_URL;
 
 const GOOGLE_MAPS_EMBED_URL =
   "https://www.google.com/maps?q=%E0%A6%86%E0%A6%A8%E0%A6%A8%E0%A7%82%E0%A6%B0%20%E0%A6%A4%E0%A6%BE%E0%A6%B9%E0%A6%AB%E0%A6%BF%E0%A6%9C%E0%A7%81%E0%A6%B2%20%E0%A6%95%E0%A7%81%E0%A6%B0%E0%A6%86%E0%A6%A8%20%E0%A6%AE%E0%A6%BE%E0%A6%A6%E0%A6%B0%E0%A6%BE%E0%A6%B8%E0%A6%BE%20%E0%A6%93%20%E0%A6%AE%E0%A6%A1%E0%A7%87%E0%A6%B2%20%E0%A6%8F%E0%A6%95%E0%A6%BE%E0%A6%A1%E0%A7%87%E0%A6%AE%E0%A7%80&ll=24.1118467,90.5680587&z=19&output=embed";
 
 const Contact = () => {
   const { t, lang } = useLanguage();
+  const { settings } = useSiteSettings();
+  const mapsUrl = settings.google_maps_url || DEFAULT_MAPS_URL;
+  const facebookUrl = settings.facebook_url || "https://www.facebook.com/AnnoorTahfizolQoranMadrashaKapasia";
+  const youtubeUrl = settings.youtube_url || "https://www.youtube.com/@ANNOORMADRASA";
+  const madrasaAddress = settings.address_boys_campus_bn || "মেইন রোড, কলেজ রোড মোড়, কাপাসিয়া বাজার (সিঙ্গার শোরুম এর পাশে), কাপাসিয়া, গাজীপুর-১৭৩০";
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    campus: "boys",
     subject: "admission",
     message: "",
   });
@@ -70,7 +76,6 @@ const Contact = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const campusText = formData.campus === "girls" ? "বালিকা ক্যাম্পাস (Girls Branch)" : "বালক ক্যাম্পাস (Boys Branch)";
     const subjectMap: Record<string, string> = {
       admission: "নতুন ভর্তি সংক্রান্ত (New Admission)",
       fees: "ফি ও টিউশন সংক্রান্ত (Fees & Accounts)",
@@ -79,11 +84,11 @@ const Contact = () => {
       general: "সাধারণ জিজ্ঞাসা (General Inquiry)",
     };
 
-    const text = `*আননূর শিক্ষা পরিবার - অনলাইন যোগাযোগ বার্তা*\n\n` +
+    const text = `*আননূর তাহফিজুল কুরআন মাদরাসা - অনলাইন যোগাযোগ বার্তা*\n\n` +
       `👤 *নাম:* ${formData.name}\n` +
       `📱 *মোবাইল:* ${formData.phone}\n` +
       (formData.email ? `✉️ *ইমেইল:* ${formData.email}\n` : "") +
-      `🏛️ *শাখা:* ${campusText}\n` +
+      `🏛️ *প্রতিষ্ঠান:* আননূর তাহফিজুল কুরআন মাদরাসা (কাপাসিয়া বাজার)\n` +
       `📌 *বিষয়:* ${subjectMap[formData.subject] || formData.subject}\n\n` +
       `💬 *বার্তা:* \n${formData.message}\n\n` +
       `_ওয়েবসাইট অনলাইন যোগাযোগ ফর্ম থেকে প্রেরিত_`;
@@ -113,8 +118,8 @@ const Contact = () => {
 
             <p className="mx-auto max-w-2xl font-bengali text-sm text-emerald-100/90 sm:text-base leading-relaxed">
               {t(
-                "আননূর শিক্ষা পরিবারের বালক ও বালিকা ক্যাম্পাস, দায়িত্বশীল কর্মকর্তা, ভর্তি তথ্য এবং গুগল ম্যাপস দিকনির্দেশনা।",
-                "Official contact numbers, principal and manager helplines, bank details, and campus locations of Annoor Education Family."
+                "আননূর তাহফিজুল কুরআন মাদরাসার অবস্থান, দায়িত্বশীল কর্মকর্তা, যোগাযোগ নম্বর ও সরাসরি দিকনির্দেশনা।",
+                "Official contact numbers, principal and management helplines, bank details, and campus location of Annoor Tahfizul Quran Madrasa."
               )}
             </p>
 
@@ -311,66 +316,99 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* ================= CAMPUS DETAILS CARDS ================= */}
+      {/* ================= CAMPUS DETAILS ================= */}
       <section className="py-8 bg-muted/30">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="text-center mb-10 space-y-2">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="text-center mb-8 space-y-2">
             <h2 className="font-bengali text-2xl sm:text-3xl font-bold text-foreground">
-              {t("ক্যাম্পাসসমূহ ও ঠিকানা", "Our Campuses & Addresses")}
+              {t("ক্যাম্পাসের অবস্থান ও বিবরণ", "Campus Location & Details")}
             </h2>
             <p className="font-bengali text-sm text-muted-foreground">
-              {t("কাপাসিয়ার প্রাণকেন্দ্রে বালক ও বালিকা শিক্ষার্থীদের জন্য স্বতন্ত্র ও নিরাপদ পরিবেশ", "Two distinct campuses tailored for boys and girls in Kapasia, Gazipur")}
+              {t("কাপাসিয়ার প্রাণকেন্দ্রে শিক্ষার্থীদের জন্য সম্পূর্ণ নিরিবিলি, নিরাপদ ও সুশৃঙ্খল পরিবেশ", "Safe, serene, and disciplined learning environment in the heart of Kapasia, Gazipur")}
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Boys Campus */}
-            <motion.div
-              {...springIn}
-              className="rounded-3xl border border-border/70 bg-card p-6 sm:p-8 shadow-sm flex flex-col justify-between"
-            >
+          <motion.div
+            {...springIn}
+            className="rounded-3xl border border-border/80 bg-card p-6 sm:p-10 shadow-sm"
+          >
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-border/60">
               <div>
-                <div className="flex items-center justify-between gap-2 mb-4">
+                <div className="flex items-center gap-2 mb-3">
                   <Badge className="bg-primary text-primary-foreground font-semibold px-3 py-1 text-xs">
-                    {t("বালক ক্যাম্পাস", "Boys Campus")}
+                    {t("প্রধান ক্যাম্পাস", "Main Campus")}
                   </Badge>
                   <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
                     <CheckCircle className="h-3.5 w-3.5" />
                     {t("আবাসিক ও অনাবাসিক", "Residential & Day")}
                   </span>
                 </div>
-
-                <h3 className="font-bengali text-xl font-bold text-foreground mb-2">
-                  {t("আননূর তাহফিজুল কুরআন মাদরাসা ও মডেল একাডেমি", "Annoor Tahfizul Quran Madrasa & Model Academy")}
+                <h3 className="font-bengali text-2xl sm:text-3xl font-bold text-foreground">
+                  {t("আননূর তাহফিজুল কুরআন মাদরাসা", "Annoor Tahfizul Quran Madrasa")}
                 </h3>
-                <p className="font-bengali text-xs text-muted-foreground mb-4">
+                <p className="font-bengali text-xs sm:text-sm text-muted-foreground mt-1.5">
                   {t(
-                    "নূরানী, নাজেরা, আন্তর্জাতিক মানের হিফজুল কুরআন এবং প্রাথমিক জেনারেল শিক্ষা সমন্বিত শাখা।",
+                    "নূরানী, নাজেরা, আন্তর্জাতিক মানের হিফজুল কুরআন এবং প্রাথমিক জেনারেল শিক্ষা সমন্বিত ক্যাম্পাস।",
                     "Integrated Nurani, Nazara, International Hifz and Primary General curriculum."
                   )}
                 </p>
+              </div>
 
-                <div className="space-y-3.5 py-4 border-t border-border/60 text-sm font-bengali">
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {t("মেইন রোড, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর", "Main Road, Kapasia Bazar, Kapasia, Gazipur")}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {t("কাপাসিয়া বাজারের প্রবেশমুখে প্রধান সড়ক সংলগ্ন", "Adjacent to main road entry of Kapasia Bazar")}
-                      </p>
-                    </div>
+              <div className="flex items-center gap-3 flex-wrap">
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bengali text-xs sm:text-sm font-semibold hover:bg-primary/90 transition-all shadow-sm active:scale-95"
+                >
+                  <Navigation className="h-4 w-4" />
+                  <span>{t("গুগল ম্যাপে দিকনির্দেশনা", "Get Directions")}</span>
+                </a>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyToClipboard(madrasaAddress, "address")}
+                  className="rounded-xl text-xs sm:text-sm h-10 px-4 gap-2"
+                >
+                  {copiedAddress === "address" ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                  <span>{copiedAddress === "address" ? t("কপি হয়েছে", "Copied") : t("ঠিকানা কপি", "Copy Address")}</span>
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6 pt-6">
+              <div className="space-y-4 font-bengali">
+                <div className="flex items-start gap-3.5">
+                  <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                    <MapPin className="h-5 w-5" />
                   </div>
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground">{t("ঠিকানা ও অবস্থান:", "Location:")}</p>
+                    <p className="text-sm font-bold text-foreground mt-0.5">
+                      {t("মেইন রোড, কলেজ রোড মোড়, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর।", "Main Road, College Road Mor, Kapasia Bazar, Kapasia, Gazipur.")}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t(madrasaAddress, settings.address_boys_campus_en || madrasaAddress)}
+                    </p>
+                  </div>
+                </div>
 
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-primary flex-shrink-0" />
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <a href="tel:01581818368" className="font-semibold text-primary hover:underline">
-                        01581-818368
+                <div className="flex items-start gap-3.5">
+                  <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                    <Phone className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground">{t("জরুরি হটলাইন ও যোগাযোগ:", "Direct Helplines:")}</p>
+                    <div className="flex items-center gap-3 flex-wrap mt-0.5 text-sm font-semibold">
+                      <a href={`tel:${(settings.phone_secondary || "01581818368").replace(/[^0-9]/g, "")}`} className="text-primary hover:underline font-mono">
+                        {settings.phone_secondary || "01581-818368"}
                       </a>
                       <span className="text-muted-foreground">|</span>
-                      <a href="tel:01312200043" className="font-semibold text-primary hover:underline">
+                      <a href={`tel:${(settings.phone_primary || "01820811511").replace(/[^0-9]/g, "")}`} className="text-primary hover:underline font-mono">
+                        {settings.phone_primary || "01820-811511"}
+                      </a>
+                      <span className="text-muted-foreground">|</span>
+                      <a href="tel:01312200043" className="text-primary hover:underline font-mono">
                         01312-200043
                       </a>
                     </div>
@@ -378,99 +416,32 @@ const Contact = () => {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-border/60 flex items-center gap-3 flex-wrap">
-                <a
-                  href={GOOGLE_MAPS_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bengali text-xs font-semibold hover:bg-primary/90 transition-colors"
-                >
-                  <Navigation className="h-3.5 w-3.5" />
-                  <span>{t("গুগল ম্যাপে দিকনির্দেশনা", "Get Directions")}</span>
-                </a>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard("মেইন রোড, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর", "boys")}
-                  className="rounded-xl text-xs gap-1.5"
-                >
-                  {copiedAddress === "boys" ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-                  <span>{copiedAddress === "boys" ? t("কপি হয়েছে", "Copied") : t("ঠিকানা কপি", "Copy Address")}</span>
-                </Button>
-              </div>
-            </motion.div>
-
-            {/* Girls Campus */}
-            <motion.div
-              {...springIn}
-              transition={springInDelay(0.1)}
-              className="rounded-3xl border border-border/70 bg-card p-6 sm:p-8 shadow-sm flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-4">
-                  <Badge className="bg-purple-600 text-white font-semibold px-3 py-1 text-xs">
-                    {t("বালিকা ক্যাম্পাস", "Girls Campus")}
-                  </Badge>
-                  <span className="text-xs font-semibold text-purple-600 flex items-center gap-1">
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                    {t("সম্পূর্ণ পর্দাঘেরা নিরাপদ ব্যবস্থা", "Secure & Segregated")}
-                  </span>
-                </div>
-
-                <h3 className="font-bengali text-xl font-bold text-foreground mb-2">
-                  {t("আননূর বালিকা ইসলামিক মডেল মাদরাসা", "Annoor Girls Islamic Model Madrasa")}
-                </h3>
-                <p className="font-bengali text-xs text-muted-foreground mb-4">
-                  {t(
-                    "অভিজ্ঞ মহিলা শিক্ষিকামণ্ডলী দ্বারা পরিচালিত সম্পূর্ণ স্বতন্ত্র নূরানী, হিফজ ও মহিলা শাখা।",
-                    "Exclusively managed by qualified female faculty with strict Islamic modesty and safety."
-                  )}
-                </p>
-
-                <div className="space-y-3.5 py-4 border-t border-border/60 text-sm font-bengali">
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {t("বাশতলা মোড়, কলেজ রোড, কাপাসিয়া, গাজীপুর", "Bashtola More, College Road, Kapasia, Gazipur")}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {t("কলেজ রোডের সন্নিকটে শান্ত ও নিরিবিলি পরিবেশ", "Peaceful study environment near College Road")}
-                      </p>
-                    </div>
+              {/* Campus Highlights list */}
+              <div className="rounded-2xl border border-border/60 bg-muted/20 p-5 font-bengali">
+                <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-3">
+                  {t("ক্যাম্পাসের বিশেষ সুবিধাসমূহ", "Campus Features & Security")}
+                </h4>
+                <div className="grid grid-cols-2 gap-2.5 text-xs text-foreground">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                    <span>{t("সিসিটিভি ও সিকিউরিটি গার্ড", "24/7 CCTV & Security")}</span>
                   </div>
-
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-purple-600 flex-shrink-0" />
-                    <a href="tel:01820811511" className="font-semibold text-purple-700 hover:underline">
-                      01820-811511
-                    </a>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                    <span>{t("স্বাস্থ্যসম্মত নিজস্ব ডাইনিং", "Hygienic Dining")}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                    <span>{t("নিরিবিলি মনোরম পরিবেশ", "Serene Atmosphere")}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                    <span>{t("সার্বক্ষণিক বিদ্যুৎ ও পানি", "24/7 Power & Clean Water")}</span>
                   </div>
                 </div>
               </div>
-
-              <div className="pt-4 border-t border-border/60 flex items-center gap-3 flex-wrap">
-                <a
-                  href={GOOGLE_MAPS_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-600 text-white font-bengali text-xs font-semibold hover:bg-purple-700 transition-colors"
-                >
-                  <Navigation className="h-3.5 w-3.5" />
-                  <span>{t("গুগল ম্যাপে দিকনির্দেশনা", "Get Directions")}</span>
-                </a>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard("বাশতলা মোড়, কলেজ রোড, কাপাসিয়া, গাজীপুর", "girls")}
-                  className="rounded-xl text-xs gap-1.5"
-                >
-                  {copiedAddress === "girls" ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-                  <span>{copiedAddress === "girls" ? t("কপি হয়েছে", "Copied") : t("ঠিকানা কপি", "Copy Address")}</span>
-                </Button>
-              </div>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -582,7 +553,7 @@ const Contact = () => {
 
                 <div className="flex items-center gap-2">
                   <a
-                    href="https://www.facebook.com/share/17MH16oxjo/"
+                    href={facebookUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/10 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors text-xs font-semibold"
@@ -591,7 +562,7 @@ const Contact = () => {
                     <ExternalLink className="h-3 w-3" />
                   </a>
                   <a
-                    href="https://youtube.com/@annooreducationfamily"
+                    href={youtubeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600/10 text-rose-600 hover:bg-rose-600 hover:text-white transition-colors text-xs font-semibold"
@@ -636,7 +607,7 @@ const Contact = () => {
 
               <div className="flex items-center justify-between gap-3">
                 <a
-                  href={GOOGLE_MAPS_URL}
+                  href={mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 font-bengali text-xs font-semibold text-primary hover:underline"
@@ -649,7 +620,7 @@ const Contact = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    navigator.clipboard.writeText(GOOGLE_MAPS_URL);
+                    navigator.clipboard.writeText(mapsUrl);
                     toast.success(t("ম্যাপ লিঙ্ক কপি করা হয়েছে", "Map URL copied"));
                   }}
                   className="text-xs gap-1"
@@ -747,22 +718,6 @@ const Contact = () => {
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-4">
-                    {/* Campus Selector */}
-                    <div className="space-y-1.5">
-                      <Label htmlFor="contact_campus" className="font-bengali font-semibold text-xs">
-                        {t("শাখা / ক্যাম্পাস নির্বাচন *", "Select Campus *")}
-                      </Label>
-                      <select
-                        id="contact_campus"
-                        value={formData.campus}
-                        onChange={(e) => setFormData({ ...formData, campus: e.target.value })}
-                        className="w-full h-11 rounded-xl border border-input bg-background px-3 font-bengali text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        <option value="boys">{t("বালক ক্যাম্পাস (Boys Branch)", "Boys Branch")}</option>
-                        <option value="girls">{t("বালিকা ক্যাম্পাস (Girls Branch)", "Girls Branch")}</option>
-                      </select>
-                    </div>
-
                     {/* Subject Selector */}
                     <div className="space-y-1.5">
                       <Label htmlFor="contact_subject" className="font-bengali font-semibold text-xs">
@@ -781,21 +736,21 @@ const Contact = () => {
                         <option value="general">{t("অন্যান্য সাধারণ জিজ্ঞাসা (General)", "General")}</option>
                       </select>
                     </div>
-                  </div>
 
-                  {/* Email */}
-                  <div className="space-y-1.5">
-                    <Label htmlFor="contact_email" className="font-bengali font-semibold text-xs">
-                      {t("ইমেইল (ঐচ্ছিক)", "Email (Optional)")}
-                    </Label>
-                    <Input
-                      id="contact_email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="yourname@gmail.com"
-                      className="rounded-xl h-11"
-                    />
+                    {/* Email */}
+                    <div className="space-y-1.5">
+                      <Label htmlFor="contact_email" className="font-bengali font-semibold text-xs">
+                        {t("ইমেইল (ঐচ্ছিক)", "Email (Optional)")}
+                      </Label>
+                      <Input
+                        id="contact_email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="yourname@gmail.com"
+                        className="rounded-xl h-11"
+                      />
+                    </div>
                   </div>
 
                   {/* Message */}

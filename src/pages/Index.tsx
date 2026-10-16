@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -36,6 +36,7 @@ import { getNotices, type Notice } from "@/lib/notices";
 import { springIn, springInDelay } from "@/lib/animations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useSiteSettings } from "@/lib/siteSettings";
 
 const AnimatedCounter = ({ value }: { value: string }) => {
   const num = parseInt(value.replace(/[^0-9]/g, ""), 10);
@@ -85,6 +86,7 @@ const AnimatedCounter = ({ value }: { value: string }) => {
 
 const Index = () => {
   const { t, lang } = useLanguage();
+  const { settings } = useSiteSettings();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewName, setReviewName] = useState("");
@@ -184,11 +186,11 @@ const Index = () => {
       ),
     },
     {
-      name: t("ফাতেমা বেগম", "Fatema Begum"),
+      name: t("মুহাম্মদ রফিকুল ইসলাম", "Muhammad Rafiqul Islam"),
       relation: t("অভিভাবক", "Guardian"),
       review: t(
-        '"এই প্রতিষ্ঠানের শিক্ষকরা খুবই আদর স্নেহের সাথে পড়াশোনা করান। বালিকা শাখার সুশৃঙ্খল পর্দাঘেরা পরিবেশে আমার মেয়ে খুবই নিরাপদে লেখাপড়া শিখছে।"',
-        '"The teachers here teach with great care and love. My daughter is studying safely in the disciplined, secure environment of the girls branch."'
+        '"এই প্রতিষ্ঠানের শিক্ষকরা খুবই আদর স্নেহের সাথে পড়াশোনা করান। সুশৃঙ্খল ও আন্তরিক পরিবেশে সন্তান খুব আনন্দের সাথে সহীহ কোরআন ও প্রাতিষ্ঠানিক শিক্ষা শিখছে।"',
+        '"The teachers here teach with great care and dedication. In a disciplined and warm environment, my child is happily learning the Quran and academic education."'
       ),
     },
     {
@@ -299,7 +301,7 @@ const Index = () => {
     { icon: Users, value: "350+", label: t("বর্তমান শিক্ষার্থী", "Active Students") },
     { icon: Crown, value: "115+", label: t("কৃতি হাফেজ সমাবর্তন", "Huffaz Graduates") },
     { icon: BookOpen, value: "30+", label: t("অভিজ্ঞ শিক্ষকমণ্ডলী", "Expert Teachers") },
-    { icon: Award, value: "13+", label: t("বছরের নির্ভরযোগ্য ঐতিহ্য", "Years of Trust (Est. 2013)") },
+    { icon: Award, value: "5+", label: t("বছরের নির্ভরযোগ্য ঐতিহ্য", "Years of Trust (Est. 2021)") },
   ];
 
   const academicTracks = [
@@ -310,8 +312,8 @@ const Index = () => {
       descEn: "Authentic Makhraj & Tajweed foundations paired with Arabic calligraphy and primary subjects.",
       badge: "বয়স: ৪ — ৭ বছর",
       badgeEn: "Age: 4 — 7 yrs",
-      color: "from-emerald-500/10 to-emerald-500/5 text-emerald-700 border-emerald-500/20",
-      accent: "bg-emerald-600",
+      color: "from-primary/10 to-primary/5 text-primary border-primary/20",
+      accent: "bg-primary",
       icon: BookOpen,
       link: "/curriculum",
     },
@@ -340,16 +342,16 @@ const Index = () => {
       link: "/curriculum",
     },
     {
-      titleBn: "স্বতন্ত্র বালিকা ক্যাম্পাস",
-      titleEn: "Dedicated Girls Campus",
-      descBn: "সম্পূর্ণ পর্দাঘেরা নিরাপদ ক্যাম্পাস, সার্বক্ষণিক অভিজ্ঞ মহিলা শিক্ষিকামণ্ডলী দ্বারা পরিচালিত বিশেষ নূরানী ও হিফজ শাখা।",
-      descEn: "Fully segregated, safe environment exclusively managed by qualified female Islamic scholars.",
-      badge: "নিরাপদ পরিবেশ",
-      badgeEn: "Modest & Safe",
-      color: "from-purple-500/10 to-purple-500/5 text-purple-700 border-purple-500/20",
-      accent: "bg-purple-600",
-      icon: School,
-      link: "/curriculum",
+      titleBn: "আদর্শ তারবিয়াত ও নৈতিক শিক্ষা",
+      titleEn: "Islamic Tarbiyah & Ethics",
+      descBn: "সুন্নাহর বাস্তব আমল, উত্তম চরিত্র গঠন, দোয়া-মাসনূন আদব ও সার্বক্ষণিক ওস্তাদগণের স্নেহময় তত্ত্বাবধান।",
+      descEn: "Practical Sunnah implementation, Islamic manners, character building and caring teacher mentorship.",
+      badge: "আমল ও আখলাক",
+      badgeEn: "Character & Ethics",
+      color: "from-emerald-500/10 to-emerald-500/5 text-emerald-700 border-emerald-500/20",
+      accent: "bg-emerald-600",
+      icon: ShieldCheck,
+      link: "/about",
     },
   ];
 
@@ -436,61 +438,69 @@ const Index = () => {
     homeNotices.length > 0
       ? homeNotices
       : [
-          {
-            id: "fallback-1",
-            createdAt: Date.parse("2026-03-15"),
-            titleBn: "বার্ষিক পরীক্ষার সময়সূচি ও প্রবেশপত্র বিতরণ সংক্রান্ত নোটিশ",
-            titleEn: "Annual Exam Schedule & Admit Card Distribution Notice",
-          },
-          {
-            id: "fallback-2",
-            createdAt: Date.parse("2026-03-10"),
-            titleBn: "রমজান ও পবিত্র ঈদুল ফিতরের বাৎসরিক ছুটির তালিকা",
-            titleEn: "Ramadan & Eid-ul-Fitr Annual Holiday Notice",
-          },
-          {
-            id: "fallback-3",
-            createdAt: Date.parse("2026-03-05"),
-            titleBn: "১ম সাময়িক অভিভাবক সমাবেশ ও ফলাফল প্রকাশ সভা",
-            titleEn: "First Term Parent-Teacher Conference & Result Meeting",
-          },
-        ];
+        {
+          id: "fallback-1",
+          createdAt: Date.parse("2026-03-15"),
+          titleBn: "বার্ষিক পরীক্ষার সময়সূচি ও প্রবেশপত্র বিতরণ সংক্রান্ত নোটিশ",
+          titleEn: "Annual Exam Schedule & Admit Card Distribution Notice",
+        },
+        {
+          id: "fallback-2",
+          createdAt: Date.parse("2026-03-10"),
+          titleBn: "রমজান ও পবিত্র ঈদুল ফিতরের বাৎসরিক ছুটির তালিকা",
+          titleEn: "Ramadan & Eid-ul-Fitr Annual Holiday Notice",
+        },
+        {
+          id: "fallback-3",
+          createdAt: Date.parse("2026-03-05"),
+          titleBn: "১ম সাময়িক অভিভাবক সমাবেশ ও ফলাফল প্রকাশ সভা",
+          titleEn: "First Term Parent-Teacher Conference & Result Meeting",
+        },
+      ];
 
   return (
     <div className="bg-background">
       {/* ================= HERO SECTION ================= */}
-      <section className="relative -mt-[84px] lg:-mt-[295px] min-h-[90vh] lg:min-h-screen overflow-hidden flex items-center justify-start pt-[100px] pb-12 lg:pt-[275px] lg:pb-16">
-        <div className="absolute -top-12 inset-x-0 bottom-0">
+      <section className="relative min-h-[500px] lg:min-h-[560px] overflow-hidden flex items-start justify-start pt-4 pb-12 sm:pt-6 sm:pb-14 lg:pt-6 lg:pb-16">
+        <div className="absolute inset-0">
           <img
             src={heroImg}
             alt="Annoor Education Family Campus"
-            className="w-full h-[calc(100%+48px)] object-cover object-center"
+            className="w-full h-full object-cover object-center"
             fetchpriority="high"
             sizes="100vw"
             decoding="async"
           />
           {/* Subtle top vignette shadow to enhance navbar contrast */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/40" />
-          {/* Institutional rich emerald gradient */}
+          {/* Institutional rich brand primary gradient */}
           <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/85 to-transparent/60" />
         </div>
 
-        <div className="relative container mx-auto px-4 py-6 sm:py-8 lg:py-8">
+        <div className="relative container mx-auto px-4 pt-2 pb-6 sm:pt-3 sm:pb-8 lg:pt-4 lg:pb-8">
           <motion.div {...springIn} className="max-w-2xl text-left space-y-4 sm:space-y-4.5">
             {/* Trust Pill */}
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold text-emerald-100 backdrop-blur-md border border-white/20 shadow-md">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold text-slate-100 backdrop-blur-md border border-white/20 shadow-md">
               <span className="flex h-2 w-2 rounded-full bg-accent animate-ping" />
-              <span>{t("আননূর শিক্ষা পরিবার • কাপাসিয়া, গাজীপুর (প্রতিষ্ঠিত ২০১৩)", "Annoor Education Family • Kapasia, Gazipur (Est. 2013)")}</span>
+              <span style={{ fontFamily: "'Noto Serif Bengali', serif" }}>
+                {t("প্রতিষ্ঠিত ২০২১ইং", "(Est. 2021)")}
+              </span>
             </div>
 
             <h1
-              className="font-display font-extrabold text-primary-foreground leading-[1.2] md:leading-[1.22] tracking-tight text-white drop-shadow-md"
-              style={{ fontSize: "clamp(2rem, 5.2vw, 3.5rem)" }}
+              style={{
+                fontSize: "clamp(2rem, 5.2vw, 3.5rem)",
+                fontFamily: "'Noto Serif Bengali', serif",
+              }}
+              className="font-extrabold leading-[1.2] md:leading-[1.22] tracking-tight text-white drop-shadow-md"
             >
               {t("একই স্থানে, একই খরচে, সকল শিক্ষা একইসাথে", "Building Faith, Knowledge & Character Together")}
             </h1>
 
-            <p className="font-bengali text-sm sm:text-base md:text-lg text-primary-foreground/90 leading-relaxed max-w-xl">
+            <p
+              style={{ fontFamily: "'Noto Serif Bengali', serif" }}
+              className="text-sm sm:text-base md:text-lg text-primary-foreground/90 leading-relaxed max-w-xl"
+            >
               {t(
                 "সাধারণ শিক্ষার আধুনিক মানসম্মত পাঠ্যক্রম এবং পবিত্র কুরআনের ঐশী আলো—এই দুইয়ের এক অনন্য মেলবন্ধনে আপনার সন্তানকে আদর্শ নাগরিক ও দ্বীনের খাঁটি খাদেম হিসেবে গড়ে তোলাই আমাদের অঙ্গীকার।",
                 "Providing modern general education alongside authentic Quranic memorization across our two serene campuses in Kapasia, Gazipur."
@@ -498,14 +508,14 @@ const Index = () => {
             </p>
 
             {/* Main Action Buttons */}
-            <div className="flex flex-wrap gap-2.5 sm:gap-3 pt-1.5">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-1.5">
               <Link to="/admission">
                 <motion.button
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
-                  className="squishy-button-gold font-bengali flex items-center gap-2 shadow-lg"
+                  className="squishy-button-gold font-bengali flex items-center justify-center gap-1.5 sm:gap-2 shadow-lg"
                 >
-                  <GraduationCap className="h-4 w-4" />
+                  <GraduationCap className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   <span>{t("ভর্তি তথ্য ও ফি", "Admission Info")}</span>
                 </motion.button>
               </Link>
@@ -514,9 +524,9 @@ const Index = () => {
                 <motion.button
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
-                  className="squishy-button font-bengali flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg"
+                  className="squishy-button font-bengali flex items-center justify-center gap-1.5 sm:gap-2 bg-white/20 hover:bg-white/30 text-white border border-white/30 shadow-lg backdrop-blur-md"
                 >
-                  <FileDown className="h-4 w-4" />
+                  <FileDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   <span>{t("ডাউনলোড কর্নার", "Downloads")}</span>
                 </motion.button>
               </Link>
@@ -525,15 +535,16 @@ const Index = () => {
                 <motion.button
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
-                  className="squishy-button-outline border-white/40 text-white hover:bg-white/10 font-bengali flex items-center gap-2 backdrop-blur-sm"
+                  className="squishy-button-outline border-white/40 text-white hover:bg-white/10 font-bengali flex items-center justify-center gap-1.5 sm:gap-2 backdrop-blur-sm"
                 >
-                  <span>🎥 {t("ভার্চুয়াল ট্যুর", "Virtual Tour")}</span>
+                  <span className="text-xs sm:text-sm">🎥</span>
+                  <span>{t("ভার্চুয়াল ট্যুর", "Virtual Tour")}</span>
                 </motion.button>
               </Link>
             </div>
 
             {/* Quick Feature Badges */}
-            <div className="pt-2 sm:pt-3 flex flex-wrap items-center gap-2 text-xs font-bengali text-emerald-100">
+            <div className="pt-2 sm:pt-3 flex flex-wrap items-center gap-2 text-xs font-bengali text-slate-200">
               <span className="inline-flex items-center gap-1.5 rounded-lg bg-black/30 px-3 py-1.5 backdrop-blur-sm border border-white/10">
                 <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
                 <span>{t("নূরানী ও নাজেরা", "Nurani & Nazara")}</span>
@@ -711,9 +722,9 @@ const Index = () => {
                   ১১৮+ জন
                 </div>
                 <p className="font-bengali text-xs text-muted-foreground">
-                  {t("২০১৩ থেকে ২০২৬ পর্যন্ত সম্মানিত গ্র্যাজুয়েট হাফেজ", "Graduated Huffaz from 2013 to 2026")}
+                  {t("২০২১ থেকে ২০২৬ পর্যন্ত সম্মানিত গ্র্যাজুয়েট হাফেজ", "Graduated Huffaz from 2021 to 2026")}
                 </p>
-                <div className="pt-2 border-t border-border/60 w-full flex justify-around text-xs font-semibold text-emerald-700">
+                <div className="pt-2 border-t border-border/60 w-full flex justify-around text-xs font-semibold text-primary">
                   <span>২০২৪ ব্যাচ: ১৬ জন</span>
                   <span>২০২৫ ব্যাচ: ১৯ জন</span>
                 </div>
@@ -765,32 +776,32 @@ const Index = () => {
               {t("ক্যাম্পাস পরিচিতি", "Campuses & Facilities")}
             </Badge>
             <h2 className="font-bengali text-2xl sm:text-3xl font-bold text-foreground">
-              {t("আমাদের দুইটি সুপরিকল্পিত ক্যাম্পাস", "Our Two Dedicated Campuses")}
+              {t("আমাদের আধুনিক ও সুপরিকল্পিত ক্যাম্পাস", "Our Modern & Well-Planned Campus")}
             </h2>
             <p className="font-bengali text-xs sm:text-sm text-muted-foreground">
-              {t("কাপাসিয়ার প্রাণকেন্দ্রে বালক ও বালিকা শিক্ষার্থীদের জন্য পৃথক সুরক্ষিত শিক্ষাঙ্গন", "Segregated, safe, and academically rich campuses in Kapasia, Gazipur")}
+              {t("কাপাসিয়ার প্রাণকেন্দ্রে শিক্ষার্থীদের জন্য সম্পূর্ণ নিরিবিলি, নিরাপদ ও সুশৃঙ্খল শিক্ষাঙ্গন", "Safe, disciplined, and academically rich campus in the heart of Kapasia, Gazipur")}
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Boys Campus */}
+            {/* Academic Wing */}
             <div className="rounded-3xl border border-border/80 bg-card p-6 sm:p-8 shadow-sm flex flex-col justify-between">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Badge className="bg-primary text-primary-foreground font-semibold px-3 py-1 text-xs">
-                    {t("বালক ক্যাম্পাস", "Boys Campus")}
+                    {t("একাডেমিক ভবন", "Academic Wing")}
                   </Badge>
-                  <span className="text-xs font-semibold text-emerald-600">
-                    {t("আবাসিক ও অনাবাসিক", "Residential & Day")}
+                  <span className="text-xs font-semibold text-accent">
+                    {t("প্লে — ৫ম ও হিফজ", "Play — Grade 5 & Hifz")}
                   </span>
                 </div>
                 <h3 className="font-bengali text-xl font-bold text-foreground">
-                  {t("আননূর তাহফিজুল কুরআন মাদরাসা ও মডেল একাডেমি", "Annoor Tahfizul Quran Madrasa & Model Academy")}
+                  {t("আননূর তাহফিজুল কুরআন মাদরাসা", "Annoor Tahfizul Quran Madrasa")}
                 </h3>
                 <p className="font-bengali text-xs text-muted-foreground leading-relaxed">
                   {t(
-                    "সুবিশাল ক্যাম্পাস, স্বাস্থ্যসম্মত আবাসিক ছাত্রাবাস, নিজস্ব ডাইনিং, সেন্ট্রাল লাইব্রেরি ও প্রতিদিন বিকেলে শিক্ষকের তত্ত্বাবধানে খেলার মাঠ।",
-                    "Spacious campus building, hygienic boarding, in-house dining, central library, and playground."
+                    "সুবিশাল ক্যাম্পাস, আধুনিক মাল্টিমিডিয়া ক্লাসরুম, সহীহ তাজবীদে হিফজুল কুরআন বিভাগ, সেন্ট্রাল লাইব্রেরি ও প্রতিদিন বিকেলে শরীরচর্চা ও খেলাধুলার সুব্যবস্থা।",
+                    "Spacious campus building, multimedia smart classrooms, authentic Tajweed Hifz department, library, and sports facility."
                   )}
                 </p>
                 <div className="space-y-2 text-xs font-bengali text-muted-foreground pt-2 border-t border-border/50">
@@ -800,7 +811,7 @@ const Index = () => {
                   </p>
                   <p className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-primary shrink-0" />
-                    <span>01581-818368, 01312-200043</span>
+                    <span>01581-818368, 01820-811511</span>
                   </p>
                 </div>
               </div>
@@ -818,46 +829,46 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Girls Campus */}
+            {/* Boarding & Student Life */}
             <div className="rounded-3xl border border-border/80 bg-card p-6 sm:p-8 shadow-sm flex flex-col justify-between">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Badge className="bg-purple-600 text-white font-semibold px-3 py-1 text-xs">
-                    {t("বালিকা ক্যাম্পাস", "Girls Campus")}
+                  <Badge className="bg-emerald-600 text-white font-semibold px-3 py-1 text-xs">
+                    {t("আবাসিক ছাত্রাবাস", "Residential Boarding")}
                   </Badge>
-                  <span className="text-xs font-semibold text-purple-600">
-                    {t("পর্দাঘেরা সুরক্ষিত পরিবেশ", "Modest & Safe")}
+                  <span className="text-xs font-semibold text-emerald-600">
+                    {t("আবাসিক ও ডে-কেয়ার", "Residential & Day Care")}
                   </span>
                 </div>
                 <h3 className="font-bengali text-xl font-bold text-foreground">
-                  {t("আননূর বালিকা ইসলামিক মডেল মাদরাসা", "Annoor Girls Islamic Model Madrasa")}
+                  {t("নিরাপদ ও সুশৃঙ্খল আবাসন ব্যবস্থা", "Safe & Caring Boarding Facility")}
                 </h3>
                 <p className="font-bengali text-xs text-muted-foreground leading-relaxed">
                   {t(
-                    "সম্পূর্ণ পর্দাঘেরা নিরাপদ সুরক্ষিত ক্যাম্পাস। সার্বক্ষণিক অভিজ্ঞ মহিলা শিক্ষিকামণ্ডলী দ্বারা পরিচালিত স্বতন্ত্র নূরানী, নাজেরা ও হিফজ শাখা।",
-                    "Strictly segregated modern girls branch exclusively guided by qualified female Islamic scholars."
+                    "স্বাস্থ্যসম্মত পুষ্টিকর ৩ বেলা খাবার, সার্বক্ষণিক ওস্তাদগণের স্নেহময় তত্ত্বাবধান, সিসিটিভি ক্যামেরা নিয়ন্ত্রিত নিরাপত্তা ব্যবস্থা এবং শীতকালে গরম পানির সুবিধা।",
+                    "Hygienic nutritious meals 3 times a day, 24/7 caring teacher supervision, round-the-clock CCTV security, and winter warm water."
                   )}
                 </p>
                 <div className="space-y-2 text-xs font-bengali text-muted-foreground pt-2 border-t border-border/50">
                   <p className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-purple-600 shrink-0" />
-                    <span>{t("বাশতলা মোড়, কলেজ রোড, কাপাসিয়া, গাজীপুর", "Bashtola More, College Road, Kapasia, Gazipur")}</span>
+                    <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>{t("সার্বক্ষণিক বিদ্যুৎ ও নিরাপদ বিশুদ্ধ পানি", "24/7 Power Backup & Pure Drinking Water")}</span>
                   </p>
                   <p className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-purple-600 shrink-0" />
-                    <span>01820-811511</span>
+                    <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>{t("নিয়মিত স্বাস্থ্য পরীক্ষা ও চিকিৎসা সেবা", "Regular Health Checkup & First-Aid Care")}</span>
                   </p>
                 </div>
               </div>
 
               <div className="pt-6 mt-6 border-t border-border/50 flex items-center justify-between">
-                <Link to="/contact" className="text-xs font-bold text-purple-600 flex items-center gap-1 hover:underline">
-                  <span>{t("যোগাযোগ ও ম্যাপ", "Contact & Location")}</span>
+                <Link to="/admission-form" className="text-xs font-bold text-emerald-600 flex items-center gap-1 hover:underline">
+                  <span>{t("অনলাইন ভর্তি ফরম", "Admission Form")}</span>
                   <ChevronRight className="h-3.5 w-3.5" />
                 </Link>
-                <Link to="/curriculum">
+                <Link to="/about">
                   <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1.5">
-                    <span>{t("বালিকা কারিকুলাম", "Girls Curriculum")}</span>
+                    <span>{t("সুযোগ-সুবিধা জানুন", "View Facilities")}</span>
                   </Button>
                 </Link>
               </div>
@@ -870,7 +881,7 @@ const Index = () => {
       <section className="py-16">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="text-center space-y-2">
-            <h2 className="font-bengali text-2xl font-bold text-[#064E3B] md:text-3xl">
+            <h2 className="font-bengali text-2xl font-bold text-primary md:text-3xl">
               {t("আমাদের শিক্ষার্থীদের ভবিষ্যৎ", "Our Students' Future")}
             </h2>
             <p className="mx-auto max-w-2xl font-bengali text-sm text-muted-foreground leading-relaxed">
@@ -883,10 +894,10 @@ const Index = () => {
 
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             <div className="rounded-3xl border border-gray-200 bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-[#064E3B]">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <GraduationCap className="h-6 w-6" />
               </div>
-              <h3 className="font-bengali text-lg font-semibold text-[#064E3B]">
+              <h3 className="font-bengali text-lg font-semibold text-foreground">
                 {t("উচ্চশিক্ষা", "Higher Education")}
               </h3>
               <p className="mt-2 font-bengali text-xs sm:text-sm leading-6 text-muted-foreground">
@@ -898,10 +909,10 @@ const Index = () => {
             </div>
 
             <div className="rounded-3xl border border-gray-200 bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-[#064E3B]">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <BookOpen className="h-6 w-6" />
               </div>
-              <h3 className="font-bengali text-lg font-semibold text-[#064E3B]">
+              <h3 className="font-bengali text-lg font-semibold text-foreground">
                 {t("দ্বীনি নেতৃত্ব", "Religious Leadership")}
               </h3>
               <p className="mt-2 font-bengali text-xs sm:text-sm leading-6 text-muted-foreground">
@@ -913,10 +924,10 @@ const Index = () => {
             </div>
 
             <div className="rounded-3xl border border-gray-200 bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-[#064E3B]">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <Briefcase className="h-6 w-6" />
               </div>
-              <h3 className="font-bengali text-lg font-semibold text-[#064E3B]">
+              <h3 className="font-bengali text-lg font-semibold text-foreground">
                 {t("পেশাগত শ্রেষ্ঠত্ব", "Professional Excellence")}
               </h3>
               <p className="mt-2 font-bengali text-xs sm:text-sm leading-6 text-muted-foreground">
@@ -931,18 +942,18 @@ const Index = () => {
       </section>
 
       {/* ================= DOWNLOAD CORNER PROMO ================= */}
-      <section className="py-14 bg-emerald-900 text-white relative overflow-hidden">
+      <section className="py-14 bg-gradient-to-r from-[#08185A] via-[#0D1D66] to-[#040D33] text-white relative overflow-hidden">
         <div className="container mx-auto px-4 max-w-6xl relative z-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-2 text-center md:text-left">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs text-emerald-200 font-semibold">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs text-accent font-semibold border border-white/10">
                 <FileDown className="h-3.5 w-3.5" />
                 <span>{t("ডাউনলোড কর্নার ২০২৬", "Download Corner 2026")}</span>
               </div>
               <h3 className="font-bengali text-2xl sm:text-3xl font-bold text-white">
                 {t("সিলেবাস, ক্লাস রুটিন ও ভর্তি ফরম সংগ্রহ করুন", "Download Syllabus, Routines & Forms")}
               </h3>
-              <p className="font-bengali text-xs sm:text-sm text-emerald-100/90 max-w-xl">
+              <p className="font-bengali text-xs sm:text-sm text-slate-200/90 max-w-xl">
                 {t(
                   "সকল শ্রেণির বার্ষিক সিলেবাস, পরীক্ষা ও আবাসিক আমল রুটিন এবং প্রিন্টযোগ্য ভর্তি ফরম পিডিএফ আকারে সহজেই ডাউনলোড করুন।",
                   "Instant PDF downloads for annual syllabuses, master class routines, and admission brochures."
@@ -1161,9 +1172,8 @@ const Index = () => {
                 <div
                   className="flex transition-transform duration-500 ease-in-out"
                   style={{
-                    transform: `translateX(-${
-                      Math.min(currentSlide, Math.ceil(allReviews.length / 2) - 1) * 100
-                    }%)`,
+                    transform: `translateX(-${Math.min(currentSlide, Math.ceil(allReviews.length / 2) - 1) * 100
+                      }%)`,
                   }}
                 >
                   {Array.from({ length: Math.ceil(allReviews.length / 2) }).map((_, slideIndex) => (
@@ -1199,9 +1209,8 @@ const Index = () => {
                   <button
                     key={i}
                     onClick={() => setCurrentSlide(i)}
-                    className={`h-2 rounded-full transition-all ${
-                      currentSlide === i ? "bg-primary w-8" : "bg-muted-foreground/30 w-2"
-                    }`}
+                    className={`h-2 rounded-full transition-all ${currentSlide === i ? "bg-primary w-8" : "bg-muted-foreground/30 w-2"
+                      }`}
                   />
                 ))}
               </div>
@@ -1303,10 +1312,10 @@ const Index = () => {
                 ),
               },
               {
-                q: t("বালক ও বালিকা শাখার ক্যাম্পাস কি সম্পূর্ণ আলাদা?", "Are boys and girls campuses completely separate?"),
+                q: t("মাদরাসার আবাসন ও অনাবাসিক ব্যবস্থা সম্পর্কে জানতে চাই", "Can you explain the residential and day-care options?"),
                 a: t(
-                  "হ্যাঁ, ছেলে ও মেয়েদের জন্য সম্পূর্ণ পৃথক ও সুরক্ষিত দুইটি ক্যাম্পাস রয়েছে। বালক ক্যাম্পাস কাপাসিয়া বাজার মেইন রোডে এবং বালিকা ক্যাম্পাস কলেজ রোড বাশতলা মোড়ে অবস্থিত, যা সম্পূর্ণ পর্দাঘেরা এবং অভিজ্ঞ মহিলা শিক্ষিকামণ্ডলী দ্বারা পরিচালিত।",
-                  "Yes, boys and girls have completely segregated campuses. The boys campus is at Main Road, Kapasia Bazar, and the girls campus is at College Road Bashtola More."
+                  "আমাদের মাদরাসায় অনাবাসিক, ডে-কেয়ার এবং সম্পূর্ণ আবাসিক তিন ধরনের ব্যবস্থা রয়েছে। আবাসিক শিক্ষার্থীদের জন্য সার্বক্ষণিক ওস্তাদগণের সান্নিধ্যে থাকা, নিবিড় পরিচর্যা ও স্বাস্থ্যসম্মত খাবারের নির্ভরযোগ্য পরিবেশ নিশ্চিত করা হয়।",
+                  "We offer Day-care, Non-residential, and full Residential boarding options with round-the-clock teacher mentorship and hygienic meals."
                 ),
               },
               {

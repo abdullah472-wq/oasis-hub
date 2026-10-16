@@ -24,10 +24,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
-import AdmissionCountdownBanner from "@/components/admission/AdmissionCountdownBanner";
-import { submitAdmission, type AdmissionForm } from "@/lib/admission";
+import { submitAdmission, type AdmissionForm, CLASS_NAME_OPTIONS } from "@/lib/admission";
 import { uploadImage } from "@/lib/upload";
-import { CLASS_NAME_OPTIONS } from "@/lib/attendanceHelpers";
 
 const classOptions = CLASS_NAME_OPTIONS;
 const defaultInterviewReferences = Array.from({ length: 3 }, () => ({
@@ -107,7 +105,7 @@ const AdmissionFormPage = () => {
     permanentAddress: "",
     permanentAddressBn: "",
     class: "",
-    campus: "",
+    campus: "প্রধান ক্যাম্পাস (কাপাসিয়া বাজার)",
     residencyType: "" as "" | "residential" | "non-residential" | "day-care",
     interviewReferences: defaultInterviewReferences,
   });
@@ -215,7 +213,7 @@ const AdmissionFormPage = () => {
                   <img src="/site-logo.png" alt="Annoor Logo" className="h-20 w-20 object-contain" />
                   <div>
                     <h2 className="font-bengali text-2xl font-black text-foreground">
-                      আননূর শিক্ষা পরিবার
+                      আননূর তাহফিজুল কুরআন মাদ্রাসা
                     </h2>
                     <p className="font-bengali text-xs text-muted-foreground mt-0.5">
                       হিফজুল কুরআন ও আধুনিক সমন্বিত ইসলামিক বিদ্যাপীঠ
@@ -298,8 +296,8 @@ const AdmissionFormPage = () => {
                     {submittedRecord.residencyType === "residential"
                       ? t("আবাসিক (হোস্টেল সুবিধাসহ)", "Residential (Boarding)")
                       : submittedRecord.residencyType === "day-care"
-                      ? t("ডে-কেয়ার সুবিধা", "Day-care")
-                      : t("অনাবাসিক (সাধারণ)", "Non-residential")}
+                        ? t("ডে-কেয়ার সুবিধা", "Day-care")
+                        : t("অনাবাসিক (সাধারণ)", "Non-residential")}
                   </p>
                 </div>
 
@@ -413,7 +411,7 @@ const AdmissionFormPage = () => {
             <div>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h1 className="font-bengali text-3xl font-bold leading-[1.24] text-slate-900 md:text-5xl">
-                  {t("আননূর শিক্ষা পরিবার ভর্তি আবেদন ফর্ম", "Annoor Education Family Admission Form")}
+                  {t("আননূর তাহফিজুল কুরআন মাদ্রাসা ভর্তি আবেদন ফর্ম", "Annoor Tahfizul Quran Madrasa Admission Form")}
                 </h1>
                 <Link to="/admission">
                   <Button
@@ -457,9 +455,6 @@ const AdmissionFormPage = () => {
             </div>
           </div>
         </motion.div>
-
-        {/* Admission Countdown & Important Schedule Notice */}
-        <AdmissionCountdownBanner showFormLink={false} />
 
         {/* Progress & Guidance Cards */}
         <div className="grid gap-4 md:grid-cols-3">
@@ -609,328 +604,326 @@ const AdmissionFormPage = () => {
 
             {showForm && (
               <form id="admission-form" onSubmit={handleSubmit} className="space-y-6">
-            <SectionCard
-              icon={GraduationCap}
-              title={t("শিক্ষার্থীর তথ্য", "Student information")}
-              description={t(
-                "শিক্ষার্থীর মৌলিক পরিচয়, জন্মতারিখ, শ্রেণি ও ক্যাম্পাস নির্বাচন করুন।",
-                "Provide the student identity, birth date, class, and preferred campus.",
-              )}
-            >
-              <div className="grid gap-5 md:grid-cols-2">
-                <Field label={t("নাম (ইংরেজি)", "Name (English)")} required>
-                  <input
-                    type="text"
-                    value={formData.studentName}
-                    onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
-                    className={fieldClass}
-                    required
-                  />
-                </Field>
-                <Field label={t("নাম (বাংলা)", "Name (Bangla)")}>
-                  <input
-                    type="text"
-                    value={formData.studentNameBn}
-                    onChange={(e) => setFormData({ ...formData, studentNameBn: e.target.value })}
-                    className={fieldClass}
-                  />
-                </Field>
-                <Field label={t("জন্ম তারিখ", "Birth date")} required>
-                  <input
-                    type="date"
-                    value={formData.birthDate}
-                    onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                    className={fieldClass}
-                    required
-                  />
-                </Field>
-                <Field label={t("লিঙ্গ", "Gender")} required>
-                  <select
-                    value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                    className={fieldClass}
-                    required
-                  >
-                    <option value="">{t("নির্বাচন করুন", "Select one")}</option>
-                    <option value="male">{t("ছাত্র", "Male")}</option>
-                    <option value="female">{t("ছাত্রী", "Female")}</option>
-                  </select>
-                </Field>
-                <Field label={t("ধর্ম", "Religion")} required>
-                  <select
-                    value={formData.religion}
-                    onChange={(e) => setFormData({ ...formData, religion: e.target.value })}
-                    className={fieldClass}
-                    required
-                  >
-                    <option value="">{t("নির্বাচন করুন", "Select one")}</option>
-                    <option value="islam">{t("ইসলাম", "Islam")}</option>
-                    <option value="hindu">{t("হিন্দু", "Hindu")}</option>
-                    <option value="christian">{t("খ্রিস্টান", "Christian")}</option>
-                    <option value="other">{t("অন্যান্য", "Other")}</option>
-                  </select>
-                </Field>
-                <Field label={t("শ্রেণি", "Class")} required>
-                  <select
-                    value={formData.class}
-                    onChange={(e) => setFormData({ ...formData, class: e.target.value })}
-                    className={fieldClass}
-                    required
-                  >
-                    <option value="">{t("নির্বাচন করুন", "Select one")}</option>
-                    {classOptions.map((value) => (
-                      <option key={value} value={value}>
-                        {lang === "bn"
-                          ? value === "Play"
-                            ? "প্লে"
-                            : value === "Nursery"
-                            ? "নার্সারি"
-                            : `${value.replace("Class ", "")}ম শ্রেণি`
-                          : value}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label={t("ক্যাম্পাস", "Campus")} required>
-                  <select
-                    value={formData.campus}
-                    onChange={(e) => setFormData({ ...formData, campus: e.target.value })}
-                    className={fieldClass}
-                    required
-                  >
-                    <option value="">{t("নির্বাচন করুন", "Select one")}</option>
-                    <option value="boys">{t("বালক ক্যাম্পাস", "Boys campus")}</option>
-                    <option value="girls">{t("বালিকা ক্যাম্পাস", "Girls campus")}</option>
-                  </select>
-                </Field>
-                <Field label={t("আবাসিক / অনাবাসিক / ডে-কেয়ার", "Residential / Non-residential / Day care")} required>
-                  <select
-                    value={formData.residencyType}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        residencyType: e.target.value as "" | "residential" | "non-residential" | "day-care",
-                      })
-                    }
-                    className={fieldClass}
-                    required
-                  >
-                    <option value="">{t("নির্বাচন করুন", "Select one")}</option>
-                    <option value="residential">{t("আবাসিক", "Residential")}</option>
-                    <option value="non-residential">{t("অনাবাসিক", "Non-residential")}</option>
-                    <option value="day-care">{t("ডে-কেয়ার", "Day care")}</option>
-                  </select>
-                </Field>
-              </div>
-
-              <div className="mt-5 rounded-[1.25rem] border border-dashed border-sky-300 bg-sky-50/70 p-4">
-                <Field label={t("শিক্ষার্থীর ছবি", "Student photo")}>
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-center gap-3 text-sm text-slate-600">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
-                        <ImagePlus className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-slate-900">
-                          {photo ? photo.name : t("ছবি আপলোড করুন", "Upload an image")}
-                        </p>
-                        <p>{t("JPG, PNG বা মোবাইল ক্যামেরার ছবি দেওয়া যাবে", "JPG, PNG, or camera photo is allowed")}</p>
-                      </div>
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setPhoto(e.target.files?.[0] || null)}
-                      className="block w-full text-sm file:mr-4 file:rounded-full file:border-0 file:bg-sky-700 file:px-4 file:py-2 file:font-medium file:text-white md:w-auto"
-                    />
+                <SectionCard
+                  icon={GraduationCap}
+                  title={t("শিক্ষার্থীর তথ্য", "Student information")}
+                  description={t(
+                    "শিক্ষার্থীর মৌলিক পরিচয়, জন্মতারিখ, শ্রেণি ও ক্যাম্পাস নির্বাচন করুন।",
+                    "Provide the student identity, birth date, class, and preferred campus.",
+                  )}
+                >
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <Field label={t("নাম (ইংরেজি)", "Name (English)")} required>
+                      <input
+                        type="text"
+                        value={formData.studentName}
+                        onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
+                        className={fieldClass}
+                        required
+                      />
+                    </Field>
+                    <Field label={t("নাম (বাংলা)", "Name (Bangla)")}>
+                      <input
+                        type="text"
+                        value={formData.studentNameBn}
+                        onChange={(e) => setFormData({ ...formData, studentNameBn: e.target.value })}
+                        className={fieldClass}
+                      />
+                    </Field>
+                    <Field label={t("জন্ম তারিখ", "Birth date")} required>
+                      <input
+                        type="date"
+                        value={formData.birthDate}
+                        onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                        className={fieldClass}
+                        required
+                      />
+                    </Field>
+                    <Field label={t("লিঙ্গ", "Gender")} required>
+                      <select
+                        value={formData.gender}
+                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                        className={fieldClass}
+                        required
+                      >
+                        <option value="">{t("নির্বাচন করুন", "Select one")}</option>
+                        <option value="male">{t("ছাত্র", "Male")}</option>
+                        <option value="female">{t("ছাত্রী", "Female")}</option>
+                      </select>
+                    </Field>
+                    <Field label={t("ধর্ম", "Religion")} required>
+                      <select
+                        value={formData.religion}
+                        onChange={(e) => setFormData({ ...formData, religion: e.target.value })}
+                        className={fieldClass}
+                        required
+                      >
+                        <option value="">{t("নির্বাচন করুন", "Select one")}</option>
+                        <option value="islam">{t("ইসলাম", "Islam")}</option>
+                        <option value="hindu">{t("হিন্দু", "Hindu")}</option>
+                        <option value="christian">{t("খ্রিস্টান", "Christian")}</option>
+                        <option value="other">{t("অন্যান্য", "Other")}</option>
+                      </select>
+                    </Field>
+                    <Field label={t("শ্রেণি", "Class")} required>
+                      <select
+                        value={formData.class}
+                        onChange={(e) => setFormData({ ...formData, class: e.target.value })}
+                        className={fieldClass}
+                        required
+                      >
+                        <option value="">{t("নির্বাচন করুন", "Select one")}</option>
+                        {classOptions.map((value) => (
+                          <option key={value} value={value}>
+                            {lang === "bn"
+                              ? value === "Play"
+                                ? "প্লে"
+                                : value === "Nursery"
+                                  ? "নার্সারি"
+                                  : `${value.replace("Class ", "")}ম শ্রেণি`
+                              : value}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label={t("ক্যাম্পাস", "Campus")} required>
+                      <select
+                        value={formData.campus}
+                        onChange={(e) => setFormData({ ...formData, campus: e.target.value })}
+                        className={fieldClass}
+                        required
+                      >
+                        <option value="প্রধান ক্যাম্পাস (কাপাসিয়া বাজার)">{t("প্রধান ক্যাম্পাস (কাপাসিয়া বাজার)", "Main Campus (Kapasia Bazar)")}</option>
+                      </select>
+                    </Field>
+                    <Field label={t("আবাসিক / অনাবাসিক / ডে-কেয়ার", "Residential / Non-residential / Day care")} required>
+                      <select
+                        value={formData.residencyType}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            residencyType: e.target.value as "" | "residential" | "non-residential" | "day-care",
+                          })
+                        }
+                        className={fieldClass}
+                        required
+                      >
+                        <option value="">{t("নির্বাচন করুন", "Select one")}</option>
+                        <option value="residential">{t("আবাসিক", "Residential")}</option>
+                        <option value="non-residential">{t("অনাবাসিক", "Non-residential")}</option>
+                        <option value="day-care">{t("ডে-কেয়ার", "Day care")}</option>
+                      </select>
+                    </Field>
                   </div>
-                </Field>
-              </div>
-            </SectionCard>
 
-            <SectionCard
-              icon={Phone}
-              title={t("অভিভাবকের তথ্য", "Guardian information")}
-              description={t(
-                "পিতা ও মাতার নাম, মোবাইল নম্বর এবং বাংলায় নাম থাকলে সেটিও যুক্ত করুন।",
-                "Add father and mother names, phone numbers, and Bangla names where available.",
-              )}
-            >
-              <div className="grid gap-5 md:grid-cols-2">
-                <Field label={t("পিতার নাম (ইংরেজি)", "Father's name (English)")} required>
-                  <input
-                    type="text"
-                    value={formData.fatherName}
-                    onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
-                    className={fieldClass}
-                    required
-                  />
-                </Field>
-                <Field label={t("পিতার নাম (বাংলা)", "Father's name (Bangla)")}>
-                  <input
-                    type="text"
-                    value={formData.fatherNameBn}
-                    onChange={(e) => setFormData({ ...formData, fatherNameBn: e.target.value })}
-                    className={fieldClass}
-                  />
-                </Field>
-                <Field label={t("পিতার মোবাইল নম্বর", "Father's phone")} required>
-                  <input
-                    type="tel"
-                    value={formData.fatherPhone}
-                    onChange={(e) => setFormData({ ...formData, fatherPhone: e.target.value })}
-                    className={fieldClass}
-                    required
-                  />
-                </Field>
-                <div className="hidden md:block" />
-                <Field label={t("মাতার নাম (ইংরেজি)", "Mother's name (English)")} required>
-                  <input
-                    type="text"
-                    value={formData.motherName}
-                    onChange={(e) => setFormData({ ...formData, motherName: e.target.value })}
-                    className={fieldClass}
-                    required
-                  />
-                </Field>
-                <Field label={t("মাতার নাম (বাংলা)", "Mother's name (Bangla)")}>
-                  <input
-                    type="text"
-                    value={formData.motherNameBn}
-                    onChange={(e) => setFormData({ ...formData, motherNameBn: e.target.value })}
-                    className={fieldClass}
-                  />
-                </Field>
-                <Field label={t("মাতার মোবাইল নম্বর", "Mother's phone")}>
-                  <input
-                    type="tel"
-                    value={formData.motherPhone}
-                    onChange={(e) => setFormData({ ...formData, motherPhone: e.target.value })}
-                    className={fieldClass}
-                  />
-                </Field>
-              </div>
-            </SectionCard>
+                  <div className="mt-5 rounded-[1.25rem] border border-dashed border-sky-300 bg-sky-50/70 p-4">
+                    <Field label={t("শিক্ষার্থীর ছবি", "Student photo")}>
+                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div className="flex items-center gap-3 text-sm text-slate-600">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
+                            <ImagePlus className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-slate-900">
+                              {photo ? photo.name : t("ছবি আপলোড করুন", "Upload an image")}
+                            </p>
+                            <p>{t("JPG, PNG বা মোবাইল ক্যামেরার ছবি দেওয়া যাবে", "JPG, PNG, or camera photo is allowed")}</p>
+                          </div>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => setPhoto(e.target.files?.[0] || null)}
+                          className="block w-full text-sm file:mr-4 file:rounded-full file:border-0 file:bg-sky-700 file:px-4 file:py-2 file:font-medium file:text-white md:w-auto"
+                        />
+                      </div>
+                    </Field>
+                  </div>
+                </SectionCard>
 
-            <SectionCard
-              icon={MapPin}
-              title={t("ঠিকানা", "Address")}
-              description={t(
-                "বর্তমান ও স্থায়ী ঠিকানা উল্লেখ করুন। চাইলে বাংলায় আলাদা করে লিখতে পারবেন।",
-                "Provide present and permanent addresses. Bangla versions can also be added if needed.",
-              )}
-            >
-              <div className="grid gap-5 md:grid-cols-2">
-                <Field label={t("বর্তমান ঠিকানা", "Present address")} required>
-                  <textarea
-                    value={formData.presentAddress}
-                    onChange={(e) => setFormData({ ...formData, presentAddress: e.target.value })}
-                    className={textAreaClass}
-                    required
-                  />
-                </Field>
-                <Field label={t("বর্তমান ঠিকানা (বাংলা)", "Present address (Bangla)")}>
-                  <textarea
-                    value={formData.presentAddressBn}
-                    onChange={(e) => setFormData({ ...formData, presentAddressBn: e.target.value })}
-                    className={textAreaClass}
-                  />
-                </Field>
-                <Field label={t("স্থায়ী ঠিকানা", "Permanent address")} required>
-                  <textarea
-                    value={formData.permanentAddress}
-                    onChange={(e) => setFormData({ ...formData, permanentAddress: e.target.value })}
-                    className={textAreaClass}
-                    required
-                  />
-                </Field>
-                <Field label={t("স্থায়ী ঠিকানা (বাংলা)", "Permanent address (Bangla)")}>
-                  <textarea
-                    value={formData.permanentAddressBn}
-                    onChange={(e) => setFormData({ ...formData, permanentAddressBn: e.target.value })}
-                    className={textAreaClass}
-                  />
-                </Field>
-              </div>
-
-              <div className="mt-6 rounded-[1.25rem] border border-sky-100 bg-sky-50/45 p-4 md:p-5">
-                <div className="mb-4">
-                  <h3 className="font-bengali text-lg font-bold text-slate-900">{t("সাক্ষাৎপ্রার্থী / রেফারেন্স", "Interview candidate / reference")}</h3>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">
-                    {t(
-                      "এই অংশটি ঐচ্ছিক। প্রয়োজন হলে ৩ জনের নাম, সম্পর্ক ও মোবাইল নম্বর দিন।",
-                      "This section is optional. Add up to 3 names, relations, and mobile numbers if needed.",
-                    )}
-                  </p>
-                </div>
-
-                <div className="grid gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-700 md:grid-cols-[1.3fr_0.9fr_1fr]">
-                  <span>{t("নাম", "Name")}</span>
-                  <span>{t("সম্পর্ক", "Relation")}</span>
-                  <span>{t("মোবাইল", "Mobile")}</span>
-                </div>
-
-                <div className="mt-3 space-y-3">
-                  {formData.interviewReferences.map((reference, index) => (
-                    <div key={index} className="grid gap-3 md:grid-cols-[1.3fr_0.9fr_1fr]">
+                <SectionCard
+                  icon={Phone}
+                  title={t("অভিভাবকের তথ্য", "Guardian information")}
+                  description={t(
+                    "পিতা ও মাতার নাম, মোবাইল নম্বর এবং বাংলায় নাম থাকলে সেটিও যুক্ত করুন।",
+                    "Add father and mother names, phone numbers, and Bangla names where available.",
+                  )}
+                >
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <Field label={t("পিতার নাম (ইংরেজি)", "Father's name (English)")} required>
                       <input
                         type="text"
-                        value={reference.name}
-                        onChange={(e) =>
-                          setFormData((current) => ({
-                            ...current,
-                            interviewReferences: current.interviewReferences.map((item, itemIndex) =>
-                              itemIndex === index ? { ...item, name: e.target.value } : item,
-                            ),
-                          }))
-                        }
+                        value={formData.fatherName}
+                        onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
                         className={fieldClass}
-                        placeholder={t("পূর্ণ নাম", "Full name")}
+                        required
                       />
+                    </Field>
+                    <Field label={t("পিতার নাম (বাংলা)", "Father's name (Bangla)")}>
                       <input
                         type="text"
-                        value={reference.relation}
-                        onChange={(e) =>
-                          setFormData((current) => ({
-                            ...current,
-                            interviewReferences: current.interviewReferences.map((item, itemIndex) =>
-                              itemIndex === index ? { ...item, relation: e.target.value } : item,
-                            ),
-                          }))
-                        }
+                        value={formData.fatherNameBn}
+                        onChange={(e) => setFormData({ ...formData, fatherNameBn: e.target.value })}
                         className={fieldClass}
-                        placeholder={t("সম্পর্ক", "Relation")}
                       />
+                    </Field>
+                    <Field label={t("পিতার মোবাইল নম্বর", "Father's phone")} required>
                       <input
                         type="tel"
-                        value={reference.mobile}
-                        onChange={(e) =>
-                          setFormData((current) => ({
-                            ...current,
-                            interviewReferences: current.interviewReferences.map((item, itemIndex) =>
-                              itemIndex === index ? { ...item, mobile: e.target.value } : item,
-                            ),
-                          }))
-                        }
+                        value={formData.fatherPhone}
+                        onChange={(e) => setFormData({ ...formData, fatherPhone: e.target.value })}
                         className={fieldClass}
-                        placeholder={t("মোবাইল নম্বর", "Mobile number")}
+                        required
                       />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </SectionCard>
+                    </Field>
+                    <div className="hidden md:block" />
+                    <Field label={t("মাতার নাম (ইংরেজি)", "Mother's name (English)")} required>
+                      <input
+                        type="text"
+                        value={formData.motherName}
+                        onChange={(e) => setFormData({ ...formData, motherName: e.target.value })}
+                        className={fieldClass}
+                        required
+                      />
+                    </Field>
+                    <Field label={t("মাতার নাম (বাংলা)", "Mother's name (Bangla)")}>
+                      <input
+                        type="text"
+                        value={formData.motherNameBn}
+                        onChange={(e) => setFormData({ ...formData, motherNameBn: e.target.value })}
+                        className={fieldClass}
+                      />
+                    </Field>
+                    <Field label={t("মাতার মোবাইল নম্বর", "Mother's phone")}>
+                      <input
+                        type="tel"
+                        value={formData.motherPhone}
+                        onChange={(e) => setFormData({ ...formData, motherPhone: e.target.value })}
+                        className={fieldClass}
+                      />
+                    </Field>
+                  </div>
+                </SectionCard>
 
-            <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              type="submit"
-              disabled={submitting}
-              className="flex w-full items-center justify-center gap-3 rounded-[1.35rem] bg-sky-700 px-6 py-4 font-bengali text-base font-semibold text-white shadow-[0_18px_45px_-22px_rgba(3,105,161,0.72)] transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-              {t("ভর্তি আবেদন জমা দিন", "Submit admission application")}
-            </motion.button>
+                <SectionCard
+                  icon={MapPin}
+                  title={t("ঠিকানা", "Address")}
+                  description={t(
+                    "বর্তমান ও স্থায়ী ঠিকানা উল্লেখ করুন। চাইলে বাংলায় আলাদা করে লিখতে পারবেন।",
+                    "Provide present and permanent addresses. Bangla versions can also be added if needed.",
+                  )}
+                >
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <Field label={t("বর্তমান ঠিকানা", "Present address")} required>
+                      <textarea
+                        value={formData.presentAddress}
+                        onChange={(e) => setFormData({ ...formData, presentAddress: e.target.value })}
+                        className={textAreaClass}
+                        required
+                      />
+                    </Field>
+                    <Field label={t("বর্তমান ঠিকানা (বাংলা)", "Present address (Bangla)")}>
+                      <textarea
+                        value={formData.presentAddressBn}
+                        onChange={(e) => setFormData({ ...formData, presentAddressBn: e.target.value })}
+                        className={textAreaClass}
+                      />
+                    </Field>
+                    <Field label={t("স্থায়ী ঠিকানা", "Permanent address")} required>
+                      <textarea
+                        value={formData.permanentAddress}
+                        onChange={(e) => setFormData({ ...formData, permanentAddress: e.target.value })}
+                        className={textAreaClass}
+                        required
+                      />
+                    </Field>
+                    <Field label={t("স্থায়ী ঠিকানা (বাংলা)", "Permanent address (Bangla)")}>
+                      <textarea
+                        value={formData.permanentAddressBn}
+                        onChange={(e) => setFormData({ ...formData, permanentAddressBn: e.target.value })}
+                        className={textAreaClass}
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="mt-6 rounded-[1.25rem] border border-sky-100 bg-sky-50/45 p-4 md:p-5">
+                    <div className="mb-4">
+                      <h3 className="font-bengali text-lg font-bold text-slate-900">{t("সাক্ষাৎপ্রার্থী / রেফারেন্স", "Interview candidate / reference")}</h3>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">
+                        {t(
+                          "এই অংশটি ঐচ্ছিক। প্রয়োজন হলে ৩ জনের নাম, সম্পর্ক ও মোবাইল নম্বর দিন।",
+                          "This section is optional. Add up to 3 names, relations, and mobile numbers if needed.",
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="grid gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-700 md:grid-cols-[1.3fr_0.9fr_1fr]">
+                      <span>{t("নাম", "Name")}</span>
+                      <span>{t("সম্পর্ক", "Relation")}</span>
+                      <span>{t("মোবাইল", "Mobile")}</span>
+                    </div>
+
+                    <div className="mt-3 space-y-3">
+                      {formData.interviewReferences.map((reference, index) => (
+                        <div key={index} className="grid gap-3 md:grid-cols-[1.3fr_0.9fr_1fr]">
+                          <input
+                            type="text"
+                            value={reference.name}
+                            onChange={(e) =>
+                              setFormData((current) => ({
+                                ...current,
+                                interviewReferences: current.interviewReferences.map((item, itemIndex) =>
+                                  itemIndex === index ? { ...item, name: e.target.value } : item,
+                                ),
+                              }))
+                            }
+                            className={fieldClass}
+                            placeholder={t("পূর্ণ নাম", "Full name")}
+                          />
+                          <input
+                            type="text"
+                            value={reference.relation}
+                            onChange={(e) =>
+                              setFormData((current) => ({
+                                ...current,
+                                interviewReferences: current.interviewReferences.map((item, itemIndex) =>
+                                  itemIndex === index ? { ...item, relation: e.target.value } : item,
+                                ),
+                              }))
+                            }
+                            className={fieldClass}
+                            placeholder={t("সম্পর্ক", "Relation")}
+                          />
+                          <input
+                            type="tel"
+                            value={reference.mobile}
+                            onChange={(e) =>
+                              setFormData((current) => ({
+                                ...current,
+                                interviewReferences: current.interviewReferences.map((item, itemIndex) =>
+                                  itemIndex === index ? { ...item, mobile: e.target.value } : item,
+                                ),
+                              }))
+                            }
+                            className={fieldClass}
+                            placeholder={t("মোবাইল নম্বর", "Mobile number")}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </SectionCard>
+
+                <motion.button
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  type="submit"
+                  disabled={submitting}
+                  className="flex w-full items-center justify-center gap-3 rounded-[1.35rem] bg-sky-700 px-6 py-4 font-bengali text-base font-semibold text-white shadow-[0_18px_45px_-22px_rgba(3,105,161,0.72)] transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                  {t("ভর্তি আবেদন জমা দিন", "Submit admission application")}
+                </motion.button>
               </form>
             )}
           </div>

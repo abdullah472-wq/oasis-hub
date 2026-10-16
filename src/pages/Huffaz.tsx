@@ -209,30 +209,7 @@ const Huffaz = () => {
             </div>
           </div>
 
-          {/* Campus Sub-filter */}
-          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-border/60">
-            <span className="text-xs font-semibold text-muted-foreground font-bengali flex items-center gap-1.5 mr-2">
-              <Filter className="h-3.5 w-3.5" />
-              {t("ক্যাম্পাস শাখা:", "Campus Section:")}
-            </span>
-            {[
-              { id: "all", labelBn: "সকল ক্যাম্পাস", labelEn: "All Campuses" },
-              { id: "boys", labelBn: "বালক শাখা (হাফেজবৃন্দ)", labelEn: "Boys (Huffaz)" },
-              { id: "girls", labelBn: "বালিকা শাখা (হাফেজাবৃন্দ)", labelEn: "Girls (Hafezat)" },
-            ].map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setSelectedCampus(c.id as any)}
-                className={`rounded-lg px-3 py-1 text-xs font-bengali font-medium transition-colors ${
-                  selectedCampus === c.id
-                    ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30"
-                    : "bg-muted/40 text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                {t(c.labelBn, c.labelEn)}
-              </button>
-            ))}
-          </div>
+
         </div>
 
         {/* Huffaz Cards Grid */}
@@ -270,7 +247,7 @@ const Huffaz = () => {
                     </span>
 
                     <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground font-bengali">
-                      {hfz.campus === "boys" ? t("বালক শাখা", "Boys Section") : t("বালিকা শাখা", "Girls Section")}
+                      {t("হিফজ বিভাগ", "Hifz Section")}
                     </span>
                   </div>
 
@@ -458,8 +435,8 @@ const Huffaz = () => {
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {t(
-                  "আননূর শিক্ষা পরিবারের হিফজ বিভাগে নতুন শিক্ষাবর্ষে বালক ও বালিকা শাখায় সীমিত আসনে ভর্তি চলছে। অথবা কোনো সুবিধাবঞ্চিত শিক্ষার্থীকে হাফেজ বানাতে স্পন্সর করতে পারেন।",
-                  "Limited seats are open for new admissions in our boys and girls Hifz departments. You can also sponsor an underprivileged child's Hifz journey."
+                  "আননূর তাহফিজুল কুরআন মাদরাসার হিফজ বিভাগে নতুন শিক্ষাবর্ষে সীমিত আসনে ভর্তি চলছে। অথবা কোনো সুবিধাবঞ্চিত শিক্ষার্থীকে হাফেজ বানাতে স্পন্সর করতে পারেন।",
+                  "Limited seats are open for new admissions in our Hifz department. You can also sponsor an underprivileged child's Hifz journey."
                 )}
               </p>
             </div>

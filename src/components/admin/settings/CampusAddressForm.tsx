@@ -118,8 +118,8 @@ export const CampusAddressForm = () => {
         </CardTitle>
         <CardDescription>
           {t(
-            "বালক ও বালিকা শাখার পূর্ণ ঠিকানা, গুগল ম্যাপস ও সামাজিক যোগাযোগ মাধ্যম",
-            "Boys & Girls campus physical locations, Google Maps links, and official channels"
+            "ক্যাম্পাসের পূর্ণ ঠিকানা, গুগল ম্যাপস ও সামাজিক যোগাযোগ মাধ্যম",
+            "Madrasa campus physical location, Google Maps links, and official channels"
           )}
         </CardDescription>
       </CardHeader>

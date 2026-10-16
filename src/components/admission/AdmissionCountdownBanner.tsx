@@ -156,10 +156,10 @@ export const AdmissionCountdownBanner = ({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-[2rem] border border-emerald-500/30 bg-gradient-to-br from-slate-950 via-emerald-950/90 to-slate-900 p-6 sm:p-8 md:p-10 text-white shadow-2xl ${className}`}
+      className={`relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#08185A] via-[#0D1D66] to-[#040D33] p-6 sm:p-8 md:p-10 text-white shadow-2xl ${className}`}
     >
       {/* Decorative ambient background lights */}
-      <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none" />
+      <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-accent/15 blur-3xl pointer-events-none" />
       <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.06),transparent_50%)] pointer-events-none" />
 
@@ -177,8 +177,8 @@ export const AdmissionCountdownBanner = ({
                 <span>{t("ভর্তি শিক্ষাবর্ষ ২০২৬-২০২৭", "Academic Year 2026-2027")}</span>
               </span>
 
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-medium text-emerald-300 border border-emerald-500/30 font-bengali">
-                <Sparkles className="h-3 w-3 text-emerald-300" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/20 px-3 py-1 text-xs font-medium text-amber-200 border border-accent/30 font-bengali">
+                <Sparkles className="h-3 w-3 text-amber-300" />
                 <span>{t("সীমিত আসন সংখ্যা", "Limited Seats")}</span>
               </span>
             </div>
@@ -186,7 +186,7 @@ export const AdmissionCountdownBanner = ({
             <h2 className="font-bengali text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-tight">
               {t("ভর্তি পরীক্ষার সময়সূচি ও জরুরি নোটিশ", "Admission Schedule & Countdown Notice")}
             </h2>
-            <p className="font-bengali text-sm sm:text-base text-emerald-100/80 max-w-2xl leading-relaxed">
+            <p className="font-bengali text-sm sm:text-base text-slate-200/90 max-w-2xl leading-relaxed">
               {t(
                 "নির্ধারিত সময়সীমার মধ্যে অনলাইনে নির্ভুলভাবে আবেদন ফর্ম পূরণ করে প্রবেশপত্র প্রিন্ট করুন। পরবর্তীতে পরীক্ষার দিন প্রবেশপত্রসহ উপস্থিত হতে হবে।",
                 "Complete the online admission form within the specified deadline to download your admit slip. Bring your admit card on the exam day."
@@ -213,7 +213,7 @@ export const AdmissionCountdownBanner = ({
               onClick={() => setActiveTab("exam")}
               className={`flex items-center gap-2 rounded-xl px-4 py-2 font-bengali text-xs sm:text-sm font-semibold transition-all ${
                 activeTab === "exam"
-                  ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 scale-[1.02]"
+                  ? "bg-gradient-to-r from-accent to-accent/90 text-white shadow-lg shadow-accent/25 scale-[1.02]"
                   : "text-white/70 hover:text-white hover:bg-white/5"
               }`}
             >
@@ -235,8 +235,8 @@ export const AdmissionCountdownBanner = ({
               <h3 className="font-bengali text-xl sm:text-2xl font-bold text-white">
                 {isBn ? currentTarget.titleBn : currentTarget.titleEn}
               </h3>
-              <div className="inline-flex items-center gap-2 rounded-xl bg-black/50 px-3.5 py-2 text-sm font-mono font-bold text-emerald-300 border border-emerald-500/20">
-                <Clock className="h-4 w-4 text-emerald-400" />
+              <div className="inline-flex items-center gap-2 rounded-xl bg-black/50 px-3.5 py-2 text-sm font-mono font-bold text-amber-300 border border-amber-500/20">
+                <Clock className="h-4 w-4 text-amber-400" />
                 <span>{isBn ? currentTarget.dateStrBn : currentTarget.dateStrEn}</span>
               </div>
               <p className="font-bengali text-xs text-white/70 leading-relaxed">
@@ -269,7 +269,7 @@ export const AdmissionCountdownBanner = ({
                   href="tel:01820811511"
                   className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/5 hover:bg-white/10 px-4 py-3 text-xs font-semibold text-white/90 font-bengali transition-colors"
                 >
-                  <PhoneCall className="h-4 w-4 text-emerald-400" />
+                  <PhoneCall className="h-4 w-4 text-amber-400" />
                   <span>{t("হেল্পলাইন", "Helpline")}</span>
                 </a>
               </div>
@@ -285,16 +285,16 @@ export const AdmissionCountdownBanner = ({
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: idx * 0.05 }}
-                  className="relative group rounded-2xl sm:rounded-3xl border border-emerald-400/30 bg-gradient-to-b from-white/15 to-white/5 p-3 sm:p-5 md:p-6 backdrop-blur-xl shadow-inner shadow-white/5 hover:border-amber-400/50 transition-all"
+                  className="relative group rounded-2xl sm:rounded-3xl border border-white/20 bg-gradient-to-b from-white/15 to-white/5 p-3 sm:p-5 md:p-6 backdrop-blur-xl shadow-inner shadow-white/5 hover:border-amber-400/50 transition-all"
                 >
                   {/* Subtle top indicator bar */}
-                  <div className="absolute top-0 inset-x-4 h-1 rounded-full bg-gradient-to-r from-emerald-400 to-amber-400 opacity-60 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute top-0 inset-x-4 h-1 rounded-full bg-gradient-to-r from-accent to-amber-400 opacity-60 group-hover:opacity-100 transition-opacity" />
 
                   <div className="font-display text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white drop-shadow-md">
                     {isBn ? toBnDigit(unit.value) : String(unit.value).padStart(2, "0")}
                   </div>
 
-                  <div className="mt-1 sm:mt-2 font-bengali text-[11px] sm:text-xs md:text-sm font-semibold uppercase tracking-wider text-emerald-200/90">
+                  <div className="mt-1 sm:mt-2 font-bengali text-[11px] sm:text-xs md:text-sm font-semibold uppercase tracking-wider text-slate-200">
                     {isBn ? unit.labelBn : unit.labelEn}
                   </div>
                 </motion.div>
@@ -310,7 +310,7 @@ export const AdmissionCountdownBanner = ({
                     : t("রিয়েল-টাইম লাইভ কাউন্টডাউন চলছে", "Live real-time countdown active")}
                 </span>
               </span>
-              <span className="font-mono text-emerald-400 text-[11px]">
+              <span className="font-mono text-amber-300 text-[11px]">
                 {t("মাদরাসা কেন্দ্রীয় সময়ানুযায়ী", "Based on BST Institutional Time")}
               </span>
             </div>
@@ -322,10 +322,10 @@ export const AdmissionCountdownBanner = ({
           <div className="pt-4 border-t border-white/10">
             <div className="mb-4 flex items-center justify-between">
               <h4 className="font-bengali text-sm font-bold text-white flex items-center gap-2">
-                <FileCheck2 className="h-4 w-4 text-emerald-400" />
+                <FileCheck2 className="h-4 w-4 text-accent" />
                 <span>{t("ভর্তি কার্যক্রমের গুরুত্বপূর্ণ ধাপসমূহ", "Key Admission Milestones")}</span>
               </h4>
-              <span className="font-bengali text-xs text-emerald-300">
+              <span className="font-bengali text-xs text-amber-200">
                 {t("শিক্ষাবর্ষ ২০২৬-২০২৭", "Academic Session 2026-2027")}
               </span>
             </div>
@@ -340,7 +340,7 @@ export const AdmissionCountdownBanner = ({
                     key={m.step}
                     className={`rounded-2xl p-4 transition-all border ${
                       isActive
-                        ? "border-emerald-400/50 bg-emerald-500/10 shadow-lg shadow-emerald-500/5"
+                        ? "border-accent/50 bg-accent/15 shadow-lg shadow-accent/5"
                         : isUrgent
                         ? "border-amber-400/50 bg-amber-500/10 shadow-lg shadow-amber-500/5"
                         : "border-white/10 bg-white/5"
@@ -351,7 +351,7 @@ export const AdmissionCountdownBanner = ({
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-semibold font-bengali ${
                           isActive
-                            ? "bg-emerald-400 text-slate-950 font-bold"
+                            ? "bg-accent text-white font-bold"
                             : isUrgent
                             ? "bg-amber-400 text-slate-950 font-bold"
                             : "bg-white/10 text-white/70"
@@ -364,7 +364,7 @@ export const AdmissionCountdownBanner = ({
                     <h5 className="font-bengali text-sm font-bold text-white leading-snug">
                       {isBn ? m.titleBn : m.titleEn}
                     </h5>
-                    <p className="font-bengali text-xs text-emerald-200/80 mt-1">
+                    <p className="font-bengali text-xs text-slate-200/80 mt-1">
                       {isBn ? m.dateBn : m.dateEn}
                     </p>
                   </div>

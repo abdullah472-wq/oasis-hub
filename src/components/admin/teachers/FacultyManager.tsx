@@ -138,8 +138,8 @@ export const FacultyManager = () => {
               </h2>
               <p className="font-bengali text-xs text-muted-foreground">
                 {t(
-                  "পরিচালনা পরিষদ, বালক ও বালিকা ক্যাম্পাসের শিক্ষক এবং সহায়ক কর্মকর্তা-কর্মচারীদের তালিকা পরিচালনা করুন",
-                  "Manage governing board, teachers of boys & girls campuses, and staff members"
+                  "পরিচালনা পরিষদ, শিক্ষকবৃন্দ এবং সহায়ক কর্মকর্তা-কর্মচারীদের তালিকা পরিচালনা করুন",
+                  "Manage governing board, educators, and staff members"
                 )}
               </p>
             </div>
