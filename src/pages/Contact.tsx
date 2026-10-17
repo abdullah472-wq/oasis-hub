@@ -8,7 +8,6 @@ import {
   CheckCircle,
   Clock,
   Building2,
-  CreditCard,
   MessageCircle,
   Copy,
   Check,
@@ -34,13 +33,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useSiteSettings } from "@/lib/siteSettings";
+import CampusLocator from "@/components/CampusLocator";
 
 const DEFAULT_MAPS_URL =
   "https://www.google.com/maps/place/%E0%A6%86%E0%A6%A8%E0%A6%A8%E0%A7%82%E0%A6%B0+%E0%A6%A4%E0%A6%BE%E0%A6%B9%E0%A6%AB%E0%A6%BF%E0%A6%9C%E0%A7%81%E0%A6%B2+%E0%A6%95%E0%A7%81%E0%A6%B0%E0%A6%86%E0%A6%A8+%E0%A6%AE%E0%A6%BE%E0%A6%A6%E0%A6%B0%E0%A6%BE%E0%A6%B8%E0%A6%BE+%E0%A6%93+%E0%A6%AE%E0%A6%A1%E0%A7%87%E0%A6%B2+%E0%A6%8F%E0%A6%95%E0%A6%BE%E0%A6%A1%E0%A7%87%E0%A6%AE%E0%A7%80/@24.1119189,90.5677945,21z/data=!4m6!3m5!1s0x3755d59d76b2ffd9:0xde5de9aa6b8378aa!8m2!3d24.1118467!4d90.5680587!16s%2Fg%2F11khdsnx7w?entry=ttu&g_ep=EgoyMDI2MDMzMS4wIKXMDSoASAFQAw%3D%3D";
 const GOOGLE_MAPS_URL = DEFAULT_MAPS_URL;
-
-const GOOGLE_MAPS_EMBED_URL =
-  "https://www.google.com/maps?q=%E0%A6%86%E0%A6%A8%E0%A6%A8%E0%A7%82%E0%A6%B0%20%E0%A6%A4%E0%A6%BE%E0%A6%B9%E0%A6%AB%E0%A6%BF%E0%A6%9C%E0%A7%81%E0%A6%B2%20%E0%A6%95%E0%A7%81%E0%A6%B0%E0%A6%86%E0%A6%A8%20%E0%A6%AE%E0%A6%BE%E0%A6%A6%E0%A6%B0%E0%A6%BE%E0%A6%B8%E0%A6%BE%20%E0%A6%93%20%E0%A6%AE%E0%A6%A1%E0%A7%87%E0%A6%B2%20%E0%A6%8F%E0%A6%95%E0%A6%BE%E0%A6%A1%E0%A7%87%E0%A6%AE%E0%A7%80&ll=24.1118467,90.5680587&z=19&output=embed";
 
 const Contact = () => {
   const { t, lang } = useLanguage();
@@ -57,20 +54,13 @@ const Contact = () => {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
-  const [copiedBank, setCopiedBank] = useState(false);
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
 
   const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
-    if (type === "bank") {
-      setCopiedBank(true);
-      toast.success(t("ব্যাংক হিসাব নম্বর কপি করা হয়েছে", "Bank account copied"));
-      setTimeout(() => setCopiedBank(false), 2500);
-    } else {
-      setCopiedAddress(type);
-      toast.success(t("ঠিকানা কপি করা হয়েছে", "Address copied"));
-      setTimeout(() => setCopiedAddress(null), 2500);
-    }
+    setCopiedAddress(type);
+    toast.success(t("ঠিকানা কপি করা হয়েছে", "Address copied"));
+    setTimeout(() => setCopiedAddress(null), 2500);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -102,6 +92,7 @@ const Contact = () => {
 
   const rawQuickWa = (settings.whatsapp_number || settings.phone_primary || "01820811511").replace(/[^0-9]/g, "");
   const cleanQuickWa = rawQuickWa.startsWith("88") ? rawQuickWa : `88${rawQuickWa}`;
+  const whatsAppUrl = `https://wa.me/${cleanQuickWa}`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -323,202 +314,23 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* ================= CAMPUS DETAILS ================= */}
-      <section className="py-8 bg-muted/30">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <div className="text-center mb-8 space-y-2">
-            <h2 className="font-bengali text-2xl sm:text-3xl font-bold text-foreground">
-              {t("ক্যাম্পাসের অবস্থান ও বিবরণ", "Campus Location & Details")}
-            </h2>
-            <p className="font-bengali text-sm text-muted-foreground">
-              {t("কাপাসিয়ার প্রাণকেন্দ্রে শিক্ষার্থীদের জন্য সম্পূর্ণ নিরিবিলি, নিরাপদ ও সুশৃঙ্খল পরিবেশ", "Safe, serene, and disciplined learning environment in the heart of Kapasia, Gazipur")}
-            </p>
-          </div>
-
-          <motion.div
-            {...springIn}
-            className="rounded-3xl border border-border/80 bg-card p-6 sm:p-10 shadow-sm"
-          >
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-border/60">
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <Badge className="bg-primary text-primary-foreground font-semibold px-3 py-1 text-xs">
-                    {t("প্রধান ক্যাম্পাস", "Main Campus")}
-                  </Badge>
-                  <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
-                    <CheckCircle className="h-3.5 w-3.5" />
-                    {t("আবাসিক ও অনাবাসিক", "Residential & Day")}
-                  </span>
-                </div>
-                <h3 className="font-bengali text-2xl sm:text-3xl font-bold text-foreground">
-                  {t(
-                    settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা",
-                    settings.institution_name_en || "Annoor Tahfizul Quran Madrasa"
-                  )}
-                </h3>
-                <p className="font-bengali text-xs sm:text-sm text-muted-foreground mt-1.5">
-                  {t(
-                    "নূরানী, নাজেরা, আন্তর্জাতিক মানের হিফজুল কুরআন এবং প্রাথমিক জেনারেল শিক্ষা সমন্বিত ক্যাম্পাস।",
-                    "Integrated Nurani, Nazara, International Hifz and Primary General curriculum."
-                  )}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3 flex-wrap">
-                <a
-                  href={mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bengali text-xs sm:text-sm font-semibold hover:bg-primary/90 transition-all shadow-sm active:scale-95"
-                >
-                  <Navigation className="h-4 w-4" />
-                  <span>{t("গুগল ম্যাপে দিকনির্দেশনা", "Get Directions")}</span>
-                </a>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard(madrasaAddress, "address")}
-                  className="rounded-xl text-xs sm:text-sm h-10 px-4 gap-2"
-                >
-                  {copiedAddress === "address" ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
-                  <span>{copiedAddress === "address" ? t("কপি হয়েছে", "Copied") : t("ঠিকানা কপি", "Copy Address")}</span>
-                </Button>
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6 pt-6">
-              <div className="space-y-4 font-bengali">
-                <div className="flex items-start gap-3.5">
-                  <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                    <MapPin className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground">{t("ঠিকানা ও অবস্থান:", "Location:")}</p>
-                    <p className="text-sm font-bold text-foreground mt-0.5">
-                      {t(
-                        settings.address_boys_campus_bn || "মেইন রোড, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর।",
-                        settings.address_boys_campus_en || "Main Road, Kapasia Bazar, Kapasia, Gazipur."
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3.5">
-                  <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                    <Phone className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground">{t("জরুরি হটলাইন ও যোগাযোগ:", "Direct Helplines:")}</p>
-                    <div className="flex items-center gap-3 flex-wrap mt-0.5 text-sm font-semibold">
-                      <a href={`tel:${(settings.phone_secondary || "01581818368").replace(/[^0-9]/g, "")}`} className="text-primary hover:underline font-mono">
-                        {settings.phone_secondary || "01581-818368"}
-                      </a>
-                      <span className="text-muted-foreground">|</span>
-                      <a href={`tel:${(settings.phone_primary || "01820811511").replace(/[^0-9]/g, "")}`} className="text-primary hover:underline font-mono">
-                        {settings.phone_primary || "01820-811511"}
-                      </a>
-                      <span className="text-muted-foreground">|</span>
-                      <a href="tel:01312200043" className="text-primary hover:underline font-mono">
-                        01312-200043
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Campus Highlights list */}
-              <div className="rounded-2xl border border-border/60 bg-muted/20 p-5 font-bengali">
-                <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-3">
-                  {t("ক্যাম্পাসের বিশেষ সুবিধাসমূহ", "Campus Features & Security")}
-                </h4>
-                <div className="grid grid-cols-2 gap-2.5 text-xs text-foreground">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                    <span>{t("সিসিটিভি ও সিকিউরিটি গার্ড", "24/7 CCTV & Security")}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                    <span>{t("স্বাস্থ্যসম্মত নিজস্ব ডাইনিং", "Hygienic Dining")}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                    <span>{t("নিরিবিলি মনোরম পরিবেশ", "Serene Atmosphere")}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                    <span>{t("সার্বক্ষণিক বিদ্যুৎ ও পানি", "24/7 Power & Clean Water")}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+      {/* ================= INTERACTIVE CAMPUS LOCATOR ================= */}
+      <section id="campus-locator" className="py-12 md:py-16 bg-muted/30">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <motion.div {...springIn}>
+            <CampusLocator />
           </motion.div>
         </div>
       </section>
 
-      {/* ================= BANK DETAILS & OFFICE SCHEDULE ================= */}
-      <section className="py-12">
+      {/* ================= OFFICE SCHEDULE & INTERACTIVE CONTACT FORM ================= */}
+      <section className="py-12 md:py-16 bg-muted/30">
         <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Bank Card */}
+          <div className="grid lg:grid-cols-12 gap-8 items-start">
+            {/* Office Hours & Social Links (5 Cols) */}
             <motion.div
               {...springIn}
-              className="rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 via-card to-card p-6 sm:p-8 shadow-sm space-y-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-                  <CreditCard className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-bengali text-lg font-bold text-foreground">
-                    {t("ব্যাংক হিসাব (টিউশন ফি ও অনুদান)", "Bank Details (Fees & Donations)")}
-                  </h3>
-                  <p className="font-bengali text-xs text-muted-foreground">
-                    {t("সরাসরি ব্যাংক বা মোবাইল ব্যাংকিংয়ের মাধ্যমে লেনদেন করুন", "Bank transfer and mobile banking info")}
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-border/80 bg-background/80 p-4 space-y-3 font-bengali text-sm">
-                <div className="flex justify-between items-center border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">{t("ব্যাংকের নাম:", "Bank Name:")}</span>
-                  <span className="font-bold text-foreground">Islami Bank Bangladesh PLC</span>
-                </div>
-                <div className="flex justify-between items-center border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">{t("শাখা:", "Branch:")}</span>
-                  <span className="font-semibold text-foreground">{t("কাপাসিয়া শাখা, গাজীপুর", "Kapasia Branch, Gazipur")}</span>
-                </div>
-                <div className="flex justify-between items-center border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">{t("হিসাবের নাম:", "Account Title:")}</span>
-                  <span className="font-semibold text-foreground">Annoor Education Family</span>
-                </div>
-                <div className="flex justify-between items-center pt-1">
-                  <span className="text-muted-foreground">{t("হিসাব নম্বর (A/C):", "Account No:")}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
-                      20503760201161316
-                    </span>
-                    <button
-                      onClick={() => copyToClipboard("20503760201161316", "bank")}
-                      className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
-                      title={t("কপি করুন", "Copy")}
-                    >
-                      {copiedBank ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 pt-2 text-xs font-bengali text-muted-foreground">
-                <span className="font-semibold text-foreground">{t("বিকাশ / নগদ হেল্পলাইন:", "Bkash / Nagad:")}</span>
-                <span className="font-mono font-medium">{[settings.phone_primary, settings.phone_secondary].filter(Boolean).join(", ") || "01820811511, 01581818368"}</span>
-              </div>
-            </motion.div>
-
-            {/* Office Hours & Social Links */}
-            <motion.div
-              {...springIn}
-              transition={springInDelay(0.1)}
-              className="rounded-3xl border border-border/70 bg-card p-6 sm:p-8 shadow-sm flex flex-col justify-between space-y-4"
+              className="lg:col-span-5 rounded-3xl border border-border/70 bg-card p-6 sm:p-8 shadow-sm flex flex-col justify-between space-y-5"
             >
               <div>
                 <div className="flex items-center gap-3 mb-4">
@@ -581,63 +393,6 @@ const Contact = () => {
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= MAP & INTERACTIVE CONTACT FORM ================= */}
-      <section className="py-12 bg-muted/30">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid lg:grid-cols-12 gap-8 items-start">
-            {/* Google Map Box (5 Cols) */}
-            <motion.div {...springIn} className="lg:col-span-5 space-y-4">
-              <div className="space-y-1">
-                <h3 className="font-bengali text-xl font-bold text-foreground">
-                  {t("গুগল ম্যাপে আমাদের অবস্থান", "Our Location on Google Maps")}
-                </h3>
-                <p className="font-bengali text-xs text-muted-foreground">
-                  {t("সহজেই খুঁজে পেতে ম্যাপে জুম বা রুট দেখে নিন", "Zoom in or view route to easily find our campus")}
-                </p>
-              </div>
-
-              <div className="overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm h-72 sm:h-80 relative">
-                <iframe
-                  src={GOOGLE_MAPS_EMBED_URL}
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Annoor Tahfizul Quran Madrasa Location"
-                />
-              </div>
-
-              <div className="flex items-center justify-between gap-3">
-                <a
-                  href={mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 font-bengali text-xs font-semibold text-primary hover:underline"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span>{t("গুগল ম্যাপস অ্যাপে পুরো লোকেশন খুলুন", "Open in Google Maps App")}</span>
-                </a>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    navigator.clipboard.writeText(mapsUrl);
-                    toast.success(t("ম্যাপ লিঙ্ক কপি করা হয়েছে", "Map URL copied"));
-                  }}
-                  className="text-xs gap-1"
-                >
-                  <Share2 className="h-3.5 w-3.5" />
-                  <span>{t("শেয়ার", "Share")}</span>
-                </Button>
               </div>
             </motion.div>
 

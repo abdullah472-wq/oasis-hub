@@ -5,7 +5,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { LanguageProvider } from "@/contexts/LanguageContext";
+import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/lib/siteSettings";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Navbar from "@/components/Navbar";
@@ -73,10 +74,49 @@ const RouteFallback = () => (
   </div>
 );
 
+const ROUTE_PAGE_TITLES: Record<string, { bn: string; en: string }> = {
+  "/": { bn: "হোম", en: "Home" },
+  "/about": { bn: "আমাদের সম্পর্কে", en: "About Us" },
+  "/achievements": { bn: "আমাদের অর্জন", en: "Achievements" },
+  "/notices": { bn: "নোটিশ বোর্ড", en: "Notice Board" },
+  "/virtual-tour": { bn: "ভার্চুয়াল ক্যাম্পাস ট্যুর", en: "Virtual Tour" },
+  "/admission": { bn: "ভর্তি তথ্য ও ফি নির্দেশিকা", en: "Admission Info" },
+  "/admission-form": { bn: "অনলাইন ভর্তি ফরম", en: "Online Admission Form" },
+  "/gallery": { bn: "ফটো গ্যালারি", en: "Gallery" },
+  "/media": { bn: "মিডিয়া সেন্টার", en: "Media Center" },
+  "/news": { bn: "সংবাদ ও বিজ্ঞপ্তি", en: "News" },
+  "/events": { bn: "ইভেন্ট ক্যালেন্ডার", en: "Events" },
+  "/curriculum": { bn: "শিক্ষা কারিকুলাম ও সিলেবাস", en: "Curriculum" },
+  "/downloads": { bn: "ডাউনলোড কর্নার", en: "Downloads" },
+  "/teachers": { bn: "শিক্ষক ও পরিচালকমণ্ডলী", en: "Teachers & Staff" },
+  "/huffaz": { bn: "কৃতি হাফেজদের তালিকা", en: "Wall of Huffaz" },
+  "/contact": { bn: "যোগাযোগ ও ক্যাম্পাস লোকেশন", en: "Contact Us" },
+  "/sitemap": { bn: "সাইটম্যাপ", en: "Sitemap" },
+};
+
 const AppShell = () => {
   const location = useLocation();
+  const { lang } = useLanguage();
+  const { settings } = useSiteSettings();
   const isAdminRoute = location.pathname.startsWith("/admin");
   const isPortalRoute = isAdminRoute;
+
+  useEffect(() => {
+    const siteTitle = "আননূর তাহফিজুল কুরআন মাদরাসা | Annoor Tahfizul Quran Madrasa";
+    const baseName = lang === "bn"
+      ? (settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা")
+      : (settings.institution_name_en || "Annoor Tahfizul Quran Madrasa");
+
+    if (location.pathname === "/") {
+      document.title = siteTitle;
+    } else if (isAdminRoute) {
+      document.title = `${lang === "bn" ? "অ্যাডমিন প্যানেল" : "Admin Dashboard"} | ${baseName}`;
+    } else {
+      const pageInfo = ROUTE_PAGE_TITLES[location.pathname];
+      const pageLabel = pageInfo ? (lang === "bn" ? pageInfo.bn : pageInfo.en) : "";
+      document.title = pageLabel ? `${pageLabel} | ${baseName}` : siteTitle;
+    }
+  }, [location.pathname, lang, settings, isAdminRoute]);
 
   return (
     <>
