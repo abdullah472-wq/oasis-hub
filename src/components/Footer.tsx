@@ -16,6 +16,7 @@ import {
   MessageCircle,
   Clock,
   Compass,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -35,7 +36,8 @@ const Footer = () => {
 
   const siteLogo = settings.logo_url || DEFAULT_LOGO;
   const mapsUrl = settings.google_maps_url || DEFAULT_MAPS_URL;
-  const facebookUrl = settings.facebook_url || "https://www.facebook.com/AnnoorTahfizolQoranMadrashaKapasia";
+  const facebookUrl = settings.facebook_url || "https://www.facebook.com/profile.php?id=61595529418669";
+  const facebookGroupUrl = "https://www.facebook.com/share/g/1Pg8FaZjsn/";
   const youtubeUrl = settings.youtube_url || "https://www.youtube.com/@ANNOORMADRASA";
   const hotline = settings.phone_primary || "01820811511";
   const cleanWhatsapp = (settings.whatsapp_number || "01581818368").replace(/[^0-9]/g, "");
@@ -143,15 +145,27 @@ const Footer = () => {
               <p className="mb-2.5 font-bengali text-xs font-semibold uppercase tracking-wider text-emerald-200/80">
                 {t("সোশ্যাল মিডিয়ায় যুক্ত থাকুন", "Connect With Us")}
               </p>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2.5 flex-wrap">
                 <a
                   href={facebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Facebook Page"
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-blue-400/40 hover:bg-blue-600 hover:text-white hover:shadow-lg hover:shadow-blue-600/30 active:scale-95"
+                  aria-label="Facebook Profile"
+                  title={t("অফিসিয়াল ফেসবুক পেজ / আইডি", "Official Facebook Page")}
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-blue-400/40 hover:bg-[#1877F2] hover:text-white hover:shadow-lg hover:shadow-blue-600/30 active:scale-95"
                 >
                   <Facebook className="h-5 w-5" />
+                </a>
+
+                <a
+                  href={facebookGroupUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook Group"
+                  title={t("অফিসিয়াল ফেসবুক গ্রুপ", "Official Facebook Group")}
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-blue-400/40 hover:bg-[#1877F2] hover:text-white hover:shadow-lg hover:shadow-blue-600/30 active:scale-95"
+                >
+                  <Users className="h-5 w-5" />
                 </a>
 
                 <a
@@ -312,7 +326,7 @@ const Footer = () => {
                 <div className="flex items-center justify-between pt-1">
                   <div>
                     <span className="font-semibold text-white">
-                      {t("নায়েবে মুহতামিম :", "Vice Principal:")}
+                      {t("সহকারী পরিচালক:", "Assistant Director:")}
                     </span>{" "}
                     <span className="text-emerald-200">
                       {t("মুফতি আব্দুল্লাহ আল মামুন", "Mufti Abdullah Al Mamon")}

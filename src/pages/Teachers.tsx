@@ -176,8 +176,8 @@ const Teachers = () => {
                     key={tab.id}
                     onClick={() => setSelectedCategory(tab.id)}
                     className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs sm:text-sm font-bengali font-medium transition-all ${isActive
-                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-102"
-                        : "border border-border/80 bg-card text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-102"
+                      : "border border-border/80 bg-card text-muted-foreground hover:bg-muted/80 hover:text-foreground"
                       }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -228,8 +228,8 @@ const Teachers = () => {
                   {...springIn}
                   transition={springInDelay(Math.min(idx * 0.05, 0.3))}
                   className={`group relative rounded-2xl border p-6 transition-all duration-300 hover:shadow-xl flex flex-col justify-between ${isManagement
-                      ? "border-primary/30 bg-gradient-to-b from-primary/5 via-card to-card shadow-sm hover:border-primary/50"
-                      : "border-border/80 bg-card shadow-xs hover:border-primary/30"
+                    ? "border-primary/30 bg-gradient-to-b from-primary/5 via-card to-card shadow-sm hover:border-primary/50"
+                    : "border-border/80 bg-card shadow-xs hover:border-primary/30"
                     }`}
                 >
                   <div>
@@ -237,10 +237,10 @@ const Teachers = () => {
                     <div className="flex items-center justify-between gap-2 mb-4">
                       <span
                         className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold font-bengali ${member.category === "management"
-                            ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                            : member.category === "teacher"
-                              ? "bg-primary/10 text-primary"
-                              : "bg-blue-500/10 text-blue-700 dark:text-blue-400"
+                          ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                          : member.category === "teacher"
+                            ? "bg-primary/10 text-primary"
+                            : "bg-blue-500/10 text-blue-700 dark:text-blue-400"
                           }`}
                       >
                         {member.category === "management"

@@ -40,7 +40,7 @@ const About = () => {
       num: "৩৫০+",
       numEn: "350+",
       label: t("বর্তমান শিক্ষার্থী", "Active Students"),
-      sub: t("উভয় ক্যাম্পাসে পাঠরত", "Across both campuses"),
+      sub: t("সার্বক্ষণিক পাঠরত", "Enrolled students"),
       icon: Users,
       color: "from-emerald-500/20 to-teal-500/10 text-emerald-600 dark:text-emerald-400",
       border: "border-emerald-500/30",
@@ -105,8 +105,8 @@ const About = () => {
     {
       title: t("নিরাপদ ও সুশৃঙ্খল পরিবেশ", "Safe & Nurturing Environment"),
       desc: t(
-        "সিসিটিভি নজরদারি, স্বাস্থ্যসম্মত পুষ্টিকর খাবার, সার্বক্ষণিক দায়িত্বশীল তত্ত্বাবধান এবং মেয়েদের সম্পূর্ণ স্বতন্ত্র ক্যাম্পাস।",
-        "24/7 CCTV surveillance, healthy boarding diet, caring supervision, and separate girls campus.",
+        "সিসিটিভি নজরদারি, স্বাস্থ্যসম্মত পুষ্টিকর খাবার এবং সার্বক্ষণিক দায়িত্বশীল ও স্নেহময় তত্ত্বাবধান।",
+        "24/7 CCTV surveillance, healthy boarding diet, and round-the-clock caring supervision.",
       ),
       icon: ShieldCheck,
       badge: t("চতুর্থ স্তম্ভ", "Pillar 4"),
@@ -130,7 +130,7 @@ const About = () => {
     },
     {
       name: t("মুফতি আব্দুল্লাহ আল মামুন", "Mufti Abdullah Al Mamon"),
-      role: t("নায়েবে মুহতামিম ও প্রধান শিক্ষক", "Vice Principal & Head Teacher"),
+      role: t("সহকারী পরিচালক ও প্রধান শিক্ষক", "Assistant Director & Head Teacher"),
       qualification: t("দাওরায়ে হাদিস ও উচ্চতর ইফতা, শিক্ষাবিদ ও সংগঠক", "Dawra-e-Hadith & Higher Ifta, Islamic Scholar"),
       phone: "01312-200043, 01581-818368",
       email: "manager@annoor.edu.bd",
@@ -380,7 +380,7 @@ const About = () => {
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle2 className="h-5 w-5 text-blue-600 shrink-0" />
-                  <span>{t("মেয়েদের জন্য পূর্ণাঙ্গ পর্দাঘেরা স্বতন্ত্র ক্যাম্পাস ও নারীকেন্দ্রিক ব্যবস্থাপনা", "Complete purdah & exclusive female campus for girls")}</span>
+                  <span>{t("অভিজ্ঞ ওলামায়ে কেরাম ও দক্ষ শিক্ষকদের সার্বক্ষণিক তত্ত্বাবধান", "Round-the-clock guidance by qualified scholars & educators")}</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle2 className="h-5 w-5 text-blue-600 shrink-0" />

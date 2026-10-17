@@ -45,7 +45,7 @@ const dailyRoutines = [
     timeEn: "04:30 - 05:30",
     titleBn: "তাহাজ্জুদ, ফজর ও কুরআন তিলাওয়াত",
     titleEn: "Tahajjud, Fajr Prayer & Recitation",
-    descBn: "উভয় ক্যাম্পাসে জামাতে ফজর নামাজ ও প্রভাতি মুরাকাবা-তিলাওয়াত।",
+    descBn: "ক্যাম্পাসে জামাতে ফজর নামাজ ও প্রভাতি মুরাকাবা-তিলাওয়াত।",
     descEn: "Congregational Fajr prayer followed by morning remembrance.",
   },
   {
@@ -514,8 +514,8 @@ const Curriculum = () => {
               </h2>
               <p className="text-sm md:text-base text-primary-foreground/90 max-w-xl mx-auto leading-relaxed">
                 {t(
-                  "নূরানী, নাজেরা ও হিফজ শাখায় ভর্তি চলছে। আমাদের উভয় ক্যাম্পাসে সরাসরি উপস্থিত হয়ে বা অনলাইনে আবেদন করতে পারেন।",
-                  "Admissions open for Nurani, Nazara, and Hifz. Visit our campuses or apply online today."
+                  "নূরানী, নাজেরা ও হিফজ শাখায় ভর্তি চলছে। আমাদের ক্যাম্পাসে সরাসরি উপস্থিত হয়ে বা অনলাইনে আবেদন করতে পারেন।",
+                  "Admissions open for Nurani, Nazara, and Hifz. Visit our campus or apply online today."
                 )}
               </p>
               <div className="pt-4 flex flex-wrap justify-center gap-3">

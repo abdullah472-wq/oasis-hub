@@ -619,7 +619,7 @@ const Index = () => {
             >
               {t(
                 "সাধারণ শিক্ষার আধুনিক মানসম্মত পাঠ্যক্রম এবং পবিত্র কুরআনের ঐশী আলো—এই দুইয়ের এক অনন্য মেলবন্ধনে আপনার সন্তানকে আদর্শ নাগরিক ও দ্বীনের খাঁটি খাদেম হিসেবে গড়ে তোলাই আমাদের অঙ্গীকার।",
-                "Providing modern general education alongside authentic Quranic memorization across our two serene campuses in Kapasia, Gazipur."
+                "Providing modern general education alongside authentic Quranic memorization at our serene campus in Kapasia, Gazipur."
               )}
             </p>
 

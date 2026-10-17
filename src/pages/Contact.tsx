@@ -46,7 +46,7 @@ const Contact = () => {
   const { t, lang } = useLanguage();
   const { settings } = useSiteSettings();
   const mapsUrl = settings.google_maps_url || DEFAULT_MAPS_URL;
-  const facebookUrl = settings.facebook_url || "https://www.facebook.com/AnnoorTahfizolQoranMadrashaKapasia";
+  const facebookUrl = settings.facebook_url || "https://www.facebook.com/profile.php?id=61595529418669";
   const youtubeUrl = settings.youtube_url || "https://www.youtube.com/@ANNOORMADRASA";
   const madrasaAddress = settings.address_boys_campus_bn || "মেইন রোড, কলেজ রোড মোড়, কাপাসিয়া বাজার (সিঙ্গার শোরুম এর পাশে), কাপাসিয়া, গাজীপুর-১৭৩০";
   const [formData, setFormData] = useState({

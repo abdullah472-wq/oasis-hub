@@ -136,7 +136,7 @@ const Navbar = () => {
               </p>
               <h1
                 style={lang === "bn" ? { fontFamily: "'Noto Serif Bengali', serif" } : undefined}
-                className="text-base sm:text-lg font-bold leading-tight text-primary"
+                className="text-[17px] sm:text-xl font-extrabold leading-snug text-primary tracking-tight"
               >
                 {institutionName}
               </h1>
@@ -419,7 +419,7 @@ const Navbar = () => {
               </p>
               <h1
                 style={lang === "bn" ? { fontFamily: "'Noto Serif Bengali', serif" } : undefined}
-                className="text-sm sm:text-base font-bold leading-tight text-primary"
+                className="text-[17px] sm:text-xl font-extrabold leading-snug text-primary tracking-tight"
               >
                 {institutionName}
               </h1>

@@ -18,8 +18,6 @@ export const CampusAddressForm = () => {
   const [formData, setFormData] = useState({
     address_boys_campus_bn: "",
     address_boys_campus_en: "",
-    address_girls_campus_bn: "",
-    address_girls_campus_en: "",
     google_maps_url: "",
     facebook_url: "",
     youtube_url: "",
@@ -45,8 +43,6 @@ export const CampusAddressForm = () => {
         setFormData({
           address_boys_campus_bn: data.address_boys_campus_bn || "",
           address_boys_campus_en: data.address_boys_campus_en || "",
-          address_girls_campus_bn: data.address_girls_campus_bn || "",
-          address_girls_campus_en: data.address_girls_campus_en || "",
           google_maps_url: data.google_maps_url || "",
           facebook_url: data.facebook_url || "",
           youtube_url: data.youtube_url || "",
@@ -70,8 +66,8 @@ export const CampusAddressForm = () => {
         id: 1,
         address_boys_campus_bn: formData.address_boys_campus_bn.trim() || null,
         address_boys_campus_en: formData.address_boys_campus_en.trim() || null,
-        address_girls_campus_bn: formData.address_girls_campus_bn.trim() || null,
-        address_girls_campus_en: formData.address_girls_campus_en.trim() || null,
+        address_girls_campus_bn: null,
+        address_girls_campus_en: null,
         google_maps_url: formData.google_maps_url.trim() || null,
         facebook_url: formData.facebook_url.trim() || null,
         youtube_url: formData.youtube_url.trim() || null,
@@ -130,11 +126,11 @@ export const CampusAddressForm = () => {
 
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Boys Campus Address */}
+          {/* Campus Address */}
           <div className="rounded-lg border border-border/70 p-4 bg-muted/20 space-y-3">
             <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-blue-600" />
-              {t("বালক শাখা ক্যাম্পাস (Boys Campus)", "Boys Campus")}
+              {t("ক্যাম্পাস ঠিকানা (Campus Address)", "Campus Address")}
             </h4>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
@@ -143,7 +139,7 @@ export const CampusAddressForm = () => {
                   id="boys_addr_bn"
                   value={formData.address_boys_campus_bn}
                   onChange={(e) => setFormData({ ...formData, address_boys_campus_bn: e.target.value })}
-                  placeholder={t("যেমন: সেক্টর ৪, রোড ৭, উত্তরা, ঢাকা", "e.g. Sector 4, Road 7, Uttara, Dhaka")}
+                  placeholder={t("যেমন: মেইন রোড, কলেজ রোড মোড়, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর", "e.g. Main Road, College Road Moor, Kapasia Bazar, Gazipur")}
                   rows={2}
                 />
               </div>
@@ -154,38 +150,7 @@ export const CampusAddressForm = () => {
                   id="boys_addr_en"
                   value={formData.address_boys_campus_en}
                   onChange={(e) => setFormData({ ...formData, address_boys_campus_en: e.target.value })}
-                  placeholder="e.g. Sector 4, Road 7, Uttara, Dhaka"
-                  rows={2}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Girls Campus Address */}
-          <div className="rounded-lg border border-border/70 p-4 bg-muted/20 space-y-3">
-            <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-pink-500" />
-              {t("বালিকা শাখা ক্যাম্পাস (Girls Campus)", "Girls Campus")}
-            </h4>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="girls_addr_bn">{t("ঠিকানা (বাংলা)", "Address (Bangla)")}</Label>
-                <Textarea
-                  id="girls_addr_bn"
-                  value={formData.address_girls_campus_bn}
-                  onChange={(e) => setFormData({ ...formData, address_girls_campus_bn: e.target.value })}
-                  placeholder={t("যেমন: সেক্টর ৬, রোড ২, উত্তরা, ঢাকা", "e.g. Sector 6, Road 2, Uttara, Dhaka")}
-                  rows={2}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="girls_addr_en">{t("ঠিকানা (ইংরেজি)", "Address (English)")}</Label>
-                <Textarea
-                  id="girls_addr_en"
-                  value={formData.address_girls_campus_en}
-                  onChange={(e) => setFormData({ ...formData, address_girls_campus_en: e.target.value })}
-                  placeholder="e.g. Sector 6, Road 2, Uttara, Dhaka"
+                  placeholder="e.g. Main Road, College Road Moor, Kapasia Bazar, Gazipur"
                   rows={2}
                 />
               </div>
