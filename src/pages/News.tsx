@@ -55,6 +55,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { NewsDialog } from "@/components/admin/content/NewsDialog";
+import { FacebookEmbed } from "@/components/FacebookEmbed";
 
 const FacebookIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -415,6 +416,12 @@ const News = () => {
                             {featuredPost.category}
                           </Badge>
                         )}
+                        {featuredPost.embedCode && (
+                          <Badge className="bg-[#1877F2] text-white font-bengali text-xs px-2.5 py-0.5 shadow-xs flex items-center gap-1">
+                            <FacebookIcon className="h-3 w-3" />
+                            <span>{t("ফেসবুক পোস্ট", "Facebook Post")}</span>
+                          </Badge>
+                        )}
                       </div>
                     </div>
 
@@ -516,14 +523,20 @@ const News = () => {
                               (e.target as HTMLImageElement).src = "/hero-campus.jpg";
                             }}
                           />
-                          {news.category && (
-                            <div className="absolute top-3 left-3">
+                          <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
+                            {news.category && (
                               <Badge className="bg-background/90 text-foreground font-bengali text-[11px] px-2.5 py-0.5 backdrop-blur-md border border-border shadow-sm">
                                 <Tag className="h-3 w-3 mr-1 text-primary" />
                                 {news.category}
                               </Badge>
-                            </div>
-                          )}
+                            )}
+                            {news.embedCode && (
+                              <Badge className="bg-[#1877F2] text-white font-bengali text-[10px] px-2 py-0.5 shadow-xs flex items-center gap-1">
+                                <FacebookIcon className="h-2.5 w-2.5" />
+                                <span>Facebook</span>
+                              </Badge>
+                            )}
+                          </div>
                         </div>
 
                         {/* Date */}
@@ -741,6 +754,14 @@ const News = () => {
                 <div className="mt-4 p-4 rounded-2xl bg-muted/50 border border-border text-sm text-muted-foreground leading-relaxed italic">
                   {activeNews.excerptEn}
                 </div>
+              )}
+
+              {/* Embedded Facebook Post */}
+              {activeNews.embedCode && (
+                <FacebookEmbed
+                  embedCode={activeNews.embedCode}
+                  title={lang === "bn" ? activeNews.titleBn : activeNews.titleEn || activeNews.titleBn}
+                />
               )}
             </div>
 

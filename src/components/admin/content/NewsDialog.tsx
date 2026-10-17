@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { Loader2, Newspaper, Tag, Calendar as CalendarIcon, Image as ImageIcon } from "lucide-react";
+import { Loader2, Newspaper, Tag, Calendar as CalendarIcon, Image as ImageIcon, X, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { extractEmbedUrl } from "@/lib/facebookEmbed";
+import { FacebookEmbed } from "@/components/FacebookEmbed";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +24,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { saveNewsToFirestore, updateNewsInFirestore, type NewsPost } from "@/lib/news";
+
+const FacebookIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M22 12.07C22 6.5 17.52 2 11.93 2C6.35 2 1.86 6.5 1.86 12.07C1.86 17.1 5.53 21.26 10.33 22v-7.05H7.7v-2.88h2.63V9.85c0-2.6 1.55-4.04 3.93-4.04c1.14 0 2.33.2 2.33.2v2.56h-1.31c-1.29 0-1.69.8-1.69 1.62v1.95h2.88l-.46 2.88h-2.42V22c4.8-.74 8.47-4.9 8.47-9.93Z" />
+  </svg>
+);
 
 interface NewsDialogProps {
   isOpen: boolean;
@@ -47,6 +55,7 @@ export const NewsDialog = ({
 }: NewsDialogProps) => {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
+  const [showEmbedPreview, setShowEmbedPreview] = useState(false);
 
   const [formData, setFormData] = useState({
     titleBn: "",
@@ -56,6 +65,7 @@ export const NewsDialog = ({
     date: "",
     imageUrl: "/hero-campus.jpg",
     category: "সাধারণ",
+    embedCode: "",
   });
 
   useEffect(() => {
@@ -68,7 +78,9 @@ export const NewsDialog = ({
         date: newsToEdit.date || new Date().toISOString().split("T")[0],
         imageUrl: newsToEdit.imageUrl || "/hero-campus.jpg",
         category: newsToEdit.category || "সাধারণ",
+        embedCode: newsToEdit.embedCode || "",
       });
+      setShowEmbedPreview(Boolean(newsToEdit.embedCode));
     } else {
       const today = new Date().toISOString().split("T")[0];
       setFormData({
@@ -79,7 +91,9 @@ export const NewsDialog = ({
         date: today,
         imageUrl: "/hero-campus.jpg",
         category: "সাধারণ",
+        embedCode: "",
       });
+      setShowEmbedPreview(false);
     }
   }, [newsToEdit, isOpen]);
 
@@ -108,27 +122,25 @@ export const NewsDialog = ({
 
     setLoading(true);
     try {
+      const rawEmbed = formData.embedCode.trim();
+      const resolvedEmbedUrl = rawEmbed ? extractEmbedUrl(rawEmbed) : undefined;
+
+      const payload = {
+        titleBn: formData.titleBn.trim(),
+        titleEn: formData.titleEn.trim(),
+        excerptBn: formData.excerptBn.trim(),
+        excerptEn: formData.excerptEn.trim() || formData.excerptBn.trim(),
+        date: formData.date || new Date().toISOString().split("T")[0],
+        imageUrl: formData.imageUrl.trim() || "/hero-campus.jpg",
+        category: formData.category,
+        embedCode: resolvedEmbedUrl,
+      };
+
       if (newsToEdit?.id) {
-        await updateNewsInFirestore(newsToEdit.id, {
-          titleBn: formData.titleBn.trim(),
-          titleEn: formData.titleEn.trim(),
-          excerptBn: formData.excerptBn.trim(),
-          excerptEn: formData.excerptEn.trim() || formData.excerptBn.trim(),
-          date: formData.date || new Date().toISOString().split("T")[0],
-          imageUrl: formData.imageUrl.trim() || "/hero-campus.jpg",
-          category: formData.category,
-        });
+        await updateNewsInFirestore(newsToEdit.id, payload);
         toast.success(t("সংবাদ সফলভাবে আপডেট হয়েছে", "News updated successfully"));
       } else {
-        await saveNewsToFirestore({
-          titleBn: formData.titleBn.trim(),
-          titleEn: formData.titleEn.trim(),
-          excerptBn: formData.excerptBn.trim(),
-          excerptEn: formData.excerptEn.trim() || formData.excerptBn.trim(),
-          date: formData.date || new Date().toISOString().split("T")[0],
-          imageUrl: formData.imageUrl.trim() || "/hero-campus.jpg",
-          category: formData.category,
-        });
+        await saveNewsToFirestore(payload);
         toast.success(t("নতুন সংবাদ সফলভাবে প্রকাশিত হয়েছে", "News published successfully"));
       }
 
@@ -310,6 +322,67 @@ export const NewsDialog = ({
                 className="rounded-xl resize-none"
               />
             </div>
+          </div>
+
+          {/* Facebook Post Embed (iframe or URL) */}
+          <div className="space-y-2 rounded-2xl border border-blue-200/80 bg-blue-50/30 p-4 dark:border-blue-900/40 dark:bg-blue-950/20">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="news_embed_code" className="flex items-center gap-1.5 font-bengali text-xs font-semibold text-foreground">
+                <FacebookIcon className="h-4 w-4 text-[#1877F2]" />
+                <span>{t("ফেসবুক পোস্ট এমবেড কোড / আইফ্রেম (ঐচ্ছিক)", "Facebook Post Embed / Iframe (Optional)")}</span>
+              </Label>
+              {formData.embedCode && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowEmbedPreview(!showEmbedPreview)}
+                  className="h-7 px-2 font-bengali text-[11px] text-blue-600 dark:text-blue-400 gap-1"
+                >
+                  {showEmbedPreview ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                  <span>{showEmbedPreview ? t("প্রিভিউ লুকান", "Hide Preview") : t("প্রিভিউ দেখুন", "Show Preview")}</span>
+                </Button>
+              )}
+            </div>
+
+            <Textarea
+              id="news_embed_code"
+              rows={3}
+              placeholder={`<iframe src="https://www.facebook.com/plugins/post.php?..." ...></iframe> অথবা ফেসবুক পোস্টের লিঙ্ক`}
+              value={formData.embedCode}
+              onChange={(e) => {
+                setFormData({ ...formData, embedCode: e.target.value });
+                if (e.target.value.trim()) setShowEmbedPreview(true);
+              }}
+              className="font-mono text-xs rounded-xl bg-background border-border/80"
+            />
+            <p className="font-bengali text-[11px] text-muted-foreground leading-relaxed">
+              💡 ফেসবুক পোস্টের <span className="font-semibold text-foreground">"Embed / এমবেড"</span> থেকে পাওয়া সম্পূর্ণ <code className="text-blue-600 font-mono text-[10px]">&lt;iframe&gt;...&lt;/iframe&gt;</code> কোড অথবা সরাসরি ফেসবুক পোস্টের লিঙ্ক পেস্ট করতে পারবেন।
+            </p>
+
+            {showEmbedPreview && formData.embedCode && (
+              <div className="mt-3 pt-3 border-t border-blue-200/60 dark:border-blue-900/40">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-bengali text-[11px] font-semibold text-blue-700 dark:text-blue-300">
+                    {t("পোস্ট প্রিভিউ:", "Live Embed Preview:")}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setFormData({ ...formData, embedCode: "" });
+                      setShowEmbedPreview(false);
+                    }}
+                    className="h-6 px-2 text-[10px] text-destructive hover:bg-destructive/10"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    {t("রিমুভ", "Clear")}
+                  </Button>
+                </div>
+                <FacebookEmbed embedCode={formData.embedCode} minHeight="380px" />
+              </div>
+            )}
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0 pt-3 border-t">

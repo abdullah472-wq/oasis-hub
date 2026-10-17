@@ -8,6 +8,7 @@ import { getNotices, type Notice } from "@/lib/notices";
 import { downloadFile } from "@/lib/upload";
 import { springIn, springInDelay } from "@/lib/animations";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FacebookEmbed } from "@/components/FacebookEmbed";
 
 const NOTICE_ACTIVE_DAYS = 7;
 
@@ -132,12 +133,22 @@ const NoticeBoard = () => {
             <h3 className="font-bengali text-lg font-semibold text-foreground transition-colors group-hover:text-primary">
               {lang === "bn" ? notice.titleBn : notice.titleEn || notice.titleBn}
             </h3>
-            {notice.pdfUrl ? (
-              <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary">
-                <FileText className="h-4 w-4" />
-                PDF
-              </span>
-            ) : null}
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              {notice.pdfUrl ? (
+                <span className="inline-flex items-center gap-1 rounded-lg border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                  <FileText className="h-3.5 w-3.5" />
+                  PDF
+                </span>
+              ) : null}
+              {notice.embedCode ? (
+                <span className="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-[#1877F2] dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-400">
+                  <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
+                    <path d="M22 12.07C22 6.5 17.52 2 11.93 2C6.35 2 1.86 6.5 1.86 12.07C1.86 17.1 5.53 21.26 10.33 22v-7.05H7.7v-2.88h2.63V9.85c0-2.6 1.55-4.04 3.93-4.04c1.14 0 2.33.2 2.33.2v2.56h-1.31c-1.29 0-1.69.8-1.69 1.62v1.95h2.88l-.46 2.88h-2.42V22c4.8-.74 8.47-4.9 8.47-9.93Z" />
+                  </svg>
+                  <span>{t("ফেসবুক পোস্ট", "Facebook Post")}</span>
+                </span>
+              ) : null}
+            </div>
           </div>
           <motion.span
             animate={{ rotate: expandedId === notice.id ? 180 : 0 }}
@@ -158,21 +169,32 @@ const NoticeBoard = () => {
             exit={{ height: 0, opacity: 0 }}
             className="border-t border-border/50"
           >
-            <div className="p-5 pt-4">
+            <div className="p-5 pt-4 space-y-4">
               {notice.descriptionBn || notice.descriptionEn ? (
-                <p className="mb-4 whitespace-pre-line break-words rounded-xl border border-border/30 bg-secondary/30 px-4 py-3 font-bengali leading-7 text-muted-foreground">
+                <p className="whitespace-pre-line break-words rounded-xl border border-border/30 bg-secondary/30 px-4 py-3 font-bengali leading-7 text-muted-foreground">
                   {lang === "bn" ? notice.descriptionBn : notice.descriptionEn || notice.descriptionBn}
                 </p>
               ) : null}
+
+              {/* Facebook Post Embed in Notice */}
+              {notice.embedCode && (
+                <FacebookEmbed
+                  embedCode={notice.embedCode}
+                  title={lang === "bn" ? notice.titleBn : notice.titleEn || notice.titleBn}
+                />
+              )}
+
               {notice.pdfUrl ? (
-                <button
-                  type="button"
-                  onClick={() => void handleDownload(notice)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 font-bengali font-medium text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg"
-                >
-                  <Download className="h-4 w-4" />
-                  {t("পিডিএফ ডাউনলোড", "Download PDF")}
-                </button>
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => void handleDownload(notice)}
+                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 font-bengali font-medium text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg"
+                  >
+                    <Download className="h-4 w-4" />
+                    {t("পিডিএফ ডাউনলোড", "Download PDF")}
+                  </button>
+                </div>
               ) : null}
             </div>
           </motion.div>

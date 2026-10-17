@@ -26,6 +26,7 @@ export interface Notice {
   content_en?: string | null;
   category: NoticeCategory;
   pdf_url?: string | null;
+  embed_code?: string | null;
   is_published: boolean;
   is_featured: boolean;
   priority: number;

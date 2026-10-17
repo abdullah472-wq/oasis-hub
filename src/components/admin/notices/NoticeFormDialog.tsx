@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { Loader2, UploadCloud, FileText, X } from "lucide-react";
+import { Loader2, UploadCloud, FileText, X, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase, uploadCmsFile, logAdminActivity } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { extractEmbedUrl, extractInlineEmbed } from "@/lib/facebookEmbed";
+import { FacebookEmbed } from "@/components/FacebookEmbed";
 import type { Notice, NoticeCategory } from "@/types/cms";
 import {
   Dialog,
@@ -25,6 +27,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const FacebookIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M22 12.07C22 6.5 17.52 2 11.93 2C6.35 2 1.86 6.5 1.86 12.07C1.86 17.1 5.53 21.26 10.33 22v-7.05H7.7v-2.88h2.63V9.85c0-2.6 1.55-4.04 3.93-4.04c1.14 0 2.33.2 2.33.2v2.56h-1.31c-1.29 0-1.69.8-1.69 1.62v1.95h2.88l-.46 2.88h-2.42V22c4.8-.74 8.47-4.9 8.47-9.93Z" />
+  </svg>
+);
+
 interface NoticeFormDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -41,6 +49,7 @@ export const NoticeFormDialog = ({
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [showEmbedPreview, setShowEmbedPreview] = useState(false);
 
   const [formData, setFormData] = useState({
     title_bn: "",
@@ -49,6 +58,7 @@ export const NoticeFormDialog = ({
     content_en: "",
     category: "general" as NoticeCategory,
     pdf_url: "",
+    embed_code: "",
     is_published: true,
     is_featured: false,
     priority: 1,
@@ -57,19 +67,24 @@ export const NoticeFormDialog = ({
 
   useEffect(() => {
     if (noticeToEdit) {
+      const inline = extractInlineEmbed(noticeToEdit.content_bn);
+      const existingEmbed = noticeToEdit.embed_code || inline.embedUrl || "";
+
       setFormData({
         title_bn: noticeToEdit.title_bn || "",
         title_en: noticeToEdit.title_en || "",
-        content_bn: noticeToEdit.content_bn || "",
+        content_bn: inline.cleanContent || noticeToEdit.content_bn || "",
         content_en: noticeToEdit.content_en || "",
         category: noticeToEdit.category || "general",
         pdf_url: noticeToEdit.pdf_url || "",
+        embed_code: existingEmbed,
         is_published: noticeToEdit.is_published ?? true,
         is_featured: noticeToEdit.is_featured ?? false,
         priority: noticeToEdit.priority || 1,
         published_at: noticeToEdit.published_at || new Date().toISOString().split("T")[0],
       });
       setSelectedFile(null);
+      setShowEmbedPreview(Boolean(existingEmbed));
     } else {
       setFormData({
         title_bn: "",
@@ -78,12 +93,14 @@ export const NoticeFormDialog = ({
         content_en: "",
         category: "general",
         pdf_url: "",
+        embed_code: "",
         is_published: true,
         is_featured: false,
         priority: 1,
         published_at: new Date().toISOString().split("T")[0],
       });
       setSelectedFile(null);
+      setShowEmbedPreview(false);
     }
   }, [noticeToEdit, isOpen]);
 
@@ -105,13 +122,17 @@ export const NoticeFormDialog = ({
         finalPdfUrl = await uploadCmsFile("cms-notices", selectedFile, "notices");
       }
 
-      const payload = {
+      const rawEmbed = formData.embed_code.trim();
+      const resolvedEmbedUrl = rawEmbed ? extractEmbedUrl(rawEmbed) : null;
+
+      const payload: any = {
         title_bn: formData.title_bn.trim(),
         title_en: formData.title_en?.trim() || null,
         content_bn: formData.content_bn.trim(),
         content_en: formData.content_en?.trim() || null,
         category: formData.category,
         pdf_url: finalPdfUrl || null,
+        embed_code: resolvedEmbedUrl,
         is_published: formData.is_published,
         is_featured: formData.is_featured,
         priority: Number(formData.priority) || 1,
@@ -119,23 +140,41 @@ export const NoticeFormDialog = ({
         updated_at: new Date().toISOString(),
       };
 
+      const executeSave = async (dataPayload: any) => {
+        if (noticeToEdit?.id) {
+          return await supabase
+            .from("notices")
+            .update(dataPayload)
+            .eq("id", noticeToEdit.id);
+        } else {
+          return await supabase.from("notices").insert([dataPayload]);
+        }
+      };
+
+      let result = await executeSave(payload);
+
+      // If embed_code column does not exist in Supabase table yet, gracefully fallback
+      if (
+        result.error &&
+        (result.error.message?.includes("embed_code") ||
+          result.error.code === "PGRST204" ||
+          result.error.message?.toLowerCase().includes("column"))
+      ) {
+        console.warn("embed_code column not found in notices, applying inline fallback");
+        const fallbackPayload = { ...payload };
+        delete fallbackPayload.embed_code;
+        if (resolvedEmbedUrl) {
+          fallbackPayload.content_bn = `<!-- fb_embed: ${resolvedEmbedUrl} -->\n${payload.content_bn}`;
+        }
+        result = await executeSave(fallbackPayload);
+      }
+
+      if (result.error) throw result.error;
+
       if (noticeToEdit?.id) {
-        // UPDATE
-        const { error } = await supabase
-          .from("notices")
-          .update(payload)
-          .eq("id", noticeToEdit.id);
-
-        if (error) throw error;
-
         await logAdminActivity("UPDATE", "notices", `Updated notice: ${payload.title_bn}`);
         toast.success(t("নোটিশ সফলভাবে হালনাগাদ করা হয়েছে", "Notice updated successfully"));
       } else {
-        // CREATE
-        const { error } = await supabase.from("notices").insert([payload]);
-
-        if (error) throw error;
-
         await logAdminActivity("CREATE", "notices", `Created notice: ${payload.title_bn}`);
         toast.success(t("নতুন নোটিশ সফলভাবে প্রকাশ করা হয়েছে", "Notice published successfully"));
       }
@@ -337,6 +376,67 @@ export const NoticeFormDialog = ({
                 </span>
               </label>
             </div>
+          </div>
+
+          {/* Facebook Post Embed (iframe or URL) */}
+          <div className="space-y-2 rounded-2xl border border-blue-200/80 bg-blue-50/30 p-4 dark:border-blue-900/40 dark:bg-blue-950/20">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="embed_code" className="flex items-center gap-1.5 font-bengali text-xs font-semibold text-foreground">
+                <FacebookIcon className="h-4 w-4 text-[#1877F2]" />
+                <span>{t("ফেসবুক পোস্ট এমবেড কোড / আইফ্রেম (ঐচ্ছিক)", "Facebook Post Embed / Iframe (Optional)")}</span>
+              </Label>
+              {formData.embed_code && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowEmbedPreview(!showEmbedPreview)}
+                  className="h-7 px-2 font-bengali text-[11px] text-blue-600 dark:text-blue-400 gap-1"
+                >
+                  {showEmbedPreview ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                  <span>{showEmbedPreview ? t("প্রিভিউ লুকান", "Hide Preview") : t("প্রিভিউ দেখুন", "Show Preview")}</span>
+                </Button>
+              )}
+            </div>
+
+            <Textarea
+              id="embed_code"
+              rows={3}
+              placeholder={`<iframe src="https://www.facebook.com/plugins/post.php?..." ...></iframe> অথবা ফেসবুক পোস্টের লিঙ্ক`}
+              value={formData.embed_code}
+              onChange={(e) => {
+                setFormData({ ...formData, embed_code: e.target.value });
+                if (e.target.value.trim()) setShowEmbedPreview(true);
+              }}
+              className="font-mono text-xs rounded-xl bg-background border-border/80"
+            />
+            <p className="font-bengali text-[11px] text-muted-foreground leading-relaxed">
+              💡 ফেসবুক পোস্টের <span className="font-semibold text-foreground">"Embed / এমবেড"</span> থেকে পাওয়া সম্পূর্ণ <code className="text-blue-600 font-mono text-[10px]">&lt;iframe&gt;...&lt;/iframe&gt;</code> কোড অথবা সরাসরি ফেসবুক পোস্টের লিঙ্ক পেস্ট করতে পারবেন।
+            </p>
+
+            {showEmbedPreview && formData.embed_code && (
+              <div className="mt-3 pt-3 border-t border-blue-200/60 dark:border-blue-900/40">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-bengali text-[11px] font-semibold text-blue-700 dark:text-blue-300">
+                    {t("পোস্ট প্রিভিউ:", "Live Embed Preview:")}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setFormData({ ...formData, embed_code: "" });
+                      setShowEmbedPreview(false);
+                    }}
+                    className="h-6 px-2 text-[10px] text-destructive hover:bg-destructive/10"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    {t("রিমুভ", "Clear")}
+                  </Button>
+                </div>
+                <FacebookEmbed embedCode={formData.embed_code} minHeight="380px" />
+              </div>
+            )}
           </div>
 
           {/* Toggles */}

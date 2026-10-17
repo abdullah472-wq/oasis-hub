@@ -10,6 +10,7 @@ export interface NewsPost {
   date: string;
   imageUrl?: string;
   category?: string;
+  embedCode?: string;
   createdAt: number;
 }
 

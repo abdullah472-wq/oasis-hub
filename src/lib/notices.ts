@@ -1,4 +1,5 @@
 import { supabase, uploadCmsFile } from "@/lib/supabase/client";
+import { extractEmbedUrl, extractInlineEmbed } from "@/lib/facebookEmbed";
 
 export interface Notice {
   id?: string;
@@ -7,6 +8,7 @@ export interface Notice {
   descriptionBn?: string;
   descriptionEn?: string;
   pdfUrl?: string;
+  embedCode?: string;
   createdAt: number;
 }
 
@@ -46,15 +48,20 @@ export const getNotices = async (): Promise<Notice[]> => {
 
     if (error) throw error;
 
-    const mapped: Notice[] = (data || []).map((row: any) => ({
-      id: row.id,
-      titleBn: row.title_bn,
-      titleEn: row.title_en || row.title_bn,
-      descriptionBn: row.content_bn,
-      descriptionEn: row.content_en || row.content_bn,
-      pdfUrl: row.pdf_url || undefined,
-      createdAt: new Date(row.published_at || row.created_at).getTime(),
-    }));
+    const mapped: Notice[] = (data || []).map((row: any) => {
+      const inlineCheck = extractInlineEmbed(row.content_bn);
+      const resolvedEmbed = row.embed_code ? extractEmbedUrl(row.embed_code) : inlineCheck.embedUrl;
+      return {
+        id: row.id,
+        titleBn: row.title_bn,
+        titleEn: row.title_en || row.title_bn,
+        descriptionBn: inlineCheck.cleanContent,
+        descriptionEn: row.content_en || undefined,
+        pdfUrl: row.pdf_url || undefined,
+        embedCode: resolvedEmbed || undefined,
+        createdAt: new Date(row.published_at || row.created_at).getTime(),
+      };
+    });
 
     writeNoticeCache(mapped);
     return mapped;

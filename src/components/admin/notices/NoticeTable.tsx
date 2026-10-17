@@ -149,7 +149,7 @@ export const NoticeTable = ({ notices, loading, onEdit, onRefresh }: NoticeTable
               <TableHead className="font-bengali font-bold text-xs">{t("শিরোনাম", "Title")}</TableHead>
               <TableHead className="font-bengali font-bold text-xs">{t("ক্যাটাগরি", "Category")}</TableHead>
               <TableHead className="font-bengali font-bold text-xs">{t("তারিখ", "Date")}</TableHead>
-              <TableHead className="font-bengali font-bold text-xs">{t("পিডিএফ", "PDF")}</TableHead>
+              <TableHead className="font-bengali font-bold text-xs">{t("সংযুক্তি", "Attachments")}</TableHead>
               <TableHead className="font-bengali font-bold text-xs">{t("স্ট্যাটাস", "Status")}</TableHead>
               <TableHead className="text-right font-bengali font-bold text-xs">{t("অ্যাকশন", "Actions")}</TableHead>
             </TableRow>
@@ -191,22 +191,33 @@ export const NoticeTable = ({ notices, loading, onEdit, onRefresh }: NoticeTable
                   </div>
                 </TableCell>
 
-                {/* PDF Attachment */}
+                {/* Attachments (PDF & Facebook) */}
                 <TableCell className="whitespace-nowrap">
-                  {notice.pdf_url ? (
-                    <a
-                      href={notice.pdf_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-lg border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
-                    >
-                      <FileText className="h-3.5 w-3.5" />
-                      <span>PDF</span>
-                      <ExternalLink className="h-2.5 w-2.5" />
-                    </a>
-                  ) : (
-                    <span className="text-xs text-muted-foreground/60">—</span>
-                  )}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {notice.pdf_url && (
+                      <a
+                        href={notice.pdf_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-lg border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
+                      >
+                        <FileText className="h-3.5 w-3.5" />
+                        <span>PDF</span>
+                        <ExternalLink className="h-2.5 w-2.5" />
+                      </a>
+                    )}
+                    {(notice.embed_code || notice.content_bn?.includes("fb_embed")) && (
+                      <span className="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-semibold text-[#1877F2] dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-400">
+                        <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
+                          <path d="M22 12.07C22 6.5 17.52 2 11.93 2C6.35 2 1.86 6.5 1.86 12.07C1.86 17.1 5.53 21.26 10.33 22v-7.05H7.7v-2.88h2.63V9.85c0-2.6 1.55-4.04 3.93-4.04c1.14 0 2.33.2 2.33.2v2.56h-1.31c-1.29 0-1.69.8-1.69 1.62v1.95h2.88l-.46 2.88h-2.42V22c4.8-.74 8.47-4.9 8.47-9.93Z" />
+                        </svg>
+                        <span>Facebook</span>
+                      </span>
+                    )}
+                    {!notice.pdf_url && !(notice.embed_code || notice.content_bn?.includes("fb_embed")) && (
+                      <span className="text-xs text-muted-foreground/60">—</span>
+                    )}
+                  </div>
                 </TableCell>
 
                 {/* Status */}

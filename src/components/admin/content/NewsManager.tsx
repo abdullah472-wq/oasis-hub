@@ -327,13 +327,21 @@ export const NewsManager = () => {
                           (e.target as HTMLImageElement).src = "/hero-campus.jpg";
                         }}
                       />
-                      {news.category && (
-                        <div className="absolute top-3 left-3">
+                      <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
+                        {news.category && (
                           <Badge className="bg-sky-600/90 hover:bg-sky-600 text-white font-bengali text-xs px-2.5 py-0.5 backdrop-blur-md border-0 shadow-sm">
                             {news.category}
                           </Badge>
-                        </div>
-                      )}
+                        )}
+                        {news.embedCode && (
+                          <Badge className="bg-[#1877F2] text-white font-bengali text-[11px] px-2 py-0.5 shadow-sm flex items-center gap-1 border-0">
+                            <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24">
+                              <path d="M22 12.07C22 6.5 17.52 2 11.93 2C6.35 2 1.86 6.5 1.86 12.07C1.86 17.1 5.53 21.26 10.33 22v-7.05H7.7v-2.88h2.63V9.85c0-2.6 1.55-4.04 3.93-4.04c1.14 0 2.33.2 2.33.2v2.56h-1.31c-1.29 0-1.69.8-1.69 1.62v1.95h2.88l-.46 2.88h-2.42V22c4.8-.74 8.47-4.9 8.47-9.93Z" />
+                            </svg>
+                            <span>Facebook</span>
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   )}
 

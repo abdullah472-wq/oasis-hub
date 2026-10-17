@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS public.notices (
   content_en TEXT,
   category TEXT DEFAULT 'general' CHECK (category IN ('general', 'academic', 'admission', 'holiday', 'emergency')),
   pdf_url TEXT,
+  embed_code TEXT,
   is_published BOOLEAN DEFAULT true,
   is_featured BOOLEAN DEFAULT false,
   priority INTEGER DEFAULT 0,
@@ -95,6 +96,9 @@ CREATE TABLE IF NOT EXISTS public.notices (
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Migration for existing notices table:
+ALTER TABLE public.notices ADD COLUMN IF NOT EXISTS embed_code TEXT;
 
 -- ৬. Marquee Notices Table (হেডারের রানিং নোটিশ টিকার)
 CREATE TABLE IF NOT EXISTS public.marquee_notices (
