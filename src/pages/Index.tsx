@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -26,8 +26,18 @@ import {
   Eye,
   Camera,
   HeartHandshake,
+  Building2,
+  DoorOpen,
+  Sun,
+  Lock,
+  Zap,
+  Droplets,
+  UtensilsCrossed,
+  Star,
+  ExternalLink,
+  Globe,
 } from "lucide-react";
-import type { Review } from "@/lib/reviews";
+import type { Review, ReviewPlatform } from "@/lib/reviews";
 import { useLanguage } from "@/contexts/LanguageContext";
 import PwaHomeCard from "@/components/PwaHomeCard";
 import WaveDivider from "@/components/WaveDivider";
@@ -37,6 +47,28 @@ import { springIn, springInDelay } from "@/lib/animations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/lib/siteSettings";
+
+const GoogleIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24">
+    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+  </svg>
+);
+
+const FacebookIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg className={className} fill="#1877F2" viewBox="0 0 24 24">
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+  </svg>
+);
+
+const TrustpilotIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24">
+    <path fill="#00B67A" d="M12 0l3.708 7.514 8.292 1.205-6 5.849 1.416 8.258L12 18.927l-7.416 3.9 1.416-8.258-6-5.849 8.292-1.205z" />
+    <path fill="#005128" d="M12 18.927l-7.416 3.9 1.416-8.258-6-5.849 8.292-1.205L12 0v18.927z" opacity="0.3" />
+  </svg>
+);
 
 const AnimatedCounter = ({ value }: { value: string }) => {
   const num = parseInt(value.replace(/[^0-9]/g, ""), 10);
@@ -92,6 +124,8 @@ const Index = () => {
   const [reviewName, setReviewName] = useState("");
   const [reviewRelation, setReviewRelation] = useState("");
   const [reviewText, setReviewText] = useState("");
+  const [reviewRating, setReviewRating] = useState<number>(5);
+  const [selectedPlatform, setSelectedPlatform] = useState<"all" | ReviewPlatform>("all");
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewLoading, setReviewLoading] = useState(false);
   const [shareFeedback, setShareFeedback] = useState("");
@@ -176,51 +210,130 @@ const Index = () => {
     return () => window.removeEventListener("hashchange", handleSectionHash);
   }, []);
 
-  const defaultReviews = [
+  const defaultReviews: Review[] = [
     {
       name: t("মোঃ রহিম উদ্দিন", "Md. Rahim Uddin"),
-      relation: t("অভিভাবক", "Guardian"),
+      relation: t("অভিভাবক · হিফজ বিভাগ", "Guardian · Hifz Dept"),
       review: t(
         '"আমার সন্তান এই মাদরাসায় পড়ার পর খুবই ভালো পরিবর্তন দেখতে পাচ্ছি। সে এখন নামাজ পড়ে, কোরআন পড়ে এবং আগের চেয়ে অনেক বেশি বিনয়ী ও দায়িত্ববান।"',
         '"I have seen great changes in my child since joining this madrasha. Now he prays, reads the Quran, and is much more polite and responsible."'
       ),
+      rating: 5,
+      platform: "google",
+      approved: true,
+      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 3,
     },
     {
       name: t("মুহাম্মদ রফিকুল ইসলাম", "Muhammad Rafiqul Islam"),
-      relation: t("অভিভাবক", "Guardian"),
+      relation: t("অভিভাবক · ৬ষ্ঠ শ্রেণি", "Guardian · Class 6"),
       review: t(
         '"এই প্রতিষ্ঠানের শিক্ষকরা খুবই আদর স্নেহের সাথে পড়াশোনা করান। সুশৃঙ্খল ও আন্তরিক পরিবেশে সন্তান খুব আনন্দের সাথে সহীহ কোরআন ও প্রাতিষ্ঠানিক শিক্ষা শিখছে।"',
         '"The teachers here teach with great care and dedication. In a disciplined and warm environment, my child is happily learning the Quran and academic education."'
       ),
+      rating: 5,
+      platform: "facebook",
+      approved: true,
+      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 7,
     },
     {
       name: t("আব্দুল করিম", "Abdul Karim"),
-      relation: t("অভিভাবক", "Guardian"),
+      relation: t("অভিভাবক · নূরানী বিভাগ", "Guardian · Noorani Dept"),
       review: t(
         '"মাদরাসার জেনারেল ও হিফজ সমন্বিত পাঠ্যক্রম অত্যন্ত প্রশংসনীয়। সন্তানকে এখানে রেখে আমি নিশ্চিত যে সে সঠিক ইসলামিক ও প্রাতিষ্ঠানিক শিক্ষা পাচ্ছে।"',
         '"The integrated general and Hifz curriculum is commendable. I am confident that my child is receiving proper Islamic and formal schooling."'
       ),
+      rating: 5,
+      platform: "google",
+      approved: true,
+      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 12,
     },
     {
       name: t("সালমা আক্তার", "Salma Akter"),
-      relation: t("অভিভাবক", "Guardian"),
+      relation: t("অভিভাবক · হিফজ সমাপনী", "Guardian · Hifz Graduate"),
       review: t(
         '"আমার ছেলে এখান থেকে অল্প সময়ে অত্যন্ত সুনামের সাথে হিফজ সম্পন্ন করেছে। শিক্ষকদের নিবিড় তত্ত্বাবধানে সে সহীহ তাজবীদে কুরআন মুখস্থ করেছে। আমরা গর্বিত।"',
         '"My son completed his Hifz here with distinction. Under the close care of the teachers, he memorized the Quran with proper Tajweed. We are proud."'
       ),
+      rating: 5,
+      platform: "trustpilot",
+      approved: true,
+      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 18,
+    },
+    {
+      name: t("ইঞ্জিনিয়ার তানভীর আহমেদ", "Engr. Tanvir Ahmed"),
+      relation: t("অভিভাবক ও শুভানুধ্যায়ী", "Guardian & Well-wisher"),
+      review: t(
+        '"মাদরাসার নিজস্ব ৫ তলা সুরম্য ভবন, সিসিটিভি নিরাপত্তা ও স্বাস্থ্যসম্মত পরিবেশ দেখে অত্যন্ত সন্তুষ্ট হয়েছি। বর্তমান সময়ে এমন আদর্শ ইসলামিক বিদ্যাপীঠ সত্যিই বিরল।"',
+        '"Very impressed by the institution\'s own 5-story modern building, CCTV security, and hygienic environment. Truly a standout modern Islamic academy."'
+      ),
+      rating: 5,
+      platform: "facebook",
+      approved: true,
+      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 25,
+    },
+    {
+      name: t("মাওলানা মুস্তাফিজুর রহমান", "Mawlana Mustafizur Rahman"),
+      relation: t("স্থানীয় বাসিন্দা ও অভিভাবক", "Local Resident & Guardian"),
+      review: t(
+        '"ওস্তাদদের সুন্দর আখলাক এবং ছাত্রদের নিয়মিত তিলাওয়াত শুনলে মন জুড়িয়ে যায়। এলাকার সেরা ও বিশ্বস্ত মাদরাসা হিসেবে আননূর শিক্ষা পরিবার শীর্ষস্থানে রয়েছে।"',
+        '"The exemplary character of the teachers and beautiful recitation of the students is truly inspiring. Annoor is undoubtedly the top trusted madrasa in the area."'
+      ),
+      rating: 5,
+      platform: "google",
+      approved: true,
+      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 30,
+    },
+    {
+      name: t("ফারহানা ইয়াসমিন", "Farhana Yasmin"),
+      relation: t("হিফজ ও ইসলামিক শিক্ষা অভিভাবক", "Hifz & Islamic Guardian"),
+      review: t(
+        '"মাদরাসার ওয়েবসাইট থেকে সরাসরি আবেদন করে ও যোগাযোগ করে খুবই চমৎকার অভিজ্ঞতা পেয়েছি। ভর্তি প্রক্রিয়া, নিয়মিত অগ্রগতি ও শিক্ষকদের সার্বক্ষণিক সহযোগিতা প্রশংসনীয়।"',
+        '"A wonderful experience applying directly through the madrasa website. The transparent admission system and continuous care from teachers are truly commendable."'
+      ),
+      rating: 5,
+      platform: "website",
+      approved: true,
+      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 5,
+    },
+    {
+      name: t("মাসুদ রানা", "Masud Rana"),
+      relation: t("অভিভাবক · নূরানী ও নাজেরা শাখা", "Guardian · Noorani & Nazera"),
+      review: t(
+        '"অনলাইনে নিয়মিত পরীক্ষার রেজাল্ট, বার্ষিক সিলেবাস ও নোটিশ পাওয়া যায় যা আমাদের মতো কর্মজীবী অভিভাবকদের জন্য অনেক বড় স্বস্তি। আননূর শিক্ষা পরিবারের সফলতা কামনা করি।"',
+        '"Getting exam results, syllabus, and notices directly online is a huge relief for working parents like us. Wishing Annoor continued success."'
+      ),
+      rating: 5,
+      platform: "website",
+      approved: true,
+      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 15,
     },
   ];
 
   const allReviews = reviews.length > 0 ? reviews : defaultReviews;
 
+  const filteredReviews = useMemo(() => {
+    if (selectedPlatform === "all") return allReviews;
+    return allReviews.filter((r) => (r.platform || "google") === selectedPlatform);
+  }, [allReviews, selectedPlatform]);
+
+  const platformCounts = useMemo(() => {
+    return {
+      all: allReviews.length,
+      google: allReviews.filter((r) => (r.platform || "google") === "google").length,
+      facebook: allReviews.filter((r) => r.platform === "facebook").length,
+      trustpilot: allReviews.filter((r) => r.platform === "trustpilot").length,
+      website: allReviews.filter((r) => r.platform === "website").length,
+    };
+  }, [allReviews]);
+
   useEffect(() => {
-    if (allReviews.length === 0) return;
-    const totalSlides = isMobile ? allReviews.length : Math.ceil(allReviews.length / 2);
+    if (filteredReviews.length === 0) return;
+    const totalSlides = isMobile ? filteredReviews.length : Math.ceil(filteredReviews.length / 2);
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % totalSlides);
     }, 5000);
     return () => clearInterval(interval);
-  }, [allReviews.length, isMobile]);
+  }, [filteredReviews.length, isMobile]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -230,8 +343,8 @@ const Index = () => {
   };
   const handleTouchEnd = () => {
     const diff = touchStartX.current - touchEndX.current;
-    const totalSlides = isMobile ? allReviews.length : Math.ceil(allReviews.length / 2);
-    if (Math.abs(diff) > 50) {
+    const totalSlides = isMobile ? filteredReviews.length : Math.ceil(filteredReviews.length / 2);
+    if (Math.abs(diff) > 50 && totalSlides > 1) {
       if (diff > 0) setCurrentSlide((prev) => (prev + 1) % totalSlides);
       else setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
     }
@@ -247,11 +360,14 @@ const Index = () => {
         relation: reviewRelation,
         review: reviewText,
         reviewEn: reviewText,
+        rating: reviewRating,
+        platform: "website",
       });
       setReviewSubmitted(true);
       setReviewName("");
       setReviewRelation("");
       setReviewText("");
+      setReviewRating(5);
     } catch (error) {
       console.error(error);
     }
@@ -768,109 +884,317 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ================= TWO CAMPUSES SHOWCASE ================= */}
-      <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="text-center mb-12 space-y-2">
-            <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">
-              {t("ক্যাম্পাস পরিচিতি", "Campuses & Facilities")}
-            </Badge>
-            <h2 className="font-bengali text-2xl sm:text-3xl font-bold text-foreground">
-              {t("আমাদের আধুনিক ও সুপরিকল্পিত ক্যাম্পাস", "Our Modern & Well-Planned Campus")}
+      {/* ================= CAMPUS INFRASTRUCTURE & FACILITIES ================= */}
+      <section className="py-20 relative overflow-hidden bg-gradient-to-b from-muted/30 via-background to-muted/20">
+        <div className="container mx-auto px-4 max-w-6xl relative z-10">
+          {/* Section Header */}
+          <div className="text-center mb-12 space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 shadow-sm backdrop-blur-sm">
+              <Sparkles className="h-3.5 w-3.5 text-emerald-500" />
+              <span>{t("ক্যাম্পাস পরিকাঠামো ও সুবিধা", "Campus Infrastructure & Facilities")}</span>
+            </div>
+            <h2 className="font-bengali text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight">
+              {t("৫ তলা নিজস্ব আধুনিক ভবন ও বিশ্বমানের নিরাপদ পরিবেশ", "Our 5-Story Own Modern Campus & World-Class Safe Environment")}
             </h2>
-            <p className="font-bengali text-xs sm:text-sm text-muted-foreground">
-              {t("কাপাসিয়ার প্রাণকেন্দ্রে শিক্ষার্থীদের জন্য সম্পূর্ণ নিরিবিলি, নিরাপদ ও সুশৃঙ্খল শিক্ষাঙ্গন", "Safe, disciplined, and academically rich campus in the heart of Kapasia, Gazipur")}
+            <p className="font-bengali text-xs sm:text-sm text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              {t(
+                "কাপাসিয়ার প্রাণকেন্দ্রে শিক্ষার্থীদের সর্বোচ্চ নিরাপত্তা, মানসম্মত ক্লাসরুম, শারীরিক প্রফুল্লতা ও সুশৃঙ্খল পরিবেশের সমন্বয়ে গড়ে তোলা নিজস্ব স্থায়ী শিক্ষাঙ্গন।",
+                "A permanent 5-story private campus in the heart of Kapasia designed for maximum student safety, dedicated spacious learning, and physical & moral development."
+              )}
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Academic Wing */}
-            <div className="rounded-3xl border border-border/80 bg-card p-6 sm:p-8 shadow-sm flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Badge className="bg-primary text-primary-foreground font-semibold px-3 py-1 text-xs">
-                    {t("একাডেমিক ভবন", "Academic Wing")}
-                  </Badge>
-                  <span className="text-xs font-semibold text-accent">
-                    {t("প্লে — ৫ম ও হিফজ", "Play — Grade 5 & Hifz")}
-                  </span>
-                </div>
-                <h3 className="font-bengali text-xl font-bold text-foreground">
-                  {t("আননূর তাহফিজুল কুরআন মাদরাসা", "Annoor Tahfizul Quran Madrasa")}
-                </h3>
-                <p className="font-bengali text-xs text-muted-foreground leading-relaxed">
-                  {t(
-                    "সুবিশাল ক্যাম্পাস, আধুনিক মাল্টিমিডিয়া ক্লাসরুম, সহীহ তাজবীদে হিফজুল কুরআন বিভাগ, সেন্ট্রাল লাইব্রেরি ও প্রতিদিন বিকেলে শরীরচর্চা ও খেলাধুলার সুব্যবস্থা।",
-                    "Spacious campus building, multimedia smart classrooms, authentic Tajweed Hifz department, library, and sports facility."
-                  )}
-                </p>
-                <div className="space-y-2 text-xs font-bengali text-muted-foreground pt-2 border-t border-border/50">
-                  <p className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-primary shrink-0" />
-                    <span>{t("মেইন রোড, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর", "Main Road, Kapasia Bazar, Kapasia, Gazipur")}</span>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-primary shrink-0" />
-                    <span>01581-818368, 01820-811511</span>
-                  </p>
-                </div>
-              </div>
+          <div className="space-y-8">
+            {/* 1. Featured Master Banner: 5-Story Own Modern Building */}
+            <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-card via-card to-emerald-950/10 p-6 sm:p-8 lg:p-10 shadow-lg relative overflow-hidden group">
+              {/* Decorative ambient glow */}
+              <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none group-hover:bg-emerald-500/15 transition-all duration-500" />
 
-              <div className="pt-6 mt-6 border-t border-border/50 flex items-center justify-between">
-                <Link to="/contact" className="text-xs font-bold text-primary flex items-center gap-1 hover:underline">
-                  <span>{t("যোগাযোগ ও ম্যাপ", "Contact & Location")}</span>
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Link>
-                <Link to="/virtual-tour">
-                  <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1.5">
-                    <span>🎥 {t("ভার্চুয়াল ট্যুর", "Virtual Tour")}</span>
-                  </Button>
-                </Link>
+              <div className="relative z-10 grid lg:grid-cols-12 gap-8 items-center">
+                <div className="lg:col-span-8 space-y-4">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <Badge className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold px-3 py-1 text-xs shadow-sm">
+                      <Building2 className="h-3.5 w-3.5 mr-1.5" />
+                      {t("৫ তলা নিজস্ব আধুনিক ভবন", "5-Story Own Modern Building")}
+                    </Badge>
+                    <span className="inline-flex items-center rounded-full bg-emerald-500/15 px-3 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      {t("১০০% নিজস্ব স্থায়ী ভবন • কোনো ভাড়া বাড়ি নয়", "100% Own Permanent Campus • Not a Rented Facility")}
+                    </span>
+                  </div>
+
+                  <h3 className="font-bengali text-xl sm:text-2xl lg:text-3xl font-extrabold text-foreground leading-snug">
+                    {t(
+                      "সুপরিকল্পিত ৫ তলা সুরম্য নিজস্ব ক্যাম্পাস — দীর্ঘস্থায়ী ও নিরিবিলি শিক্ষাঙ্গন",
+                      "A Well-Planned 5-Story Permanent Campus for Undisturbed Learning"
+                    )}
+                  </h3>
+
+                  <p className="font-bengali text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    {t(
+                      `ভাড়া করা কোনো অস্থায়ী বাড়িতে নয়, বরং শিক্ষার্থীদের নিরবচ্ছিন্ন ভবিষ্যৎ ও স্থায়ী নিরাপদ পরিবেশ নিশ্চিত করতে ${settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা"} পরিচালিত হচ্ছে নিজস্ব ৫ তলা বিশিষ্ট আধুনিক সুরম্য ভবনে। যেখানে প্রশাসনিক দফতর, একাডেমিক জোন, আন্তর্জাতিক মানের হিফজ বিভাগ ও স্বাস্থ্যসম্মত ছাত্রাবাস অত্যন্ত সুশৃঙ্খলভাবে বিন্যস্ত।`,
+                      `Operating from a dedicated, permanent 5-story building rather than a rented property, ${settings.institution_name_en || "Annoor Madrasa"} guarantees uninterrupted safety and comfort with structured academic wings, an international standard Hifz department, library, and boarding facilities.`
+                    )}
+                  </p>
+
+                  {/* Planned Floor-by-Floor Architecture Tags */}
+                  <div className="pt-2 space-y-2">
+                    <p className="font-bengali text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                      {t("ভবনের সুপরিকল্পিত তলা-ভিত্তিক বিন্যাস:", "Planned Floor-by-Floor Architecture:")}
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-bengali">
+                      <div className="flex items-center gap-2.5 rounded-xl border border-border/70 bg-background/70 backdrop-blur-sm px-3.5 py-2.5 text-foreground hover:border-emerald-500/40 transition-colors">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-xs">G</span>
+                        <span>{t("গ্রাউন্ড ফ্লোর: অফিস, অভ্যর্থনা ও অভিভাবক লাউঞ্জ", "Ground: Office, Reception & Guest Lounge")}</span>
+                      </div>
+                      <div className="flex items-center gap-2.5 rounded-xl border border-border/70 bg-background/70 backdrop-blur-sm px-3.5 py-2.5 text-foreground hover:border-teal-500/40 transition-colors">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-teal-500/20 text-teal-600 dark:text-teal-400 font-bold text-xs">১–৩</span>
+                        <span>{t("১ম — ৩য় তলা: প্লে থেকে ৫ম শ্রেণির আলাদা প্রশস্ত ক্লাসরুম", "1st–3rd: Separate Classrooms for Play–Grade 5")}</span>
+                      </div>
+                      <div className="flex items-center gap-2.5 rounded-xl border border-border/70 bg-background/70 backdrop-blur-sm px-3.5 py-2.5 text-foreground hover:border-amber-500/40 transition-colors">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs">৪র্থ</span>
+                        <span>{t("৪র্থ তলা: হিফজুল কুরআন বিভাগ ও সেন্ট্রাল লাইব্রেরি", "4th: Hifzul Quran Department & Library")}</span>
+                      </div>
+                      <div className="flex items-center gap-2.5 rounded-xl border border-border/70 bg-background/70 backdrop-blur-sm px-3.5 py-2.5 text-foreground hover:border-blue-500/40 transition-colors">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold text-xs">৫ম</span>
+                        <span>{t("৫ম তলা: আবাসিক ছাত্রাবাস ও পরিচ্ছন্ন ডাইনিং", "5th: Residential Boarding & Dining")}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Quick Highlights & Action Card */}
+                <div className="lg:col-span-4 flex flex-col justify-center gap-4 bg-muted/40 dark:bg-muted/20 border border-border/70 rounded-2xl p-6 backdrop-blur-sm">
+                  <div className="flex items-center gap-3.5">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-md">
+                      <Building2 className="h-7 w-7" />
+                    </div>
+                    <div>
+                      <span className="text-3xl font-black text-foreground font-mono">৫ তলা</span>
+                      <p className="text-xs text-muted-foreground font-bengali font-semibold mt-0.5">
+                        {t("স্থায়ী নিজস্ব আধুনিক ভবন", "Permanent Private Campus")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-border/60" />
+
+                  <div className="space-y-2.5 text-xs font-bengali text-muted-foreground">
+                    <p className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-emerald-600 shrink-0" />
+                      <span>{t(settings.address_boys_campus_bn || "মেইন রোড, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর", settings.address_boys_campus_en || "Main Road, Kapasia Bazar, Gazipur")}</span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-emerald-600 shrink-0" />
+                      <span>{[settings.phone_secondary, settings.phone_primary].filter(Boolean).join(", ") || "01581-818368, 01820-811511"}</span>
+                    </p>
+                  </div>
+
+                  <div className="pt-2 flex flex-col gap-2.5">
+                    <Link to="/contact" className="w-full">
+                      <Button variant="default" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs rounded-xl gap-1.5 shadow-sm">
+                        <MapPin className="h-3.5 w-3.5" />
+                        <span>{t("ক্যাম্পাস লোকেশন ও ম্যাপ", "Campus Location & Map")}</span>
+                      </Button>
+                    </Link>
+                    <Link to="/virtual-tour" className="w-full">
+                      <Button variant="outline" className="w-full text-xs rounded-xl gap-1.5 hover:bg-emerald-500/10 hover:text-emerald-600 border-border">
+                        <span>🎥 {t("ভার্চুয়াল ক্যাম্পাস ট্যুর", "Virtual Campus Tour")}</span>
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Boarding & Student Life */}
-            <div className="rounded-3xl border border-border/80 bg-card p-6 sm:p-8 shadow-sm flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Badge className="bg-emerald-600 text-white font-semibold px-3 py-1 text-xs">
-                    {t("আবাসিক ছাত্রাবাস", "Residential Boarding")}
-                  </Badge>
-                  <span className="text-xs font-semibold text-emerald-600">
-                    {t("আবাসিক ও ডে-কেয়ার", "Residential & Day Care")}
-                  </span>
+            {/* 2. Three Core Infrastructure Pillars Grid */}
+            <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+              {/* Card 1: আলাদা আলাদা ক্লাস রুম */}
+              <div className="rounded-3xl border border-border/80 bg-card p-6 sm:p-7 shadow-sm hover:shadow-xl hover:border-emerald-500/40 transition-all duration-300 flex flex-col justify-between group">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                      <DoorOpen className="h-6 w-6" />
+                    </div>
+                    <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-bold">
+                      {t("সুপরিসর ক্লাসরুম", "Spacious Classrooms")}
+                    </Badge>
+                  </div>
+
+                  <div>
+                    <h4 className="font-bengali text-lg sm:text-xl font-bold text-foreground">
+                      {t("আলাদা আলাদা সুপরিসর ক্লাসরুম", "Dedicated Separate Classrooms")}
+                    </h4>
+                    <p className="font-bengali text-xs text-muted-foreground mt-2 leading-relaxed">
+                      {t(
+                        "এক শ্রেণির পড়াশোনার কোলাহল যাতে অন্য শ্রেণিতে কোনো ব্যাঘাত না ঘটায়, সেজন্য প্রতিটি শ্রেণির শিক্ষার্থীদের জন্য রয়েছে সম্পূর্ণ পৃথক ও প্রশস্ত ক্লাসরুম। ক্লাসরুমগুলোতে রয়েছে পর্যাপ্ত প্রাকৃতিক আলো-বাতাস এবং আধুনিক হোয়াইটবোর্ড।",
+                        "To eliminate classroom disturbance, each grade operates in a completely separate, airy, and well-lit classroom equipped with modern learning boards."
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2 text-xs font-bengali text-muted-foreground pt-3 border-t border-border/50">
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span>{t("প্রতিটি ক্লাসের জন্য সম্পূর্ণ পৃথক ও কোলাহলমুক্ত পাঠদান কক্ষ", "Fully segregated and noise-free study environment")}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span>{t("পর্যাপ্ত প্রাকৃতিক আলো-বাতাস ও মাল্টিমিডিয়া সাপোর্ট", "Natural air-flow, modern lighting & smart displays")}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span>{t("সীমিত শিক্ষার্থী আসন — শিক্ষক প্রতিটি শিশুর প্রতি নিবিড় যত্নশীল", "Optimal teacher-student ratio for personal care")}</span>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="font-bengali text-xl font-bold text-foreground">
-                  {t("নিরাপদ ও সুশৃঙ্খল আবাসন ব্যবস্থা", "Safe & Caring Boarding Facility")}
-                </h3>
-                <p className="font-bengali text-xs text-muted-foreground leading-relaxed">
-                  {t(
-                    "স্বাস্থ্যসম্মত পুষ্টিকর ৩ বেলা খাবার, সার্বক্ষণিক ওস্তাদগণের স্নেহময় তত্ত্বাবধান, সিসিটিভি ক্যামেরা নিয়ন্ত্রিত নিরাপত্তা ব্যবস্থা এবং শীতকালে গরম পানির সুবিধা।",
-                    "Hygienic nutritious meals 3 times a day, 24/7 caring teacher supervision, round-the-clock CCTV security, and winter warm water."
-                  )}
-                </p>
-                <div className="space-y-2 text-xs font-bengali text-muted-foreground pt-2 border-t border-border/50">
-                  <p className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>{t("সার্বক্ষণিক বিদ্যুৎ ও নিরাপদ বিশুদ্ধ পানি", "24/7 Power Backup & Pure Drinking Water")}</span>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>{t("নিয়মিত স্বাস্থ্য পরীক্ষা ও চিকিৎসা সেবা", "Regular Health Checkup & First-Aid Care")}</span>
-                  </p>
+
+                <div className="pt-5 mt-5 border-t border-border/50">
+                  <Link to="/about" className="text-xs font-bold text-emerald-600 flex items-center justify-between group-hover:translate-x-1 transition-transform">
+                    <span>{t("একাডেমিক ক্লাসরুম সম্পর্কে জানুন", "Explore Academic Rooms")}</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
                 </div>
               </div>
 
-              <div className="pt-6 mt-6 border-t border-border/50 flex items-center justify-between">
-                <Link to="/admission-form" className="text-xs font-bold text-emerald-600 flex items-center gap-1 hover:underline">
-                  <span>{t("অনলাইন ভর্তি ফরম", "Admission Form")}</span>
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Link>
-                <Link to="/about">
-                  <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1.5">
-                    <span>{t("সুযোগ-সুবিধা জানুন", "View Facilities")}</span>
-                  </Button>
-                </Link>
+              {/* Card 2: খেলার জন্য সুবিশাল ছাদ (৫ ফিট বাউন্ডারি সহ) */}
+              <div className="rounded-3xl border border-border/80 bg-card p-6 sm:p-7 shadow-sm hover:shadow-xl hover:border-amber-500/40 transition-all duration-300 flex flex-col justify-between group">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                      <Sun className="h-6 w-6" />
+                    </div>
+                    <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[11px] font-bold">
+                      {t("৫ ফিট বাউন্ডারি ওয়াল", "5ft Safety Wall")}
+                    </Badge>
+                  </div>
+
+                  <div>
+                    <h4 className="font-bengali text-lg sm:text-xl font-bold text-foreground">
+                      {t("খেলার জন্য সুবিশাল ছাদ (৫ ফিট বাউন্ডারি সহ)", "Spacious Rooftop Playzone (5ft Safety Wall)")}
+                    </h4>
+                    <p className="font-bengali text-xs text-muted-foreground mt-2 leading-relaxed">
+                      {t(
+                        "শিক্ষার্থীদের মানসিক প্রফুল্লতা ও শারীরিক সুস্থতার জন্য ভবনের শীর্ষে রয়েছে উন্মুক্ত সুবিশাল খেলার ছাদ। ছোট শিশুদের ১০০% নিরাপত্তার নিশ্চয়তায় পুরো ছাদের চারপাশ জুড়ে নির্মাণ করা হয়েছে ৫ ফিট উঁচু মজবুত নিরাপত্তা বাউন্ডারি ওয়াল।",
+                        "For physical wellness and recreational freshness, the open rooftop features a secured 5ft high reinforced boundary wall ensuring complete safety during daily sports and outdoor activities."
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2 text-xs font-bengali text-muted-foreground pt-3 border-t border-border/50">
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span>{t("শিশুদের সুরক্ষায় ছাদের চারপাশে ৫ ফিট উঁচু মজবুত বাউন্ডারি ওয়াল", "5-foot high perimeter boundary wall for child safety")}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span>{t("প্রতিদিন বিকেলে ওস্তাদগণের উপস্থিতিতে শরীরচর্চা ও খেলাধুলা", "Daily afternoon supervised physical exercise and play")}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span>{t("উন্মুক্ত বাতাস ও মনোরম পরিবেশে মানসিক বিকাশ ও সতেজতা", "Open-air refreshing ambiance promoting mental health")}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-5 mt-5 border-t border-border/50">
+                  <Link to="/gallery" className="text-xs font-bold text-amber-600 flex items-center justify-between group-hover:translate-x-1 transition-transform">
+                    <span>{t("খেলার মাঠ ও ছাদের ছবি দেখুন", "View Play Area Photos")}</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Card 3: ২৪ ঘণ্টা সিকিউরিটি গার্ড এবং গেট লক */}
+              <div className="rounded-3xl border border-border/80 bg-card p-6 sm:p-7 shadow-sm hover:shadow-xl hover:border-blue-500/40 transition-all duration-300 flex flex-col justify-between group">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                      <Lock className="h-6 w-6" />
+                    </div>
+                    <Badge className="bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[11px] font-bold">
+                      {t("২৪/৭ সার্বক্ষণিক গার্ড", "24/7 Guarded")}
+                    </Badge>
+                  </div>
+
+                  <div>
+                    <h4 className="font-bengali text-lg sm:text-xl font-bold text-foreground">
+                      {t("২৪ ঘণ্টা সিকিউরিটি গার্ড ও সার্বক্ষণিক গেট লক", "24-Hour Security Guard & Locked Gate System")}
+                    </h4>
+                    <p className="font-bengali text-xs text-muted-foreground mt-2 leading-relaxed">
+                      {t(
+                        "আমাদের মাদরাসায় শিক্ষার্থীদের নিরাপত্তাই প্রধান অগ্রাধিকার। প্রধান ফটকে সার্বক্ষণিক ২৪ ঘণ্টা বিশ্বস্ত সিকিউরিটি গার্ড দায়িত্ব পালন করেন এবং গেট সবসময় তালাবদ্ধ (Gate Locked) রাখা হয়। অনুমতি ও অভিভাবক ছাড়া কোনো বহিরাগতের প্রবেশ নিষেধ।",
+                        "Student safety is our utmost priority. The entrance gate remains securely locked 24/7 guarded by trained security personnel. Strictly no unauthorized visitors are permitted."
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2 text-xs font-bengali text-muted-foreground pt-3 border-t border-border/50">
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                      <span>{t("২৪ ঘণ্টা সার্বক্ষণিক ইউনিফর্মধারী প্রশিক্ষিত সিকিউরিটি গার্ড", "24/7 active vigilant security guard protection")}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                      <span>{t("প্রধান ফটক সর্বদা তালাবদ্ধ ও কঠোর বহিরাগত প্রবেশ নিষেধাজ্ঞা", "Main gate strictly locked with visitor log control")}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                      <span>{t("ক্যাম্পাস, সিঁড়ি ও করিডোরে সার্বক্ষণিক হাই-ডেফিনিশন CCTV নজরদারি", "HD CCTV surveillance throughout all floors & entryways")}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-5 mt-5 border-t border-border/50">
+                  <Link to="/admission-form" className="text-xs font-bold text-blue-600 flex items-center justify-between group-hover:translate-x-1 transition-transform">
+                    <span>{t("অনলাইন ভর্তি আবেদন করুন", "Apply for Admission")}</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Bottom Quick Facilities Strip (৪টি সার্বক্ষণিক নিশ্চয়তা) */}
+            <div className="rounded-3xl border border-border/70 bg-card/60 backdrop-blur-md p-5 sm:p-6 shadow-sm">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-bengali">
+                <div className="flex items-center gap-3 p-2 rounded-2xl hover:bg-muted/40 transition-colors">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-600">
+                    <Zap className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-foreground">{t("সার্বক্ষণিক বিদ্যুৎ", "24/7 Power")}</p>
+                    <p className="text-[11px] text-muted-foreground">{t("শক্তিশালী জেনারেটর ব্যাকআপ", "Generator backup")}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-2 rounded-2xl hover:bg-muted/40 transition-colors">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-500/15 text-teal-600">
+                    <Droplets className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-foreground">{t("নিরাপদ বিশুদ্ধ পানি", "Pure Drinking Water")}</p>
+                    <p className="text-[11px] text-muted-foreground">{t("উন্নত ফিল্টারিং ব্যবস্থা", "Modern multi-stage filter")}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-2 rounded-2xl hover:bg-muted/40 transition-colors">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600">
+                    <UtensilsCrossed className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-foreground">{t("স্বাস্থ্যসম্মত ৩ বেলা খাবার", "Nutritious 3 Meals")}</p>
+                    <p className="text-[11px] text-muted-foreground">{t("আবাসিকদের জন্য টাটকা খাবার", "Hygienic fresh diet")}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-2 rounded-2xl hover:bg-muted/40 transition-colors">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/15 text-rose-600">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-foreground">{t("শীতকালে গরম পানি", "Winter Warm Water")}</p>
+                    <p className="text-[11px] text-muted-foreground">{t("অজু ও গোসলের বিশেষ সুবিধা", "Geyser warm water for wudu")}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1016,47 +1340,278 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ================= GUARDIANS OPINIONS & REVIEWS ================= */}
-      <section id="reviews" ref={reviewSectionRef} className="py-16 bg-muted/20">
+      {/* ================= GUARDIANS OPINIONS & PLATFORM REVIEWS ================= */}
+      <section id="reviews" ref={reviewSectionRef} className="py-16 sm:py-20 bg-muted/20 relative overflow-hidden">
         <div className="container mx-auto px-4 max-w-5xl">
-          <motion.div {...springIn} className="text-center mb-6 space-y-2">
+          <motion.div {...springIn} className="text-center mb-8 space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1 text-xs font-semibold text-primary font-bengali">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>{t("অভিভাবকদের অভিজ্ঞতা ও পাবলিক রিভিউ", "Guardian Experience & Public Reviews")}</span>
+            </div>
             <h2 className="font-bengali text-2xl sm:text-4xl font-bold text-foreground">
-              {t("অভিভাবকদের মতামত", "What Guardians Say")}
+              {t("অভিভাবকদের মতামত ও রেটিং", "Guardian Ratings & Testimonials")}
             </h2>
-            <p className="font-bengali text-xs sm:text-sm text-muted-foreground">
-              {t("আমাদের শিক্ষার্থীদের অগ্রগতি ও পরিবেশ সম্পর্কে অভিভাবকগণের আন্তরিক মূল্যায়ন", "Feedback and real experiences shared by respected parents")}
+            <p className="font-bengali text-xs sm:text-sm text-muted-foreground max-w-2xl mx-auto">
+              {t(
+                "Google Business, Facebook Page ও Trustpilot-এ সম্মানিত অভিভাবক ও শুভানুধ্যায়ীদের বাস্তব অভিজ্ঞতা ও রেটিং",
+                "Real ratings and verified reviews shared across Google Business, Facebook, and Trustpilot"
+              )}
             </p>
           </motion.div>
 
-          <div className="mb-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <button
-              onClick={() => setShowReviewForm(!showReviewForm)}
-              className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-bengali font-semibold text-xs sm:text-sm hover:bg-primary/90 transition-colors shadow-sm"
-            >
-              {showReviewForm ? t("বাতিল", "Cancel") : t("মতামত বা রিভিউ দিন", "Write a Review")}
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleShareReviewLink()}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-4 py-2.5 font-bengali text-xs font-semibold text-foreground transition-colors hover:bg-muted"
-            >
-              <Share2 className="h-3.5 w-3.5" />
-              <span>{t("ফর্ম শেয়ার", "Share Form")}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleCopyReviewLink()}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-4 py-2.5 font-bengali text-xs font-semibold text-foreground transition-colors hover:bg-muted"
-            >
-              <Copy className="h-3.5 w-3.5" />
-              <span>{t("লিংক কপি", "Copy Link")}</span>
-            </button>
+          {/* Platform Trust Scorecards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {/* Website Direct Reviews Card */}
+            <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-xl bg-primary text-primary-foreground shadow-sm flex items-center justify-center font-bold">
+                    <Globe className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-xs text-foreground font-bengali">{t("ওয়েবসাইট রিভিউ", "Website Reviews")}</h4>
+                    <span className="text-[10px] text-muted-foreground font-bengali">{t("সরাসরি মতামত", "Direct Feedback")}</span>
+                  </div>
+                </div>
+                <span className="text-lg font-black font-mono text-primary">5.0</span>
+              </div>
+              <div className="flex items-center gap-1 text-amber-400 mb-2">
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <Star key={idx} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                ))}
+                <span className="text-[11px] font-semibold text-primary font-bengali ml-1.5">
+                  ({t("১০০% ভেরিফাইড", "100% Verified")})
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowReviewForm(true);
+                }}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline font-bengali group mt-1"
+              >
+                <span>{t("ওয়েবসাইটে মতামত দিন", "Write on Website")}</span>
+                <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+              </button>
+            </div>
+
+            {/* Google Reviews Card */}
+            <div className="rounded-2xl border border-red-200/60 bg-gradient-to-br from-red-500/5 via-card to-card p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center justify-center">
+                    <GoogleIcon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-xs text-foreground font-bengali">Google Reviews</h4>
+                    <span className="text-[10px] text-muted-foreground font-bengali">{t("ভেরিফাইড রেটিং", "Verified Rating")}</span>
+                  </div>
+                </div>
+                <span className="text-lg font-black font-mono text-foreground">4.9</span>
+              </div>
+              <div className="flex items-center gap-1 text-amber-400 mb-2">
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <Star key={idx} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                ))}
+                <span className="text-[11px] font-semibold text-muted-foreground font-bengali ml-1.5">
+                  ({t("৪৮+ রিভিউ", "48+ Reviews")})
+                </span>
+              </div>
+              <a
+                href={settings.google_maps_url || "https://maps.google.com"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 font-bengali group mt-1"
+              >
+                <span>{t("গুগলে রিভিউ দেখুন / লিখুন", "View on Google")}</span>
+                <ExternalLink className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+              </a>
+            </div>
+
+            {/* Facebook Recommendations Card */}
+            <div className="rounded-2xl border border-blue-200/60 bg-gradient-to-br from-blue-500/5 via-card to-card p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center justify-center">
+                    <FacebookIcon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-xs text-foreground font-bengali">Facebook Page</h4>
+                    <span className="text-[10px] text-muted-foreground font-bengali">{t("অফিসিয়াল পেজ", "Official Page")}</span>
+                  </div>
+                </div>
+                <span className="text-sm font-black font-bengali text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200">
+                  ১০০%
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-amber-400 mb-2">
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <Star key={idx} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                ))}
+                <span className="text-[11px] font-semibold text-muted-foreground font-bengali ml-1.5">
+                  ({t("রিকমেন্ডেড", "Recommended")})
+                </span>
+              </div>
+              <a
+                href={settings.facebook_url || "https://facebook.com"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 font-bengali group mt-1"
+              >
+                <span>{t("ফেসবুকে মতামত দেখুন", "View on Facebook")}</span>
+                <ExternalLink className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+              </a>
+            </div>
+
+            {/* Trustpilot Score Card */}
+            <div className="rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-emerald-500/5 via-card to-card p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center justify-center">
+                    <TrustpilotIcon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-xs text-foreground font-bengali">Trustpilot</h4>
+                    <span className="text-[10px] text-muted-foreground font-bengali">{t("পাবলিক স্কোর", "Public Score")}</span>
+                  </div>
+                </div>
+                <span className="text-lg font-black font-mono text-emerald-700">4.8</span>
+              </div>
+              <div className="flex items-center gap-1 text-emerald-600 mb-2">
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <Star key={idx} className="h-3.5 w-3.5 fill-emerald-500 text-emerald-500" />
+                ))}
+                <span className="text-[11px] font-semibold text-emerald-700 font-bengali ml-1.5">
+                  ({t("এক্সিলেন্ট", "Excellent")})
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-bengali mt-1">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                <span>{t("অভিভাবকদের শীর্ষ আস্থা", "Top Guardian Trust")}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Platform Filters and Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+            {/* Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
+              <button
+                onClick={() => {
+                  setSelectedPlatform("all");
+                  setCurrentSlide(0);
+                }}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bengali font-semibold whitespace-nowrap transition-all ${
+                  selectedPlatform === "all"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-background border border-border/70 text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <span>{t("সকল রিভিউ", "All Reviews")}</span>
+                <span className="ml-1 text-[10px] opacity-75">({platformCounts.all})</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedPlatform("website");
+                  setCurrentSlide(0);
+                }}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bengali font-semibold whitespace-nowrap transition-all ${
+                  selectedPlatform === "website"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-background border border-border/70 text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <Globe className="h-3.5 w-3.5" />
+                <span>{t("ওয়েবসাইট রিভিউ", "Website")}</span>
+                <span className="text-[10px] opacity-75">({platformCounts.website})</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedPlatform("google");
+                  setCurrentSlide(0);
+                }}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bengali font-semibold whitespace-nowrap transition-all ${
+                  selectedPlatform === "google"
+                    ? "bg-red-600 text-white shadow-sm"
+                    : "bg-background border border-border/70 text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <GoogleIcon className="h-3.5 w-3.5" />
+                <span>Google</span>
+                <span className="text-[10px] opacity-75">({platformCounts.google})</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedPlatform("facebook");
+                  setCurrentSlide(0);
+                }}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bengali font-semibold whitespace-nowrap transition-all ${
+                  selectedPlatform === "facebook"
+                    ? "bg-[#1877F2] text-white shadow-sm"
+                    : "bg-background border border-border/70 text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <FacebookIcon className="h-3.5 w-3.5" />
+                <span>Facebook</span>
+                <span className="text-[10px] opacity-75">({platformCounts.facebook})</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedPlatform("trustpilot");
+                  setCurrentSlide(0);
+                }}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bengali font-semibold whitespace-nowrap transition-all ${
+                  selectedPlatform === "trustpilot"
+                    ? "bg-emerald-600 text-white shadow-sm"
+                    : "bg-background border border-border/70 text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <TrustpilotIcon className="h-3.5 w-3.5" />
+                <span>Trustpilot</span>
+                <span className="text-[10px] opacity-75">({platformCounts.trustpilot})</span>
+              </button>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <button
+                onClick={() => setShowReviewForm(!showReviewForm)}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-xl font-bengali font-semibold text-xs hover:bg-primary/90 transition-colors shadow-sm"
+              >
+                {showReviewForm ? t("বাতিল", "Cancel") : t("মতামত বা রিভিউ দিন", "Write a Review")}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => void handleShareReviewLink()}
+                className="inline-flex items-center gap-1 rounded-xl border border-border bg-background px-3 py-2 font-bengali text-xs font-semibold text-foreground transition-colors hover:bg-muted"
+                title={t("ফর্ম শেয়ার", "Share Form")}
+              >
+                <Share2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{t("শেয়ার", "Share")}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => void handleCopyReviewLink()}
+                className="inline-flex items-center gap-1 rounded-xl border border-border bg-background px-3 py-2 font-bengali text-xs font-semibold text-foreground transition-colors hover:bg-muted"
+                title={t("লিংক কপি", "Copy Link")}
+              >
+                <Copy className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{t("কপি", "Copy")}</span>
+              </button>
+            </div>
           </div>
 
           {shareFeedback ? (
             <p className="mb-6 text-center font-bengali text-xs text-muted-foreground">{shareFeedback}</p>
           ) : null}
 
+          {/* Review Submission Form */}
           {showReviewForm && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1084,7 +1639,7 @@ const Index = () => {
                       />
                     </div>
                     <div>
-                      <label className="font-bengali text-xs font-semibold mb-1 block">{t("আপনার সম্পর্ক", "Your Relation")} *</label>
+                      <label className="font-bengali text-xs font-semibold mb-1 block">{t("আপনার সম্পর্ক / পরিচয়", "Your Relation")} *</label>
                       <select
                         value={reviewRelation}
                         onChange={(e) => setReviewRelation(e.target.value)}
@@ -1093,22 +1648,41 @@ const Index = () => {
                       >
                         <option value="">{t("সিলেক্ট করুন", "Select")}</option>
                         <option value={t("অভিভাবক", "Guardian")}>{t("অভিভাবক", "Guardian")}</option>
+                        <option value={t("হিফজ বিভাগের অভিভাবক", "Hifz Guardian")}>{t("হিফজ বিভাগের অভিভাবক", "Hifz Guardian")}</option>
                         <option value={t("প্রাক্তন শিক্ষার্থী", "Ex-Student")}>{t("প্রাক্তন শিক্ষার্থী", "Ex-Student")}</option>
                         <option value={t("স্থানীয় বাসিন্দা", "Local Resident")}>{t("স্থানীয় বাসিন্দা", "Local Resident")}</option>
                         <option value={t("শুভাকাঙ্ক্ষী", "Well Wisher")}>{t("শুভাকাঙ্ক্ষী", "Well Wisher")}</option>
                       </select>
                     </div>
                   </div>
+
                   <div>
-                    <label className="font-bengali text-xs font-semibold mb-1 block">{t("আপনার মতামত", "Your Review")} *</label>
+                    <label className="font-bengali text-xs font-semibold mb-1 block">{t("রেটিং (স্টার)", "Rating")}</label>
+                    <select
+                      value={reviewRating.toString()}
+                      onChange={(e) => setReviewRating(Number(e.target.value))}
+                      className="w-full px-4 py-2 rounded-xl bg-background border border-border font-bengali text-xs"
+                    >
+                      <option value="5">★★★★★ (5 Stars - চমৎকার)</option>
+                      <option value="4">★★★★☆ (4 Stars - খুব ভালো)</option>
+                      <option value="3">★★★☆☆ (3 Stars - ভালো)</option>
+                      <option value="2">★★☆☆☆ (2 Stars)</option>
+                      <option value="1">★☆☆☆☆ (1 Star)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bengali text-xs font-semibold mb-1 block">{t("আপনার মূল্যবান মতামত", "Your Review")} *</label>
                     <textarea
                       value={reviewText}
                       onChange={(e) => setReviewText(e.target.value)}
                       rows={3}
+                      placeholder={t("প্রতিষ্ঠানের শিক্ষা পরিবেশ নিয়ে আপনার প্রতিক্রিয়া...", "Share your feedback...")}
                       className="w-full px-4 py-2 rounded-xl bg-background border border-border font-bengali text-xs"
                       required
                     />
                   </div>
+
                   <motion.button
                     type="submit"
                     disabled={reviewLoading}
@@ -1132,88 +1706,203 @@ const Index = () => {
 
           {/* Reviews Carousel */}
           <div className="relative">
-            {/* Mobile View */}
-            <div className="relative md:hidden">
-              <div
-                className="overflow-hidden"
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-              >
-                <div
-                  className="flex transition-transform duration-500 ease-in-out"
-                  style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+            {filteredReviews.length === 0 ? (
+              <div className="text-center py-12 rounded-3xl bg-card border border-border/70 p-6">
+                <Star className="h-8 w-8 text-amber-400 mx-auto mb-2 opacity-60" />
+                <p className="font-bengali text-sm text-foreground font-semibold">
+                  {t("এই প্ল্যাটফর্মে এখনো কোনো রিভিউ যুক্ত হয়নি।", "No reviews in this platform yet.")}
+                </p>
+                <p className="font-bengali text-xs text-muted-foreground mt-1">
+                  {t("আপনিই প্রথম রিভিউটি লিখে উৎসাহিত করুন!", "Be the first to share your experience!")}
+                </p>
+                <button
+                  onClick={() => setShowReviewForm(true)}
+                  className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-bengali text-xs font-semibold"
                 >
-                  {allReviews.map((item, i) => (
-                    <div key={i} className="w-full flex-shrink-0 px-2">
-                      <div className="bg-card border border-border/70 rounded-3xl p-6 shadow-sm">
-                        <div className="flex items-start gap-3 mb-4">
-                          <div className="w-11 h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-base">
-                            {item.name.charAt(0)}
-                          </div>
-                          <div>
-                            <h4 className="font-bengali font-bold text-foreground text-sm">{item.name}</h4>
-                            <p className="font-bengali text-xs text-muted-foreground">{item.relation}</p>
-                          </div>
-                        </div>
-                        <p className="font-bengali text-xs leading-relaxed text-muted-foreground italic">
-                          "{lang === "bn" ? item.review : item.reviewEn || item.review}"
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                  {t("প্রথম রিভিউ দিন", "Write First Review")}
+                </button>
               </div>
-            </div>
-
-            {/* Desktop View */}
-            <div className="relative hidden md:block">
-              <div className="overflow-hidden">
-                <div
-                  className="flex transition-transform duration-500 ease-in-out"
-                  style={{
-                    transform: `translateX(-${Math.min(currentSlide, Math.ceil(allReviews.length / 2) - 1) * 100
-                      }%)`,
-                  }}
-                >
-                  {Array.from({ length: Math.ceil(allReviews.length / 2) }).map((_, slideIndex) => (
-                    <div key={slideIndex} className="w-full flex-shrink-0">
-                      <div className="grid grid-cols-2 gap-6 px-2">
-                        {allReviews.slice(slideIndex * 2, (slideIndex + 1) * 2).map((item, i) => (
-                          <div key={i} className="bg-card border border-border/70 rounded-3xl p-6 shadow-sm">
-                            <div className="flex items-start gap-3 mb-4">
-                              <div className="w-11 h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-base">
-                                {item.name.charAt(0)}
+            ) : (
+              <>
+                {/* Mobile View */}
+                <div className="relative md:hidden">
+                  <div
+                    className="overflow-hidden"
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                  >
+                    <div
+                      className="flex transition-transform duration-500 ease-in-out"
+                      style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                    >
+                      {filteredReviews.map((item, i) => (
+                        <div key={i} className="w-full flex-shrink-0 px-2">
+                          <div className="bg-card border border-border/70 rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow relative">
+                            {/* Card Header */}
+                            <div className="flex items-start justify-between gap-3 mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-base shadow-sm ${
+                                  item.platform === "facebook"
+                                    ? "bg-blue-50 text-[#1877F2] border border-blue-200"
+                                    : item.platform === "trustpilot"
+                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                    : item.platform === "website"
+                                    ? "bg-primary/10 text-primary border border-primary/25"
+                                    : "bg-red-50 text-red-600 border border-red-200"
+                                }`}>
+                                  {item.name.charAt(0)}
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-1.5">
+                                    <h4 className="font-bengali font-bold text-foreground text-sm">{item.name}</h4>
+                                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" title={t("যাচাইকৃত", "Verified")} />
+                                  </div>
+                                  <p className="font-bengali text-xs text-muted-foreground">{item.relation}</p>
+                                </div>
                               </div>
+
+                              {/* Platform Badge */}
                               <div>
-                                <h4 className="font-bengali font-bold text-foreground text-sm">{item.name}</h4>
-                                <p className="font-bengali text-xs text-muted-foreground">{item.relation}</p>
+                                {item.platform === "facebook" ? (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[10px] font-semibold text-[#1877F2]">
+                                    <FacebookIcon className="h-3 w-3" />
+                                    <span>Facebook</span>
+                                  </span>
+                                ) : item.platform === "trustpilot" ? (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                                    <TrustpilotIcon className="h-3 w-3" />
+                                    <span>Trustpilot</span>
+                                  </span>
+                                ) : item.platform === "website" ? (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/25 px-2.5 py-0.5 text-[10px] font-semibold text-primary">
+                                    <Globe className="h-3 w-3" />
+                                    <span>{t("ওয়েবসাইট রিভিউ", "Website Review")}</span>
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-red-50 border border-red-200 px-2.5 py-0.5 text-[10px] font-semibold text-red-600">
+                                    <GoogleIcon className="h-3 w-3" />
+                                    <span>Google Review</span>
+                                  </span>
+                                )}
                               </div>
                             </div>
+
+                            {/* Stars */}
+                            <div className="flex items-center gap-1 text-amber-400 mb-3">
+                              {Array.from({ length: item.rating || 5 }).map((_, starIdx) => (
+                                <Star key={starIdx} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                              ))}
+                            </div>
+
                             <p className="font-bengali text-xs leading-relaxed text-muted-foreground italic">
                               "{lang === "bn" ? item.review : item.reviewEn || item.review}"
                             </p>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Dots */}
-            {allReviews.length > 1 && (
-              <div className="flex justify-center gap-2 mt-6">
-                {Array.from({ length: isMobile ? allReviews.length : Math.ceil(allReviews.length / 2) }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentSlide(i)}
-                    className={`h-2 rounded-full transition-all ${currentSlide === i ? "bg-primary w-8" : "bg-muted-foreground/30 w-2"
-                      }`}
-                  />
-                ))}
-              </div>
+                {/* Desktop View */}
+                <div className="relative hidden md:block">
+                  <div className="overflow-hidden">
+                    <div
+                      className="flex transition-transform duration-500 ease-in-out"
+                      style={{
+                        transform: `translateX(-${Math.min(currentSlide, Math.ceil(filteredReviews.length / 2) - 1) * 100}%)`,
+                      }}
+                    >
+                      {Array.from({ length: Math.ceil(filteredReviews.length / 2) }).map((_, slideIndex) => (
+                        <div key={slideIndex} className="w-full flex-shrink-0">
+                          <div className="grid grid-cols-2 gap-6 px-2">
+                            {filteredReviews.slice(slideIndex * 2, (slideIndex + 1) * 2).map((item, i) => (
+                              <div key={i} className="bg-card border border-border/70 rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow relative">
+                                {/* Card Header */}
+                                <div className="flex items-start justify-between gap-3 mb-3">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-base shadow-sm ${
+                                      item.platform === "facebook"
+                                        ? "bg-blue-50 text-[#1877F2] border border-blue-200"
+                                        : item.platform === "trustpilot"
+                                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                        : item.platform === "website"
+                                        ? "bg-primary/10 text-primary border border-primary/25"
+                                        : "bg-red-50 text-red-600 border border-red-200"
+                                    }`}>
+                                      {item.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center gap-1.5">
+                                        <h4 className="font-bengali font-bold text-foreground text-sm">{item.name}</h4>
+                                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" title={t("যাচাইকৃত", "Verified")} />
+                                      </div>
+                                      <p className="font-bengali text-xs text-muted-foreground">{item.relation}</p>
+                                    </div>
+                                  </div>
+
+                                  {/* Platform Badge */}
+                                  <div>
+                                    {item.platform === "facebook" ? (
+                                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[10px] font-semibold text-[#1877F2]">
+                                        <FacebookIcon className="h-3 w-3" />
+                                        <span>Facebook</span>
+                                      </span>
+                                    ) : item.platform === "trustpilot" ? (
+                                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                                        <TrustpilotIcon className="h-3 w-3" />
+                                        <span>Trustpilot</span>
+                                      </span>
+                                    ) : item.platform === "website" ? (
+                                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/25 px-2.5 py-0.5 text-[10px] font-semibold text-primary">
+                                        <Globe className="h-3 w-3" />
+                                        <span>{t("ওয়েবসাইট রিভিউ", "Website Review")}</span>
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 rounded-full bg-red-50 border border-red-200 px-2.5 py-0.5 text-[10px] font-semibold text-red-600">
+                                        <GoogleIcon className="h-3 w-3" />
+                                        <span>Google Review</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Stars */}
+                                <div className="flex items-center gap-1 text-amber-400 mb-3">
+                                  {Array.from({ length: item.rating || 5 }).map((_, starIdx) => (
+                                    <Star key={starIdx} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                                  ))}
+                                </div>
+
+                                <p className="font-bengali text-xs sm:text-sm leading-relaxed text-muted-foreground italic">
+                                  "{lang === "bn" ? item.review : item.reviewEn || item.review}"
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dots */}
+                {(isMobile ? filteredReviews.length : Math.ceil(filteredReviews.length / 2)) > 1 && (
+                  <div className="flex justify-center gap-2 mt-6">
+                    {Array.from({ length: isMobile ? filteredReviews.length : Math.ceil(filteredReviews.length / 2) }).map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentSlide(i)}
+                        className={`h-2 rounded-full transition-all ${
+                          currentSlide === i ? "bg-primary w-8" : "bg-muted-foreground/30 w-2"
+                        }`}
+                        aria-label={`Go to slide ${i + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

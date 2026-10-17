@@ -3,6 +3,7 @@ import { Loader2, Building2, Phone, Mail, Hash, Calendar, GraduationCap, Save } 
 import { toast } from "sonner";
 import { supabase, logAdminActivity } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { broadcastSiteSettingsUpdated, defaultSiteSettings } from "@/lib/siteSettings";
 import type { SiteSettings, AdmissionStatusType } from "@/types/cms";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,15 +23,15 @@ export const GeneralSettingsForm = () => {
   const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState({
-    institution_name_bn: "আননূর শিক্ষা পরিবার",
-    institution_name_en: "Annoor Education Family",
-    emis_code: "",
-    founding_year: "2015",
-    phone_primary: "01700000000",
-    phone_secondary: "",
-    whatsapp_number: "01700000000",
-    email_primary: "info@annoor.edu.bd",
-    admission_status: "open" as AdmissionStatusType,
+    institution_name_bn: defaultSiteSettings.institution_name_bn,
+    institution_name_en: defaultSiteSettings.institution_name_en,
+    emis_code: defaultSiteSettings.emis_code || "",
+    founding_year: defaultSiteSettings.founding_year || "2021",
+    phone_primary: defaultSiteSettings.phone_primary,
+    phone_secondary: defaultSiteSettings.phone_secondary || "",
+    whatsapp_number: defaultSiteSettings.whatsapp_number,
+    email_primary: defaultSiteSettings.email_primary,
+    admission_status: defaultSiteSettings.admission_status as AdmissionStatusType,
   });
 
   useEffect(() => {
@@ -51,14 +52,14 @@ export const GeneralSettingsForm = () => {
 
       if (data) {
         setFormData({
-          institution_name_bn: data.institution_name_bn || "",
-          institution_name_en: data.institution_name_en || "",
-          emis_code: data.emis_code || "",
-          founding_year: data.founding_year || "",
-          phone_primary: data.phone_primary || "",
-          phone_secondary: data.phone_secondary || "",
-          whatsapp_number: data.whatsapp_number || "",
-          email_primary: data.email_primary || "",
+          institution_name_bn: data.institution_name_bn || defaultSiteSettings.institution_name_bn,
+          institution_name_en: data.institution_name_en || defaultSiteSettings.institution_name_en,
+          emis_code: data.emis_code || defaultSiteSettings.emis_code || "",
+          founding_year: data.founding_year || defaultSiteSettings.founding_year || "2021",
+          phone_primary: data.phone_primary || defaultSiteSettings.phone_primary,
+          phone_secondary: data.phone_secondary || defaultSiteSettings.phone_secondary || "",
+          whatsapp_number: data.whatsapp_number || defaultSiteSettings.whatsapp_number,
+          email_primary: data.email_primary || defaultSiteSettings.email_primary,
           admission_status: data.admission_status || "open",
         });
       }
@@ -100,6 +101,9 @@ export const GeneralSettingsForm = () => {
         .upsert(payload, { onConflict: "id" });
 
       if (error) throw error;
+
+      // Broadcast update across entire application in real-time
+      broadcastSiteSettingsUpdated(payload);
 
       await logAdminActivity(
         "UPDATE",

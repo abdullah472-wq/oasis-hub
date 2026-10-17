@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/lib/siteSettings";
 import { submitAdmission, type AdmissionForm, CLASS_NAME_OPTIONS } from "@/lib/admission";
 import { uploadImage } from "@/lib/upload";
 
@@ -83,6 +84,8 @@ const Field = ({
 
 const AdmissionFormPage = () => {
   const { t, lang } = useLanguage();
+  const { settings } = useSiteSettings();
+  const siteLogo = settings.logo_url || "/site-logo.png";
   const [submitting, setSubmitting] = useState(false);
   const [rulesAccepted, setRulesAccepted] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -210,16 +213,16 @@ const AdmissionFormPage = () => {
               {/* Slip Header */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b-2 border-primary/20 pb-6 text-center sm:text-left">
                 <div className="flex items-center gap-4">
-                  <img src="/site-logo.png" alt="Annoor Logo" className="h-20 w-20 object-contain" />
+                  <img src={siteLogo} alt={settings.institution_name_en || "Logo"} className="h-20 w-20 object-contain" />
                   <div>
                     <h2 className="font-bengali text-2xl font-black text-foreground">
-                      আননূর তাহফিজুল কুরআন মাদ্রাসা
+                      {settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা"}
                     </h2>
                     <p className="font-bengali text-xs text-muted-foreground mt-0.5">
                       হিফজুল কুরআন ও আধুনিক সমন্বিত ইসলামিক বিদ্যাপীঠ
                     </p>
                     <p className="text-[11px] font-mono text-muted-foreground mt-1">
-                      রেজি নং: ৩৩৮/২০২২ | কাপাসিয়া বাজার ও কলেজ রোড, কাপাসিয়া, গাজীপুর
+                      রেজি নং: {settings.emis_code || "৩৩৮/২০২২"} | {settings.address_boys_campus_bn || "কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর"}
                     </p>
                   </div>
                 </div>
@@ -367,8 +370,9 @@ const AdmissionFormPage = () => {
             <div className="mt-8 text-center space-y-4">
               <p className="font-bengali text-xs text-muted-foreground">
                 {t("ভর্তি সংক্রান্ত যেকোনো তথ্যের জন্য যোগাযোগ করুন:", "For any admission inquiries, please call:")}{" "}
-                <span className="font-bold text-foreground font-mono">01820-811511</span>,{" "}
-                <span className="font-bold text-foreground font-mono">01312-200043</span>
+                <span className="font-bold text-foreground font-mono">
+                  {[settings.phone_primary, settings.phone_secondary].filter(Boolean).join(", ") || "01820-811511, 01581-818368"}
+                </span>
               </p>
 
               <div className="flex flex-wrap items-center justify-center gap-3">
@@ -402,7 +406,7 @@ const AdmissionFormPage = () => {
           <div className="h-4 bg-gradient-to-r from-sky-700 via-sky-500 to-sky-700" />
           <div className="grid gap-8 p-6 md:grid-cols-[auto_1fr] md:p-8">
             <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-sky-100 bg-sky-50/70 px-6 py-5 text-center">
-              <img src="/site-logo.png" alt="Site logo" className="h-20 w-20 object-contain md:h-24 md:w-24" />
+              <img src={siteLogo} alt={settings.institution_name_en || "Site logo"} className="h-20 w-20 object-contain md:h-24 md:w-24" />
               <span className="mt-4 rounded-full border border-sky-200 bg-white px-4 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">
                 {t("অনলাইন ভর্তি", "Online admission")}
               </span>
@@ -411,7 +415,10 @@ const AdmissionFormPage = () => {
             <div>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h1 className="font-bengali text-3xl font-bold leading-[1.24] text-slate-900 md:text-5xl">
-                  {t("আননূর তাহফিজুল কুরআন মাদ্রাসা ভর্তি আবেদন ফর্ম", "Annoor Tahfizul Quran Madrasa Admission Form")}
+                  {t(
+                    `${settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা"} ভর্তি আবেদন ফর্ম`,
+                    `${settings.institution_name_en || "Annoor Tahfizul Quran Madrasa"} Admission Form`
+                  )}
                 </h1>
                 <Link to="/admission">
                   <Button

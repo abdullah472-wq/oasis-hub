@@ -21,6 +21,7 @@ import {
   Filter,
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/lib/siteSettings";
 import WaveDivider from "@/components/WaveDivider";
 import { springIn, springInDelay } from "@/lib/animations";
 import {
@@ -39,6 +40,7 @@ const categoryPills: { id: "all" | FacultyRoleCategory; labelBn: string; labelEn
 
 const Teachers = () => {
   const { t, lang } = useLanguage();
+  const { settings } = useSiteSettings();
   const [faculty, setFaculty] = useState<FacultyMember[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -130,8 +132,8 @@ const Teachers = () => {
             className="font-bengali text-base sm:text-lg text-white/85 max-w-2xl mx-auto mb-8 leading-relaxed"
           >
             {t(
-              "আননূর তাহফিজুল কুরআন মাদরাসার গৌরব আমাদের প্রথিতযশা ওস্তাদবৃন্দ ও অভিজ্ঞ শিক্ষকমণ্ডলী। যাদের আন্তরিক স্নেহ, গভীর জ্ঞান ও সার্বক্ষণিক তত্ত্বাবধানে গড়ে উঠছে আদর্শ হাফেজ ও সুনাগরিক।",
-              "The pride of Annoor Tahfizul Quran Madrasha is our distinguished scholars, teachers, and governing board who nurture students with care, profound knowledge, and mentorship."
+              `${settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা"}র গৌরব আমাদের প্রথিতযশা ওস্তাদবৃন্দ ও অভিজ্ঞ শিক্ষকমণ্ডলী। যাদের আন্তরিক স্নেহ, গভীর জ্ঞান ও সার্বক্ষণিক তত্ত্বাবধানে গড়ে উঠছে আদর্শ হাফেজ ও সুনাগরিক।`,
+              `The pride of ${settings.institution_name_en || "Annoor Tahfizul Quran Madrasha"} is our distinguished scholars, teachers, and governing board who nurture students with care, profound knowledge, and mentorship.`
             )}
           </motion.p>
 

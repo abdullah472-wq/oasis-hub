@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Lock, Mail, Loader2, ArrowLeft, Shield, Eye, EyeOff, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/lib/siteSettings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,7 @@ import { Label } from "@/components/ui/label";
 export const AdminLogin = () => {
   const { user, login } = useAuth();
   const { t } = useLanguage();
+  const { settings } = useSiteSettings();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("abdullahalmamon472@gmail.com");
@@ -91,16 +93,24 @@ export const AdminLogin = () => {
               className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center"
             >
               <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-primary to-emerald-600 opacity-20 blur-lg" />
-              <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl border border-white/20 bg-gradient-to-b from-primary to-emerald-800 text-primary-foreground shadow-xl shadow-primary/25">
-                <Shield className="h-9 w-9 stroke-[2.2]" />
-              </div>
+              {settings.logo_url ? (
+                <img
+                  src={settings.logo_url}
+                  alt={settings.institution_name_en || "Logo"}
+                  className="relative h-20 w-20 object-contain rounded-3xl p-2 bg-white/90 border border-white/20 shadow-xl shadow-primary/25"
+                />
+              ) : (
+                <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl border border-white/20 bg-gradient-to-b from-primary to-emerald-800 text-primary-foreground shadow-xl shadow-primary/25">
+                  <Shield className="h-9 w-9 stroke-[2.2]" />
+                </div>
+              )}
             </motion.div>
 
             <h1 className="font-bengali text-2xl font-bold tracking-tight text-foreground md:text-3xl">
               {t("অ্যাডমিন লগইন", "Admin Login")}
             </h1>
             <p className="mt-1.5 font-bengali text-xs text-muted-foreground">
-              {t("আননূর শিক্ষা পরিবার · সেন্ট্রাল সিএমএস পোর্টাল", "Annoor Education Family · Central CMS Portal")}
+              {settings.institution_name_bn || "আননূর শিক্ষা পরিবার"} · {t("সেন্ট্রাল সিএমএস পোর্টাল", "Central CMS Portal")}
             </p>
           </div>
 
@@ -199,7 +209,7 @@ export const AdminLogin = () => {
 
         {/* Footer info */}
         <p className="text-center font-bengali text-xs text-muted-foreground">
-          © {new Date().getFullYear()} {t("আননূর শিক্ষা পরিবার। সর্বস্বত্ব সংরক্ষিত।", "Annoor Education Family. All rights reserved.")}
+          © {new Date().getFullYear()} {settings.institution_name_bn || "আননূর শিক্ষা পরিবার"}। {t("সর্বস্বত্ব সংরক্ষিত।", "All rights reserved.")}
         </p>
       </motion.div>
     </div>

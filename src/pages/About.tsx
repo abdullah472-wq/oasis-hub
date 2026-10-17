@@ -24,6 +24,7 @@ import {
   Mail,
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/lib/siteSettings";
 import WaveDivider from "@/components/WaveDivider";
 import heroImg from "@/assets/hero-campus.jpg";
 import { springIn, springInDelay } from "@/lib/animations";
@@ -32,6 +33,7 @@ import { Button } from "@/components/ui/button";
 
 const About = () => {
   const { t, lang } = useLanguage();
+  const { settings } = useSiteSettings();
 
   const stats = [
     {
@@ -170,9 +172,15 @@ const About = () => {
 
   const campusFeatures = [
     {
-      campusName: t("প্রধান একাডেমিক ভবন (Main Academic Wing)", "Main Academic Wing"),
-      location: t("মেইন রোড, কলেজ রোড মোড়, কাপাসিয়া বাজার (সিঙ্গার শোরুম সংলগ্ন), কাপাসিয়া, গাজীপুর", "Main Road, College Road Mor, Kapasia Bazar (Near Singer Showroom), Kapasia, Gazipur"),
-      phone: "01820-811511, 01581-818368",
+      campusName: t(
+        `${settings.institution_name_bn || "প্রধান একাডেমিক ভবন"} (Main Academic Wing)`,
+        `${settings.institution_name_en || "Main Academic Wing"}`
+      ),
+      location: t(
+        settings.address_boys_campus_bn || "মেইন রোড, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর",
+        settings.address_boys_campus_en || "Main Road, Kapasia Bazar, Kapasia, Gazipur"
+      ),
+      phone: [settings.phone_primary, settings.phone_secondary].filter(Boolean).join(", ") || "01820-811511, 01581-818368",
       highlights: [
         t("নূরানী, নাজেরা ও হিফজুল কুরআন বিভাগ", "Nurani, Nazara & Hifz Sections"),
         t("জেনারেল আধুনিক প্রাথমিক শিক্ষা (প্লে — ৫ম)", "Modern General Primary (Play - Class 5)"),
@@ -183,8 +191,11 @@ const About = () => {
     },
     {
       campusName: t("আবাসিক ছাত্রাবাস ও সুবিধা (Boarding & Student Care)", "Boarding & Student Care"),
-      location: t("মাদরাসা ক্যাম্পাস সংলগ্ন নিজস্ব আবাসিক ভবন, কাপাসিয়া, গাজীপুর", "Campus residential building, Kapasia, Gazipur"),
-      phone: "01312-200043, 01820-811511",
+      location: t(
+        settings.address_girls_campus_bn || "মাদরাসা ক্যাম্পাস সংলগ্ন নিজস্ব আবাসিক ভবন, কাপাসিয়া, গাজীপুর",
+        settings.address_girls_campus_en || "Campus residential building, Kapasia, Gazipur"
+      ),
+      phone: "01312-200043, " + (settings.phone_primary || "01820-811511"),
       highlights: [
         t("স্বাস্থ্যসম্মত নিজস্ব ডাইনিং ও পুষ্টিকর ৩ বেলা খাবার", "In-house hygienic dining with nutritious meals"),
         t("সার্বক্ষণিক ওস্তাদগণের স্নেহময় তত্ত্বাবধান ও সান্নিধ্য", "24/7 caring supervision and direct teacher mentorship"),
@@ -208,7 +219,12 @@ const About = () => {
           <motion.div {...springIn} className="flex flex-wrap items-center justify-center gap-2 mb-6">
             <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/20 px-4 py-1.5 text-xs sm:text-sm font-semibold tracking-wide text-emerald-200 backdrop-blur-md">
               <Sparkles className="h-4 w-4 text-amber-300" />
-              <span>{t("স্থাপিত: ২০২১ খ্রি. | রেজি নং ৩৩৮/২০২২", "Est. 2021 | Govt Reg No: 338/2022")}</span>
+              <span>
+                {t(
+                  `স্থাপিত: ${settings.founding_year || "২০২১"} খ্রি. | রেজি নং ${settings.emis_code || "৩৩৮/২০২২"}`,
+                  `Est. ${settings.founding_year || "2021"} | Govt Reg No: ${settings.emis_code || "338/2022"}`
+                )}
+              </span>
             </span>
           </motion.div>
 
@@ -227,8 +243,8 @@ const About = () => {
             className="font-bengali text-lg sm:text-xl text-primary-foreground/90 max-w-3xl mx-auto leading-relaxed"
           >
             {t(
-              "আননূর তাহফিজুল কুরআন মাদ্রাসা — কুরআন-সুন্নাহর সঠিক দিকনির্দেশনা ও যুগোপযোগী আধুনিক শিক্ষার সমন্বয়ে এক অনন্য আদর্শ বিদ্যাপীঠ। গাজীপুরের কাপাসিয়ায় ২০২১ সাল থেকে আস্থার সাথে গড়ে তুলছি আগামীর চরিত্রবান নেতৃত্ব।",
-              "Annoor Tahfizul Quran Madrasa — A prestigious educational institution harmonizing authentic Quranic values with modern academic excellence in Kapasia, Gazipur since 2021.",
+              `${settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা"} — কুরআন-সুন্নাহর সঠিক দিকনির্দেশনা ও যুগোপযোগী আধুনিক শিক্ষার সমন্বয়ে এক অনন্য আদর্শ বিদ্যাপীঠ। গাজীপুরের কাপাসিয়ায় ${settings.founding_year || "২০২১"} সাল থেকে আস্থার সাথে গড়ে তুলছি আগামীর চরিত্রবান নেতৃত্ব।`,
+              `${settings.institution_name_en || "Annoor Tahfizul Quran Madrasa"} — A prestigious educational institution harmonizing authentic Quranic values with modern academic excellence in Kapasia, Gazipur since ${settings.founding_year || "2021"}.`
             )}
           </motion.p>
 

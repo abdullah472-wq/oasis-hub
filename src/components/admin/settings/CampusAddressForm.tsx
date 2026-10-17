@@ -3,6 +3,7 @@ import { Loader2, MapPin, Share2, Save, Globe } from "lucide-react";
 import { toast } from "sonner";
 import { supabase, logAdminActivity } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { broadcastSiteSettingsUpdated } from "@/lib/siteSettings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,6 +83,9 @@ export const CampusAddressForm = () => {
         .upsert(payload, { onConflict: "id" });
 
       if (error) throw error;
+
+      // Broadcast update across entire application in real-time
+      broadcastSiteSettingsUpdated(payload);
 
       await logAdminActivity(
         "UPDATE",

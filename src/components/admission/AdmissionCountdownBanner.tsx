@@ -16,6 +16,7 @@ import {
   Download,
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/lib/siteSettings";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -44,6 +45,7 @@ export const AdmissionCountdownBanner = ({
   compact = false,
 }: AdmissionCountdownBannerProps) => {
   const { t, language } = useLanguage();
+  const { settings } = useSiteSettings();
   const isBn = language === "bn";
 
   // Milestones
@@ -266,7 +268,7 @@ export const AdmissionCountdownBanner = ({
                 </Link>
 
                 <a
-                  href="tel:01820811511"
+                  href={`tel:${(settings.phone_primary || "01820811511").replace(/[^0-9]/g, "")}`}
                   className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/5 hover:bg-white/10 px-4 py-3 text-xs font-semibold text-white/90 font-bengali transition-colors"
                 >
                   <PhoneCall className="h-4 w-4 text-amber-400" />

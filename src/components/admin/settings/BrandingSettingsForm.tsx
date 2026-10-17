@@ -3,6 +3,7 @@ import { Loader2, UploadCloud, Sparkles, Image as ImageIcon, Save, Check, X } fr
 import { toast } from "sonner";
 import { supabase, uploadCmsFile, logAdminActivity } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { broadcastSiteSettingsUpdated } from "@/lib/siteSettings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -85,19 +86,21 @@ export const BrandingSettingsForm = () => {
         finalFaviconUrl = await uploadCmsFile("cms-branding", selectedFaviconFile, "favicons");
       }
 
+      const payload = {
+        id: 1,
+        logo_url: finalLogoUrl || null,
+        favicon_url: finalFaviconUrl || null,
+        updated_at: new Date().toISOString(),
+      };
+
       const { error } = await supabase
         .from("site_settings")
-        .upsert(
-          {
-            id: 1,
-            logo_url: finalLogoUrl || null,
-            favicon_url: finalFaviconUrl || null,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "id" }
-        );
+        .upsert(payload, { onConflict: "id" });
 
       if (error) throw error;
+
+      // Broadcast new logo and favicon across all components in real-time
+      broadcastSiteSettingsUpdated(payload);
 
       await logAdminActivity(
         "UPDATE",

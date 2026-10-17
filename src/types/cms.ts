@@ -116,6 +116,8 @@ export interface Achievement {
   created_at: string;
 }
 
+export type ReviewPlatform = "google" | "facebook" | "trustpilot" | "website";
+
 export interface Testimonial {
   id: string;
   author_name: string;
@@ -126,6 +128,7 @@ export interface Testimonial {
   rating: number;
   is_approved: boolean;
   created_at: string;
+  platform?: ReviewPlatform;
 }
 
 export interface SiteSettings {

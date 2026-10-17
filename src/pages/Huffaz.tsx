@@ -21,12 +21,14 @@ import {
   Users,
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/lib/siteSettings";
 import WaveDivider from "@/components/WaveDivider";
 import { springIn, springInDelay } from "@/lib/animations";
 import { getHuffazList, type HafezRecord } from "@/lib/huffaz";
 
 const Huffaz = () => {
   const { t, lang } = useLanguage();
+  const { settings } = useSiteSettings();
   const [huffaz, setHuffaz] = useState<HafezRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -435,8 +437,8 @@ const Huffaz = () => {
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {t(
-                  "আননূর তাহফিজুল কুরআন মাদরাসার হিফজ বিভাগে নতুন শিক্ষাবর্ষে সীমিত আসনে ভর্তি চলছে। অথবা কোনো সুবিধাবঞ্চিত শিক্ষার্থীকে হাফেজ বানাতে স্পন্সর করতে পারেন।",
-                  "Limited seats are open for new admissions in our Hifz department. You can also sponsor an underprivileged child's Hifz journey."
+                  `${settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা"}র হিফজ বিভাগে নতুন শিক্ষাবর্ষে সীমিত আসনে ভর্তি চলছে। অথবা কোনো সুবিধাবঞ্চিত শিক্ষার্থীকে হাফেজ বানাতে স্পন্সর করতে পারেন।`,
+                  `Limited seats are open for new admissions in ${settings.institution_name_en || "Annoor Tahfizul Quran Madrasha"} Hifz department. You can also sponsor an underprivileged child's Hifz journey.`
                 )}
               </p>
             </div>

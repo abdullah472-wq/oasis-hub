@@ -84,19 +84,24 @@ const Contact = () => {
       general: "সাধারণ জিজ্ঞাসা (General Inquiry)",
     };
 
-    const text = `*আননূর তাহফিজুল কুরআন মাদরাসা - অনলাইন যোগাযোগ বার্তা*\n\n` +
+    const text = `*${settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা"} - অনলাইন যোগাযোগ বার্তা*\n\n` +
       `👤 *নাম:* ${formData.name}\n` +
       `📱 *মোবাইল:* ${formData.phone}\n` +
       (formData.email ? `✉️ *ইমেইল:* ${formData.email}\n` : "") +
-      `🏛️ *প্রতিষ্ঠান:* আননূর তাহফিজুল কুরআন মাদরাসা (কাপাসিয়া বাজার)\n` +
+      `🏛️ *প্রতিষ্ঠান:* ${settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা"}\n` +
       `📌 *বিষয়:* ${subjectMap[formData.subject] || formData.subject}\n\n` +
       `💬 *বার্তা:* \n${formData.message}\n\n` +
       `_ওয়েবসাইট অনলাইন যোগাযোগ ফর্ম থেকে প্রেরিত_`;
 
-    const whatsappUrl = `https://wa.me/8801820811511?text=${encodeURIComponent(text)}`;
+    const rawWa = (settings.whatsapp_number || settings.phone_primary || "01820811511").replace(/[^0-9]/g, "");
+    const cleanWa = rawWa.startsWith("88") ? rawWa : `88${rawWa}`;
+    const whatsappUrl = `https://wa.me/${cleanWa}?text=${encodeURIComponent(text)}`;
     window.open(whatsappUrl, "_blank");
     setSubmitted(true);
   };
+
+  const rawQuickWa = (settings.whatsapp_number || settings.phone_primary || "01820811511").replace(/[^0-9]/g, "");
+  const cleanQuickWa = rawQuickWa.startsWith("88") ? rawQuickWa : `88${rawQuickWa}`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -118,29 +123,29 @@ const Contact = () => {
 
             <p className="mx-auto max-w-2xl font-bengali text-sm text-emerald-100/90 sm:text-base leading-relaxed">
               {t(
-                "আননূর তাহফিজুল কুরআন মাদরাসার অবস্থান, দায়িত্বশীল কর্মকর্তা, যোগাযোগ নম্বর ও সরাসরি দিকনির্দেশনা।",
-                "Official contact numbers, principal and management helplines, bank details, and campus location of Annoor Tahfizul Quran Madrasa."
+                `${settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা"}র অবস্থান, দায়িত্বশীল কর্মকর্তা, যোগাযোগ নম্বর ও সরাসরি দিকনির্দেশনা।`,
+                `Official contact numbers, principal and management helplines, bank details, and campus location of ${settings.institution_name_en || "Annoor Tahfizul Quran Madrasa"}.`
               )}
             </p>
 
             {/* Quick Badges */}
             <div className="pt-4 flex flex-wrap items-center justify-center gap-3">
               <a
-                href="tel:01820811511"
+                href={`tel:${(settings.phone_primary || "01820811511").replace(/[^0-9]/g, "")}`}
                 className="flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 border border-white/10 backdrop-blur-sm text-xs font-medium text-emerald-50 hover:bg-white/20 transition-colors"
               >
                 <Phone className="h-4 w-4 text-accent" />
-                <span>{t("প্রধান শিক্ষক:", "Principal:")} 01820-811511</span>
+                <span>{t("হটলাইন:", "Hotline:")} {settings.phone_primary || "01820-811511"}</span>
               </a>
               <a
-                href="tel:01581818368"
+                href={`tel:${(settings.phone_secondary || "01581818368").replace(/[^0-9]/g, "")}`}
                 className="flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 border border-white/10 backdrop-blur-sm text-xs font-medium text-emerald-50 hover:bg-white/20 transition-colors"
               >
                 <Phone className="h-4 w-4 text-sky-300" />
-                <span>{t("ম্যানেজার:", "Manager:")} 01581-818368</span>
+                <span>{t("অফিস:", "Office:")} {settings.phone_secondary || "01581-818368"}</span>
               </a>
               <a
-                href="https://wa.me/8801820811511"
+                href={`https://wa.me/${cleanQuickWa}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-xl bg-[#25D366]/20 px-4 py-2 border border-[#25D366]/40 backdrop-blur-sm text-xs font-medium text-white hover:bg-[#25D366]/30 transition-colors"
@@ -195,17 +200,17 @@ const Contact = () => {
               </p>
               <div className="space-y-2 pt-2 border-t border-border/50">
                 <a
-                  href="tel:01820811511"
+                  href={`tel:${(settings.phone_primary || "01820811511").replace(/[^0-9]/g, "")}`}
                   className="flex items-center justify-between p-2.5 rounded-xl bg-muted/50 hover:bg-primary/10 text-xs font-semibold text-foreground hover:text-primary transition-colors"
                 >
                   <span className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-primary" />
-                    <span>01820-811511</span>
+                    <span>{settings.phone_primary || "01820-811511"}</span>
                   </span>
                   <span className="text-[11px] text-muted-foreground">{t("কল করুন", "Call")}</span>
                 </a>
                 <a
-                  href="https://wa.me/8801820811511"
+                  href={whatsAppUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between p-2.5 rounded-xl bg-[#25D366]/10 hover:bg-[#25D366]/20 text-xs font-semibold text-[#128C7E] transition-colors"
@@ -247,25 +252,27 @@ const Contact = () => {
               </p>
               <div className="space-y-2 pt-2 border-t border-border/50">
                 <a
-                  href="tel:01312200043"
+                  href={`tel:${(settings.phone_secondary || "01581818368").replace(/[^0-9]/g, "")}`}
                   className="flex items-center justify-between p-2.5 rounded-xl bg-muted/50 hover:bg-sky-500/10 text-xs font-semibold text-foreground hover:text-sky-600 transition-colors"
                 >
                   <span className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-sky-600" />
-                    <span>01312-200043</span>
+                    <span>{settings.phone_secondary || "01581-818368"}</span>
                   </span>
                   <span className="text-[11px] text-muted-foreground">{t("কল করুন", "Call")}</span>
                 </a>
-                <a
-                  href="tel:01581818368"
-                  className="flex items-center justify-between p-2.5 rounded-xl bg-muted/50 hover:bg-sky-500/10 text-xs font-semibold text-foreground hover:text-sky-600 transition-colors"
-                >
-                  <span className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-sky-600" />
-                    <span>01581-818368</span>
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">{t("বিকল্প", "Alt")}</span>
-                </a>
+                {settings.phone_primary && (
+                  <a
+                    href={`tel:${settings.phone_primary.replace(/[^0-9]/g, "")}`}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-muted/50 hover:bg-sky-500/10 text-xs font-semibold text-foreground hover:text-sky-600 transition-colors"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-sky-600" />
+                      <span>{settings.phone_primary}</span>
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">{t("বিকল্প", "Alt")}</span>
+                  </a>
+                )}
               </div>
             </motion.div>
 
@@ -297,12 +304,12 @@ const Contact = () => {
               </p>
               <div className="space-y-2 pt-2 border-t border-border/50">
                 <a
-                  href="mailto:abdullahalmamon472@gmail.com"
+                  href={`mailto:${settings.email_primary || "abdullahalmamon472@gmail.com"}`}
                   className="flex items-center justify-between p-2.5 rounded-xl bg-muted/50 hover:bg-amber-500/10 text-xs font-semibold text-foreground hover:text-amber-700 transition-colors"
                 >
                   <span className="flex items-center gap-2 truncate">
                     <Mail className="h-4 w-4 text-amber-600 shrink-0" />
-                    <span className="truncate">abdullahalmamon472@gmail.com</span>
+                    <span className="truncate">{settings.email_primary || "abdullahalmamon472@gmail.com"}</span>
                   </span>
                   <span className="text-[11px] shrink-0 text-muted-foreground">{t("ইমেইল", "Mail")}</span>
                 </a>
@@ -344,7 +351,10 @@ const Contact = () => {
                   </span>
                 </div>
                 <h3 className="font-bengali text-2xl sm:text-3xl font-bold text-foreground">
-                  {t("আননূর তাহফিজুল কুরআন মাদরাসা", "Annoor Tahfizul Quran Madrasa")}
+                  {t(
+                    settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা",
+                    settings.institution_name_en || "Annoor Tahfizul Quran Madrasa"
+                  )}
                 </h3>
                 <p className="font-bengali text-xs sm:text-sm text-muted-foreground mt-1.5">
                   {t(
@@ -385,10 +395,10 @@ const Contact = () => {
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground">{t("ঠিকানা ও অবস্থান:", "Location:")}</p>
                     <p className="text-sm font-bold text-foreground mt-0.5">
-                      {t("মেইন রোড, কলেজ রোড মোড়, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর।", "Main Road, College Road Mor, Kapasia Bazar, Kapasia, Gazipur.")}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {t(madrasaAddress, settings.address_boys_campus_en || madrasaAddress)}
+                      {t(
+                        settings.address_boys_campus_bn || "মেইন রোড, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর।",
+                        settings.address_boys_campus_en || "Main Road, Kapasia Bazar, Kapasia, Gazipur."
+                      )}
                     </p>
                   </div>
                 </div>
@@ -500,7 +510,7 @@ const Contact = () => {
 
               <div className="flex items-center gap-3 pt-2 text-xs font-bengali text-muted-foreground">
                 <span className="font-semibold text-foreground">{t("বিকাশ / নগদ হেল্পলাইন:", "Bkash / Nagad:")}</span>
-                <span className="font-mono font-medium">01820811511, 01581818368</span>
+                <span className="font-mono font-medium">{[settings.phone_primary, settings.phone_secondary].filter(Boolean).join(", ") || "01820811511, 01581818368"}</span>
               </div>
             </motion.div>
 
@@ -672,7 +682,7 @@ const Contact = () => {
                       {t("নতুন বার্তা লিখুন", "Write Another Message")}
                     </Button>
                     <a
-                      href="https://wa.me/8801820811511"
+                      href={whatsAppUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#25D366] text-white font-bengali text-xs font-semibold hover:bg-[#128C7E] transition-colors"
@@ -781,7 +791,7 @@ const Contact = () => {
                       <span>{t("হোয়াটসঅ্যাপে তাৎক্ষণিক পাঠান", "Send via WhatsApp")}</span>
                     </Button>
                     <a
-                      href="tel:01820811511"
+                      href={`tel:${(settings.phone_primary || "01820811511").replace(/[^0-9]/g, "")}`}
                       className="w-full sm:w-auto h-12 px-5 rounded-xl border border-border/80 hover:bg-muted font-bengali text-xs font-semibold flex items-center justify-center gap-2 text-foreground transition-colors"
                     >
                       <Phone className="h-4 w-4 text-primary" />

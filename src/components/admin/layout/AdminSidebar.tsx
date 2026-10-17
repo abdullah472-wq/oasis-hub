@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/lib/siteSettings";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -133,6 +134,7 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   const location = useLocation();
   const { profile, logout } = useAuth();
   const { t } = useLanguage();
+  const { settings } = useSiteSettings();
 
   return (
     <>
@@ -152,22 +154,30 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
       >
         {/* Brand Header */}
         <div className="flex h-20 items-center justify-between border-b border-border/70 px-6">
-          <Link to="/admin/dashboard" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
-              <span className="font-display text-xl font-bold">নূর</span>
-            </div>
-            <div>
-              <h2 className="font-display text-base font-bold leading-tight text-foreground">
-                {t("আননূর সিএমএস", "Annoor CMS")}
+          <Link to="/admin/dashboard" className="flex items-center gap-3 min-w-0">
+            {settings.logo_url ? (
+              <img
+                src={settings.logo_url}
+                alt="Logo"
+                className="h-10 w-10 shrink-0 object-contain rounded-xl"
+              />
+            ) : (
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
+                <span className="font-display text-xl font-bold">নূর</span>
+              </div>
+            )}
+            <div className="min-w-0 truncate">
+              <h2 className="font-bengali text-sm font-bold leading-tight text-foreground truncate">
+                {settings.institution_name_bn || t("আননূর সিএমএস", "Annoor CMS")}
               </h2>
-              <p className="font-bengali text-xs text-muted-foreground">
-                {t("ইনস্টিটিউশন পোর্টাল", "Institution Portal")}
+              <p className="font-bengali text-[11px] text-muted-foreground truncate">
+                {settings.institution_name_en || t("ইনস্টিটিউশন পোর্টাল", "Institution Portal")}
               </p>
             </div>
           </Link>
           <button
             onClick={onClose}
-            className="rounded-xl p-2 text-muted-foreground hover:bg-secondary lg:hidden"
+            className="rounded-xl p-2 text-muted-foreground hover:bg-secondary lg:hidden shrink-0"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />

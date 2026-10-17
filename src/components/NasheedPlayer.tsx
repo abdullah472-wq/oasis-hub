@@ -53,7 +53,7 @@ export const NasheedPlayer = () => {
     };
   }, [isExpanded]);
 
-  // Autoplay handler on site entrance + one-time gesture fallback
+  // Autoplay handler on site entrance + robust user gesture fallback
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -61,47 +61,56 @@ export const NasheedPlayer = () => {
     audio.volume = isMuted ? 0 : volume;
     audio.loop = true;
 
-    // If user explicitly paused during this session, don't force autoplay
-    const isManuallyPaused = sessionStorage.getItem("annoor_nasheed_paused") === "true";
-    if (isManuallyPaused) {
-      return;
-    }
+    // Reset session paused flag so fresh reloads/visits always attempt autoplay
+    sessionStorage.removeItem("annoor_nasheed_paused");
+
+    let isStarted = false;
 
     const startPlaying = () => {
-      if (!audioRef.current) return;
+      if (isStarted || !audioRef.current) return;
+
       const playPromise = audioRef.current.play();
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
+            isStarted = true;
             setIsPlaying(true);
             cleanupListeners();
           })
           .catch(() => {
-            // Autoplay waiting for first user gesture
+            // Browser autoplay policy blocked unmuted sound; waiting for first interaction
             setIsPlaying(false);
           });
       }
     };
 
-    const handleFirstUserGesture = () => {
+    const handleUserInteraction = () => {
       startPlaying();
     };
 
     const cleanupListeners = () => {
-      window.removeEventListener("click", handleFirstUserGesture);
-      window.removeEventListener("touchstart", handleFirstUserGesture);
-      window.removeEventListener("scroll", handleFirstUserGesture);
-      window.removeEventListener("keydown", handleFirstUserGesture);
+      document.removeEventListener("pointerdown", handleUserInteraction);
+      document.removeEventListener("click", handleUserInteraction);
+      document.removeEventListener("touchstart", handleUserInteraction);
+      document.removeEventListener("keydown", handleUserInteraction);
+      window.removeEventListener("pointerdown", handleUserInteraction);
+      window.removeEventListener("click", handleUserInteraction);
+      window.removeEventListener("touchstart", handleUserInteraction);
+      window.removeEventListener("keydown", handleUserInteraction);
     };
 
-    // 1. Try immediate autoplay
+    // 1. Try immediate unmuted autoplay (succeeds if browser allows or MEI is high)
     startPlaying();
 
-    // 2. Attach one-time listeners in case browser blocks immediate audio before interaction
-    window.addEventListener("click", handleFirstUserGesture, { once: true });
-    window.addEventListener("touchstart", handleFirstUserGesture, { once: true, passive: true });
-    window.addEventListener("scroll", handleFirstUserGesture, { once: true, passive: true });
-    window.addEventListener("keydown", handleFirstUserGesture, { once: true });
+    // 2. Attach global user activation listeners - any click, tap or key will trigger audio
+    document.addEventListener("pointerdown", handleUserInteraction);
+    document.addEventListener("click", handleUserInteraction);
+    document.addEventListener("touchstart", handleUserInteraction, { passive: true });
+    document.addEventListener("keydown", handleUserInteraction);
+    window.addEventListener("pointerdown", handleUserInteraction);
+    window.addEventListener("click", handleUserInteraction);
+    window.addEventListener("touchstart", handleUserInteraction, { passive: true });
+    window.addEventListener("keydown", handleUserInteraction);
 
     return () => {
       cleanupListeners();
@@ -114,9 +123,7 @@ export const NasheedPlayer = () => {
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
-      sessionStorage.setItem("annoor_nasheed_paused", "true");
     } else {
-      sessionStorage.removeItem("annoor_nasheed_paused");
       audioRef.current
         .play()
         .then(() => setIsPlaying(true))
@@ -163,6 +170,9 @@ export const NasheedPlayer = () => {
         src="/audio/annoor.mp4"
         preload="auto"
         loop={true}
+        playsInline
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={() => {
@@ -175,7 +185,10 @@ export const NasheedPlayer = () => {
         onError={(e) => {
           console.warn("Audio load error:", e);
         }}
-      />
+      >
+        <source src="/audio/annoor.mp4" type="audio/mp4" />
+        <source src="/audio/annoor.m4a" type="audio/mp4" />
+      </audio>
 
       {/* Floating Container (Bottom-Left) with Outside-Click ref */}
       <div

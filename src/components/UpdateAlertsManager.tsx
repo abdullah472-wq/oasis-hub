@@ -3,6 +3,7 @@ import { collection, limit, onSnapshot, orderBy, query } from "firebase/firestor
 import { BellRing, BellOff } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/lib/siteSettings";
 import { db } from "@/lib/firebase";
 
 type AlertKind = "notice" | "result" | "event";
@@ -26,6 +27,7 @@ interface UpdateAlertsManagerProps {
 
 const UpdateAlertsManager = ({ className = "" }: UpdateAlertsManagerProps) => {
   const { lang, t } = useLanguage();
+  const { settings } = useSiteSettings();
   const [enabled, setEnabled] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">(() => {
     if (typeof window === "undefined" || !("Notification" in window)) {
@@ -151,8 +153,8 @@ const UpdateAlertsManager = ({ className = "" }: UpdateAlertsManagerProps) => {
           if (typeof window !== "undefined" && document.visibilityState !== "visible" && "Notification" in window) {
             const notification = new Notification(title, {
               body,
-              icon: "/site-logo.png",
-              badge: "/site-logo.png",
+              icon: settings.logo_url || "/site-logo.png",
+              badge: settings.logo_url || "/site-logo.png",
               tag: `oasis-${kind}-${createdAt}`,
             });
 

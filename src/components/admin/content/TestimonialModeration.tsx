@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { supabase, logAdminActivity } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Testimonial } from "@/types/cms";
+import { parsePlatformAndRelation, formatPlatformAndRelation, type ReviewPlatform } from "@/lib/reviews";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -60,7 +61,16 @@ export const TestimonialModeration = () => {
   const [deletingItem, setDeletingItem] = useState<Testimonial | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    author_name: string;
+    relation_title_bn: string;
+    relation_title_en: string;
+    review_text_bn: string;
+    review_text_en: string;
+    rating: number;
+    is_approved: boolean;
+    platform: ReviewPlatform;
+  }>({
     author_name: "",
     relation_title_bn: "অভিভাবক",
     relation_title_en: "Guardian",
@@ -68,6 +78,7 @@ export const TestimonialModeration = () => {
     review_text_en: "",
     rating: 5,
     is_approved: true,
+    platform: "google",
   });
 
   const fetchTestimonials = async () => {
@@ -79,7 +90,14 @@ export const TestimonialModeration = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setTestimonials((data as Testimonial[]) || []);
+      const parsedData = ((data as Testimonial[]) || []).map((row) => {
+        const parsed = parsePlatformAndRelation(row.relation_title_en, row.relation_title_bn);
+        return {
+          ...row,
+          platform: parsed.platform,
+        };
+      });
+      setTestimonials(parsedData);
     } catch (err: any) {
       console.error("Error fetching testimonials:", err);
       toast.error(t("রিভিউ তালিকা লোড করতে সমস্যা হয়েছে", "Failed to load testimonials"));
@@ -151,14 +169,16 @@ export const TestimonialModeration = () => {
   const handleOpenDialog = (item?: Testimonial) => {
     if (item) {
       setSelectedItem(item);
+      const parsed = parsePlatformAndRelation(item.relation_title_en, item.relation_title_bn);
       setFormData({
         author_name: item.author_name,
         relation_title_bn: item.relation_title_bn,
-        relation_title_en: item.relation_title_en || "",
+        relation_title_en: parsed.relationEn,
         review_text_bn: item.review_text_bn,
         review_text_en: item.review_text_en || "",
         rating: item.rating || 5,
         is_approved: item.is_approved,
+        platform: parsed.platform,
       });
     } else {
       setSelectedItem(null);
@@ -170,6 +190,7 @@ export const TestimonialModeration = () => {
         review_text_en: "",
         rating: 5,
         is_approved: true,
+        platform: "google",
       });
     }
     setIsDialogOpen(true);
@@ -185,10 +206,11 @@ export const TestimonialModeration = () => {
 
     try {
       setSubmitting(true);
+      const relationEnFormatted = formatPlatformAndRelation(formData.platform, formData.relation_title_en);
       const payload = {
         author_name: formData.author_name.trim(),
         relation_title_bn: formData.relation_title_bn.trim(),
-        relation_title_en: formData.relation_title_en.trim() || null,
+        relation_title_en: relationEnFormatted,
         review_text_bn: formData.review_text_bn.trim(),
         review_text_en: formData.review_text_en.trim() || null,
         rating: Number(formData.rating) || 5,
@@ -363,17 +385,37 @@ export const TestimonialModeration = () => {
                     ))}
                   </div>
 
-                  {item.is_approved ? (
-                    <Badge className="bg-emerald-500/10 text-emerald-600 gap-1">
-                      <CheckCircle2 className="h-3 w-3" />
-                      {t("অনুমোদিত", "Approved")}
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-amber-500/20 text-amber-700 gap-1 animate-pulse">
-                      <XCircle className="h-3 w-3" />
-                      {t("অপেক্ষমান", "Pending")}
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {item.platform === "facebook" ? (
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-semibold py-0.5">
+                        Facebook
+                      </Badge>
+                    ) : item.platform === "trustpilot" ? (
+                      <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-300 text-[10px] font-semibold py-0.5">
+                        Trustpilot
+                      </Badge>
+                    ) : item.platform === "website" ? (
+                      <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300 text-[10px] font-semibold py-0.5">
+                        Website
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-[10px] font-semibold py-0.5">
+                        Google Review
+                      </Badge>
+                    )}
+
+                    {item.is_approved ? (
+                      <Badge className="bg-emerald-500/10 text-emerald-600 gap-1 text-[10px]">
+                        <CheckCircle2 className="h-3 w-3" />
+                        {t("অনুমোদিত", "Approved")}
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-amber-500/20 text-amber-700 gap-1 animate-pulse text-[10px]">
+                        <XCircle className="h-3 w-3" />
+                        {t("অপেক্ষমান", "Pending")}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
 
                 <p className="text-xs text-foreground/90 italic line-clamp-4 leading-relaxed bg-muted/30 p-2.5 rounded-lg border border-border/40">
@@ -475,23 +517,41 @@ export const TestimonialModeration = () => {
               </div>
 
               <div className="space-y-1.5">
-                <Label>{t("রেটিং (স্টার)", "Rating")}</Label>
+                <Label>{t("প্ল্যাটফর্ম উৎস", "Review Platform")}</Label>
                 <Select
-                  value={formData.rating.toString()}
-                  onValueChange={(val) => setFormData({ ...formData, rating: Number(val) })}
+                  value={formData.platform}
+                  onValueChange={(val: ReviewPlatform) => setFormData({ ...formData, platform: val })}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="5">★★★★★ (5 Stars)</SelectItem>
-                    <SelectItem value="4">★★★★☆ (4 Stars)</SelectItem>
-                    <SelectItem value="3">★★★☆☆ (3 Stars)</SelectItem>
-                    <SelectItem value="2">★★☆☆☆ (2 Stars)</SelectItem>
-                    <SelectItem value="1">★☆☆☆☆ (1 Star)</SelectItem>
+                    <SelectItem value="google">🔴 Google Reviews</SelectItem>
+                    <SelectItem value="facebook">🔵 Facebook Recommends</SelectItem>
+                    <SelectItem value="trustpilot">🟢 Trustpilot</SelectItem>
+                    <SelectItem value="website">🌐 Website (সরাসরি)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>{t("রেটিং (স্টার)", "Rating")}</Label>
+              <Select
+                value={formData.rating.toString()}
+                onValueChange={(val) => setFormData({ ...formData, rating: Number(val) })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">★★★★★ (5 Stars)</SelectItem>
+                  <SelectItem value="4">★★★★☆ (4 Stars)</SelectItem>
+                  <SelectItem value="3">★★★☆☆ (3 Stars)</SelectItem>
+                  <SelectItem value="2">★★☆☆☆ (2 Stars)</SelectItem>
+                  <SelectItem value="1">★☆☆☆☆ (1 Star)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-1.5">

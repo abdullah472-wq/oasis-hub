@@ -14,12 +14,12 @@ const WhatsAppFAB = () => {
   const { settings } = useSiteSettings();
   const [isHovered, setIsHovered] = useState(false);
 
-  const rawPhone = (settings.whatsapp_number || "01581818368").replace(/[^0-9]/g, "");
+  const rawPhone = (settings.whatsapp_number || settings.phone_primary || "01581818368").replace(/[^0-9]/g, "");
   const phone = rawPhone.startsWith("88") ? rawPhone : `88${rawPhone}`;
   const greeting = encodeURIComponent(
     t(
-      "আসসালামু আলাইকুম, আননূর তাহফিজুল কুরআন মাদরাসা সম্পর্কে কিছু তথ্য জানতে চাই।",
-      "Assalamu Alaikum, I would like to inquire about Annoor Tahfizul Quran Madrasa."
+      `আসসালামু আলাইকুম, ${settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা"} সম্পর্কে কিছু তথ্য জানতে চাই।`,
+      `Assalamu Alaikum, I would like to inquire about ${settings.institution_name_en || "Annoor Tahfizul Quran Madrasa"}.`
     )
   );
   const whatsappUrl = `https://wa.me/${phone}?text=${greeting}`;

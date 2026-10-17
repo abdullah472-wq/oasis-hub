@@ -28,6 +28,8 @@ export const defaultSiteSettings: SiteSettings = {
   updated_at: new Date().toISOString(),
 };
 
+export const SETTINGS_UPDATED_EVENT = "oasis_site_settings_updated";
+
 export function getCachedSiteSettings(): SiteSettings {
   if (typeof window === "undefined") return defaultSiteSettings;
   try {
@@ -40,15 +42,31 @@ export function getCachedSiteSettings(): SiteSettings {
   }
 }
 
-export function saveSiteSettingsToCache(settings: Partial<SiteSettings>): void {
-  if (typeof window === "undefined") return;
-  try {
-    const current = getCachedSiteSettings();
-    const updated = { ...current, ...settings, updated_at: new Date().toISOString() };
-    localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(updated));
-  } catch (err) {
-    console.warn("Failed to cache site settings:", err);
+export function saveSiteSettingsToCache(settings: Partial<SiteSettings>): SiteSettings {
+  const current = getCachedSiteSettings();
+  const updated = { ...current, ...settings, updated_at: new Date().toISOString() };
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(updated));
+    } catch (err) {
+      console.warn("Failed to cache site settings:", err);
+    }
   }
+  return updated;
+}
+
+/**
+ * Broadcast settings update across all open components and browser tabs.
+ */
+export function broadcastSiteSettingsUpdated(settings: Partial<SiteSettings>): SiteSettings {
+  const merged = saveSiteSettingsToCache(settings);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(SETTINGS_UPDATED_EVENT, { detail: merged }));
+    try {
+      localStorage.setItem("oasis_settings_sync_trigger", Date.now().toString());
+    } catch {}
+  }
+  return merged;
 }
 
 export async function fetchSiteSettings(): Promise<SiteSettings> {
@@ -83,7 +101,7 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
 }
 
 /**
- * React hook to access institutional settings across public pages.
+ * React hook to access institutional settings across all public & admin pages in real-time.
  */
 export function useSiteSettings(): { settings: SiteSettings; loading: boolean } {
   const [settings, setSettings] = useState<SiteSettings>(getCachedSiteSettings);
@@ -91,6 +109,27 @@ export function useSiteSettings(): { settings: SiteSettings; loading: boolean } 
 
   useEffect(() => {
     let mounted = true;
+
+    const handleSync = () => {
+      if (mounted) {
+        const latest = getCachedSiteSettings();
+        setSettings(latest);
+
+        // Update favicon dynamically if customized
+        if (latest.favicon_url && typeof document !== "undefined") {
+          let faviconLink = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
+          if (!faviconLink) {
+            faviconLink = document.createElement("link");
+            faviconLink.rel = "icon";
+            document.getElementsByTagName("head")[0].appendChild(faviconLink);
+          }
+          faviconLink.href = latest.favicon_url;
+        }
+      }
+    };
+
+    window.addEventListener(SETTINGS_UPDATED_EVENT, handleSync);
+    window.addEventListener("storage", handleSync);
 
     void (async () => {
       const remote = await fetchSiteSettings();
@@ -102,6 +141,8 @@ export function useSiteSettings(): { settings: SiteSettings; loading: boolean } 
 
     return () => {
       mounted = false;
+      window.removeEventListener(SETTINGS_UPDATED_EVENT, handleSync);
+      window.removeEventListener("storage", handleSync);
     };
   }, []);
 

@@ -72,17 +72,20 @@ const Footer = () => {
             </span>
             <span className="hidden sm:inline text-white/40">•</span>
             <span className="text-white/80">
-              {t("মেইন রোড, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর", "Main Road, Kapasia Bazar, Kapasia, Gazipur")}
+              {t(
+                settings.address_boys_campus_bn || "মেইন রোড, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর",
+                settings.address_boys_campus_en || "Main Road, Kapasia Bazar, Kapasia, Gazipur"
+              )}
             </span>
           </div>
 
           <div className="flex items-center gap-4">
             <a
-              href="tel:01820811511"
+              href={`tel:${hotline.replace(/[^0-9]/g, "")}`}
               className="group flex items-center gap-1.5 font-medium text-emerald-200 transition-colors hover:text-white"
             >
               <Phone className="h-3.5 w-3.5 text-accent transition-transform group-hover:scale-110" />
-              <span>০১৮২০-৮১১৫১১</span>
+              <span>{hotline}</span>
             </a>
             <span className="text-white/30">|</span>
             <Link
@@ -106,7 +109,7 @@ const Footer = () => {
               <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-accent/40 bg-white/10 p-1 shadow-lg shadow-emerald-950/40 backdrop-blur-md">
                 <img
                   src={siteLogo}
-                  alt="Annoor Education Family logo"
+                  alt={settings.institution_name_en || "Institution Logo"}
                   className="h-full w-full object-contain"
                   loading="lazy"
                   decoding="async"
@@ -114,10 +117,16 @@ const Footer = () => {
               </div>
               <div>
                 <h3 className="font-bengali text-xl font-bold tracking-tight text-white drop-shadow-sm">
-                  {t("আননূর তাহফিজুল কুরআন মাদ্রাসা", "Annoor Tahfizul Quran Madrasa")}
+                  {t(
+                    settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা",
+                    settings.institution_name_en || "Annoor Tahfizul Quran Madrasa"
+                  )}
                 </h3>
                 <p className="font-bengali text-xs font-medium text-accent">
-                  {t("প্রতিষ্ঠিত: ২০২১ • কাপাসিয়া, গাজীপুর", "Est. 2021 • Kapasia, Gazipur")}
+                  {t(
+                    `প্রতিষ্ঠিত: ${settings.founding_year || "২০২১"} • কাপাসিয়া, গাজীপুর`,
+                    `Est. ${settings.founding_year || "2021"} • Kapasia, Gazipur`
+                  )}
                 </p>
               </div>
             </div>
@@ -293,10 +302,10 @@ const Footer = () => {
                     </span>
                   </div>
                   <a
-                    href="tel:01820811511"
+                    href={`tel:${(settings.phone_primary || "01820811511").replace(/[^0-9]/g, "")}`}
                     className="font-mono font-bold text-accent hover:underline"
                   >
-                    01820-811511
+                    {settings.phone_primary || "01820-811511"}
                   </a>
                 </div>
 
@@ -317,10 +326,10 @@ const Footer = () => {
                       01312200043
                     </a>
                     <a
-                      href="tel:01581818368"
+                      href={`tel:${(settings.phone_secondary || "01581818368").replace(/[^0-9]/g, "")}`}
                       className="block font-mono text-[11px] text-emerald-200/80 hover:underline"
                     >
-                      01581-818368
+                      {settings.phone_secondary || "01581-818368"}
                     </a>
                   </div>
                 </div>

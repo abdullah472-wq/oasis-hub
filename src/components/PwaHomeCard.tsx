@@ -3,13 +3,13 @@ import { CalendarDays, GraduationCap, PhoneCall, ReceiptText } from "lucide-reac
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/lib/siteSettings";
 import { getEvents, type Event } from "@/lib/events";
 import { getNotices, type Notice } from "@/lib/notices";
 
-const SUPPORT_PHONE = "8801581818368";
-
 const PwaHomeCard = () => {
   const { lang, t } = useLanguage();
+  const { settings } = useSiteSettings();
   const [isStandalone, setIsStandalone] = useState(false);
   const [latestNotice, setLatestNotice] = useState<Notice | null>(null);
   const [nextEvent, setNextEvent] = useState<Event | null>(null);
@@ -108,9 +108,9 @@ const PwaHomeCard = () => {
               </p>
             </div>
             <a
-              href={`tel:+${SUPPORT_PHONE}`}
+              href={`tel:${(settings.phone_secondary || settings.phone_primary || "01820811511").replace(/[^0-9]/g, "")}`}
               className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:scale-105"
-              aria-label={t("\u09ab\u09cb\u09a8 \u0995\u09b0\u09c1\u09a8", "Call now")}
+              aria-label={t("ফোন করুন", "Call now")}
             >
               <PhoneCall className="h-5 w-5" />
             </a>

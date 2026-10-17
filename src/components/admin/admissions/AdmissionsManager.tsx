@@ -61,9 +61,11 @@ import {
   CLASS_NAME_OPTIONS,
 } from "@/lib/admission";
 import { AdmissionEditDialog } from "./AdmissionEditDialog";
+import { useSiteSettings } from "@/lib/siteSettings";
 
 export const AdmissionsManager = () => {
   const { t, lang } = useLanguage();
+  const { settings } = useSiteSettings();
   const [admissions, setAdmissions] = useState<AdmissionForm[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -590,16 +592,20 @@ export const AdmissionsManager = () => {
               {/* Slip Header */}
               <div className="flex items-center justify-between border-b-2 border-slate-900 pb-4">
                 <div className="flex items-center gap-3">
-                  <img src="/site-logo.png" alt="Logo" className="h-16 w-16 object-contain" />
+                  <img
+                    src={settings.logo_url || "/site-logo.png"}
+                    alt={settings.institution_name_en || "Madrasa Logo"}
+                    className="h-16 w-16 object-contain"
+                  />
                   <div>
                     <h2 className="font-bengali text-xl font-black text-slate-900">
-                      আননূর শিক্ষা পরিবার
+                      {settings.institution_name_bn}
                     </h2>
                     <p className="text-xs text-slate-600 font-bengali">
-                      হিফজুল কুরআন ও আধুনিক সমন্বিত ইসলামিক শিক্ষাকেন্দ্র
+                      {settings.institution_name_en}
                     </p>
                     <p className="text-[11px] text-slate-500 font-mono">
-                      সরকারি রেজি নং: ৩৩৮/২০২২ | কাপাসিয়া, গাজীপুর
+                      {settings.emis_code ? `সরকারি রেজি নং: ${settings.emis_code} | ` : ""}{settings.address_boys_campus_bn}
                     </p>
                   </div>
                 </div>
