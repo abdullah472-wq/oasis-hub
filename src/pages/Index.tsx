@@ -1396,7 +1396,12 @@ const Index = () => {
             </div>
 
             {/* Google Reviews Card */}
-            <div className="rounded-2xl border border-red-200/60 bg-gradient-to-br from-red-500/5 via-card to-card p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+            <a
+              href="https://g.page/r/Cap4g2uq6V3eEAE/review"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group block rounded-2xl border border-red-200/60 bg-gradient-to-br from-red-500/5 via-card to-card p-4 sm:p-5 shadow-sm hover:shadow-md hover:border-red-300 transition-all cursor-pointer"
+            >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className="h-9 w-9 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center justify-center">
@@ -1417,19 +1422,21 @@ const Index = () => {
                   ({t("৪৮+ রিভিউ", "48+ Reviews")})
                 </span>
               </div>
-              <a
-                href={settings.google_maps_url || "https://maps.google.com"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 font-bengali group mt-1"
+              <div
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 group-hover:text-red-700 font-bengali mt-1"
               >
                 <span>{t("গুগলে রিভিউ দেখুন / লিখুন", "View on Google")}</span>
                 <ExternalLink className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-              </a>
-            </div>
+              </div>
+            </a>
 
             {/* Facebook Recommendations Card */}
-            <div className="rounded-2xl border border-blue-200/60 bg-gradient-to-br from-blue-500/5 via-card to-card p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+            <a
+              href="https://www.facebook.com/profile.php?id=61595529418669&sk=reviews"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group block rounded-2xl border border-blue-200/60 bg-gradient-to-br from-blue-500/5 via-card to-card p-4 sm:p-5 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer"
+            >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className="h-9 w-9 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center justify-center">
@@ -1452,16 +1459,13 @@ const Index = () => {
                   ({t("রিকমেন্ডেড", "Recommended")})
                 </span>
               </div>
-              <a
-                href={settings.facebook_url || "https://facebook.com"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 font-bengali group mt-1"
+              <div
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 group-hover:text-blue-700 font-bengali mt-1"
               >
                 <span>{t("ফেসবুকে মতামত দেখুন", "View on Facebook")}</span>
                 <ExternalLink className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-              </a>
-            </div>
+              </div>
+            </a>
 
             {/* Trustpilot Score Card */}
             <div className="rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-emerald-500/5 via-card to-card p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
