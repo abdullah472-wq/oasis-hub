@@ -83,19 +83,34 @@ const Navbar = () => {
     setIsOpen(false);
     setMobileHomeOpen(false);
 
+    const sectionId = hash.replace(/^#/, "");
+
+    const performScroll = (smooth = true) => {
+      const el = document.getElementById(sectionId);
+      if (el) {
+        const nav = document.querySelector("nav");
+        const navHeight = nav ? Math.min(nav.offsetHeight, 90) : 80;
+        const targetY = el.getBoundingClientRect().top + window.scrollY - navHeight - 16;
+        window.scrollTo({
+          top: Math.max(0, targetY),
+          behavior: smooth ? "smooth" : "auto",
+        });
+      }
+    };
+
     if (location.pathname !== "/") {
       navigate(`/${hash}`);
       return;
     }
 
-    navigate({ pathname: "/", hash });
+    navigate({ pathname: "/", hash }, { replace: true });
 
-    window.requestAnimationFrame(() => {
-      document.getElementById(hash.slice(1))?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    });
+    // Immediate scroll
+    performScroll(true);
+
+    // Additional scrolls as mobile menu collapse animation completes
+    setTimeout(() => performScroll(true), 120);
+    setTimeout(() => performScroll(true), 320);
   };
 
   if (!ENABLE_EXPERIMENTAL_NAVBAR) {

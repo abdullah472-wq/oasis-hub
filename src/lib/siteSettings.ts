@@ -116,7 +116,11 @@ export function useSiteSettings(): { settings: SiteSettings; loading: boolean } 
         setSettings(latest);
 
         // Update favicon dynamically if customized
-        if (latest.favicon_url && typeof document !== "undefined") {
+        if (
+          latest.favicon_url &&
+          latest.favicon_url !== defaultSiteSettings.favicon_url &&
+          typeof document !== "undefined"
+        ) {
           let faviconLink = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
           if (!faviconLink) {
             faviconLink = document.createElement("link");

@@ -326,7 +326,7 @@ const Footer = () => {
                 <div className="flex items-center justify-between pt-1">
                   <div>
                     <span className="font-semibold text-white">
-                      {t("সহকারী পরিচালক:", "Assistant Director:")}
+                      {t("ম্যানেজার ও প্রতিষ্ঠাতা পরিচালক:", "Manager & Founding Director:")}
                     </span>{" "}
                     <span className="text-emerald-200">
                       {t("মুফতি আব্দুল্লাহ আল মামুন", "Mufti Abdullah Al Mamon")}

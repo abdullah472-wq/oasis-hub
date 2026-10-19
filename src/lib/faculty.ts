@@ -309,10 +309,14 @@ const getCachedFaculty = (): FacultyMember[] => {
   }
 };
 
+export const FACULTY_UPDATED_EVENT = "oasis_faculty_updated";
+
 const saveFacultyToCache = (items: FacultyMember[]) => {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(FACULTY_CACHE_KEY, JSON.stringify(items));
+    window.dispatchEvent(new CustomEvent(FACULTY_UPDATED_EVENT, { detail: items }));
+    window.dispatchEvent(new StorageEvent("storage", { key: FACULTY_CACHE_KEY }));
   } catch (err) {
     console.warn("Failed to save faculty to cache:", err);
   }
@@ -342,7 +346,7 @@ export async function getFacultyList(): Promise<FacultyMember[]> {
       name_en: item.name_en || "",
       designation_bn: item.designation_bn || "",
       designation_en: item.designation_en || "",
-      category: item.category || "teacher",
+      category: item.category === "teachers" ? "teacher" : (item.category || "teacher"),
       campus: item.campus || "both",
       qualification_bn: item.qualification_bn || "",
       qualification_en: item.qualification_en || "",
@@ -394,31 +398,35 @@ export async function saveFacultyMember(
       : new Date().toISOString(),
   };
 
+  // Map 'teacher' in frontend to 'teachers' for DB schema check constraint
+  const dbCategory = prepared.category === "teacher" ? "teachers" : prepared.category;
+
   try {
-    await supabase.from("faculty_members").upsert({
+    const { error: upsertError } = await supabase.from("faculty_members").upsert({
       id: prepared.id,
-      teacher_id: prepared.teacher_id,
-      nid: prepared.nid,
-      joining_year: prepared.joining_year,
       name_bn: prepared.name_bn,
-      name_en: prepared.name_en,
+      name_en: prepared.name_en || null,
       designation_bn: prepared.designation_bn,
-      designation_en: prepared.designation_en,
-      category: prepared.category,
-      campus: prepared.campus,
-      qualification_bn: prepared.qualification_bn,
-      qualification_en: prepared.qualification_en,
-      subject_bn: prepared.subject_bn,
-      subject_en: prepared.subject_en,
-      experience_bn: prepared.experience_bn,
-      experience_en: prepared.experience_en,
-      image_url: prepared.image_url,
-      phone: prepared.phone,
-      email: prepared.email,
+      designation_en: prepared.designation_en || null,
+      category: dbCategory,
+      campus: prepared.campus || "both",
+      qualification_bn: prepared.qualification_bn || null,
+      qualification_en: prepared.qualification_en || null,
+      subject_bn: prepared.subject_bn || null,
+      subject_en: prepared.subject_en || null,
+      experience_bn: prepared.experience_bn || null,
+      experience_en: prepared.experience_en || null,
+      image_url: prepared.image_url || null,
+      phone: prepared.phone || null,
+      email: prepared.email || null,
       order_index: prepared.order_index,
       is_active: prepared.is_active,
       updated_at: prepared.updated_at,
     });
+
+    if (upsertError) {
+      console.warn("Supabase upsert faculty warning:", upsertError);
+    }
   } catch (err) {
     console.warn("Supabase upsert faculty error, relying on cache:", err);
   }
@@ -442,7 +450,10 @@ export async function deleteFacultyMember(id: string): Promise<void> {
   const deletedItem = current.find((c) => c.id === id);
 
   try {
-    await supabase.from("faculty_members").delete().eq("id", id);
+    const { error } = await supabase.from("faculty_members").delete().eq("id", id);
+    if (error) {
+      console.warn("Supabase delete faculty warning:", error);
+    }
   } catch (err) {
     console.warn("Supabase delete faculty error, relying on cache:", err);
   }

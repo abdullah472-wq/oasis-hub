@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { toast } from "sonner";
 import {
   BookOpen,
   Users,
@@ -22,6 +23,7 @@ import {
   MapPin,
   Phone,
   ShieldCheck,
+  ChevronLeft,
   ChevronRight,
   Eye,
   Camera,
@@ -119,6 +121,7 @@ const AnimatedCounter = ({ value }: { value: string }) => {
 const Index = () => {
   const { t, lang } = useLanguage();
   const { settings } = useSiteSettings();
+  const location = useLocation();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewName, setReviewName] = useState("");
@@ -175,40 +178,39 @@ const Index = () => {
     };
   }, []);
 
-  const openReviewSection = (smooth = true) => {
-    setShowReviewForm(true);
-    window.requestAnimationFrame(() => {
-      reviewSectionRef.current?.scrollIntoView({
-        behavior: smooth ? "smooth" : "auto",
-        block: "start",
-      });
-    });
-  };
-
-  const scrollToSection = (ref: React.RefObject<HTMLElement>, smooth = true) => {
-    window.requestAnimationFrame(() => {
-      ref.current?.scrollIntoView({
-        behavior: smooth ? "smooth" : "auto",
-        block: "start",
-      });
+  const scrollToTargetElement = (elementId: string, smooth = true) => {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const nav = document.querySelector("nav");
+    const navHeight = nav ? Math.min(nav.offsetHeight, 90) : 80;
+    const targetY = el.getBoundingClientRect().top + window.scrollY - navHeight - 16;
+    window.scrollTo({
+      top: Math.max(0, targetY),
+      behavior: smooth ? "smooth" : "auto",
     });
   };
 
   useEffect(() => {
-    const handleSectionHash = () => {
-      if (window.location.hash === "#write-review" || window.location.hash === "#reviews") {
-        openReviewSection(false);
-        return;
-      }
-      if (window.location.hash === "#madrasha-features") {
-        scrollToSection(featuresSectionRef, false);
-      }
-    };
+    const hash = location.hash || window.location.hash;
+    if (!hash) return;
 
-    handleSectionHash();
-    window.addEventListener("hashchange", handleSectionHash);
-    return () => window.removeEventListener("hashchange", handleSectionHash);
-  }, []);
+    if (hash === "#write-review") {
+      setShowReviewForm(true);
+    }
+
+    const sectionId = hash.replace(/^#/, "");
+    const timer1 = setTimeout(() => {
+      scrollToTargetElement(sectionId, true);
+    }, 100);
+    const timer2 = setTimeout(() => {
+      scrollToTargetElement(sectionId, true);
+    }, 350);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, [location.hash]);
 
   const defaultReviews: Review[] = [
     {
@@ -309,7 +311,16 @@ const Index = () => {
     },
   ];
 
-  const allReviews = reviews.length > 0 ? reviews : defaultReviews;
+  const allReviews = useMemo(() => {
+    if (!reviews || reviews.length === 0) {
+      return defaultReviews;
+    }
+    const customNames = new Set(reviews.map((r) => r.name.trim().toLowerCase()));
+    const nonDuplicatedDefaults = defaultReviews.filter(
+      (d) => !customNames.has(d.name.trim().toLowerCase())
+    );
+    return [...reviews, ...nonDuplicatedDefaults];
+  }, [reviews, defaultReviews]);
 
   const filteredReviews = useMemo(() => {
     if (selectedPlatform === "all") return allReviews;
@@ -352,26 +363,35 @@ const Index = () => {
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!reviewName.trim() || !reviewRelation || !reviewText.trim()) {
+      toast.error(t("অনুগ্রহ করে সকল তথ্য পূরণ করুন", "Please fill in all required fields"));
+      return;
+    }
     setReviewLoading(true);
     try {
       const { submitReview } = await import("@/lib/reviews");
       await submitReview({
-        name: reviewName,
-        relation: reviewRelation,
-        review: reviewText,
-        reviewEn: reviewText,
+        name: reviewName.trim(),
+        relation: reviewRelation.trim(),
+        review: reviewText.trim(),
+        reviewEn: reviewText.trim(),
         rating: reviewRating,
         platform: "website",
       });
       setReviewSubmitted(true);
+      toast.success(
+        t("ধন্যবাদ! আপনার রিভিউ জমা হয়েছে। পর্যালোচনার পর প্রকাশিত হবে।", "Thank you! Your review has been submitted for moderation.")
+      );
       setReviewName("");
       setReviewRelation("");
       setReviewText("");
       setReviewRating(5);
     } catch (error) {
-      console.error(error);
+      console.error("Error submitting review:", error);
+      toast.error(t("রিভিউ জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।", "Failed to submit review. Please try again."));
+    } finally {
+      setReviewLoading(false);
     }
-    setReviewLoading(false);
   };
 
   const reviewShareUrl =
@@ -1298,7 +1318,7 @@ const Index = () => {
       </section>
 
       {/* ================= MADRASHA FEATURES ================= */}
-      <section id="madrasha-features" ref={featuresSectionRef} className="py-16">
+      <section id="madrasha-features" ref={featuresSectionRef} className="py-16 scroll-mt-24 sm:scroll-mt-28">
         <div className="container mx-auto px-4 max-w-5xl">
           <motion.div {...springIn} className="text-center mb-10 space-y-2">
             <h2 className="font-bengali text-2xl sm:text-4xl font-bold text-foreground">
@@ -1341,7 +1361,7 @@ const Index = () => {
       </section>
 
       {/* ================= GUARDIANS OPINIONS & PLATFORM REVIEWS ================= */}
-      <section id="reviews" ref={reviewSectionRef} className="py-16 sm:py-20 bg-muted/20 relative overflow-hidden">
+      <section id="reviews" ref={reviewSectionRef} className="py-16 sm:py-20 bg-muted/20 relative overflow-hidden scroll-mt-24 sm:scroll-mt-28">
         <div className="container mx-auto px-4 max-w-5xl">
           <motion.div {...springIn} className="text-center mb-8 space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1 text-xs font-semibold text-primary font-bengali">
@@ -1618,16 +1638,24 @@ const Index = () => {
           {/* Review Submission Form */}
           {showReviewForm && (
             <motion.div
+              id="write-review"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-card border border-border/80 shadow-md rounded-3xl p-6 mb-10 max-w-2xl mx-auto"
+              className="bg-card border border-border/80 shadow-md rounded-3xl p-6 mb-10 max-w-2xl mx-auto scroll-mt-28"
             >
               {reviewSubmitted ? (
                 <div className="text-center py-8">
                   <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                  <p className="font-bengali text-lg text-foreground">
+                  <p className="font-bengali text-lg text-foreground font-semibold">
                     {t("ধন্যবাদ! আপনার রিভিউ জমা হয়েছে। পর্যালোচনার পর প্রকাশিত হবে।", "Thank you! Your review has been submitted for moderation.")}
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => setReviewSubmitted(false)}
+                    className="mt-5 px-5 py-2.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl font-bengali text-xs font-semibold transition-colors"
+                  >
+                    {t("আরেকটি রিভিউ লিখুন", "Submit Another Review")}
+                  </button>
                 </div>
               ) : (
                 <form onSubmit={handleReviewSubmit} className="space-y-4">
@@ -1762,7 +1790,9 @@ const Index = () => {
                                     <h4 className="font-bengali font-bold text-foreground text-sm">{item.name}</h4>
                                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" title={t("যাচাইকৃত", "Verified")} />
                                   </div>
-                                  <p className="font-bengali text-xs text-muted-foreground">{item.relation}</p>
+                                  <p className="font-bengali text-xs text-muted-foreground">
+                                    {lang === "bn" ? item.relation : item.relationEn || item.relation}
+                                  </p>
                                 </div>
                               </div>
 
@@ -1820,7 +1850,7 @@ const Index = () => {
                     >
                       {Array.from({ length: Math.ceil(filteredReviews.length / 2) }).map((_, slideIndex) => (
                         <div key={slideIndex} className="w-full flex-shrink-0">
-                          <div className="grid grid-cols-2 gap-6 px-2">
+                          <div className={`grid gap-6 px-2 ${filteredReviews.length === 1 ? "grid-cols-1 max-w-2xl mx-auto" : "grid-cols-2"}`}>
                             {filteredReviews.slice(slideIndex * 2, (slideIndex + 1) * 2).map((item, i) => (
                               <div key={i} className="bg-card border border-border/70 rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow relative">
                                 {/* Card Header */}
@@ -1842,7 +1872,9 @@ const Index = () => {
                                         <h4 className="font-bengali font-bold text-foreground text-sm">{item.name}</h4>
                                         <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" title={t("যাচাইকৃত", "Verified")} />
                                       </div>
-                                      <p className="font-bengali text-xs text-muted-foreground">{item.relation}</p>
+                                      <p className="font-bengali text-xs text-muted-foreground">
+                                        {lang === "bn" ? item.relation : item.relationEn || item.relation}
+                                      </p>
                                     </div>
                                   </div>
 
@@ -1891,19 +1923,45 @@ const Index = () => {
                   </div>
                 </div>
 
-                {/* Dots */}
+                {/* Carousel Controls: Prev, Dots, Next */}
                 {(isMobile ? filteredReviews.length : Math.ceil(filteredReviews.length / 2)) > 1 && (
-                  <div className="flex justify-center gap-2 mt-6">
-                    {Array.from({ length: isMobile ? filteredReviews.length : Math.ceil(filteredReviews.length / 2) }).map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setCurrentSlide(i)}
-                        className={`h-2 rounded-full transition-all ${
-                          currentSlide === i ? "bg-primary w-8" : "bg-muted-foreground/30 w-2"
-                        }`}
-                        aria-label={`Go to slide ${i + 1}`}
-                      />
-                    ))}
+                  <div className="flex items-center justify-center gap-3 mt-6">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const total = isMobile ? filteredReviews.length : Math.ceil(filteredReviews.length / 2);
+                        setCurrentSlide((prev) => (prev - 1 + total) % total);
+                      }}
+                      className="p-1.5 rounded-full border border-border/80 bg-background text-foreground hover:bg-muted transition-colors shadow-xs"
+                      aria-label="Previous review"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+
+                    <div className="flex items-center gap-2">
+                      {Array.from({ length: isMobile ? filteredReviews.length : Math.ceil(filteredReviews.length / 2) }).map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setCurrentSlide(i)}
+                          className={`h-2 rounded-full transition-all ${
+                            currentSlide === i ? "bg-primary w-8" : "bg-muted-foreground/30 w-2"
+                          }`}
+                          aria-label={`Go to slide ${i + 1}`}
+                        />
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const total = isMobile ? filteredReviews.length : Math.ceil(filteredReviews.length / 2);
+                        setCurrentSlide((prev) => (prev + 1) % total);
+                      }}
+                      className="p-1.5 rounded-full border border-border/80 bg-background text-foreground hover:bg-muted transition-colors shadow-xs"
+                      aria-label="Next review"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
                   </div>
                 )}
               </>

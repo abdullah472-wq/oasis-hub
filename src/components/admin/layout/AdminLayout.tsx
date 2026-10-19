@@ -30,18 +30,18 @@ export const AdminLayout = ({ title, subtitle, children }: AdminLayoutProps) => 
   }
 
   return (
-    <div className="flex min-h-screen bg-muted/20 text-foreground">
-      {/* Sidebar */}
+    <div className="flex h-screen h-dvh w-full overflow-hidden bg-muted/20 text-foreground">
+      {/* Sidebar - fixed and non-scrolling with page */}
       <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      {/* Main Content Area - only this section scrolls */}
+      <div className="flex flex-1 flex-col h-full min-w-0 overflow-hidden">
         <AdminHeader
           title={title}
           subtitle={subtitle}
           onOpenSidebar={() => setIsSidebarOpen(true)}
         />
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <main id="admin-main" className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="mx-auto max-w-7xl">{children}</div>
         </main>
       </div>

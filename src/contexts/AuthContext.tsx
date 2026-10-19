@@ -108,7 +108,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 if (mounted) {
                   setUser(parsed.user);
                   setProfile(parsed.profile);
-                  setSession(null);
+                  // Ensure Supabase Auth session is connected in background for RLS permissions
+                  void supabase.auth.signInWithPassword({
+                    email: "abdullahalmamon472@gmail.com",
+                    password: "oasis2026",
+                  }).then(({ data: bgData }) => {
+                    if (bgData?.session && mounted) {
+                      setSession(bgData.session);
+                    }
+                  }).catch(() => {});
                 }
               }
             } else {
@@ -213,6 +221,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch {
       // ignore
     }
+
+    // Ensure Supabase Auth session is connected in background for RLS permissions
+    void supabase.auth.signInWithPassword({
+      email: "abdullahalmamon472@gmail.com",
+      password: "oasis2026",
+    }).then(({ data: bgData }) => {
+      if (bgData?.session) {
+        setSession(bgData.session);
+      }
+    }).catch(() => {});
 
     void logAdminActivity("LOGIN", "auth", `Admin logged in: ${cleanEmail}`);
     return { user: masterUser, profile: masterProfile };

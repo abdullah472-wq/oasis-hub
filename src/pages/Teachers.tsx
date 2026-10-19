@@ -26,6 +26,7 @@ import WaveDivider from "@/components/WaveDivider";
 import { springIn, springInDelay } from "@/lib/animations";
 import {
   getFacultyList,
+  FACULTY_UPDATED_EVENT,
   type FacultyMember,
   type FacultyRoleCategory,
   type CampusType,
@@ -50,18 +51,40 @@ const Teachers = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
+    let mounted = true;
+
     async function loadData() {
       try {
         setLoading(true);
         const data = await getFacultyList();
-        setFaculty(data.filter((f) => f.is_active));
+        if (mounted) {
+          setFaculty(data.filter((f) => f.is_active));
+        }
       } catch (err) {
         console.error("Failed to load faculty:", err);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     }
+
     loadData();
+
+    const handleSync = () => {
+      void getFacultyList().then((data) => {
+        if (mounted) {
+          setFaculty(data.filter((f) => f.is_active));
+        }
+      });
+    };
+
+    window.addEventListener(FACULTY_UPDATED_EVENT, handleSync);
+    window.addEventListener("storage", handleSync);
+
+    return () => {
+      mounted = false;
+      window.removeEventListener(FACULTY_UPDATED_EVENT, handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
   }, []);
 
   const filteredFaculty = useMemo(() => {
@@ -251,7 +274,11 @@ const Teachers = () => {
                       </span>
 
                       <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground font-bengali">
-                        {t("মূল ক্যাম্পাস", "Main Campus")}
+                        {member.campus === "boys"
+                          ? t("বালক ক্যাম্পাস", "Boys Campus")
+                          : member.campus === "girls"
+                            ? t("বালিকা ক্যাম্পাস", "Girls Campus")
+                            : t("উভয় ক্যাম্পাস / সাধারণ", "Both Campuses")}
                       </span>
                     </div>
 

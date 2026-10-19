@@ -34,6 +34,7 @@ import {
   getFacultyList,
   deleteFacultyMember,
   saveFacultyMember,
+  FACULTY_UPDATED_EVENT,
   type FacultyMember,
   type FacultyRoleCategory,
   type CampusType,
@@ -69,6 +70,17 @@ export const FacultyManager = () => {
 
   useEffect(() => {
     loadData();
+
+    const handleSync = () => {
+      void getFacultyList().then((data) => setFaculty(data));
+    };
+
+    window.addEventListener(FACULTY_UPDATED_EVENT, handleSync);
+    window.addEventListener("storage", handleSync);
+    return () => {
+      window.removeEventListener(FACULTY_UPDATED_EVENT, handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
   }, []);
 
   const handleToggleStatus = async (item: FacultyMember) => {

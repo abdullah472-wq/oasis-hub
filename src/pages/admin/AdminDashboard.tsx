@@ -21,7 +21,7 @@ export const AdminDashboard = () => {
         </section>
 
         {/* Action Shortcuts & Recent Activity */}
-        <section className="grid gap-6 lg:grid-cols-2">
+        <section className="grid gap-6 lg:grid-cols-2 items-start">
           <QuickActions />
           <RecentActivityList />
         </section>

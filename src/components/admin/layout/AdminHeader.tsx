@@ -13,7 +13,7 @@ export const AdminHeader = ({ title, subtitle, onOpenSidebar }: AdminHeaderProps
   const { lang, setLang, t } = useLanguage();
 
   return (
-    <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-border/80 bg-background/80 px-4 backdrop-blur-md md:px-8">
+    <header className="sticky top-0 z-30 flex h-16 md:h-20 shrink-0 w-full items-center justify-between border-b border-border/80 bg-background/80 px-4 backdrop-blur-md md:px-8">
       {/* Left: Mobile trigger & Page Title */}
       <div className="flex items-center gap-3">
         <Button

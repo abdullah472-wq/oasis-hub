@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -25,6 +26,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSiteSettings } from "@/lib/siteSettings";
+import { getFacultyList, FACULTY_UPDATED_EVENT, type FacultyMember } from "@/lib/faculty";
 import WaveDivider from "@/components/WaveDivider";
 import heroImg from "@/assets/hero-campus.jpg";
 import { springIn, springInDelay } from "@/lib/animations";
@@ -114,32 +116,78 @@ const About = () => {
   ];
 
 
+  const [facultyMembers, setFacultyMembers] = useState<FacultyMember[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    void getFacultyList().then((data) => {
+      if (mounted) setFacultyMembers(data);
+    });
+
+    const handleSync = () => {
+      void getFacultyList().then((data) => {
+        if (mounted) setFacultyMembers(data);
+      });
+    };
+
+    window.addEventListener(FACULTY_UPDATED_EVENT, handleSync);
+    window.addEventListener("storage", handleSync);
+    return () => {
+      mounted = false;
+      window.removeEventListener(FACULTY_UPDATED_EVENT, handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
+  }, []);
+
+  const amanullahMember = facultyMembers.find(
+    (m) => m.id === "fac-mgmt-2" || m.name_bn.includes("আমানুল্লাহ")
+  );
+  const mamonMember = facultyMembers.find(
+    (m) => m.id === "fac-mgmt-1" || m.name_bn.includes("আব্দুল্লাহ")
+  );
+
   const leadership = [
     {
-      name: t("হাফেজ আমানুল্লাহ", "Hafez Amanullah"),
-      role: t("প্রতিষ্ঠাতা পরিচালক", "Founder Director"),
-      qualification: t("আন্তর্জাতিক সনদপ্রাপ্ত ক্বারী ও সিনিয়র হাফেজে কুরআন", "Certified International Qari & Senior Hafez"),
-      phone: "01820-811511",
-      email: "[EMAIL_ADDRESS]",
-      experience: t("১৪+ বছরের পাঠদান ও প্রাতিষ্ঠানিক পরিচালনা", "14+ Years in Teaching & Leadership"),
+      name: amanullahMember
+        ? (lang === "bn" ? amanullahMember.name_bn : amanullahMember.name_en || amanullahMember.name_bn)
+        : t("হাফেজ আমানুল্লাহ", "Hafez Amanullah"),
+      role: amanullahMember
+        ? (lang === "bn" ? amanullahMember.designation_bn : amanullahMember.designation_en || amanullahMember.designation_bn)
+        : t("প্রধান শিক্ষক ও হিফজ প্রধান", "Principal & Head of Hifz"),
+      qualification: amanullahMember?.qualification_bn
+        ? (lang === "bn" ? amanullahMember.qualification_bn : amanullahMember.qualification_en || amanullahMember.qualification_bn)
+        : t("আন্তর্জাতিক সনদপ্রাপ্ত ক্বারী ও সিনিয়র হাফেজে কুরআন", "Certified International Qari & Senior Hafez"),
+      phone: amanullahMember?.phone || "01820-811511",
+      email: amanullahMember?.email || "principal@annoor.edu.bd",
+      experience: amanullahMember?.experience_bn
+        ? (lang === "bn" ? amanullahMember.experience_bn : amanullahMember.experience_en || amanullahMember.experience_bn)
+        : t("১৪+ বছরের পাঠদান ও প্রাতিষ্ঠানিক পরিচালনা", "14+ Years in Teaching & Leadership"),
       quote: t(
         "কুরআন হলো জীবনের হেদায়েতের নূর। আমরা চাই আমাদের শিক্ষার্থীরা বিশুদ্ধ কুরআন বক্ষে ধারণ করে ডাক্তার, ইঞ্জিনিয়ার, অধ্যাপক বা আদর্শ আলেম হয়ে জাতির মুখ উজ্জ্বল করুক।",
         "The Quran is the light of guidance. We strive for students who hold the Quran in their hearts while excelling as doctors, engineers, professors, or noble scholars.",
       ),
-      image: "/gallery/campus_main.jpg",
+      image: amanullahMember?.image_url || "/gallery/campus_main.jpg",
     },
     {
-      name: t("মুফতি আব্দুল্লাহ আল মামুন", "Mufti Abdullah Al Mamon"),
-      role: t("সহকারী পরিচালক ও প্রধান শিক্ষক", "Assistant Director & Head Teacher"),
-      qualification: t("দাওরায়ে হাদিস ও উচ্চতর ইফতা, শিক্ষাবিদ ও সংগঠক", "Dawra-e-Hadith & Higher Ifta, Islamic Scholar"),
-      phone: "01312-200043, 01581-818368",
-      email: "manager@annoor.edu.bd",
-      experience: t("১৫+ বছর শিক্ষা ব্যবস্থাপনা ও প্রাতিষ্ঠানিক উন্নয়ন", "15+ Years Education Administration"),
+      name: mamonMember
+        ? (lang === "bn" ? mamonMember.name_bn : mamonMember.name_en || mamonMember.name_bn)
+        : t("মুফতি আব্দুল্লাহ আল মামুন", "Mufti Abdullah Al Mamon"),
+      role: mamonMember
+        ? (lang === "bn" ? mamonMember.designation_bn : mamonMember.designation_en || mamonMember.designation_bn)
+        : t("ম্যানেজার ও প্রতিষ্ঠাতা পরিচালক", "Manager & Founding Director"),
+      qualification: mamonMember?.qualification_bn
+        ? (lang === "bn" ? mamonMember.qualification_bn : mamonMember.qualification_en || mamonMember.qualification_bn)
+        : t("দাওরায়ে হাদিস ও উচ্চতর ইফতা, শিক্ষাবিদ ও সংগঠক", "Dawra-e-Hadith & Higher Ifta, Islamic Scholar"),
+      phone: mamonMember?.phone || "01312-200043, 01581-818368",
+      email: mamonMember?.email || "manager@annoor.edu.bd",
+      experience: mamonMember?.experience_bn
+        ? (lang === "bn" ? mamonMember.experience_bn : mamonMember.experience_en || mamonMember.experience_bn)
+        : t("১৫+ বছর শিক্ষা ব্যবস্থাপনা ও প্রাতিষ্ঠানিক উন্নয়ন", "15+ Years Education Administration"),
       quote: t(
         "শিক্ষা শুধু বইয়ের পাতার মুখস্থ নয়, এটি শিশুর চিন্তা ও চরিত্রের আত্মিক পরিশুদ্ধি। আননূর শিক্ষা পরিবারে আমরা প্রতিটি সন্তানকে আন্তরিক ভালোবাসা ও দায়িত্বশীলতার সাথে গড়ে তুলি।",
         "Education is not mere textbook cramming; it is the spiritual and intellectual purification of a child's character with deep love and institutional care.",
       ),
-      image: "/public/abdullah.png",
+      image: mamonMember?.image_url || "/abdullah.png",
     },
   ];
 
