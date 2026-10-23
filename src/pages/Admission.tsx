@@ -248,21 +248,19 @@ const Admission = () => {
             <div className="flex items-center gap-1 self-start md:self-auto rounded-xl border border-border bg-card p-1 text-xs font-bengali shadow-xs">
               <button
                 onClick={() => setViewMode("cards")}
-                className={`rounded-lg px-3 py-1.5 font-medium transition-all ${
-                  viewMode === "cards"
+                className={`rounded-lg px-3 py-1.5 font-medium transition-all ${viewMode === "cards"
                     ? "bg-primary text-primary-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
-                }`}
+                  }`}
               >
                 {t("কার্ড ভিউ", "Card View")}
               </button>
               <button
                 onClick={() => setViewMode("table")}
-                className={`rounded-lg px-3 py-1.5 font-medium transition-all ${
-                  viewMode === "table"
+                className={`rounded-lg px-3 py-1.5 font-medium transition-all ${viewMode === "table"
                     ? "bg-primary text-primary-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
-                }`}
+                  }`}
               >
                 {t("টেবিল ভিউ", "Table View")}
               </button>
@@ -284,11 +282,10 @@ const Admission = () => {
                     key={item.id}
                     {...springIn}
                     transition={springInDelay(idx * 0.05)}
-                    className={`relative rounded-2xl p-6 transition-all duration-300 hover:shadow-xl flex flex-col justify-between ${
-                      isHighlight
+                    className={`relative rounded-2xl p-6 transition-all duration-300 hover:shadow-xl flex flex-col justify-between ${isHighlight
                         ? "border-2 border-primary/40 bg-gradient-to-b from-primary/5 via-card to-card shadow-md shadow-primary/5 ring-1 ring-primary/20"
                         : "border border-border/80 bg-card shadow-sm hover:border-border"
-                    }`}
+                      }`}
                   >
                     {isHighlight && (
                       <div className="absolute -top-3 right-6">
@@ -305,10 +302,10 @@ const Admission = () => {
                           {item.category === "tuition"
                             ? t("মাসিক ফি", "Monthly")
                             : item.category === "admission"
-                            ? t("ভর্তি ফি", "Enrollment")
-                            : item.category === "exam"
-                            ? t("পরীক্ষা ফি", "Examination")
-                            : t("অন্যান্য", "Other")}
+                              ? t("ভর্তি ফি", "Enrollment")
+                              : item.category === "exam"
+                                ? t("পরীক্ষা ফি", "Examination")
+                                : t("অন্যান্য", "Other")}
                         </span>
                         {item.category === "tuition" && isHighlight ? (
                           <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
@@ -374,9 +371,8 @@ const Admission = () => {
                     {feeItems.map((item) => (
                       <tr
                         key={item.id}
-                        className={`transition-colors hover:bg-muted/30 ${
-                          item.highlight ? "bg-primary/5 font-medium" : ""
-                        }`}
+                        className={`transition-colors hover:bg-muted/30 ${item.highlight ? "bg-primary/5 font-medium" : ""
+                          }`}
                       >
                         <td className="py-4 px-6 text-foreground font-semibold">
                           <div className="flex items-center gap-2">
@@ -398,10 +394,10 @@ const Admission = () => {
                           {item.category === "tuition"
                             ? t("প্রতি মাসে", "Monthly")
                             : item.category === "admission"
-                            ? t("এককালীন", "One-time")
-                            : item.category === "exam"
-                            ? t("প্রতি পরীক্ষা", "Per Exam")
-                            : t("প্রয়োজন মাফিক", "On demand")}
+                              ? t("এককালীন", "One-time")
+                              : item.category === "exam"
+                                ? t("প্রতি পরীক্ষা", "Per Exam")
+                                : t("প্রয়োজন মাফিক", "On demand")}
                         </td>
                       </tr>
                     ))}
@@ -768,10 +764,10 @@ const Admission = () => {
                   <div>
                     <p className="text-xs text-muted-foreground">{t("হটলাইন / ভর্তি ডেস্ক", "Hotline / Desk")}</p>
                     <a
-                      href="tel:01819000000"
+                      href="tel:01820811511"
                       className="text-base font-bold text-foreground hover:text-primary transition-colors"
                     >
-                      +880 1819-000000
+                      +880 1820-811511
                     </a>
                   </div>
                 </div>

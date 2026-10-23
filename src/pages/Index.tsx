@@ -855,14 +855,14 @@ const Index = () => {
                   <Crown className="h-8 w-8 text-amber-600" />
                 </div>
                 <div className="font-display font-extrabold text-3xl sm:text-4xl text-foreground">
-                  ৪০+ জন
+                  {t("৪০+ জন", "40+ Huffaz")}
                 </div>
                 <p className="font-bengali text-xs text-muted-foreground">
                   {t("২০২১ থেকে ২০২৬ পর্যন্ত সম্মানিত গ্র্যাজুয়েট হাফেজ", "Graduated Huffaz from 2021 to 2026")}
                 </p>
                 <div className="pt-2 border-t border-border/60 w-full flex justify-around text-xs font-semibold text-primary">
-                  <span>২০২৪ ব্যাচ: ৬ জন</span>
-                  <span>২০২৫ ব্যাচ: ৯ জন</span>
+                  <span>{t("২০২৪ ব্যাচ: ৬ জন", "Batch 2024: 6")}</span>
+                  <span>{t("২০২৫ ব্যাচ: ৯ জন", "Batch 2025: 9")}</span>
                 </div>
               </div>
             </div>
@@ -967,15 +967,15 @@ const Index = () => {
                         <span>{t("গ্রাউন্ড ফ্লোর: অফিস, অভ্যর্থনা ও অভিভাবক লাউঞ্জ", "Ground: Office, Reception & Guest Lounge")}</span>
                       </div>
                       <div className="flex items-center gap-2.5 rounded-xl border border-border/70 bg-background/70 backdrop-blur-sm px-3.5 py-2.5 text-foreground hover:border-teal-500/40 transition-colors">
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-teal-500/20 text-teal-600 dark:text-teal-400 font-bold text-xs">১–৩</span>
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-teal-500/20 text-teal-600 dark:text-teal-400 font-bold text-xs">{t("১–৩", "1–3")}</span>
                         <span>{t("১ম — ৩য় তলা: প্লে থেকে ৫ম শ্রেণির আলাদা প্রশস্ত ক্লাসরুম", "1st–3rd: Separate Classrooms for Play–Grade 5")}</span>
                       </div>
                       <div className="flex items-center gap-2.5 rounded-xl border border-border/70 bg-background/70 backdrop-blur-sm px-3.5 py-2.5 text-foreground hover:border-amber-500/40 transition-colors">
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs">৪র্থ</span>
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs">{t("৪র্থ", "4th")}</span>
                         <span>{t("৪র্থ তলা: হিফজুল কুরআন বিভাগ ও সেন্ট্রাল লাইব্রেরি", "4th: Hifzul Quran Department & Library")}</span>
                       </div>
                       <div className="flex items-center gap-2.5 rounded-xl border border-border/70 bg-background/70 backdrop-blur-sm px-3.5 py-2.5 text-foreground hover:border-blue-500/40 transition-colors">
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold text-xs">৫ম</span>
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold text-xs">{t("৫ম", "5th")}</span>
                         <span>{t("৫ম তলা: আবাসিক ছাত্রাবাস ও পরিচ্ছন্ন ডাইনিং", "5th: Residential Boarding & Dining")}</span>
                       </div>
                     </div>
@@ -989,7 +989,7 @@ const Index = () => {
                       <Building2 className="h-7 w-7" />
                     </div>
                     <div>
-                      <span className="text-3xl font-black text-foreground font-mono">৫ তলা</span>
+                      <span className="text-3xl font-black text-foreground font-mono">{t("৫ তলা", "5-Story")}</span>
                       <p className="text-xs text-muted-foreground font-bengali font-semibold mt-0.5">
                         {t("স্থায়ী নিজস্ব আধুনিক ভবন", "Permanent Private Campus")}
                       </p>
@@ -1468,7 +1468,7 @@ const Index = () => {
                   </div>
                 </div>
                 <span className="text-sm font-black font-bengali text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200">
-                  ১০০%
+                  {t("১০০%", "100%")}
                 </span>
               </div>
               <div className="flex items-center gap-1 text-amber-400 mb-2">
@@ -1690,9 +1690,9 @@ const Index = () => {
                       onChange={(e) => setReviewRating(Number(e.target.value))}
                       className="w-full px-4 py-2 rounded-xl bg-background border border-border font-bengali text-xs"
                     >
-                      <option value="5">★★★★★ (5 Stars - চমৎকার)</option>
-                      <option value="4">★★★★☆ (4 Stars - খুব ভালো)</option>
-                      <option value="3">★★★☆☆ (3 Stars - ভালো)</option>
+                      <option value="5">{t("★★★★★ (5 Stars - চমৎকার)", "★★★★★ (5 Stars - Excellent)")}</option>
+                      <option value="4">{t("★★★★☆ (4 Stars - খুব ভালো)", "★★★★☆ (4 Stars - Very Good)")}</option>
+                      <option value="3">{t("★★★☆☆ (3 Stars - ভালো)", "★★★☆☆ (3 Stars - Good)")}</option>
                       <option value="2">★★☆☆☆ (2 Stars)</option>
                       <option value="1">★☆☆☆☆ (1 Star)</option>
                     </select>
