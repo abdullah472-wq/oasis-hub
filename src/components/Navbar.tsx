@@ -15,9 +15,11 @@ const Navbar = () => {
   const siteLogo = settings.logo_url || DEFAULT_LOGO;
   const [isOpen, setIsOpen] = useState(false);
   const [homeOpen, setHomeOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [admissionOpen, setAdmissionOpen] = useState(false);
   const [academicOpen, setAcademicOpen] = useState(false);
   const [mobileHomeOpen, setMobileHomeOpen] = useState(false);
+  const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
   const [mobileAdmissionOpen, setMobileAdmissionOpen] = useState(false);
   const [mobileAcademicOpen, setMobileAcademicOpen] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
@@ -31,9 +33,31 @@ const Navbar = () => {
   const isHomePage = location.pathname === "/";
 
   const mainLinks = [
-    { to: "/about", label: t("আমাদের সম্পর্কে", "About") },
     { to: "/news", label: t("সংবাদ", "News") },
     { to: "/contact", label: t("যোগাযোগ", "Contact") },
+  ];
+
+  const aboutLinks = [
+    {
+      to: "/about",
+      label: t("আমাদের পরিচিতি", "About Us"),
+      description: t("প্রতিষ্ঠানের লক্ষ্য, ইতিহাস ও পরিচালনা পর্ষদ", "Our vision, history & leadership"),
+    },
+    {
+      to: "/achievements",
+      label: t("আমাদের অর্জন", "Our Achievements"),
+      description: t("বোর্ড পরীক্ষা ও জাতীয় হিফজ প্রতিযোগিতার সাফল্য", "Board exams & competition honors"),
+    },
+    {
+      to: "/gallery",
+      label: t("ফটো গ্যালারি", "Photo Gallery"),
+      description: t("ক্যাম্পাস, অনুষ্ঠান ও শিক্ষার্থীদের কার্যক্রম", "Campus life, events & student activities"),
+    },
+    {
+      to: "/media",
+      label: t("মিডিয়া ও ভিডিও", "Media & Videos"),
+      description: t("ইউটিউব ভিডিও, কিরাত ও লাইভ প্রোগ্রাম", "YouTube videos, recitations & live"),
+    },
   ];
 
   const homeLinks = [
@@ -59,9 +83,7 @@ const Navbar = () => {
     { to: "/downloads", label: t("ডাউনলোড কর্নার (সিলেবাস ও রুটিন)", "Download Corner (Syllabus & Routine)") },
     { to: "/teachers", label: t("শিক্ষক ও পরিচালকমণ্ডলী", "Teachers & Staff") },
     { to: "/huffaz", label: t("কৃতি হাফেজদের তালিকা", "Wall of Huffaz") },
-    { to: "/achievements", label: t("আমাদের অর্জন", "Our Achievements") },
     { to: "/notices", label: t("নোটিশ বোর্ড", "Notice") },
-    { to: "/gallery", label: t("গ্যালারি", "Gallery") },
     { to: "/events", label: t("ইভেন্ট ক্যালেন্ডার", "Events") },
   ];
 
@@ -201,21 +223,77 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
 
-            {mainLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`rounded-xl px-3 py-2 text-sm font-medium font-bengali transition-all ${
-                  location.pathname === link.to ? "bg-primary text-primary-foreground" : "text-foreground hover:scale-105 hover:bg-secondary"
+            {/* About Us Dropdown */}
+            <div className="relative" onMouseEnter={() => setAboutOpen(true)} onMouseLeave={() => setAboutOpen(false)}>
+              <button
+                type="button"
+                className={`flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-medium font-bengali transition-all ${
+                  ["/about", "/achievements", "/gallery", "/media"].includes(location.pathname)
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground hover:scale-105 hover:bg-secondary"
                 }`}
               >
-                {link.label}
-              </Link>
-            ))}
+                {t("আমাদের সম্পর্কে", "About Us")}
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              <AnimatePresence>
+                {aboutOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute left-0 top-full z-[70] mt-1 min-w-[200px] rounded-xl border border-border bg-card py-2 shadow-lg before:absolute before:-top-2 before:left-0 before:right-0 before:h-2 before:content-['']"
+                  >
+                    {aboutLinks.map((link) => (
+                      <Link key={link.to} to={link.to} className="block px-4 py-2 text-sm font-medium font-bengali text-foreground hover:bg-secondary">
+                        {link.label}
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
+            {/* Academic Dropdown */}
+            <div className="relative" onMouseEnter={() => setAcademicOpen(true)} onMouseLeave={() => setAcademicOpen(false)}>
+              <button
+                type="button"
+                className={`flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-medium font-bengali transition-all ${
+                  academicLinks.some((l) => l.to === location.pathname)
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground hover:scale-105 hover:bg-secondary"
+                }`}
+              >
+                {t("একাডেমিক", "Academic")}
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              <AnimatePresence>
+                {academicOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute left-0 top-full z-[70] mt-1 min-w-[180px] rounded-xl border border-border bg-card py-2 shadow-lg before:absolute before:-top-2 before:left-0 before:right-0 before:h-2 before:content-['']"
+                  >
+                    {academicLinks.map((link) => (
+                      <Link key={link.to} to={link.to} className="block px-4 py-2 text-sm font-medium font-bengali text-foreground hover:bg-secondary">
+                        {link.label}
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Admission Dropdown */}
             <div className="relative" onMouseEnter={() => setAdmissionOpen(true)} onMouseLeave={() => setAdmissionOpen(false)}>
               <button
-                className="flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-medium font-bengali text-foreground transition-all hover:scale-105 hover:bg-secondary"
+                type="button"
+                className={`flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-medium font-bengali transition-all ${
+                  admissionLinks.some((l) => l.to === location.pathname)
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground hover:scale-105 hover:bg-secondary"
+                }`}
               >
                 {t("ভর্তি", "Admission")}
                 <ChevronDown className="h-4 w-4" />
@@ -238,30 +316,18 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
 
-            <div className="relative" onMouseEnter={() => setAcademicOpen(true)} onMouseLeave={() => setAcademicOpen(false)}>
-              <button
-                className="flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-medium font-bengali text-foreground transition-all hover:scale-105 hover:bg-secondary"
+            {/* Main Links: News & Contact */}
+            {mainLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`rounded-xl px-3 py-2 text-sm font-medium font-bengali transition-all ${
+                  location.pathname === link.to ? "bg-primary text-primary-foreground" : "text-foreground hover:scale-105 hover:bg-secondary"
+                }`}
               >
-                {t("একাডেমিক", "Academic")}
-                <ChevronDown className="h-4 w-4" />
-              </button>
-              <AnimatePresence>
-                {academicOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute left-0 top-full z-[70] mt-1 min-w-[180px] rounded-xl border border-border bg-card py-2 shadow-lg before:absolute before:-top-2 before:left-0 before:right-0 before:h-2 before:content-['']"
-                  >
-                    {academicLinks.map((link) => (
-                      <Link key={link.to} to={link.to} className="block px-4 py-2 text-sm font-medium font-bengali text-foreground hover:bg-secondary">
-                        {link.label}
-                      </Link>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                {link.label}
+              </Link>
+            ))}
 
             <LanguageToggle />
           </div>
@@ -286,20 +352,9 @@ const Navbar = () => {
                   <LanguageToggle />
                 </div>
 
-                {mainLinks.map((link) => (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    onClick={() => setIsOpen(false)}
-                    className={`rounded-xl px-4 py-3 font-bengali font-medium transition-colors ${
-                      location.pathname === link.to ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-
+                {/* Home Mobile Accordion */}
                 <button
+                  type="button"
                   onClick={() => setMobileHomeOpen(!mobileHomeOpen)}
                   className="flex items-center justify-between rounded-xl px-4 py-3 font-bengali font-medium text-foreground hover:bg-secondary"
                 >
@@ -333,7 +388,67 @@ const Navbar = () => {
                   )}
                 </AnimatePresence>
 
+                {/* About Us Mobile Accordion */}
                 <button
+                  type="button"
+                  onClick={() => setMobileAboutOpen(!mobileAboutOpen)}
+                  className="flex items-center justify-between rounded-xl px-4 py-3 font-bengali font-medium text-foreground hover:bg-secondary"
+                >
+                  <span>{t("আমাদের সম্পর্কে", "About Us")}</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${mobileAboutOpen ? "rotate-180" : ""}`} />
+                </button>
+                <AnimatePresence>
+                  {mobileAboutOpen && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                      {aboutLinks.map((link) => (
+                        <Link
+                          key={link.to}
+                          to={link.to}
+                          onClick={() => {
+                            setIsOpen(false);
+                            setMobileAboutOpen(false);
+                          }}
+                          className="block rounded-xl py-2 pl-8 pr-4 font-bengali font-medium text-foreground hover:bg-secondary"
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Academic Mobile Accordion */}
+                <button
+                  type="button"
+                  onClick={() => setMobileAcademicOpen(!mobileAcademicOpen)}
+                  className="flex items-center justify-between rounded-xl px-4 py-3 font-bengali font-medium text-foreground hover:bg-secondary"
+                >
+                  <span>{t("একাডেমিক", "Academic")}</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${mobileAcademicOpen ? "rotate-180" : ""}`} />
+                </button>
+                <AnimatePresence>
+                  {mobileAcademicOpen && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                      {academicLinks.map((link) => (
+                        <Link
+                          key={link.to}
+                          to={link.to}
+                          onClick={() => {
+                            setIsOpen(false);
+                            setMobileAcademicOpen(false);
+                          }}
+                          className="block rounded-xl py-2 pl-8 pr-4 font-bengali font-medium text-foreground hover:bg-secondary"
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Admission Mobile Accordion */}
+                <button
+                  type="button"
                   onClick={() => setMobileAdmissionOpen(!mobileAdmissionOpen)}
                   className="flex items-center justify-between rounded-xl px-4 py-3 font-bengali font-medium text-foreground hover:bg-secondary"
                 >
@@ -360,32 +475,19 @@ const Navbar = () => {
                   )}
                 </AnimatePresence>
 
-                <button
-                  onClick={() => setMobileAcademicOpen(!mobileAcademicOpen)}
-                  className="flex items-center justify-between rounded-xl px-4 py-3 font-bengali font-medium text-foreground hover:bg-secondary"
-                >
-                  <span>{t("একাডেমিক", "Academic")}</span>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${mobileAcademicOpen ? "rotate-180" : ""}`} />
-                </button>
-                <AnimatePresence>
-                  {mobileAcademicOpen && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                      {academicLinks.map((link) => (
-                        <Link
-                          key={link.to}
-                          to={link.to}
-                          onClick={() => {
-                            setIsOpen(false);
-                            setMobileAcademicOpen(false);
-                          }}
-                          className="block rounded-xl py-2 pl-8 pr-4 font-bengali font-medium text-foreground hover:bg-secondary"
-                        >
-                          {link.label}
-                        </Link>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {/* Main Links: News & Contact */}
+                {mainLinks.map((link) => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    onClick={() => setIsOpen(false)}
+                    className={`rounded-xl px-4 py-3 font-bengali font-medium transition-colors ${
+                      location.pathname === link.to ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
               </div>
             </motion.div>
           )}
@@ -601,21 +703,59 @@ const Navbar = () => {
                 </AnimatePresence>
               </div>
 
-              {mainLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold font-bengali transition-all ${
-                    location.pathname === link.to ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground hover:bg-primary/8"
+              {/* About Us Dropdown */}
+              <div className="relative" onMouseEnter={() => setAboutOpen(true)} onMouseLeave={() => setAboutOpen(false)}>
+                <button
+                  type="button"
+                  className={`flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold font-bengali transition-all ${
+                    ["/about", "/achievements", "/gallery", "/media"].includes(location.pathname)
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-foreground hover:bg-primary/8"
                   }`}
                 >
-                  {link.label}
-                </Link>
-              ))}
+                  {t("আমাদের সম্পর্কে", "About Us")}
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+                <AnimatePresence>
+                  {aboutOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 12 }}
+                      className="absolute left-1/2 top-full z-[70] mt-2 w-[310px] -translate-x-1/2 rounded-3xl border border-white/70 bg-white/95 p-4 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/95 before:absolute before:-top-3 before:left-0 before:right-0 before:h-3 before:content-['']"
+                    >
+                      <p className="mb-3 px-2 font-bengali text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
+                        {t("পরিচিতি ও মিডিয়া", "About & Media")}
+                      </p>
+                      <div className="space-y-1">
+                        {aboutLinks.map((link) => (
+                          <Link
+                            key={link.to}
+                            to={link.to}
+                            onClick={() => setAboutOpen(false)}
+                            className="block rounded-2xl px-3 py-2.5 text-sm font-medium font-bengali text-foreground transition-colors hover:bg-primary/8"
+                          >
+                            <span className="block font-semibold">{link.label}</span>
+                            <span className="mt-0.5 block text-xs text-muted-foreground">
+                              {link.description}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
+              {/* Academic Dropdown */}
               <div className="relative" onMouseEnter={() => setAcademicOpen(true)} onMouseLeave={() => setAcademicOpen(false)}>
                 <button
-                  className="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold font-bengali text-foreground transition-all hover:bg-primary/8"
+                  type="button"
+                  className={`flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold font-bengali transition-all ${
+                    academicLinks.some((l) => l.to === location.pathname)
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-foreground hover:bg-primary/8"
+                  }`}
                 >
                   {t("একাডেমিক", "Academic")}
                   <ChevronDown className="h-4 w-4" />
@@ -646,9 +786,15 @@ const Navbar = () => {
                 </AnimatePresence>
               </div>
 
+              {/* Admission Dropdown */}
               <div className="relative" onMouseEnter={() => setAdmissionOpen(true)} onMouseLeave={() => setAdmissionOpen(false)}>
                 <button
-                  className="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold font-bengali text-foreground transition-all hover:bg-primary/8"
+                  type="button"
+                  className={`flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold font-bengali transition-all ${
+                    admissionLinks.some((l) => l.to === location.pathname)
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-foreground hover:bg-primary/8"
+                  }`}
                 >
                   {t("ভর্তি", "Admission")}
                   <ChevronDown className="h-4 w-4" />
@@ -678,6 +824,19 @@ const Navbar = () => {
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* Main Links: News & Contact */}
+              {mainLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold font-bengali transition-all ${
+                    location.pathname === link.to ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground hover:bg-primary/8"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
 
               <div className="mx-2 h-8 w-px bg-border/70" />
               <LanguageToggle />
@@ -733,18 +892,34 @@ const Navbar = () => {
                 )}
               </AnimatePresence>
 
-              {mainLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  onClick={() => setIsOpen(false)}
-                  className={`rounded-2xl px-4 py-3 font-bengali font-medium transition-colors ${
-                    location.pathname === link.to ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {/* About Us Mobile Accordion */}
+              <button
+                type="button"
+                onClick={() => setMobileAboutOpen(!mobileAboutOpen)}
+                className="flex items-center justify-between rounded-2xl px-4 py-3 font-bengali font-medium text-foreground hover:bg-secondary"
+              >
+                <span>{t("আমাদের সম্পর্কে", "About Us")}</span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${mobileAboutOpen ? "rotate-180" : ""}`} />
+              </button>
+              <AnimatePresence>
+                {mobileAboutOpen && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                    {aboutLinks.map((link) => (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        onClick={() => {
+                          setIsOpen(false);
+                          setMobileAboutOpen(false);
+                        }}
+                        className="block rounded-xl py-2 pl-8 pr-4 font-bengali font-medium text-foreground hover:bg-secondary"
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <button
                 onClick={() => setMobileAcademicOpen(!mobileAcademicOpen)}
@@ -799,6 +974,20 @@ const Navbar = () => {
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {/* Main Links: News & Contact */}
+              {mainLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setIsOpen(false)}
+                  className={`rounded-2xl px-4 py-3 font-bengali font-medium transition-colors ${
+                    location.pathname === link.to ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
           </motion.div>
         )}

@@ -855,7 +855,7 @@ const Index = () => {
                   <Crown className="h-8 w-8 text-amber-600" />
                 </div>
                 <div className="font-display font-extrabold text-3xl sm:text-4xl text-foreground">
-                  ১১৮+ জন
+                  ৪০+ জন
                 </div>
                 <p className="font-bengali text-xs text-muted-foreground">
                   {t("২০২১ থেকে ২০২৬ পর্যন্ত সম্মানিত গ্র্যাজুয়েট হাফেজ", "Graduated Huffaz from 2021 to 2026")}
