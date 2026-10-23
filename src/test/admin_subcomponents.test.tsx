@@ -96,4 +96,33 @@ describe("All CMS Components and Dialogs Rendering", () => {
     render(wrap(<NoticeTable notices={[]} loading={false} onEdit={() => {}} onDelete={() => {}} />));
     render(wrap(<NoticeFormDialog isOpen={true} onClose={() => {}} onSuccess={() => {}} />));
   });
+
+  it("extracts YouTube video and playlist IDs correctly", async () => {
+    const { extractYouTubeId, saveVideoItem, getVideoList } = await import("@/lib/videoService");
+    
+    // Normal video
+    expect(extractYouTubeId("https://www.youtube.com/watch?v=7X8II6J-6mU")).toBe("7X8II6J-6mU");
+    expect(extractYouTubeId("https://youtu.be/7X8II6J-6mU")).toBe("7X8II6J-6mU");
+
+    // Playlist URL
+    const playlistUrl = "https://www.youtube.com/watch?v=VFnUBYe9giM&list=PLSKwzh15e_dk";
+    expect(extractYouTubeId(playlistUrl, "playlist")).toBe("PLSKwzh15e_dk");
+    expect(extractYouTubeId(playlistUrl, "video")).toBe("VFnUBYe9giM");
+
+    // Test saving video
+    const saveRes = await saveVideoItem({
+      title_bn: "টেস্ট ভিডিও",
+      youtube_url: playlistUrl,
+      youtube_video_id: "PLSKwzh15e_dk",
+      type: "playlist",
+      is_featured: false,
+      order_index: 1,
+    });
+    expect(saveRes.success).toBe(true);
+    expect(saveRes.item.title_bn).toBe("টেস্ট ভিডিও");
+
+    // Test list retrieval
+    const listRes = await getVideoList();
+    expect(listRes.videos.length).toBeGreaterThan(0);
+  });
 });

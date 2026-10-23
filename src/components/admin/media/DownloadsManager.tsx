@@ -72,7 +72,22 @@ export const DownloadsManager = () => {
   };
 
   useEffect(() => {
-    fetchDownloads();
+    let mounted = true;
+    const load = async () => {
+      try {
+        setLoading(true);
+        const data = await getDownloadsList();
+        if (mounted) setDownloads(data);
+      } catch (err: any) {
+        console.error("Error fetching downloads:", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    void load();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleToggleActive = async (item: DownloadItem) => {

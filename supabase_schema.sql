@@ -270,7 +270,7 @@ CREATE TABLE IF NOT EXISTS public.media_videos (
   title_en TEXT,
   youtube_url TEXT NOT NULL,
   youtube_video_id TEXT NOT NULL,
-  type TEXT DEFAULT 'video' CHECK (type IN ('video', 'playlist')),
+  type TEXT DEFAULT 'video' CHECK (type IN ('video', 'playlist', 'livestream')),
   is_featured BOOLEAN DEFAULT false,
   order_index INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,

@@ -44,6 +44,7 @@ export const defaultFacultyList: FacultyMember[] = [
     is_active: true,
     phone: "01312200043",
     email: "manager@annoor.edu.bd",
+    image_url: "/abdullah.png",
     created_at: new Date().toISOString(),
   },
   {
@@ -354,7 +355,12 @@ export async function getFacultyList(): Promise<FacultyMember[]> {
       subject_en: item.subject_en || "",
       experience_bn: item.experience_bn || "",
       experience_en: item.experience_en || "",
-      image_url: item.image_url || null,
+      image_url:
+        item.image_url && !item.image_url.includes("example.com")
+          ? item.image_url
+          : (item.id === "fac-mgmt-1" || item.name_bn?.includes("আব্দুল্লাহ"))
+            ? "/abdullah.png"
+            : item.image_url || null,
       phone: item.phone || null,
       email: item.email || null,
       bio_bn: item.bio_bn || null,

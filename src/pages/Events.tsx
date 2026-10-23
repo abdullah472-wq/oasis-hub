@@ -3,9 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar as CalendarIcon,
   Clock,
-  Plus,
-  Edit2,
-  Trash2,
   ExternalLink,
   ChevronLeft,
   ChevronRight,
@@ -27,10 +24,9 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useAuth } from "@/contexts/AuthContext";
 import WaveDivider from "@/components/WaveDivider";
 import heroImg from "@/assets/hero-campus.jpg";
-import { getEvents, deleteEvent, type Event } from "@/lib/events";
+import { getEvents, type Event } from "@/lib/events";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,17 +38,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { EventDialog } from "@/components/admin/content/EventDialog";
 
 const typeStyles: Record<
   Event["type"],
@@ -98,7 +83,6 @@ const typeStyles: Record<
 
 const Events = () => {
   const { t, lang } = useLanguage();
-  const { isAdmin } = useAuth();
 
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,15 +94,6 @@ const Events = () => {
 
   // Detailed Modal View
   const [activeEvent, setActiveEvent] = useState<Event | null>(null);
-
-  // Admin In-Place Create/Edit Dialog
-  const [adminDialogOpen, setAdminDialogOpen] = useState(false);
-  const [eventToEdit, setEventToEdit] = useState<Event | null>(null);
-
-  // Admin Delete Dialog
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const isMountedRef = useRef(true);
 
@@ -259,42 +234,6 @@ const Events = () => {
       .filter((e) => (e.endDate || e.startDate) >= today)
       .slice(0, 5);
   }, [events]);
-
-  const handleAdminCreate = () => {
-    setEventToEdit(null);
-    setAdminDialogOpen(true);
-  };
-
-  const handleAdminEdit = (event: Event, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setEventToEdit(event);
-    setAdminDialogOpen(true);
-  };
-
-  const handleAdminDelete = (event: Event, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setEventToDelete(event);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!eventToDelete?.id) return;
-    setIsDeleting(true);
-    try {
-      await deleteEvent(eventToDelete.id);
-      toast.success(t("ইভেন্ট সফলভাবে মুছে ফেলা হয়েছে", "Event deleted successfully"));
-      setDeleteDialogOpen(false);
-      setEventToDelete(null);
-      if (activeEvent?.id === eventToDelete.id) {
-        setActiveEvent(null);
-      }
-      await loadEvents();
-    } catch {
-      toast.error(t("ইভেন্ট মুছতে সমস্যা হয়েছে", "Failed to delete event"));
-    } finally {
-      setIsDeleting(false);
-    }
-  };
 
   const handleCopyDetails = (event: Event) => {
     const text = `${event.titleBn} (${formatDateRange(event.startDate, event.endDate)})\n${event.descriptionBn || ""}`;
@@ -616,29 +555,6 @@ const Events = () => {
                               >
                                 {t("বিস্তারিত", "Details")}
                               </Button>
-
-                              {isAdmin && (
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={(e) => handleAdminEdit(evt, e)}
-                                    className="h-8 w-8 rounded-lg text-sky-600 hover:bg-sky-500/10"
-                                    title={t("সম্পাদনা", "Edit")}
-                                  >
-                                    <Edit2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={(e) => handleAdminDelete(evt, e)}
-                                    className="h-8 w-8 rounded-lg text-red-600 hover:bg-red-500/10"
-                                    title={t("মুছুন", "Delete")}
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                </div>
-                              )}
                             </div>
                           </div>
                         );
@@ -769,21 +685,6 @@ const Events = () => {
                     );
                   })()}
                 </div>
-
-                {isAdmin && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      handleAdminEdit(activeEvent);
-                      setActiveEvent(null);
-                    }}
-                    className="h-8 rounded-xl font-bengali text-xs gap-1 border-sky-300 text-sky-700"
-                  >
-                    <Edit2 className="h-3 w-3" />
-                    <span>{t("এডিট", "Edit")}</span>
-                  </Button>
-                )}
               </div>
 
               <DialogTitle className="font-bengali font-bold text-xl sm:text-2xl text-foreground leading-snug">
@@ -863,51 +764,6 @@ const Events = () => {
           </DialogContent>
         )}
       </Dialog>
-
-      {/* ================= ADMIN CREATE/EDIT DIALOG ================= */}
-      <EventDialog
-        isOpen={adminDialogOpen}
-        onClose={() => setAdminDialogOpen(false)}
-        eventToEdit={eventToEdit}
-        onSuccess={loadEvents}
-      />
-
-      {/* ================= ADMIN DELETE CONFIRMATION DIALOG ================= */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-3xl max-w-md">
-          <AlertDialogHeader>
-            <div className="p-3 bg-red-500/10 text-red-600 rounded-2xl w-fit mb-1">
-              <Trash2 className="h-5 w-5" />
-            </div>
-            <AlertDialogTitle className="font-bengali text-lg font-bold">
-              {t("ইভেন্টটি কি মুছে ফেলতে চান?", "Delete this event?")}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="font-bengali text-xs text-muted-foreground">
-              {eventToDelete && (
-                <span className="block font-semibold text-foreground my-1.5 p-2 bg-muted/50 rounded-lg">
-                  "{eventToDelete.titleBn}"
-                </span>
-              )}
-              {t(
-                "মুছে ফেললে এই ইভেন্টটি পাবলিক ক্যালেন্ডার ও ডাটাবেজ থেকে তাৎক্ষণিকভাবে অপসারিত হবে।",
-                "Once deleted, this event will be immediately removed from the live calendar."
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-0">
-            <AlertDialogCancel disabled={isDeleting} className="rounded-xl font-bengali">
-              {t("বাতিল", "Cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              disabled={isDeleting}
-              className="rounded-xl font-bengali bg-red-600 hover:bg-red-700 text-white"
-            >
-              {isDeleting ? t("মুছে ফেলা হচ্ছে...", "Deleting...") : t("হ্যাঁ, মুছে ফেলুন", "Yes, Delete")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

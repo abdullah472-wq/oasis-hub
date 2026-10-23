@@ -22,6 +22,11 @@ Options -MultiViews
   RewriteEngine On
   RewriteBase /
 
+  # 301 Permanent Redirects for legacy crawled paths to eliminate GSC Soft 404s
+  RewriteRule ^courses/?$ /curriculum [R=301,L]
+  RewriteRule ^faq/?$ /admission [R=301,L]
+  RewriteRule ^privacy/?$ /about [R=301,L]
+
   RewriteRule ^index\.html$ - [L]
 
   # Never rewrite real files or directories.

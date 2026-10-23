@@ -11,6 +11,9 @@ import {
   Pencil,
   Loader2,
   Calendar,
+  AlertTriangle,
+  Copy,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase, logAdminActivity } from "@/lib/supabase/client";
@@ -63,11 +66,67 @@ export const TestimonialModeration = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [tableMissing, setTableMissing] = useState(false);
+  const [copiedSql, setCopiedSql] = useState(false);
+  const [showSqlDetails, setShowSqlDetails] = useState(false);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Testimonial | null>(null);
   const [deletingItem, setDeletingItem] = useState<Testimonial | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const SETUP_SQL = `-- Testimonials Table & Policies Setup
+CREATE TABLE IF NOT EXISTS public.testimonials (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  author_name TEXT NOT NULL,
+  relation_title_bn TEXT NOT NULL,
+  relation_title_en TEXT,
+  review_text_bn TEXT NOT NULL,
+  review_text_en TEXT,
+  rating INTEGER DEFAULT 5,
+  is_approved BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.testimonials ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can view testimonials" ON public.testimonials;
+CREATE POLICY "Anyone can view testimonials"
+  ON public.testimonials FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+DROP POLICY IF EXISTS "Public can submit testimonials" ON public.testimonials;
+CREATE POLICY "Public can submit testimonials"
+  ON public.testimonials FOR INSERT
+  TO anon, authenticated
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admins can update testimonials" ON public.testimonials;
+CREATE POLICY "Admins can update testimonials"
+  ON public.testimonials FOR UPDATE
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admins can delete testimonials" ON public.testimonials;
+CREATE POLICY "Admins can delete testimonials"
+  ON public.testimonials FOR DELETE
+  TO authenticated
+  USING (true);`;
+
+  const handleCopySql = async () => {
+    try {
+      await navigator.clipboard.writeText(SETUP_SQL);
+      setCopiedSql(true);
+      toast.success(
+        t("SQL স্ক্রিপ্ট কপি হয়েছে! Supabase SQL Editor-এ রান করুন।", "SQL copied! Run it in your Supabase SQL Editor.")
+      );
+      setTimeout(() => setCopiedSql(false), 3000);
+    } catch {
+      toast.error(t("কপি করতে সমস্যা হয়েছে", "Failed to copy"));
+    }
+  };
 
   const [formData, setFormData] = useState<{
     author_name: string;
@@ -98,7 +157,13 @@ export const TestimonialModeration = () => {
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (!error && data) {
+      if (error) {
+        console.warn("Supabase fetch testimonials warning:", error);
+        if (error.code === "PGRST205" || error.message?.includes("testimonials")) {
+          setTableMissing(true);
+        }
+      } else if (data) {
+        setTableMissing(false);
         parsedData = ((data as Testimonial[]) || []).map((row) => {
           const parsed = parsePlatformAndRelation(row.relation_title_en, row.relation_title_bn);
           return {
@@ -182,19 +247,27 @@ export const TestimonialModeration = () => {
 
   useEffect(() => {
     fetchTestimonials();
+    const handleUpdate = () => {
+      fetchTestimonials();
+    };
+    window.addEventListener("oasis-reviews-updated", handleUpdate);
+    return () => {
+      window.removeEventListener("oasis-reviews-updated", handleUpdate);
+    };
   }, []);
 
   const handleToggleApproval = async (item: Testimonial, approve: boolean) => {
     try {
       const isLocal = item.id.startsWith("local-") || item.id.startsWith("default-");
       if (!isLocal) {
-        try {
-          await supabase
-            .from("testimonials")
-            .update({ is_approved: approve })
-            .eq("id", item.id);
-        } catch (e) {
-          console.warn("Supabase update skipped/failed:", e);
+        const { error } = await supabase
+          .from("testimonials")
+          .update({ is_approved: approve })
+          .eq("id", item.id);
+        if (error) {
+          console.error("Supabase update error:", error);
+          toast.error(t("ডাটাবেজে আপডেট ব্যর্থ হয়েছে: " + error.message, "Failed to update: " + error.message));
+          return;
         }
       }
 
@@ -243,13 +316,14 @@ export const TestimonialModeration = () => {
     try {
       const isLocal = deletingItem.id.startsWith("local-") || deletingItem.id.startsWith("default-");
       if (!isLocal) {
-        try {
-          await supabase
-            .from("testimonials")
-            .delete()
-            .eq("id", deletingItem.id);
-        } catch (e) {
-          console.warn("Supabase delete skipped/failed:", e);
+        const { error } = await supabase
+          .from("testimonials")
+          .delete()
+          .eq("id", deletingItem.id);
+        if (error) {
+          console.error("Supabase delete error:", error);
+          toast.error(t("ডাটাবেজ থেকে মুছতে সমস্যা হয়েছে: " + error.message, "Failed to delete: " + error.message));
+          return;
         }
       }
 
@@ -432,6 +506,75 @@ export const TestimonialModeration = () => {
 
   return (
     <div className="space-y-6">
+      {/* Missing Database Table Alert Banner */}
+      {tableMissing && (
+        <div className="rounded-2xl border-2 border-rose-500/40 bg-rose-500/10 p-5 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/20 text-rose-600">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-bengali text-base font-bold text-foreground">
+                  {t(
+                    "ডাটাবেজে 'testimonials' টেবিলটি অনুপস্থিত (Table Missing)",
+                    "Testimonials Table Missing in Supabase Database"
+                  )}
+                </h4>
+                <p className="font-bengali text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  {t(
+                    "ওয়েবসাইট থেকে সাধারণ ব্যবহারকারী বা অভিভাবকরা রিভিউ সাবমিট করলে তা সরাসরি ডাটাবেজে পৌঁছাতে পারছে না, যে কারণে অ্যাডমিন প্যানেলে নতুন রিভিউ জমা পড়ছে না। নিচের বাটনে ক্লিক করে SQL স্ক্রিপ্ট কপি করে আপনার Supabase Dashboard-এর SQL Editor-এ পেস্ট করে রান (Run) করুন।",
+                    "Reviews submitted by website visitors cannot be saved to the database because the 'testimonials' table is missing in Supabase. Copy the SQL script below and run it in your Supabase SQL Editor."
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 shrink-0 md:self-center">
+              <Button
+                onClick={handleCopySql}
+                size="sm"
+                className="gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bengali font-semibold shadow-sm"
+              >
+                {copiedSql ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                <span>{copiedSql ? t("কপি হয়েছে!", "Copied!") : t("SQL কোড কপি করুন", "Copy SQL Code")}</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowSqlDetails((prev) => !prev)}
+                className="font-bengali border-rose-300 dark:border-rose-900/50"
+              >
+                {showSqlDetails ? t("কোড লুকান", "Hide SQL") : t("কোড প্রিভিউ", "Preview SQL")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={fetchTestimonials}
+                disabled={loading}
+                className="font-bengali border-rose-300 dark:border-rose-900/50"
+              >
+                <RotateCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+                <span>{t("পুনরায় চেক করুন", "Re-check Table")}</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Collapsible SQL preview */}
+          {showSqlDetails && (
+            <div className="mt-4 rounded-xl border border-rose-500/20 bg-background/90 p-4 font-mono text-xs overflow-x-auto text-foreground">
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-border text-[11px] font-sans text-muted-foreground">
+                <span>supabase_testimonials_setup.sql</span>
+                <span className="text-emerald-600 font-semibold">{t("রান করার জন্য প্রস্তুত", "Ready to Run")}</span>
+              </div>
+              <pre className="whitespace-pre overflow-x-auto text-[11px] text-muted-foreground leading-normal">
+                {SETUP_SQL}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Alert banner if there are pending reviews */}
       {pendingCount > 0 && (
         <div className="flex items-center justify-between rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">

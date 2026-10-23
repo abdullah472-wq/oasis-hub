@@ -20,6 +20,7 @@ import AdminTeachers from "@/pages/admin/AdminTeachers";
 import AdminHuffaz from "@/pages/admin/AdminHuffaz";
 import AdminAdmissionInfo from "@/pages/admin/AdminAdmissionInfo";
 import AdminAdmissions from "@/pages/admin/AdminAdmissions";
+import AdminReviews from "@/pages/admin/AdminReviews";
 import { AdmissionsManager } from "@/components/admin/admissions/AdmissionsManager";
 
 // Also test the layout and components
@@ -141,5 +142,10 @@ describe("Admin CMS Modules and Pages", () => {
     expect(AdminAdmissions).toBeDefined();
     expect(AdmissionsManager).toBeDefined();
     renderWithProviders(<AdminAdmissions />);
+  });
+
+  it("renders AdminReviews and TestimonialModeration", () => {
+    expect(AdminReviews).toBeDefined();
+    renderWithProviders(<AdminReviews />);
   });
 });

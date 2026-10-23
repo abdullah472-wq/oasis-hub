@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
-import { Loader2, Video, Film, Radio, ExternalLink, Sparkles } from "lucide-react";
+import { Loader2, Video, Film, Radio, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { supabase, logAdminActivity } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { MediaVideo, MediaType } from "@/types/cms";
+import {
+  extractYouTubeId,
+  saveVideoItem,
+} from "@/lib/videoService";
 import {
   Dialog,
   DialogContent,
@@ -24,22 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export function extractYouTubeId(url: string): string {
-  if (!url) return "";
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-  const match = url.match(regExp);
-  if (match && match[2].length === 11) {
-    return match[2];
-  }
-  // Check playlist pattern
-  const listMatch = url.match(/[?&]list=([^#&?]+)/);
-  if (listMatch && listMatch[1]) {
-    return listMatch[1];
-  }
-  // Fallback if user pastes only the ID
-  if (url.trim().length === 11) return url.trim();
-  return "";
-}
+export { extractYouTubeId };
 
 interface VideoFormDialogProps {
   isOpen: boolean;
@@ -92,13 +80,24 @@ export const VideoFormDialog = ({
   }, [videoToEdit, isOpen]);
 
   const handleUrlChange = (url: string) => {
-    const extractedId = extractYouTubeId(url);
-    const isPlaylist = url.includes("list=");
+    const isPlaylist = url.includes("list=") || formData.type === "playlist";
+    const detectedType: MediaType = url.includes("list=") ? "playlist" : formData.type;
+    const extractedId = extractYouTubeId(url, detectedType);
+
     setFormData((prev) => ({
       ...prev,
       youtube_url: url,
       youtube_video_id: extractedId || prev.youtube_video_id,
-      type: isPlaylist ? "playlist" : prev.type,
+      type: detectedType,
+    }));
+  };
+
+  const handleTypeChange = (newType: MediaType) => {
+    const newId = extractYouTubeId(formData.youtube_url, newType);
+    setFormData((prev) => ({
+      ...prev,
+      type: newType,
+      youtube_video_id: newId || prev.youtube_video_id,
     }));
   };
 
@@ -115,7 +114,10 @@ export const VideoFormDialog = ({
       return;
     }
 
-    const videoId = formData.youtube_video_id || extractYouTubeId(formData.youtube_url);
+    const videoId =
+      formData.youtube_video_id ||
+      extractYouTubeId(formData.youtube_url, formData.type);
+
     if (!videoId) {
       toast.error(t("সঠিক ইউটিউব ভিডিও বা প্লেলিস্ট লিংক দিন", "Please provide a valid YouTube URL or Video ID"));
       return;
@@ -124,44 +126,36 @@ export const VideoFormDialog = ({
     try {
       setLoading(true);
 
-      const payload = {
-        title_bn: formData.title_bn.trim(),
-        title_en: formData.title_en.trim() || null,
-        youtube_url: formData.youtube_url.trim(),
+      const res = await saveVideoItem({
+        ...(videoToEdit?.id ? { id: videoToEdit.id } : {}),
+        title_bn: formData.title_bn,
+        title_en: formData.title_en,
+        youtube_url: formData.youtube_url,
         youtube_video_id: videoId,
         type: formData.type,
         is_featured: formData.is_featured,
         order_index: Number(formData.order_index) || 0,
-        updated_at: new Date().toISOString(),
-      };
+      });
 
-      if (videoToEdit) {
-        const { error } = await supabase
-          .from("media_videos")
-          .update(payload)
-          .eq("id", videoToEdit.id);
-
-        if (error) throw error;
-
-        await logAdminActivity(
-          "UPDATE",
-          "media_videos",
-          `ভিডিও আপডেট: "${payload.title_bn}"`
+      if (res.isTableMissing) {
+        toast.success(
+          videoToEdit
+            ? t("ভিডিও সফলভাবে আপডেট হয়েছে (লোকাল সংরক্ষিত)", "Video updated (Saved locally)")
+            : t("নতুন ভিডিও সফলভাবে যুক্ত করা হয়েছে (লোকাল সংরক্ষিত)", "Video added successfully (Saved locally)")
         );
-        toast.success(t("ভিডিও সফলভাবে আপডেট করা হয়েছে", "Video updated successfully"));
+        toast.info(
+          t(
+            "Supabase ডাটাবেজে স্থায়ী করতে supabase_media_videos_setup.sql রান করুন",
+            "Run supabase_media_videos_setup.sql in Supabase SQL Editor for cloud sync"
+          ),
+          { duration: 6000 }
+        );
       } else {
-        const { error } = await supabase
-          .from("media_videos")
-          .insert([payload]);
-
-        if (error) throw error;
-
-        await logAdminActivity(
-          "CREATE",
-          "media_videos",
-          `নতুন ভিডিও যুক্ত: "${payload.title_bn}"`
+        toast.success(
+          videoToEdit
+            ? t("ভিডিও সফলভাবে আপডেট করা হয়েছে", "Video updated successfully")
+            : t("নতুন ভিডিও সফলভাবে যুক্ত করা হয়েছে", "Video added successfully")
         );
-        toast.success(t("নতুন ভিডিও সফলভাবে যুক্ত করা হয়েছে", "Video added successfully"));
       }
 
       onSuccess();
@@ -174,9 +168,10 @@ export const VideoFormDialog = ({
     }
   };
 
-  const previewThumbnail = formData.youtube_video_id && formData.type !== "playlist"
-    ? `https://img.youtube.com/vi/${formData.youtube_video_id}/hqdefault.jpg`
-    : null;
+  const previewThumbnail =
+    formData.youtube_video_id && formData.type !== "playlist"
+      ? `https://img.youtube.com/vi/${formData.youtube_video_id}/hqdefault.jpg`
+      : null;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -233,13 +228,14 @@ export const VideoFormDialog = ({
               id="youtube_url"
               value={formData.youtube_url}
               onChange={(e) => handleUrlChange(e.target.value)}
-              placeholder="https://www.youtube.com/watch?v=XXXXX or https://youtu.be/XXXXX"
+              placeholder="https://www.youtube.com/watch?v=XXXXX or https://www.youtube.com/playlist?list=XXXXX"
               required
             />
             {formData.youtube_video_id && (
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Sparkles className="h-3 w-3 text-primary" />
-                {t("শনাক্তকৃত আইডি:", "Detected ID:")} <span className="font-mono font-medium text-foreground">{formData.youtube_video_id}</span>
+                {t("শনাক্তকৃত আইডি:", "Detected ID:")}{" "}
+                <span className="font-mono font-medium text-foreground">{formData.youtube_video_id}</span>
               </p>
             )}
           </div>
@@ -256,7 +252,6 @@ export const VideoFormDialog = ({
                   alt="Thumbnail"
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    // fallback if hqdefault is not available
                     (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${formData.youtube_video_id}/0.jpg`;
                   }}
                 />
@@ -275,7 +270,7 @@ export const VideoFormDialog = ({
               <Label className="font-semibold">{t("মিডিয়া ধরন", "Media Type")}</Label>
               <Select
                 value={formData.type}
-                onValueChange={(val: MediaType) => setFormData({ ...formData, type: val })}
+                onValueChange={handleTypeChange}
               >
                 <SelectTrigger>
                   <SelectValue />

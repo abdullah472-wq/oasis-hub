@@ -567,8 +567,8 @@ const Sitemap = () => {
               </p>
               <p className="text-[11px] text-muted-foreground/80">
                 {t(
-                  "অনুমোদিত ঠিকানা: https://oasis-hub-eight.vercel.app/sitemap.xml",
-                  "Canonical location: https://oasis-hub-eight.vercel.app/sitemap.xml",
+                  "অনুমোদিত ঠিকানা: https://annoor.codbotbd.com/sitemap.xml",
+                  "Canonical location: https://annoor.codbotbd.com/sitemap.xml",
                 )}
               </p>
             </div>

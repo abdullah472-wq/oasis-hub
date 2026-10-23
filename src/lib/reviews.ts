@@ -206,7 +206,7 @@ export const submitReview = async (review: Omit<Review, "id" | "approved" | "cre
     console.warn("Local review caching failed:", e);
   }
 
-  // 2. Insert into Supabase if available (do not chain .select().single() due to RLS unapproved restriction)
+  // 2. Insert into Supabase if available
   try {
     const payload = {
       author_name: newReview.name,
@@ -218,12 +218,19 @@ export const submitReview = async (review: Omit<Review, "id" | "approved" | "cre
       is_approved: false,
     };
 
-    const { error } = await supabase.from("testimonials").insert([payload]);
+    const { data, error } = await supabase.from("testimonials").insert([payload]).select("id").maybeSingle();
     if (error) {
       console.warn("Supabase insert warning (cached locally):", error.message);
+    } else if (data?.id) {
+      newReview.id = data.id;
     }
   } catch (err) {
     console.warn("Supabase insert network/schema error:", err);
+  }
+
+  // 3. Dispatch update event for open tabs and admin panels
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("oasis-reviews-updated", { detail: newReview }));
   }
 
   return newReview;

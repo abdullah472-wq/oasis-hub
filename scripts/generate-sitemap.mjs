@@ -1,7 +1,7 @@
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const SITE_URL = (process.env.VITE_SITE_URL || "https://oasis-hub-eight.vercel.app").replace(/\/+$/, "");
+const SITE_URL = (process.env.VITE_SITE_URL || "https://annoor.codbotbd.com").replace(/\/+$/, "");
 
 const routes = [
   { path: "/", priority: "1.0", changefreq: "daily" },

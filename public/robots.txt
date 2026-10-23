@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin/
 Disallow: /admin
 
-Sitemap: https://oasis-hub-eight.vercel.app/sitemap.xml
+Sitemap: https://annoor.codbotbd.com/sitemap.xml

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { BellRing, Film, ImageIcon, Download, Globe, MessageSquareQuote } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -14,6 +15,7 @@ interface MetricItem {
   subtitleEn: string;
   icon: typeof BellRing;
   colorClass: string;
+  href: string;
 }
 
 export const DashboardMetrics = () => {
@@ -52,6 +54,21 @@ export const DashboardMetrics = () => {
           supabase.from("testimonials").select("id", { count: "exact", head: true }).eq("is_approved", false),
         ]);
 
+        let pendingReviews = reviewsRes.count || 0;
+        if (pendingReviews === 0 && typeof window !== "undefined") {
+          try {
+            const raw = localStorage.getItem("oasis_testimonials_cache");
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) {
+                pendingReviews = parsed.filter((r) => !r.approved).length;
+              }
+            }
+          } catch {
+            // ignore
+          }
+        }
+
         if (!mounted) return;
 
         setMetrics({
@@ -61,7 +78,7 @@ export const DashboardMetrics = () => {
           galleryCount: galleryRes.count || 0,
           downloadsCount: downloadsRes.count || 0,
           activeTickerCount: tickerRes.count || 0,
-          pendingReviewsCount: reviewsRes.count || 0,
+          pendingReviewsCount: pendingReviews,
         });
       } catch (err) {
         console.error("Failed to load dashboard metrics:", err);
@@ -87,6 +104,7 @@ export const DashboardMetrics = () => {
       subtitleEn: `${metrics.publishedNoticesCount} Published`,
       icon: BellRing,
       colorClass: "bg-blue-500/10 text-blue-600 border-blue-200/50",
+      href: "/admin/notices",
     },
     {
       key: "videos",
@@ -97,6 +115,7 @@ export const DashboardMetrics = () => {
       subtitleEn: "Media Center Videos",
       icon: Film,
       colorClass: "bg-purple-500/10 text-purple-600 border-purple-200/50",
+      href: "/admin/media?tab=videos",
     },
     {
       key: "gallery",
@@ -107,6 +126,7 @@ export const DashboardMetrics = () => {
       subtitleEn: "Campus & Event Photos",
       icon: ImageIcon,
       colorClass: "bg-emerald-500/10 text-emerald-600 border-emerald-200/50",
+      href: "/admin/media?tab=gallery",
     },
     {
       key: "downloads",
@@ -117,6 +137,7 @@ export const DashboardMetrics = () => {
       subtitleEn: "Resources & Forms",
       icon: Download,
       colorClass: "bg-amber-500/10 text-amber-600 border-amber-200/50",
+      href: "/admin/downloads",
     },
     {
       key: "ticker",
@@ -127,16 +148,18 @@ export const DashboardMetrics = () => {
       subtitleEn: "Active Running Ticker",
       icon: Globe,
       colorClass: "bg-teal-500/10 text-teal-600 border-teal-200/50",
+      href: "/admin/content?tab=marquee",
     },
     {
       key: "reviews",
       titleBn: "অপেক্ষমাণ রিভিউ",
       titleEn: "Pending Reviews",
       value: metrics.pendingReviewsCount,
-      subtitleBn: "অনুমোদনের অপেক্ষায়",
-      subtitleEn: "Awaiting Moderation",
+      subtitleBn: "অনুমোদনের অপেক্ষায় (ক্লিক করুন)",
+      subtitleEn: "Awaiting Moderation (Click to review)",
       icon: MessageSquareQuote,
       colorClass: "bg-rose-500/10 text-rose-600 border-rose-200/50",
+      href: "/admin/reviews",
     },
   ];
 
@@ -162,32 +185,31 @@ export const DashboardMetrics = () => {
       {cards.map((card) => {
         const Icon = card.icon;
         return (
-          <Card
-            key={card.key}
-            className="group relative overflow-hidden rounded-3xl border-border/70 bg-card/90 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <span className="font-bengali text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  {t(card.titleBn, card.titleEn)}
-                </span>
-                <div
-                  className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition-transform duration-300 group-hover:scale-110 ${card.colorClass}`}
-                >
-                  <Icon className="h-5 w-5" />
+          <Link key={card.key} to={card.href} className="block group">
+            <Card className="relative overflow-hidden rounded-3xl border-border/70 bg-card/90 shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/50 group-hover:shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <span className="font-bengali text-xs font-semibold text-muted-foreground uppercase tracking-wide group-hover:text-primary transition-colors">
+                    {t(card.titleBn, card.titleEn)}
+                  </span>
+                  <div
+                    className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition-transform duration-300 group-hover:scale-110 ${card.colorClass}`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </div>
                 </div>
-              </div>
 
-              <div className="mt-3">
-                <h3 className="font-display text-3xl font-bold text-foreground">
-                  {card.value.toLocaleString(t("bn-BD", "en-US"))}
-                </h3>
-                <p className="font-bengali mt-1 text-xs text-muted-foreground">
-                  {t(card.subtitleBn, card.subtitleEn)}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="mt-3">
+                  <h3 className="font-display text-3xl font-bold text-foreground">
+                    {card.value.toLocaleString(t("bn-BD", "en-US"))}
+                  </h3>
+                  <p className="font-bengali mt-1 text-xs text-muted-foreground">
+                    {t(card.subtitleBn, card.subtitleEn)}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         );
       })}
     </div>

@@ -299,7 +299,7 @@ const Index = () => {
     },
     {
       name: t("মাসুদ রানা", "Masud Rana"),
-      relation: t("অভিভাবক · নূরানী ও নাজেরা শাখা", "Guardian · Noorani & Nazera"),
+      relation: t("অভিভাবক · নাজেরা শাখা", "Guardian · Nazera"),
       review: t(
         '"অনলাইনে নিয়মিত পরীক্ষার রেজাল্ট, বার্ষিক সিলেবাস ও নোটিশ পাওয়া যায় যা আমাদের মতো কর্মজীবী অভিভাবকদের জন্য অনেক বড় স্বস্তি। আননূর শিক্ষা পরিবারের সফলতা কামনা করি।"',
         '"Getting exam results, syllabus, and notices directly online is a huge relief for working parents like us. Wishing Annoor continued success."'
@@ -434,9 +434,9 @@ const Index = () => {
   };
 
   const stats = [
-    { icon: Users, value: "350+", label: t("বর্তমান শিক্ষার্থী", "Active Students") },
-    { icon: Crown, value: "115+", label: t("কৃতি হাফেজ সমাবর্তন", "Huffaz Graduates") },
-    { icon: BookOpen, value: "30+", label: t("অভিজ্ঞ শিক্ষকমণ্ডলী", "Expert Teachers") },
+    { icon: Users, value: "110+", label: t("বর্তমান শিক্ষার্থী", "Active Students") },
+    { icon: Crown, value: "40+", label: t("কৃতি হাফেজ সমাবর্তন", "Huffaz Graduates") },
+    { icon: BookOpen, value: "10+", label: t("অভিজ্ঞ শিক্ষকমণ্ডলী", "Expert Teachers") },
     { icon: Award, value: "5+", label: t("বছরের নির্ভরযোগ্য ঐতিহ্য", "Years of Trust (Est. 2021)") },
   ];
 
@@ -821,8 +821,8 @@ const Index = () => {
 
                 <h2 className="font-bengali text-2xl sm:text-4xl font-extrabold text-foreground leading-tight">
                   {t(
-                    "আলহামদুলিল্লাহ, এ পর্যন্ত শতাধিক শিক্ষার্থী সম্পূর্ণ পবিত্র কুরআন হিফজ সম্পন্ন করেছেন",
-                    "Praising Allah: Over 115+ Students have Completed Full Quran Memorization"
+                    "আলহামদুলিল্লাহ, এ পর্যন্ত ৪০+ শিক্ষার্থী সম্পূর্ণ পবিত্র কুরআন হিফজ সম্পন্ন করেছেন",
+                    "Praising Allah: Over 40+ Students have Completed Full Quran Memorization"
                   )}
                 </h2>
 
@@ -861,8 +861,8 @@ const Index = () => {
                   {t("২০২১ থেকে ২০২৬ পর্যন্ত সম্মানিত গ্র্যাজুয়েট হাফেজ", "Graduated Huffaz from 2021 to 2026")}
                 </p>
                 <div className="pt-2 border-t border-border/60 w-full flex justify-around text-xs font-semibold text-primary">
-                  <span>২০২৪ ব্যাচ: ১৬ জন</span>
-                  <span>২০২৫ ব্যাচ: ১৯ জন</span>
+                  <span>২০২৪ ব্যাচ: ৬ জন</span>
+                  <span>২০২৫ ব্যাচ: ৯ জন</span>
                 </div>
               </div>
             </div>
@@ -1325,7 +1325,7 @@ const Index = () => {
               {t("মাদরাসার বৈশিষ্ট্য", "Features of the Madrasha")}
             </h2>
             <p className="font-bengali text-xs sm:text-sm text-muted-foreground">
-              {t("কেন আপনার সন্তানের জন্য আননূর শিক্ষা পরিবার সেরা পছন্দ", "Key standout qualities of our institution")}
+              {t("কেন আপনার সন্তানের জন্য আননূর তাহফিজুল কুরআন মাদ্রাসা সেরা পছন্দ", "Key standout qualities of our institution")}
             </p>
           </motion.div>
 
@@ -1525,11 +1525,10 @@ const Index = () => {
                   setSelectedPlatform("all");
                   setCurrentSlide(0);
                 }}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bengali font-semibold whitespace-nowrap transition-all ${
-                  selectedPlatform === "all"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-background border border-border/70 text-muted-foreground hover:bg-muted"
-                }`}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bengali font-semibold whitespace-nowrap transition-all ${selectedPlatform === "all"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "bg-background border border-border/70 text-muted-foreground hover:bg-muted"
+                  }`}
               >
                 <span>{t("সকল রিভিউ", "All Reviews")}</span>
                 <span className="ml-1 text-[10px] opacity-75">({platformCounts.all})</span>
@@ -1540,11 +1539,10 @@ const Index = () => {
                   setSelectedPlatform("website");
                   setCurrentSlide(0);
                 }}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bengali font-semibold whitespace-nowrap transition-all ${
-                  selectedPlatform === "website"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-background border border-border/70 text-muted-foreground hover:bg-muted"
-                }`}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bengali font-semibold whitespace-nowrap transition-all ${selectedPlatform === "website"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "bg-background border border-border/70 text-muted-foreground hover:bg-muted"
+                  }`}
               >
                 <Globe className="h-3.5 w-3.5" />
                 <span>{t("ওয়েবসাইট রিভিউ", "Website")}</span>
@@ -1556,11 +1554,10 @@ const Index = () => {
                   setSelectedPlatform("google");
                   setCurrentSlide(0);
                 }}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bengali font-semibold whitespace-nowrap transition-all ${
-                  selectedPlatform === "google"
-                    ? "bg-red-600 text-white shadow-sm"
-                    : "bg-background border border-border/70 text-muted-foreground hover:bg-muted"
-                }`}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bengali font-semibold whitespace-nowrap transition-all ${selectedPlatform === "google"
+                  ? "bg-red-600 text-white shadow-sm"
+                  : "bg-background border border-border/70 text-muted-foreground hover:bg-muted"
+                  }`}
               >
                 <GoogleIcon className="h-3.5 w-3.5" />
                 <span>Google</span>
@@ -1572,11 +1569,10 @@ const Index = () => {
                   setSelectedPlatform("facebook");
                   setCurrentSlide(0);
                 }}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bengali font-semibold whitespace-nowrap transition-all ${
-                  selectedPlatform === "facebook"
-                    ? "bg-[#1877F2] text-white shadow-sm"
-                    : "bg-background border border-border/70 text-muted-foreground hover:bg-muted"
-                }`}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bengali font-semibold whitespace-nowrap transition-all ${selectedPlatform === "facebook"
+                  ? "bg-[#1877F2] text-white shadow-sm"
+                  : "bg-background border border-border/70 text-muted-foreground hover:bg-muted"
+                  }`}
               >
                 <FacebookIcon className="h-3.5 w-3.5" />
                 <span>Facebook</span>
@@ -1588,11 +1584,10 @@ const Index = () => {
                   setSelectedPlatform("trustpilot");
                   setCurrentSlide(0);
                 }}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bengali font-semibold whitespace-nowrap transition-all ${
-                  selectedPlatform === "trustpilot"
-                    ? "bg-emerald-600 text-white shadow-sm"
-                    : "bg-background border border-border/70 text-muted-foreground hover:bg-muted"
-                }`}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bengali font-semibold whitespace-nowrap transition-all ${selectedPlatform === "trustpilot"
+                  ? "bg-emerald-600 text-white shadow-sm"
+                  : "bg-background border border-border/70 text-muted-foreground hover:bg-muted"
+                  }`}
               >
                 <TrustpilotIcon className="h-3.5 w-3.5" />
                 <span>Trustpilot</span>
@@ -1774,15 +1769,14 @@ const Index = () => {
                             {/* Card Header */}
                             <div className="flex items-start justify-between gap-3 mb-3">
                               <div className="flex items-center gap-3">
-                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-base shadow-sm ${
-                                  item.platform === "facebook"
-                                    ? "bg-blue-50 text-[#1877F2] border border-blue-200"
-                                    : item.platform === "trustpilot"
+                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-base shadow-sm ${item.platform === "facebook"
+                                  ? "bg-blue-50 text-[#1877F2] border border-blue-200"
+                                  : item.platform === "trustpilot"
                                     ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                     : item.platform === "website"
-                                    ? "bg-primary/10 text-primary border border-primary/25"
-                                    : "bg-red-50 text-red-600 border border-red-200"
-                                }`}>
+                                      ? "bg-primary/10 text-primary border border-primary/25"
+                                      : "bg-red-50 text-red-600 border border-red-200"
+                                  }`}>
                                   {item.name.charAt(0)}
                                 </div>
                                 <div>
@@ -1856,15 +1850,14 @@ const Index = () => {
                                 {/* Card Header */}
                                 <div className="flex items-start justify-between gap-3 mb-3">
                                   <div className="flex items-center gap-3">
-                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-base shadow-sm ${
-                                      item.platform === "facebook"
-                                        ? "bg-blue-50 text-[#1877F2] border border-blue-200"
-                                        : item.platform === "trustpilot"
+                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-base shadow-sm ${item.platform === "facebook"
+                                      ? "bg-blue-50 text-[#1877F2] border border-blue-200"
+                                      : item.platform === "trustpilot"
                                         ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                         : item.platform === "website"
-                                        ? "bg-primary/10 text-primary border border-primary/25"
-                                        : "bg-red-50 text-red-600 border border-red-200"
-                                    }`}>
+                                          ? "bg-primary/10 text-primary border border-primary/25"
+                                          : "bg-red-50 text-red-600 border border-red-200"
+                                      }`}>
                                       {item.name.charAt(0)}
                                     </div>
                                     <div>
@@ -1943,9 +1936,8 @@ const Index = () => {
                         <button
                           key={i}
                           onClick={() => setCurrentSlide(i)}
-                          className={`h-2 rounded-full transition-all ${
-                            currentSlide === i ? "bg-primary w-8" : "bg-muted-foreground/30 w-2"
-                          }`}
+                          className={`h-2 rounded-full transition-all ${currentSlide === i ? "bg-primary w-8" : "bg-muted-foreground/30 w-2"
+                            }`}
                           aria-label={`Go to slide ${i + 1}`}
                         />
                       ))}

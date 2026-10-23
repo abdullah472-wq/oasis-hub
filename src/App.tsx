@@ -51,6 +51,7 @@ const AdminNews = lazy(() => import("./pages/admin/AdminNews"));
 const AdminMedia = lazy(() => import("./pages/admin/AdminMedia"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
 const AdminWebContent = lazy(() => import("./pages/admin/AdminWebContent"));
+const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
 const AdminManagement = lazy(() => import("./pages/admin/AdminManagement"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 
@@ -116,6 +117,25 @@ const AppShell = () => {
       const pageLabel = pageInfo ? (lang === "bn" ? pageInfo.bn : pageInfo.en) : "";
       document.title = pageLabel ? `${pageLabel} | ${baseName}` : siteTitle;
     }
+
+    // Dynamic canonical link update to resolve Google Search Console canonical mismatch
+    if (typeof document !== "undefined") {
+      const canonicalBase =
+        typeof window !== "undefined" && window.location.hostname === "annoor.codbotbd.com"
+          ? "https://annoor.codbotbd.com"
+          : (typeof window !== "undefined" && window.location.origin ? window.location.origin : "https://annoor.codbotbd.com");
+
+      const cleanPath = location.pathname === "/" ? "" : location.pathname;
+      const canonicalHref = `${canonicalBase}${cleanPath}`;
+
+      let canonicalLink = document.querySelector<HTMLLinkElement>("link[rel='canonical']");
+      if (!canonicalLink) {
+        canonicalLink = document.createElement("link");
+        canonicalLink.setAttribute("rel", "canonical");
+        document.head.appendChild(canonicalLink);
+      }
+      canonicalLink.setAttribute("href", canonicalHref);
+    }
   }, [location.pathname, lang, settings, isAdminRoute]);
 
   return (
@@ -161,9 +181,18 @@ const AppShell = () => {
               <Route path="/admin/media" element={<AdminMedia />} />
               <Route path="/admin/events" element={<AdminEvents />} />
               <Route path="/admin/content" element={<AdminWebContent />} />
+              <Route path="/admin/reviews" element={<AdminReviews />} />
               <Route path="/admin/admins" element={<AdminManagement />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
               <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
+
+              {/* Legacy & Crawled Route Redirects to eliminate GSC Soft 404s */}
+              <Route path="/courses" element={<Navigate to="/curriculum" replace />} />
+              <Route path="/courses/*" element={<Navigate to="/curriculum" replace />} />
+              <Route path="/faq" element={<Navigate to="/admission" replace />} />
+              <Route path="/faq/*" element={<Navigate to="/admission" replace />} />
+              <Route path="/privacy" element={<Navigate to="/about" replace />} />
+              <Route path="/privacy/*" element={<Navigate to="/about" replace />} />
 
               {/* 404 Fallback */}
               <Route path="*" element={<NotFound />} />

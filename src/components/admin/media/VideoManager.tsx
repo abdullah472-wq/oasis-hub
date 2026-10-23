@@ -11,11 +11,21 @@ import {
   Film,
   Radio,
   Sparkles,
+  AlertTriangle,
+  Copy,
+  Check,
+  Database,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase, logAdminActivity } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { MediaVideo, MediaType } from "@/types/cms";
+import {
+  getVideoList,
+  deleteVideoItem,
+  toggleVideoFeatured,
+  getCachedVideos,
+  VIDEOS_UPDATED_EVENT,
+} from "@/lib/videoService";
 import { VideoFormDialog } from "./VideoFormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,10 +56,51 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+const SQL_SETUP_SCRIPT = `-- Supabase Dashboard -> SQL Editor এ রান করুন
+CREATE TABLE IF NOT EXISTS public.media_videos (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title_bn TEXT NOT NULL,
+  title_en TEXT,
+  youtube_url TEXT NOT NULL,
+  youtube_video_id TEXT NOT NULL,
+  type TEXT DEFAULT 'video' CHECK (type IN ('video', 'playlist', 'livestream')),
+  is_featured BOOLEAN DEFAULT false,
+  order_index INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.media_videos ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public can view media videos" ON public.media_videos;
+CREATE POLICY "Public can view media videos"
+  ON public.media_videos FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+DROP POLICY IF EXISTS "Admins can manage media videos" ON public.media_videos;
+CREATE POLICY "Admins can manage media videos"
+  ON public.media_videos FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Anon can manage media videos" ON public.media_videos;
+CREATE POLICY "Anon can manage media videos"
+  ON public.media_videos FOR ALL
+  TO anon
+  USING (true)
+  WITH CHECK (true);
+
+NOTIFY pgrst, 'reload schema';`;
+
 export const VideoManager = () => {
   const { t } = useLanguage();
   const [videos, setVideos] = useState<MediaVideo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isTableMissing, setIsTableMissing] = useState(false);
+  const [showSqlDialog, setShowSqlDialog] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
@@ -61,18 +112,12 @@ export const VideoManager = () => {
   const fetchVideos = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("media_videos")
-        .select("*")
-        .order("is_featured", { ascending: false })
-        .order("order_index", { ascending: true })
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setVideos((data as MediaVideo[]) || []);
+      const { videos: data, isTableMissing: missing } = await getVideoList();
+      setVideos(data);
+      setIsTableMissing(missing);
     } catch (err: any) {
-      console.error("Error fetching media videos:", err);
-      toast.error(t("ভিডিও তালিকা লোড করতে সমস্যা হয়েছে", "Failed to load videos"));
+      console.warn("Error fetching media videos, using cache:", err);
+      setVideos(getCachedVideos());
     } finally {
       setLoading(false);
     }
@@ -80,30 +125,37 @@ export const VideoManager = () => {
 
   useEffect(() => {
     fetchVideos();
+
+    const handleUpdated = (e: Event) => {
+      const customEvt = e as CustomEvent<MediaVideo[]>;
+      if (customEvt.detail && Array.isArray(customEvt.detail)) {
+        setVideos(customEvt.detail);
+      } else {
+        fetchVideos();
+      }
+    };
+
+    window.addEventListener(VIDEOS_UPDATED_EVENT, handleUpdated);
+    return () => {
+      window.removeEventListener(VIDEOS_UPDATED_EVENT, handleUpdated);
+    };
   }, []);
+
+  const handleCopySql = () => {
+    navigator.clipboard.writeText(SQL_SETUP_SCRIPT);
+    setCopied(true);
+    toast.success(t("SQL স্ক্রিপ্ট ক্লিপবোর্ডে কপি হয়েছে!", "SQL script copied to clipboard!"));
+    setTimeout(() => setCopied(false), 2500);
+  };
 
   const handleToggleFeatured = async (video: MediaVideo) => {
     try {
-      const updatedStatus = !video.is_featured;
-      const { error } = await supabase
-        .from("media_videos")
-        .update({ is_featured: updatedStatus, updated_at: new Date().toISOString() })
-        .eq("id", video.id);
-
-      if (error) throw error;
-
+      const newStatus = await toggleVideoFeatured(video);
       setVideos((prev) =>
-        prev.map((v) => (v.id === video.id ? { ...v, is_featured: updatedStatus } : v))
+        prev.map((v) => (v.id === video.id ? { ...v, is_featured: newStatus } : v))
       );
-
-      await logAdminActivity(
-        "UPDATE",
-        "media_videos",
-        `ফিচার স্ট্যাটাস পরিবর্তন: "${video.title_bn}" -> ${updatedStatus ? "Featured" : "Regular"}`
-      );
-
       toast.success(
-        updatedStatus
+        newStatus
           ? t("ভিডিওটি হোমপেজে ফিচার করা হয়েছে", "Video marked as featured")
           : t("ফিচার সরানো হয়েছে", "Removed from featured")
       );
@@ -117,21 +169,9 @@ export const VideoManager = () => {
     if (!deletingVideo) return;
 
     try {
-      const { error } = await supabase
-        .from("media_videos")
-        .delete()
-        .eq("id", deletingVideo.id);
-
-      if (error) throw error;
-
-      await logAdminActivity(
-        "DELETE",
-        "media_videos",
-        `ভিডিও ডিলিট: "${deletingVideo.title_bn}"`
-      );
-
-      toast.success(t("ভিডিও সফলভাবে মুছে ফেলা হয়েছে", "Video deleted successfully"));
+      await deleteVideoItem(deletingVideo.id);
       setVideos((prev) => prev.filter((v) => v.id !== deletingVideo.id));
+      toast.success(t("ভিডিও সফলভাবে মুছে ফেলা হয়েছে", "Video deleted successfully"));
       setDeletingVideo(null);
     } catch (err: any) {
       console.error("Error deleting video:", err);
@@ -155,21 +195,21 @@ export const VideoManager = () => {
     switch (type) {
       case "playlist":
         return (
-          <Badge className="bg-purple-500/10 text-purple-600 gap-1">
+          <Badge className="bg-purple-500/10 text-purple-600 gap-1 border border-purple-500/20">
             <Film className="h-3 w-3" />
             {t("প্লেলিস্ট", "Playlist")}
           </Badge>
         );
       case "livestream":
         return (
-          <Badge className="bg-rose-500/10 text-rose-600 gap-1 animate-pulse">
+          <Badge className="bg-rose-500/10 text-rose-600 gap-1 animate-pulse border border-rose-500/20">
             <Radio className="h-3 w-3" />
             {t("লাইভ", "Live")}
           </Badge>
         );
       default:
         return (
-          <Badge className="bg-red-500/10 text-red-600 gap-1">
+          <Badge className="bg-red-500/10 text-red-600 gap-1 border border-red-500/20">
             <Video className="h-3 w-3" />
             {t("ভিডিও", "Video")}
           </Badge>
@@ -177,8 +217,64 @@ export const VideoManager = () => {
     }
   };
 
+  // Helper to determine YouTube embed URL
+  const getEmbedUrl = (video: MediaVideo): string => {
+    if (video.type === "playlist") {
+      const playlistId =
+        video.youtube_video_id.startsWith("PL") || video.youtube_video_id.startsWith("UU")
+          ? video.youtube_video_id
+          : video.youtube_url.match(/[?&]list=([^#&?]+)/)?.[1] || video.youtube_video_id;
+
+      return `https://www.youtube.com/embed/videoseries?list=${playlistId}`;
+    }
+    return `https://www.youtube.com/embed/${video.youtube_video_id}?autoplay=1`;
+  };
+
   return (
     <div className="space-y-6">
+      {/* Database Setup Alert Banner (Shown if table not created in Supabase) */}
+      {isTableMissing && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-sm">
+                {t(
+                  "ডাটাবেজ টেবিল সতর্কতা: 'media_videos' টেবিলটি Supabase-এ সক্রিয় করা প্রয়োজন",
+                  "Database Setup Notice: 'media_videos' table needs to be created in Supabase"
+                )}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {t(
+                  "বর্তমানে আপনার সব ভিডিও লোকাল ক্যাশে সুরক্ষিত আছে। ক্লাউড ডাটাবেজে স্থায়ী করতে একবার SQL স্ক্রিপ্টটি রান করুন।",
+                  "Currently all videos are safely stored in local cache. Run the SQL script once in Supabase SQL editor for cloud persistence."
+                )}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSqlDialog(true)}
+              className="gap-1.5 border-amber-500/40 hover:bg-amber-500/20 text-xs font-medium"
+            >
+              <Database className="h-3.5 w-3.5 text-amber-600" />
+              <span>{t("SQL দেখুন ও রান করুন", "View SQL Setup")}</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCopySql}
+              className="gap-1.5 text-xs"
+            >
+              {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+              <span>{copied ? t("কপি হয়েছে", "Copied") : t("SQL কপি", "Copy SQL")}</span>
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Controls Bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border/60 bg-card p-4 shadow-xs">
         <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
@@ -198,7 +294,7 @@ export const VideoManager = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("সকল ধরন", "All Types")}</SelectItem>
-              <SelectItem value="video">{t("ভিডিও", "Single Video")}</SelectItem>
+              <SelectItem value="video">{t("একক ভিডিও", "Single Video")}</SelectItem>
               <SelectItem value="playlist">{t("প্লেলিস্ট", "Playlist")}</SelectItem>
               <SelectItem value="livestream">{t("লাইভ স্ট্রিম", "Live Stream")}</SelectItem>
             </SelectContent>
@@ -288,7 +384,7 @@ export const VideoManager = () => {
                       />
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 text-zinc-300">
-                        <Film className="h-10 w-10 mb-2 opacity-60" />
+                        <Film className="h-10 w-10 mb-2 opacity-60 text-purple-400" />
                         <span className="text-xs uppercase tracking-wider font-semibold">
                           YouTube Playlist
                         </span>
@@ -304,7 +400,7 @@ export const VideoManager = () => {
                     <div className="absolute top-2 left-2 flex gap-1">
                       {getTypeBadge(video.type)}
                       {video.is_featured && (
-                        <Badge className="bg-amber-500 text-white gap-1 shadow-xs">
+                        <Badge className="bg-amber-500 text-white gap-1 shadow-xs border-0">
                           <Sparkles className="h-3 w-3" />
                           {t("ফিচার্ড", "Featured")}
                         </Badge>
@@ -400,11 +496,7 @@ export const VideoManager = () => {
           <div className="aspect-video w-full rounded-lg overflow-hidden bg-black mt-2">
             {previewVideo && (
               <iframe
-                src={
-                  previewVideo.type === "playlist"
-                    ? `https://www.youtube.com/embed/videoseries?list=${previewVideo.youtube_video_id}`
-                    : `https://www.youtube.com/embed/${previewVideo.youtube_video_id}?autoplay=1`
-                }
+                src={getEmbedUrl(previewVideo)}
                 title={previewVideo.title_bn}
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -443,6 +535,47 @@ export const VideoManager = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* SQL Setup Helper Modal */}
+      <Dialog open={showSqlDialog} onOpenChange={setShowSqlDialog}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <Database className="h-5 w-5 text-emerald-600" />
+              {t("Supabase SQL সেটআপ নির্দেশিকা", "Supabase SQL Setup Guide")}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 text-sm">
+            <div className="p-3 bg-muted/60 rounded-lg space-y-2">
+              <p className="font-semibold text-foreground">
+                {t("কিভাবে এই SQL রান করবেন?", "How to run this SQL?")}
+              </p>
+              <ol className="list-decimal pl-5 space-y-1 text-muted-foreground text-xs">
+                <li>{t("আপনার Supabase Dashboard-এ যান (https://supabase.com/dashboard)", "Open Supabase Dashboard")}</li>
+                <li>{t("বাম পাশের মেনু থেকে SQL Editor-এ ক্লিক করুন", "Go to SQL Editor from left menu")}</li>
+                <li>{t("New Query তৈরি করে নিচের স্ক্রিপ্টটি পেস্ট করুন", "Click New Query and paste the script below")}</li>
+                <li>{t("সবশেষে Run বাটনে ক্লিক করুন", "Click the Run button to execute")}</li>
+              </ol>
+            </div>
+
+            <div className="relative">
+              <pre className="p-4 bg-zinc-950 text-zinc-100 rounded-lg text-xs font-mono overflow-x-auto max-h-72">
+                {SQL_SETUP_SCRIPT}
+              </pre>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handleCopySql}
+                className="absolute top-2 right-2 gap-1.5 text-xs bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
+              >
+                {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                <span>{copied ? t("কপি হয়েছে", "Copied") : t("কোড কপি", "Copy Code")}</span>
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

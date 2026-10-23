@@ -39,8 +39,8 @@ const About = () => {
 
   const stats = [
     {
-      num: "৩৫০+",
-      numEn: "350+",
+      num: "110+",
+      numEn: "110+",
       label: t("বর্তমান শিক্ষার্থী", "Active Students"),
       sub: t("সার্বক্ষণিক পাঠরত", "Enrolled students"),
       icon: Users,
@@ -48,8 +48,8 @@ const About = () => {
       border: "border-emerald-500/30",
     },
     {
-      num: "১১৫+",
-      numEn: "115+",
+      num: "40+",
+      numEn: "40+",
       label: t("সনদপ্রাপ্ত হাফেজে কুরআন", "Certified Huffaz"),
       sub: t("দস্তারবন্দী ও সম্মাননা প্রাপ্ত", "With Dastarbandi honors"),
       icon: Award,
@@ -57,8 +57,8 @@ const About = () => {
       border: "border-amber-500/30",
     },
     {
-      num: "৩০+",
-      numEn: "30+",
+      num: "10+",
+      numEn: "10+",
       label: t("বিজ্ঞ শিক্ষক ও শিক্ষিকা", "Dedicated Teachers"),
       sub: t("অভিজ্ঞ ও দ্বীনদার ফ্যাকাল্টি", "Experienced scholars"),
       icon: GraduationCap,
@@ -66,8 +66,8 @@ const About = () => {
       border: "border-blue-500/30",
     },
     {
-      num: "১৩+",
-      numEn: "13+",
+      num: "৫+",
+      numEn: "5+",
       label: t("বছরের গৌরবময় ঐতিহ্য", "Years of Trust"),
       sub: t("২০২১ খ্রি. হতে অবিচল পথচলা", "Founded in 2021"),
       icon: Calendar,
@@ -182,12 +182,15 @@ const About = () => {
       email: mamonMember?.email || "manager@annoor.edu.bd",
       experience: mamonMember?.experience_bn
         ? (lang === "bn" ? mamonMember.experience_bn : mamonMember.experience_en || mamonMember.experience_bn)
-        : t("১৫+ বছর শিক্ষা ব্যবস্থাপনা ও প্রাতিষ্ঠানিক উন্নয়ন", "15+ Years Education Administration"),
+        : t("৬+ বছর শিক্ষা ব্যবস্থাপনা ও প্রাতিষ্ঠানিক উন্নয়ন", "6+ Years Education Administration"),
       quote: t(
         "শিক্ষা শুধু বইয়ের পাতার মুখস্থ নয়, এটি শিশুর চিন্তা ও চরিত্রের আত্মিক পরিশুদ্ধি। আননূর শিক্ষা পরিবারে আমরা প্রতিটি সন্তানকে আন্তরিক ভালোবাসা ও দায়িত্বশীলতার সাথে গড়ে তুলি।",
         "Education is not mere textbook cramming; it is the spiritual and intellectual purification of a child's character with deep love and institutional care.",
       ),
-      image: mamonMember?.image_url || "/abdullah.png",
+      image:
+        mamonMember?.image_url && !mamonMember.image_url.includes("example.com")
+          ? mamonMember.image_url
+          : "/abdullah.png",
     },
   ];
 
@@ -651,6 +654,13 @@ const About = () => {
                           src={leader.image}
                           alt={leader.name}
                           className="h-full w-full object-cover"
+                          onError={(e) => {
+                            if (leader.name.includes("আব্দুল্লাহ") || leader.name.toLowerCase().includes("abdullah")) {
+                              e.currentTarget.src = "/abdullah.png";
+                            } else {
+                              e.currentTarget.src = "/gallery/campus_main.jpg";
+                            }
+                          }}
                         />
                       </div>
                       <div className="absolute -bottom-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white shadow">

@@ -17,6 +17,7 @@ import {
   Crown,
   FileDown,
   UserCheck,
+  MessageSquareQuote,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -112,6 +113,13 @@ export const adminNavItems = [
     titleEn: "Website Content",
     path: "/admin/content",
     icon: Globe,
+    badge: null,
+  },
+  {
+    titleBn: "রিভিউ মডারেশন",
+    titleEn: "Reviews Moderation",
+    path: "/admin/reviews",
+    icon: MessageSquareQuote,
     badge: null,
   },
   {

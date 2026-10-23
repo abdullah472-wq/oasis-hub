@@ -290,6 +290,11 @@ const Teachers = () => {
                             src={member.image_url}
                             alt={member.name_bn}
                             className="h-16 w-16 rounded-2xl object-cover ring-2 ring-primary/20"
+                            onError={(e) => {
+                              if (member.name_bn.includes("আব্দুল্লাহ") || member.name_en?.toLowerCase().includes("abdullah")) {
+                                e.currentTarget.src = "/abdullah.png";
+                              }
+                            }}
                           />
                         ) : (
                           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-display font-extrabold text-2xl ring-2 ring-primary/20 group-hover:scale-105 transition-transform">

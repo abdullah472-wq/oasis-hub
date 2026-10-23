@@ -3,9 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
   Search,
-  Plus,
-  Edit2,
-  Trash2,
   ExternalLink,
   Copy,
   Send,
@@ -24,12 +21,10 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useAuth } from "@/contexts/AuthContext";
 import WaveDivider from "@/components/WaveDivider";
 import heroImg from "@/assets/hero-campus.jpg";
 import {
   getNewsFromFirestore,
-  deleteNewsFromFirestore,
   type NewsPost,
 } from "@/lib/news";
 import { subscribeToNews } from "@/lib/subscribers";
@@ -44,17 +39,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { NewsDialog } from "@/components/admin/content/NewsDialog";
 import { FacebookEmbed } from "@/components/FacebookEmbed";
 
 const FacebookIcon = ({ className }: { className?: string }) => (
@@ -75,7 +59,6 @@ const CATEGORIES = [
 
 const News = () => {
   const { t, lang } = useLanguage();
-  const { isAdmin, user } = useAuth();
   const location = useLocation();
 
   const [newsPosts, setNewsPosts] = useState<NewsPost[]>([]);
@@ -85,15 +68,6 @@ const News = () => {
 
   // Detailed View Modal
   const [activeNews, setActiveNews] = useState<NewsPost | null>(null);
-
-  // Admin In-Place Editing
-  const [adminDialogOpen, setAdminDialogOpen] = useState(false);
-  const [newsToEdit, setNewsToEdit] = useState<NewsPost | null>(null);
-
-  // Admin Delete Dialog
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [newsToDelete, setNewsToDelete] = useState<NewsPost | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Subscription state
   const [subName, setSubName] = useState("");
@@ -219,42 +193,6 @@ const News = () => {
       toast.success(t("সংবাদের লিংক কপি হয়েছে", "News link copied to clipboard"));
     } catch {
       toast.error(t("লিংক কপি করা যায়নি", "Could not copy link"));
-    }
-  };
-
-  const handleAdminCreate = () => {
-    setNewsToEdit(null);
-    setAdminDialogOpen(true);
-  };
-
-  const handleAdminEdit = (news: NewsPost, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setNewsToEdit(news);
-    setAdminDialogOpen(true);
-  };
-
-  const handleAdminDelete = (news: NewsPost, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setNewsToDelete(news);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!newsToDelete?.id) return;
-    setIsDeleting(true);
-    try {
-      await deleteNewsFromFirestore(newsToDelete.id);
-      toast.success(t("সংবাদ মুছে ফেলা হয়েছে", "News deleted successfully"));
-      setDeleteDialogOpen(false);
-      setNewsToDelete(null);
-      if (activeNews?.id === newsToDelete.id) {
-        setActiveNews(null);
-      }
-      await loadNews();
-    } catch {
-      toast.error(t("সংবাদ মুছতে সমস্যা হয়েছে", "Failed to delete news"));
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -470,29 +408,6 @@ const News = () => {
                             <Copy className="h-4 w-4" />
                           </Button>
                         </div>
-
-                        {/* Admin In-Place Controls */}
-                        {isAdmin && (
-                          <div className="flex items-center gap-1.5 bg-sky-50 dark:bg-sky-950/60 p-1.5 rounded-2xl border border-sky-200 dark:border-sky-800">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => handleAdminEdit(featuredPost, e)}
-                              className="h-8 px-2.5 rounded-xl text-xs font-bengali text-sky-700 dark:text-sky-300 hover:bg-sky-200/50 gap-1"
-                            >
-                              <Edit2 className="h-3 w-3" />
-                              <span>{t("এডিট", "Edit")}</span>
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => handleAdminDelete(featuredPost, e)}
-                              className="h-8 px-2 rounded-xl text-xs text-red-600 hover:bg-red-500/10"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -576,29 +491,6 @@ const News = () => {
                           >
                             <Copy className="h-3.5 w-3.5" />
                           </Button>
-
-                          {isAdmin && (
-                            <div className="flex items-center gap-1 ml-1" onClick={(e) => e.stopPropagation()}>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => handleAdminEdit(news, e)}
-                                className="h-7 w-7 rounded-lg text-sky-600 hover:bg-sky-500/10"
-                                title={t("এডিট", "Edit")}
-                              >
-                                <Edit2 className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => handleAdminDelete(news, e)}
-                                className="h-7 w-7 rounded-lg text-red-600 hover:bg-red-500/10"
-                                title={t("মুছে ফেলুন", "Delete")}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          )}
                         </div>
                       </div>
                     </motion.article>
@@ -704,21 +596,6 @@ const News = () => {
                     {activeNews.date}
                   </span>
                 </div>
-
-                {isAdmin && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      handleAdminEdit(activeNews);
-                      setActiveNews(null);
-                    }}
-                    className="h-8 rounded-xl font-bengali text-xs gap-1 border-sky-300 text-sky-700"
-                  >
-                    <Edit2 className="h-3 w-3" />
-                    <span>{t("এডিট করুন", "Edit News")}</span>
-                  </Button>
-                )}
               </div>
 
               <DialogTitle className="font-bengali font-bold text-xl sm:text-2xl text-foreground leading-snug">
@@ -818,51 +695,6 @@ const News = () => {
           </DialogContent>
         )}
       </Dialog>
-
-      {/* ================= ADMIN CREATE/EDIT DIALOG ================= */}
-      <NewsDialog
-        isOpen={adminDialogOpen}
-        onClose={() => setAdminDialogOpen(false)}
-        newsToEdit={newsToEdit}
-        onSuccess={loadNews}
-      />
-
-      {/* ================= ADMIN DELETE ALERT DIALOG ================= */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-3xl max-w-md">
-          <AlertDialogHeader>
-            <div className="p-3 bg-red-500/10 text-red-600 rounded-2xl w-fit mb-1">
-              <Trash2 className="h-5 w-5" />
-            </div>
-            <AlertDialogTitle className="font-bengali text-lg font-bold">
-              {t("সংবাদটি কি মুছে ফেলতে চান?", "Delete this news item?")}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="font-bengali text-xs text-muted-foreground">
-              {newsToDelete && (
-                <span className="block font-semibold text-foreground my-1.5 p-2 bg-muted/50 rounded-lg">
-                  "{newsToDelete.titleBn}"
-                </span>
-              )}
-              {t(
-                "এই সংবাদটি মুছে ফেললে তা অবিলম্বে ওয়েবসাইট এবং ডাটাবেজ থেকে মুছে যাবে।",
-                "Once deleted, this news item will be immediately removed from the live website."
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-0">
-            <AlertDialogCancel disabled={isDeleting} className="rounded-xl font-bengali">
-              {t("বাতিল", "Cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              disabled={isDeleting}
-              className="rounded-xl font-bengali bg-red-600 hover:bg-red-700 text-white"
-            >
-              {isDeleting ? t("মুছে ফেলা হচ্ছে...", "Deleting...") : t("মুছে ফেলুন", "Delete")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
