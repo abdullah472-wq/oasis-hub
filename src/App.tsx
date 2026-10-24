@@ -36,6 +36,7 @@ const Teachers = lazy(() => import("./pages/Teachers"));
 const Huffaz = lazy(() => import("./pages/Huffaz"));
 const Downloads = lazy(() => import("./pages/Downloads"));
 const Sitemap = lazy(() => import("./pages/Sitemap"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 
 // Modular Supabase Single-Institution CMS Admin Pages
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
@@ -166,6 +167,7 @@ const AppShell = () => {
               <Route path="/admission-form" element={<AdmissionForm />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/sitemap" element={<Sitemap />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
               {/* Modular CMS Admin Routes */}
               <Route path="/admin/login" element={<AdminLogin />} />

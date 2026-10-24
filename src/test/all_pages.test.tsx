@@ -24,6 +24,7 @@ import Huffaz from "@/pages/Huffaz";
 import Contact from "@/pages/Contact";
 import NotFound from "@/pages/NotFound";
 import Sitemap from "@/pages/Sitemap";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
 
 const queryClient = new QueryClient();
 
@@ -58,4 +59,5 @@ describe("All Public Pages Rendering", () => {
   it("renders Contact", () => { render(wrap(<Contact />)); });
   it("renders NotFound", () => { render(wrap(<NotFound />)); });
   it("renders Sitemap", () => { render(wrap(<Sitemap />)); });
+  it("renders PrivacyPolicy", () => { render(wrap(<PrivacyPolicy />)); });
 });

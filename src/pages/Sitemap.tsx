@@ -102,6 +102,14 @@ const sitemapData: SitemapCategory[] = [
         descEn: "Google Maps directions, hotline numbers, and office contact",
         icon: Phone,
       },
+      {
+        path: "/privacy-policy",
+        titleBn: "গোপনীয়তা নীতিমালা",
+        titleEn: "Privacy Policy",
+        descBn: "শিক্ষার্থী ও অভিভাবকদের তথ্যের সুরক্ষা, নিরাপত্তা এবং ডেটা নীতি",
+        descEn: "Student data protection, confidentiality, and institutional privacy policy",
+        icon: Shield,
+      },
     ],
   },
   {
