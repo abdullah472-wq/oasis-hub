@@ -70,7 +70,7 @@ INSERT INTO public.site_settings (
   1,
   'আননূর তাহফিজুল কুরআন মাদরাসা',
   'Annoor Tahfizul Quran Madrasa',
-  '12345678',
+  NULL,
   '2021',
   '01820811511',
   '01581818368',

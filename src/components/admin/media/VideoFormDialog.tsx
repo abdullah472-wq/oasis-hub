@@ -222,13 +222,13 @@ export const VideoFormDialog = ({
           {/* YouTube URL */}
           <div className="space-y-1.5">
             <Label htmlFor="youtube_url" className="font-semibold">
-              {t("ইউটিউব ভিডিও / প্লেলিস্ট লিংক *", "YouTube Video / Playlist URL *")}
+              {t("ইউটিউব ভিডিও / শর্টস / প্লেলিস্ট লিংক *", "YouTube Video / Shorts / Playlist URL *")}
             </Label>
             <Input
               id="youtube_url"
               value={formData.youtube_url}
               onChange={(e) => handleUrlChange(e.target.value)}
-              placeholder="https://www.youtube.com/watch?v=XXXXX or https://www.youtube.com/playlist?list=XXXXX"
+              placeholder="https://www.youtube.com/watch?v=... অথবা https://youtube.com/shorts/... অথবা প্লেলিস্ট লিংক"
               required
             />
             {formData.youtube_video_id && (

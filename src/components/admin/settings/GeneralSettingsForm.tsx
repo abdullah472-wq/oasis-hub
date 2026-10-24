@@ -3,7 +3,7 @@ import { Loader2, Building2, Phone, Mail, Hash, Calendar, GraduationCap, Save } 
 import { toast } from "sonner";
 import { supabase, logAdminActivity } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { broadcastSiteSettingsUpdated, defaultSiteSettings } from "@/lib/siteSettings";
+import { broadcastSiteSettingsUpdated, defaultSiteSettings, getCachedSiteSettings } from "@/lib/siteSettings";
 import type { SiteSettings, AdmissionStatusType } from "@/types/cms";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,16 +22,19 @@ export const GeneralSettingsForm = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const [formData, setFormData] = useState({
-    institution_name_bn: defaultSiteSettings.institution_name_bn,
-    institution_name_en: defaultSiteSettings.institution_name_en,
-    emis_code: defaultSiteSettings.emis_code || "",
-    founding_year: defaultSiteSettings.founding_year || "2021",
-    phone_primary: defaultSiteSettings.phone_primary,
-    phone_secondary: defaultSiteSettings.phone_secondary || "",
-    whatsapp_number: defaultSiteSettings.whatsapp_number,
-    email_primary: defaultSiteSettings.email_primary,
-    admission_status: defaultSiteSettings.admission_status as AdmissionStatusType,
+  const [formData, setFormData] = useState(() => {
+    const cached = getCachedSiteSettings();
+    return {
+      institution_name_bn: cached.institution_name_bn || defaultSiteSettings.institution_name_bn,
+      institution_name_en: cached.institution_name_en || defaultSiteSettings.institution_name_en,
+      emis_code: cached.emis_code === "12345678" ? "" : (cached.emis_code || ""),
+      founding_year: cached.founding_year || defaultSiteSettings.founding_year || "2021",
+      phone_primary: cached.phone_primary || defaultSiteSettings.phone_primary,
+      phone_secondary: cached.phone_secondary || "",
+      whatsapp_number: cached.whatsapp_number || defaultSiteSettings.whatsapp_number,
+      email_primary: cached.email_primary || defaultSiteSettings.email_primary,
+      admission_status: (cached.admission_status || "open") as AdmissionStatusType,
+    };
   });
 
   useEffect(() => {
@@ -51,10 +54,22 @@ export const GeneralSettingsForm = () => {
       if (error && error.code !== "PGRST116") throw error;
 
       if (data) {
+        const cleanBn =
+          data.institution_name_bn === "আননূর তাহফিজুল কুরআন মাদরাসা ও মডেল একাডেমী"
+            ? defaultSiteSettings.institution_name_bn
+            : (data.institution_name_bn || defaultSiteSettings.institution_name_bn);
+
+        const cleanEn =
+          data.institution_name_en === "Annoor Tahfizul Quran Madrasa & Model Academy"
+            ? defaultSiteSettings.institution_name_en
+            : (data.institution_name_en || defaultSiteSettings.institution_name_en);
+
+        const cleanEmis = data.emis_code === "12345678" ? "" : (data.emis_code || "");
+
         setFormData({
-          institution_name_bn: data.institution_name_bn || defaultSiteSettings.institution_name_bn,
-          institution_name_en: data.institution_name_en || defaultSiteSettings.institution_name_en,
-          emis_code: data.emis_code || defaultSiteSettings.emis_code || "",
+          institution_name_bn: cleanBn,
+          institution_name_en: cleanEn,
+          emis_code: cleanEmis,
           founding_year: data.founding_year || defaultSiteSettings.founding_year || "2021",
           phone_primary: data.phone_primary || defaultSiteSettings.phone_primary,
           phone_secondary: data.phone_secondary || defaultSiteSettings.phone_secondary || "",

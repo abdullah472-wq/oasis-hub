@@ -38,7 +38,10 @@ import {
   Star,
   ExternalLink,
   Globe,
+  Play,
+  Video as VideoIcon,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Review, ReviewPlatform } from "@/lib/reviews";
 import { useLanguage } from "@/contexts/LanguageContext";
 import PwaHomeCard from "@/components/PwaHomeCard";
@@ -49,6 +52,8 @@ import { springIn, springInDelay } from "@/lib/animations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/lib/siteSettings";
+import { getPublishedVideos, type MediaVideo } from "@/lib/mediaCenter";
+import { VIDEOS_UPDATED_EVENT } from "@/lib/videoService";
 
 const GoogleIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24">
@@ -175,6 +180,33 @@ const Index = () => {
 
     return () => {
       active = false;
+    };
+  }, []);
+
+  const [featuredVideos, setFeaturedVideos] = useState<MediaVideo[]>([]);
+  const [activeHomeVideo, setActiveHomeVideo] = useState<MediaVideo | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchHomeVideos = () => {
+      getPublishedVideos()
+        .then((items) => {
+          if (isMounted) {
+            const pinned = items.filter((v) => v.featured);
+            setFeaturedVideos(pinned.length > 0 ? pinned.slice(0, 3) : items.slice(0, 3));
+          }
+        })
+        .catch(console.error);
+    };
+
+    fetchHomeVideos();
+
+    window.addEventListener(VIDEOS_UPDATED_EVENT, fetchHomeVideos);
+    window.addEventListener("storage", fetchHomeVideos);
+    return () => {
+      isMounted = false;
+      window.removeEventListener(VIDEOS_UPDATED_EVENT, fetchHomeVideos);
+      window.removeEventListener("storage", fetchHomeVideos);
     };
   }, []);
 
@@ -2022,6 +2054,131 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* ================= FEATURED VIDEOS & MEDIA SHOWCASE ================= */}
+      {featuredVideos.length > 0 && (
+        <section className="py-16 bg-card/60 border-t border-b border-border/40">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <motion.div {...springIn} className="text-center mb-10 space-y-2">
+              <Badge className="bg-red-500/10 text-red-600 border-red-500/20 text-xs gap-1.5 font-medium">
+                <VideoIcon className="h-3.5 w-3.5" />
+                <span>{t("ভিডিও ও মিডিয়া গ্যালারি", "Video Gallery")}</span>
+              </Badge>
+              <h2 className="font-bengali text-2xl sm:text-4xl font-bold text-foreground">
+                {t("ক্যাম্পাস মিডিয়া ও ভিডিও ডকুমেন্টস", "Campus Media & Video Showcase")}
+              </h2>
+              <p className="font-bengali text-xs sm:text-sm text-muted-foreground max-w-2xl mx-auto">
+                {t(
+                  "শিক্ষার্থীদের তিলাওয়াত, বক্তৃতা, প্রতিযোগিতা ও মাদরাসার সার্বিক শিক্ষা কার্যক্রমের প্রামাণ্য ভিডিও চিত্র",
+                  "Watch Quran recitations, speeches, competitions, and academic programs from our YouTube channel"
+                )}
+              </p>
+            </motion.div>
+
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {featuredVideos.map((video, idx) => (
+                <motion.div
+                  key={video.id || idx}
+                  {...springIn}
+                  transition={springInDelay(idx * 0.1)}
+                  onClick={() => setActiveHomeVideo(video)}
+                  className="group overflow-hidden rounded-3xl border border-border/70 bg-card text-left transition-all hover:shadow-xl hover:border-primary/50 cursor-pointer flex flex-col justify-between"
+                >
+                  <div className="w-full">
+                    <div className="relative aspect-video overflow-hidden bg-black/10">
+                      <img
+                        src={video.thumbnailUrl}
+                        alt={video.title}
+                        loading="lazy"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${video.videoId}/0.jpg`;
+                        }}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/35 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-600 text-white shadow-xl">
+                          <Play className="ml-1 h-5 w-5 fill-white" />
+                        </div>
+                      </div>
+                      <div className="absolute left-2.5 top-2.5 flex flex-wrap gap-1.5">
+                        {video.playlistId && (
+                          <Badge className="border-0 bg-purple-600 text-white text-[10px] font-semibold">
+                            {t("প্লেলিস্ট", "Playlist")}
+                          </Badge>
+                        )}
+                        {video.featured && (
+                          <Badge className="border-0 bg-amber-500 text-white text-[10px] font-semibold gap-1">
+                            <Sparkles className="h-3 w-3" />
+                            {t("পিন", "Featured")}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="p-4 space-y-2">
+                      <h3 className="font-bengali font-semibold text-foreground text-sm sm:text-base line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                        {video.title}
+                      </h3>
+                    </div>
+                  </div>
+                  <div className="p-4 pt-0 flex items-center justify-between border-t border-border/40 mt-2">
+                    <span className="text-xs text-primary font-bengali font-semibold group-hover:underline flex items-center gap-1">
+                      <span>{t("ভিডিওটি দেখুন", "Watch Video")}</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="text-xs text-muted-foreground">{video.views ?? 0} {t("ভিউ", "views")}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="text-center mt-10">
+              <Link to="/media">
+                <Button className="rounded-full font-bengali text-xs sm:text-sm font-bold gap-2 bg-red-600 hover:bg-red-700 text-white shadow-md">
+                  <Play className="h-4 w-4 fill-white" />
+                  <span>{t("সকল ভিডিও ও মিডিয়া সেন্টার দেখুন", "Explore All Media & Playlists")}</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Video Modal on Homepage */}
+      <Dialog open={Boolean(activeHomeVideo)} onOpenChange={(open) => !open && setActiveHomeVideo(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="font-bengali text-lg leading-snug">{activeHomeVideo?.title}</DialogTitle>
+          </DialogHeader>
+          {activeHomeVideo && (
+            <div className="aspect-video overflow-hidden rounded-2xl bg-black">
+              <iframe
+                src={`${activeHomeVideo.embedUrl}${activeHomeVideo.embedUrl.includes("?") ? "&" : "?"}autoplay=1`}
+                title={activeHomeVideo.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+                allowFullScreen
+                className="h-full w-full"
+              />
+            </div>
+          )}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+            {activeHomeVideo?.description ? (
+              <p className="font-bengali text-sm text-muted-foreground flex-1">{activeHomeVideo.description}</p>
+            ) : <div className="flex-1" />}
+            {activeHomeVideo?.youtubeUrl && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full gap-1.5 text-xs shrink-0 font-bengali"
+                onClick={() => window.open(activeHomeVideo.youtubeUrl, "_blank")}
+              >
+                <ExternalLink className="h-3.5 w-3.5 text-red-600" />
+                <span>{t("ইউটিউবে দেখুন", "Watch on YouTube")}</span>
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ================= FAQ SECTION ================= */}
       <section className="py-16 bg-muted/20">

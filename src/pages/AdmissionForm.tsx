@@ -24,7 +24,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useSiteSettings } from "@/lib/siteSettings";
+import { useSiteSettings, formatRegistrationNumber } from "@/lib/siteSettings";
 import { submitAdmission, type AdmissionForm, CLASS_NAME_OPTIONS } from "@/lib/admission";
 import { uploadImage } from "@/lib/upload";
 
@@ -222,7 +222,10 @@ const AdmissionFormPage = () => {
                       হিফজুল কুরআন ও আধুনিক সমন্বিত ইসলামিক বিদ্যাপীঠ
                     </p>
                     <p className="text-[11px] font-mono text-muted-foreground mt-1">
-                      রেজি নং: {settings.emis_code || "৩৩৮/২০২২"} | {settings.address_boys_campus_bn || "কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর"}
+                      {settings.emis_code && settings.emis_code !== "12345678"
+                        ? `${formatRegistrationNumber(settings.emis_code, "bn")} | `
+                        : ""}
+                      {settings.address_boys_campus_bn || "কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর"}
                     </p>
                   </div>
                 </div>

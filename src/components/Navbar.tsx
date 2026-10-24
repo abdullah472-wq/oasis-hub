@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown } from "lucide-react";
 import LanguageToggle from "./LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useSiteSettings } from "@/lib/siteSettings";
+import { useSiteSettings, formatRegistrationNumber } from "@/lib/siteSettings";
 import headerBg from "@/assets/header-bg.png";
 
 const DEFAULT_LOGO = "/site-logo.png";
@@ -177,15 +177,14 @@ const Navbar = () => {
               >
                 {institutionName}
               </h1>
-              <p
-                style={lang === "bn" ? { fontFamily: "'Noto Serif Bengali', serif" } : undefined}
-                className="text-[9px] sm:text-[10px] font-semibold text-primary/80 leading-tight mt-0.5"
-              >
-                {t(
-                  `রেজি: নং. ${settings.emis_code && settings.emis_code !== "12345678" ? settings.emis_code : "৩৩৮/২০২২"}`,
-                  `Reg. No: ${settings.emis_code && settings.emis_code !== "12345678" ? settings.emis_code : "338/2022"}`
-                )}
-              </p>
+              {settings.emis_code && settings.emis_code !== "12345678" && (
+                <p
+                  style={lang === "bn" ? { fontFamily: "'Noto Serif Bengali', serif" } : undefined}
+                  className="text-[9px] sm:text-[10px] font-semibold text-primary/80 leading-tight mt-0.5"
+                >
+                  {formatRegistrationNumber(settings.emis_code, lang)}
+                </p>
+              )}
             </div>
           </Link>
 
@@ -540,15 +539,14 @@ const Navbar = () => {
               >
                 {institutionName}
               </h1>
-              <p
-                style={lang === "bn" ? { fontFamily: "'Noto Serif Bengali', serif" } : undefined}
-                className="text-[9px] sm:text-[10px] font-semibold text-primary/80 leading-tight mt-0.5"
-              >
-                {t(
-                  `রেজি: নং. ${settings.emis_code && settings.emis_code !== "12345678" ? settings.emis_code : "৩৩৮/২০২২"}`,
-                  `Reg. No: ${settings.emis_code && settings.emis_code !== "12345678" ? settings.emis_code : "338/2022"}`
-                )}
-              </p>
+              {settings.emis_code && settings.emis_code !== "12345678" && (
+                <p
+                  style={lang === "bn" ? { fontFamily: "'Noto Serif Bengali', serif" } : undefined}
+                  className="text-[9px] sm:text-[10px] font-semibold text-primary/80 leading-tight mt-0.5"
+                >
+                  {formatRegistrationNumber(settings.emis_code, lang)}
+                </p>
+              )}
             </div>
           </Link>
 
@@ -603,18 +601,17 @@ const Navbar = () => {
                   </h1>
 
                   {/* 3. রেজি: নং. */}
-                  <div className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/[0.04] px-2.5 py-0.5 shadow-xs">
-                    <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-                    <span
-                      style={lang === "bn" ? { fontFamily: "'Noto Serif Bengali', serif" } : undefined}
-                      className="text-[11px] sm:text-xs font-semibold text-primary/80 leading-tight tracking-wide"
-                    >
-                      {t(
-                        `রেজি: নং. ${settings.emis_code && settings.emis_code !== "12345678" ? settings.emis_code : "৩৩৮/২০২২"}`,
-                        `Reg. No: ${settings.emis_code && settings.emis_code !== "12345678" ? settings.emis_code : "338/2022"}`
-                      )}
-                    </span>
-                  </div>
+                  {settings.emis_code && settings.emis_code !== "12345678" && (
+                    <div className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/[0.04] px-2.5 py-0.5 shadow-xs">
+                      <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+                      <span
+                        style={lang === "bn" ? { fontFamily: "'Noto Serif Bengali', serif" } : undefined}
+                        className="text-[11px] sm:text-xs font-semibold text-primary/80 leading-tight tracking-wide"
+                      >
+                        {formatRegistrationNumber(settings.emis_code, lang)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </Link>
             </div>
@@ -648,15 +645,14 @@ const Navbar = () => {
                       >
                         {institutionName}
                       </p>
-                      <p
-                        style={lang === "bn" ? { fontFamily: "'Noto Serif Bengali', serif" } : undefined}
-                        className="text-[9px] font-semibold text-primary/80 leading-tight"
-                      >
-                        {t(
-                          `রেজি: নং. ${settings.emis_code && settings.emis_code !== "12345678" ? settings.emis_code : "৩৩৮/২০২২"}`,
-                          `Reg. No: ${settings.emis_code && settings.emis_code !== "12345678" ? settings.emis_code : "338/2022"}`
-                        )}
-                      </p>
+                      {settings.emis_code && settings.emis_code !== "12345678" && (
+                        <p
+                          style={lang === "bn" ? { fontFamily: "'Noto Serif Bengali', serif" } : undefined}
+                          className="text-[9px] font-semibold text-primary/80 leading-tight"
+                        >
+                          {formatRegistrationNumber(settings.emis_code, lang)}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="hidden xl:block h-8 w-px bg-border/70" />

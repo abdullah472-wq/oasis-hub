@@ -1,44 +1,75 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { GraduationCap, HeartHandshake, PlayCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getPublishedVideos, type MediaVideo, VIDEO_CATEGORY_LABELS } from "@/lib/mediaCenter";
+import { VIDEOS_UPDATED_EVENT } from "@/lib/videoService";
+import { getPublishedVideos, getCachedPublishedVideos, type MediaVideo, VIDEO_CATEGORY_LABELS } from "@/lib/mediaCenter";
 
-const VideoRow = ({ videos, onSelect }: { videos: MediaVideo[]; onSelect: (video: MediaVideo) => void }) => (
-  <ul className="space-y-3">
-    {videos.map((video) => (
-      <li key={video.id}>
-        <button
-          type="button"
-          onClick={() => onSelect(video)}
-          className="flex w-full items-center gap-3 rounded-2xl border border-border/60 p-2 text-left transition-colors hover:bg-muted/50"
-        >
-          <img src={video.thumbnailUrl} alt={video.title} loading="lazy" className="h-12 w-20 rounded-xl object-cover" />
-          <span className="min-w-0 flex-1">
-            <span className="block truncate font-bengali text-sm font-medium text-foreground">{video.title}</span>
-            <Badge variant="outline" className="mt-1 rounded-full text-[10px]">
-              {VIDEO_CATEGORY_LABELS[video.category]?.en ?? video.category}
-            </Badge>
-          </span>
-          <PlayCircle className="h-5 w-5 shrink-0 text-primary" />
-        </button>
-      </li>
-    ))}
-  </ul>
-);
+const VideoRow = ({ videos, onSelect }: { videos: MediaVideo[]; onSelect: (video: MediaVideo) => void }) => {
+  const { lang } = useLanguage();
+  return (
+    <ul className="space-y-3">
+      {videos.map((video) => (
+        <li key={video.id}>
+          <button
+            type="button"
+            onClick={() => onSelect(video)}
+            className="flex w-full items-center gap-3 rounded-2xl border border-border/60 p-2 text-left transition-colors hover:bg-muted/50 group"
+          >
+            <div className="relative h-12 w-20 shrink-0 overflow-hidden rounded-xl bg-black/10">
+              <img
+                src={video.thumbnailUrl}
+                alt={video.title}
+                loading="lazy"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${video.videoId}/0.jpg`;
+                }}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+            </div>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-bengali text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                {video.title}
+              </span>
+              <Badge variant="outline" className="mt-1 rounded-full text-[10px]">
+                {lang === "bn"
+                  ? VIDEO_CATEGORY_LABELS[video.category]?.bn || video.category
+                  : VIDEO_CATEGORY_LABELS[video.category]?.en || video.category}
+              </Badge>
+            </span>
+            <PlayCircle className="h-5 w-5 shrink-0 text-primary group-hover:scale-110 transition-transform" />
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+};
 
 const useVideos = () => {
-  const [videos, setVideos] = useState<MediaVideo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [videos, setVideos] = useState<MediaVideo[]>(() => getCachedPublishedVideos());
+  const [loading, setLoading] = useState<boolean>(() => getCachedPublishedVideos().length === 0);
 
-  useEffect(() => {
+  const fetchVideos = useCallback(() => {
     getPublishedVideos()
-      .then(setVideos)
+      .then((v) => {
+        if (v.length > 0) setVideos(v);
+      })
       .catch(() => undefined)
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchVideos();
+
+    window.addEventListener(VIDEOS_UPDATED_EVENT, fetchVideos);
+    window.addEventListener("storage", fetchVideos);
+    return () => {
+      window.removeEventListener(VIDEOS_UPDATED_EVENT, fetchVideos);
+      window.removeEventListener("storage", fetchVideos);
+    };
+  }, [fetchVideos]);
 
   return { videos, loading };
 };
@@ -70,9 +101,14 @@ export const StudentMediaWidget = ({ onSelect }: { onSelect: (video: MediaVideo)
   const { t } = useLanguage();
   const { videos, loading } = useVideos();
 
-  const recommended = videos.filter((item) => ["classes", "quran", "hifz", "nazera"].includes(item.category)).slice(0, 3);
-  const teacherLatest = videos.filter((item) => item.category === "classes").slice(0, 2);
-  const revision = videos.filter((item) => ["islamic-studies", "nazera", "quran"].includes(item.category)).slice(0, 3);
+  const recommendedMatches = videos.filter((item) => ["classes", "quran", "hifz", "nazera"].includes(item.category));
+  const recommended = (recommendedMatches.length > 0 ? recommendedMatches : videos).slice(0, 3);
+
+  const teacherMatches = videos.filter((item) => item.category === "classes");
+  const teacherLatest = (teacherMatches.length > 0 ? teacherMatches : videos.slice(1)).slice(0, 2);
+
+  const revisionMatches = videos.filter((item) => ["islamic-studies", "nazera", "quran"].includes(item.category));
+  const revision = (revisionMatches.length > 0 ? revisionMatches : videos.slice(2)).slice(0, 3);
 
   return (
     <WidgetShell title={t("শিক্ষার্থীদের জন্য", "For students")} icon={<GraduationCap className="h-5 w-5" />} loading={loading}>
@@ -100,8 +136,11 @@ export const GuardianMediaWidget = ({ onSelect }: { onSelect: (video: MediaVideo
   const { videos, loading } = useVideos();
 
   const activities = videos.slice(0, 3);
-  const events = videos.filter((item) => item.category === "events").slice(0, 3);
-  const programs = videos.filter((item) => ["competitions", "announcements"].includes(item.category)).slice(0, 3);
+  const eventsMatches = videos.filter((item) => item.category === "events");
+  const events = (eventsMatches.length > 0 ? eventsMatches : videos.slice(0, 2)).slice(0, 3);
+
+  const programsMatches = videos.filter((item) => ["competitions", "announcements"].includes(item.category));
+  const programs = (programsMatches.length > 0 ? programsMatches : videos.slice(1, 3)).slice(0, 3);
 
   return (
     <WidgetShell title={t("অভিভাবকদের জন্য", "For guardians")} icon={<HeartHandshake className="h-5 w-5" />} loading={loading}>

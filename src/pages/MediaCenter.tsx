@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Download, Radio, Search } from "lucide-react";
+import { Download, Radio, Search, Play, Sparkles, ExternalLink, RotateCw } from "lucide-react";
 import WaveDivider from "@/components/WaveDivider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { springIn } from "@/lib/animations";
 import { downloadFile } from "@/lib/upload";
+import { VIDEOS_UPDATED_EVENT } from "@/lib/videoService";
 import { GuardianMediaWidget, StudentMediaWidget } from "@/components/media/MediaWidgets";
 import {
   DOWNLOAD_CATEGORY_LABELS,
@@ -19,6 +20,7 @@ import {
   VIDEO_CATEGORIES,
   VIDEO_CATEGORY_LABELS,
   getActiveLiveStream,
+  getCachedPublishedVideos,
   getPublishedDownloads,
   getPublishedGalleryItems,
   getPublishedPlaylists,
@@ -33,10 +35,24 @@ import {
   type MediaVideo,
 } from "@/lib/mediaCenter";
 
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  admission: ["ভর্তি", "admission"],
+  classes: ["ক্লাস", "পাঠদান", "class", "lesson", "শিক্ষক"],
+  quran: ["কুরআন", "কোরআন", "তেলাওয়াত", "তিলাওয়াত", "quran", "recitation"],
+  hifz: ["হিফজ", "হাফেজ", "হাদিস", "hifz", "hafez"],
+  nazera: ["নাজেরা", "পারা", "nazera"],
+  "islamic-studies": ["হাদীস", "হাদিস", "ইসলামিক", "দ্বীনি", "hadith", "islamic", "মজলিস"],
+  events: ["অনুষ্ঠান", "মাহফিল", "সমাবর্তন", "মজলিস", "সভা", "event", "program", "উৎসব"],
+  competitions: ["প্রতিযোগিতা", "প্রতিযোগীতা", "পুরস্কার", "competition", "award"],
+  podcast: ["পডকাস্ট", "আলোচনা", "podcast"],
+  announcements: ["ঘোষণা", "বিজ্ঞপ্তি", "notice", "announcement"],
+  others: [],
+};
+
 const MediaCenter = () => {
   const { t, lang } = useLanguage();
-  const [loading, setLoading] = useState(true);
-  const [videos, setVideos] = useState<MediaVideo[]>([]);
+  const [videos, setVideos] = useState<MediaVideo[]>(() => getCachedPublishedVideos());
+  const [loading, setLoading] = useState<boolean>(() => getCachedPublishedVideos().length === 0);
   const [playlists, setPlaylists] = useState<MediaPlaylist[]>([]);
   const [gallery, setGallery] = useState<MediaGalleryItem[]>([]);
   const [downloads, setDownloads] = useState<MediaDownload[]>([]);
@@ -46,32 +62,59 @@ const MediaCenter = () => {
   const [activeVideo, setActiveVideo] = useState<MediaVideo | null>(null);
   const [lightbox, setLightbox] = useState<MediaGalleryItem | null>(null);
 
-  useEffect(() => {
-    Promise.all([
-      getPublishedVideos(),
-      getPublishedPlaylists(),
-      getPublishedGalleryItems(),
-      getPublishedDownloads(),
-      getActiveLiveStream(),
-    ])
-      .then(([v, p, g, d, live]) => {
+  const loadAllMedia = useCallback(async () => {
+    try {
+      if (videos.length === 0) setLoading(true);
+      const v = await getPublishedVideos();
+      if (v.length > 0) {
         setVideos(v);
-        setPlaylists(p);
-        setGallery(g);
-        setDownloads(d);
-        setLiveStream(live);
-      })
-      .catch(() => undefined)
-      .finally(() => setLoading(false));
-  }, []);
+      }
+      setLoading(false);
+
+      // Concurrently load secondary media without blocking video cards
+      void Promise.allSettled([
+        getPublishedPlaylists().then(setPlaylists),
+        getPublishedGalleryItems().then(setGallery),
+        getPublishedDownloads().then(setDownloads),
+        getActiveLiveStream().then(setLiveStream),
+      ]);
+    } catch (err) {
+      console.warn("Failed to load media items:", err);
+      setLoading(false);
+    }
+  }, [videos.length]);
+
+  useEffect(() => {
+    loadAllMedia();
+
+    const handleUpdate = () => {
+      loadAllMedia();
+    };
+
+    window.addEventListener(VIDEOS_UPDATED_EVENT, handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+    return () => {
+      window.removeEventListener(VIDEOS_UPDATED_EVENT, handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
+  }, [loadAllMedia]);
 
   const filteredVideos = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return videos.filter(
-      (item) =>
-        (category === "all" || item.category === category) &&
-        (!term || item.title.toLowerCase().includes(term) || (item.description ?? "").toLowerCase().includes(term)),
-    );
+    return videos.filter((item) => {
+      const matchesSearch =
+        !term ||
+        item.title.toLowerCase().includes(term) ||
+        (item.description ?? "").toLowerCase().includes(term);
+
+      if (!matchesSearch) return false;
+      if (category === "all") return true;
+      if (item.category === category) return true;
+
+      const keywords = CATEGORY_KEYWORDS[category] || [];
+      const itemText = `${item.title} ${(item as any).title_bn || ""} ${(item as any).title_en || ""} ${item.description || ""}`.toLowerCase();
+      return keywords.some((kw) => itemText.includes(kw.toLowerCase()));
+    });
   }, [category, search, videos]);
 
   const openVideo = (video: MediaVideo) => {
@@ -127,7 +170,7 @@ const MediaCenter = () => {
             </TabsList>
 
             <TabsContent value="videos" className="mt-8 space-y-6">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -137,6 +180,16 @@ const MediaCenter = () => {
                     className="rounded-full pl-9"
                   />
                 </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={loadAllMedia}
+                  disabled={loading}
+                  title={t("রিফ্রেশ", "Refresh")}
+                  className="rounded-full shrink-0"
+                >
+                  <RotateCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                </Button>
               </div>
               <div className="flex flex-wrap gap-2">
                 {["all", ...VIDEO_CATEGORIES].map((value) => (
@@ -174,29 +227,54 @@ const MediaCenter = () => {
                       key={video.id}
                       type="button"
                       onClick={() => openVideo(video)}
-                      className="group overflow-hidden rounded-3xl border border-border/60 bg-card text-left transition-shadow hover:shadow-lg"
+                      className="group overflow-hidden rounded-3xl border border-border/60 bg-card text-left transition-all hover:shadow-lg hover:border-primary/40 flex flex-col justify-between"
                     >
-                      <div className="relative aspect-video overflow-hidden">
-                        <img
-                          src={video.thumbnailUrl}
-                          alt={video.title}
-                          loading="lazy"
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                        {video.duration && (
-                          <span className="absolute bottom-2 right-2 rounded-md bg-foreground/80 px-2 py-0.5 text-xs text-background">
-                            {video.duration}
-                          </span>
-                        )}
-                      </div>
-                      <div className="space-y-2 p-4">
-                        <h3 className="font-bengali font-semibold text-foreground line-clamp-2">{video.title}</h3>
-                        <div className="flex items-center justify-between">
-                          <Badge variant="outline" className="rounded-full text-xs">
-                            {lang === "bn" ? VIDEO_CATEGORY_LABELS[video.category]?.bn : VIDEO_CATEGORY_LABELS[video.category]?.en}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">{video.views ?? 0} {t("ভিউ", "views")}</span>
+                      <div className="w-full">
+                        <div className="relative aspect-video overflow-hidden bg-black/10">
+                          <img
+                            src={video.thumbnailUrl}
+                            alt={video.title}
+                            loading="lazy"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${video.videoId}/0.jpg`;
+                            }}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/35 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-600 text-white shadow-xl">
+                              <Play className="ml-1 h-5 w-5 fill-white" />
+                            </div>
+                          </div>
+                          <div className="absolute left-2.5 top-2.5 flex flex-wrap gap-1.5">
+                            {video.playlistId && (
+                              <Badge className="border-0 bg-purple-600 text-white text-[10px] font-semibold">
+                                {t("প্লেলিস্ট", "Playlist")}
+                              </Badge>
+                            )}
+                            {video.featured && (
+                              <Badge className="border-0 bg-amber-500 text-white text-[10px] font-semibold gap-1">
+                                <Sparkles className="h-3 w-3" />
+                                {t("পিন", "Pinned")}
+                              </Badge>
+                            )}
+                          </div>
+                          {video.duration && (
+                            <span className="absolute bottom-2 right-2 rounded-md bg-foreground/80 px-2 py-0.5 text-xs text-background">
+                              {video.duration}
+                            </span>
+                          )}
                         </div>
+                        <div className="space-y-2 p-4">
+                          <h3 className="font-bengali font-semibold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                            {video.title}
+                          </h3>
+                        </div>
+                      </div>
+                      <div className="p-4 pt-0 flex items-center justify-between border-t border-border/40 mt-2">
+                        <Badge variant="outline" className="rounded-full text-xs">
+                          {lang === "bn" ? VIDEO_CATEGORY_LABELS[video.category]?.bn : VIDEO_CATEGORY_LABELS[video.category]?.en}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">{video.views ?? 0} {t("ভিউ", "views")}</span>
                       </div>
                     </button>
                   ))}
@@ -296,12 +374,12 @@ const MediaCenter = () => {
       <Dialog open={Boolean(activeVideo)} onOpenChange={(open) => !open && setActiveVideo(null)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="font-bengali">{activeVideo?.title}</DialogTitle>
+            <DialogTitle className="font-bengali text-lg leading-snug">{activeVideo?.title}</DialogTitle>
           </DialogHeader>
           {activeVideo && (
-            <div className="aspect-video overflow-hidden rounded-2xl">
+            <div className="aspect-video overflow-hidden rounded-2xl bg-black">
               <iframe
-                src={activeVideo.embedUrl}
+                src={`${activeVideo.embedUrl}${activeVideo.embedUrl.includes("?") ? "&" : "?"}autoplay=1`}
                 title={activeVideo.title}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
                 allowFullScreen
@@ -309,7 +387,22 @@ const MediaCenter = () => {
               />
             </div>
           )}
-          {activeVideo?.description && <p className="font-bengali text-sm text-muted-foreground">{activeVideo.description}</p>}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+            {activeVideo?.description ? (
+              <p className="font-bengali text-sm text-muted-foreground flex-1">{activeVideo.description}</p>
+            ) : <div className="flex-1" />}
+            {activeVideo?.youtubeUrl && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full gap-1.5 text-xs shrink-0 font-bengali"
+                onClick={() => window.open(activeVideo.youtubeUrl, "_blank")}
+              >
+                <ExternalLink className="h-3.5 w-3.5 text-red-600" />
+                <span>{t("ইউটিউবে দেখুন", "Watch on YouTube")}</span>
+              </Button>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 

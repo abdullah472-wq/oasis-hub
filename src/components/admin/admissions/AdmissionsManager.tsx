@@ -605,7 +605,7 @@ export const AdmissionsManager = () => {
                       {settings.institution_name_en}
                     </p>
                     <p className="text-[11px] text-slate-500 font-mono">
-                      {settings.emis_code ? `সরকারি রেজি নং: ${settings.emis_code} | ` : ""}{settings.address_boys_campus_bn}
+                      {settings.emis_code && settings.emis_code !== "12345678" ? `সরকারি রেজি নং: ${settings.emis_code} | ` : ""}{settings.address_boys_campus_bn}
                     </p>
                   </div>
                 </div>

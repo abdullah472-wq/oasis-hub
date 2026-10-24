@@ -25,7 +25,7 @@ import {
   Mail,
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useSiteSettings } from "@/lib/siteSettings";
+import { useSiteSettings, formatRegistrationNumber } from "@/lib/siteSettings";
 import { getFacultyList, FACULTY_UPDATED_EVENT, type FacultyMember } from "@/lib/faculty";
 import WaveDivider from "@/components/WaveDivider";
 import heroImg from "@/assets/hero-campus.jpg";
@@ -272,8 +272,16 @@ const About = () => {
               <Sparkles className="h-4 w-4 text-amber-300" />
               <span>
                 {t(
-                  `স্থাপিত: ${settings.founding_year || "২০২১"} খ্রি. | রেজি নং ${settings.emis_code || "৩৩৮/২০২২"}`,
-                  `Est. ${settings.founding_year || "2021"} | Govt Reg No: ${settings.emis_code || "338/2022"}`
+                  `স্থাপিত: ${settings.founding_year || "২০২১"} খ্রি.${
+                    settings.emis_code && settings.emis_code !== "12345678"
+                      ? ` | ${formatRegistrationNumber(settings.emis_code, "bn")}`
+                      : ""
+                  }`,
+                  `Est. ${settings.founding_year || "2021"}${
+                    settings.emis_code && settings.emis_code !== "12345678"
+                      ? ` | ${formatRegistrationNumber(settings.emis_code, "en")}`
+                      : ""
+                  }`
                 )}
               </span>
             </span>

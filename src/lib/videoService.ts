@@ -61,8 +61,8 @@ export function extractYouTubeId(url: string, preferredType?: MediaType): string
     return listMatch[1];
   }
 
-  // Standard video match
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  // Standard video, shorts, youtu.be, or embed match
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?\/]*).*/;
   const match = trimmed.match(regExp);
   if (match && match[2] && match[2].length === 11) {
     return match[2];

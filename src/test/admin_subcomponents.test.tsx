@@ -100,9 +100,11 @@ describe("All CMS Components and Dialogs Rendering", () => {
   it("extracts YouTube video and playlist IDs correctly", async () => {
     const { extractYouTubeId, saveVideoItem, getVideoList } = await import("@/lib/videoService");
     
-    // Normal video
+    // Normal video & Shorts
     expect(extractYouTubeId("https://www.youtube.com/watch?v=7X8II6J-6mU")).toBe("7X8II6J-6mU");
     expect(extractYouTubeId("https://youtu.be/7X8II6J-6mU")).toBe("7X8II6J-6mU");
+    expect(extractYouTubeId("https://www.youtube.com/shorts/3XZ8m9_k2pA")).toBe("3XZ8m9_k2pA");
+    expect(extractYouTubeId("https://youtube.com/shorts/3XZ8m9_k2pA?feature=share")).toBe("3XZ8m9_k2pA");
 
     // Playlist URL
     const playlistUrl = "https://www.youtube.com/watch?v=VFnUBYe9giM&list=PLSKwzh15e_dk";

@@ -15,6 +15,9 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db, auth } from "./firebase";
+import { getVideoList, getCachedVideos, type MediaVideo as CmsMediaVideo } from "./videoService";
+import { getGalleryList, type GalleryItem } from "./galleryService";
+import { getDownloadsList, type DownloadItem } from "./downloadsService";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -253,6 +256,13 @@ const LIVE_DOC = doc(db, "site_settings", "media_live_stream");
 const mapDocs = <T,>(snapshot: { docs: Array<{ id: string; data: () => unknown }> }): T[] =>
   snapshot.docs.map((item) => ({ id: item.id, ...(item.data() as Record<string, unknown>) })) as T[];
 
+export const withTimeout = <T>(promise: Promise<T>, timeoutMs = 2500, fallback: T): Promise<T> => {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), timeoutMs)),
+  ]).catch(() => fallback);
+};
+
 /* ------------------------------------------------------------------ */
 /* Activity logs                                                       */
 /* ------------------------------------------------------------------ */
@@ -273,7 +283,12 @@ export const logMediaActivity = async (action: MediaActivityAction, target: stri
 
 export const getMediaActivityLogs = async (max = 25): Promise<MediaActivityLog[]> => {
   try {
-    const snapshot = await getDocs(query(collection(db, LOGS), orderBy("createdAt", "desc"), fbLimit(max)));
+    const snapshot = await withTimeout(
+      getDocs(query(collection(db, LOGS), orderBy("createdAt", "desc"), fbLimit(max))),
+      2500,
+      null
+    );
+    if (!snapshot) return [];
     return mapDocs<MediaActivityLog>(snapshot);
   } catch {
     return [];
@@ -287,13 +302,109 @@ export const getMediaActivityLogs = async (max = 25): Promise<MediaActivityLog[]
 export type MediaVideoDraft = Omit<MediaVideo, "id" | "createdAt" | "updatedAt" | "views"> & { views?: number };
 
 export const getMediaVideos = async (): Promise<MediaVideo[]> => {
-  const snapshot = await getDocs(query(collection(db, VIDEOS), orderBy("createdAt", "desc")));
-  return mapDocs<MediaVideo>(snapshot).sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0) || b.createdAt - a.createdAt);
+  try {
+    const snapshot = await withTimeout(
+      getDocs(query(collection(db, VIDEOS), orderBy("createdAt", "desc"))),
+      2500,
+      null
+    );
+    if (!snapshot) return [];
+    return mapDocs<MediaVideo>(snapshot).sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0) || b.createdAt - a.createdAt);
+  } catch {
+    return [];
+  }
+};
+
+export const inferVideoCategory = (titleBn = "", titleEn?: string | null): VideoCategory => {
+  const text = `${titleBn} ${titleEn || ""}`.toLowerCase();
+  if (text.includes("ভর্তি") || text.includes("admission")) return "admission";
+  if (text.includes("প্রতিযোগিতা") || text.includes("প্রতিযোগীতা") || text.includes("competition")) return "competitions";
+  if (text.includes("নাজেরা") || text.includes("nazera")) return "nazera";
+  if (text.includes("হিফজ") || text.includes("হাফেজ") || text.includes("হফেজ") || text.includes("hifz")) return "hifz";
+  if (text.includes("কুরআন") || text.includes("কোরআন") || text.includes("তেলাওয়াত") || text.includes("তিলাওয়াত") || text.includes("quran") || text.includes("recitation")) return "quran";
+  if (text.includes("হাদীস") || text.includes("হাদিস") || text.includes("ইসলামিক") || text.includes("দ্বীনি") || text.includes("hadith") || text.includes("islamic")) return "islamic-studies";
+  if (text.includes("ক্লাস") || text.includes("পাঠদান") || text.includes("class") || text.includes("lesson")) return "classes";
+  if (text.includes("অনুষ্ঠান") || text.includes("মাহফিল") || text.includes("সমাবর্তন") || text.includes("মজলিস") || text.includes("সভা") || text.includes("event") || text.includes("program")) return "events";
+  if (text.includes("পডকাস্ট") || text.includes("আলোচনা") || text.includes("podcast")) return "podcast";
+  if (text.includes("ঘোষণা") || text.includes("বিজ্ঞপ্তি") || text.includes("notice") || text.includes("announcement")) return "announcements";
+  return "others";
+};
+
+export const mapCmsVideoToMediaVideo = (v: CmsMediaVideo): MediaVideo => {
+  const isPlaylist = v.type === "playlist";
+  const playlistId = isPlaylist
+    ? (v.youtube_video_id.startsWith("PL") || v.youtube_video_id.startsWith("UU")
+        ? v.youtube_video_id
+        : v.youtube_url?.match(/[?&]list=([^#&?]+)/)?.[1] || v.youtube_video_id)
+    : undefined;
+
+  return {
+    id: v.id,
+    title: v.title_bn || v.title_en || "ভিডিও",
+    youtubeUrl: v.youtube_url,
+    videoId: v.youtube_video_id,
+    thumbnailUrl: `https://img.youtube.com/vi/${v.youtube_video_id}/hqdefault.jpg`,
+    embedUrl: isPlaylist && playlistId
+      ? `https://www.youtube.com/embed/videoseries?list=${playlistId}`
+      : `https://www.youtube.com/embed/${v.youtube_video_id}`,
+    category: inferVideoCategory(v.title_bn, v.title_en),
+    playlistId,
+    description: v.title_en || undefined,
+    featured: Boolean(v.is_featured),
+    status: "published",
+    displayOrder: v.order_index ?? 0,
+    views: 0,
+    createdAt: v.created_at ? new Date(v.created_at).getTime() : Date.now(),
+    updatedAt: v.updated_at ? new Date(v.updated_at).getTime() : Date.now(),
+  };
 };
 
 export const getPublishedVideos = async (): Promise<MediaVideo[]> => {
-  const videos = await getMediaVideos().catch(() => [] as MediaVideo[]);
-  return videos.filter((item) => item.status === "published");
+  // 1. Fetch CMS videos (Supabase + LocalStorage fallback)
+  let cmsVideos: CmsMediaVideo[] = [];
+  try {
+    const res = await getVideoList();
+    cmsVideos = res.videos || [];
+  } catch {
+    cmsVideos = getCachedVideos();
+  }
+
+  const mappedCmsVideos = cmsVideos.map(mapCmsVideoToMediaVideo);
+
+  // 2. Fetch Firestore published videos
+  let firestoreVideos: MediaVideo[] = [];
+  try {
+    const all = await getMediaVideos();
+    firestoreVideos = all.filter((item) => item.status === "published");
+  } catch {
+    firestoreVideos = [];
+  }
+
+  // 3. Merge: prioritize CMS videos, add non-duplicate Firestore videos
+  const cmsIds = new Set(mappedCmsVideos.map((v) => v.id));
+  const merged = [
+    ...mappedCmsVideos,
+    ...firestoreVideos.filter((v) => !cmsIds.has(v.id)),
+  ];
+
+  return merged.sort(
+    (a, b) =>
+      Number(Boolean(b.featured)) - Number(Boolean(a.featured)) ||
+      (a.displayOrder ?? 0) - (b.displayOrder ?? 0) ||
+      b.createdAt - a.createdAt
+  );
+};
+
+/**
+ * Synchronous read of cached & default videos for instant UI mounting.
+ */
+export const getCachedPublishedVideos = (): MediaVideo[] => {
+  try {
+    const cmsVideos = getCachedVideos();
+    return cmsVideos.map(mapCmsVideoToMediaVideo);
+  } catch {
+    return [];
+  }
 };
 
 const clearOtherFeaturedVideos = async (keepId?: string) => {
@@ -335,8 +446,17 @@ export const deleteMediaVideo = async (id: string, title = "") => {
 export type MediaPlaylistDraft = Omit<MediaPlaylist, "id" | "createdAt" | "updatedAt">;
 
 export const getMediaPlaylists = async (): Promise<MediaPlaylist[]> => {
-  const snapshot = await getDocs(query(collection(db, PLAYLISTS), orderBy("createdAt", "desc")));
-  return mapDocs<MediaPlaylist>(snapshot);
+  try {
+    const snapshot = await withTimeout(
+      getDocs(query(collection(db, PLAYLISTS), orderBy("createdAt", "desc"))),
+      2500,
+      null
+    );
+    if (!snapshot) return [];
+    return mapDocs<MediaPlaylist>(snapshot);
+  } catch {
+    return [];
+  }
 };
 
 export const createMediaPlaylist = async (draft: MediaPlaylistDraft): Promise<MediaPlaylist> => {
@@ -363,8 +483,8 @@ export const deleteMediaPlaylist = async (id: string, name = "") => {
 
 export const getMediaLiveStream = async (): Promise<MediaLiveStream | null> => {
   try {
-    const snapshot = await getDoc(LIVE_DOC);
-    return snapshot.exists() ? (snapshot.data() as MediaLiveStream) : null;
+    const snapshot = await withTimeout(getDoc(LIVE_DOC), 2500, null);
+    return snapshot && snapshot.exists() ? (snapshot.data() as MediaLiveStream) : null;
   } catch {
     return null;
   }
@@ -384,8 +504,17 @@ export const saveMediaLiveStream = async (stream: Omit<MediaLiveStream, "updated
 export type MediaGalleryDraft = Omit<MediaGalleryItem, "id" | "createdAt">;
 
 export const getMediaGalleryItems = async (): Promise<MediaGalleryItem[]> => {
-  const snapshot = await getDocs(query(collection(db, GALLERY), orderBy("createdAt", "desc")));
-  return mapDocs<MediaGalleryItem>(snapshot);
+  try {
+    const snapshot = await withTimeout(
+      getDocs(query(collection(db, GALLERY), orderBy("createdAt", "desc"))),
+      2500,
+      null
+    );
+    if (!snapshot) return [];
+    return mapDocs<MediaGalleryItem>(snapshot);
+  } catch {
+    return [];
+  }
 };
 
 export const createMediaGalleryItem = async (draft: MediaGalleryDraft): Promise<MediaGalleryItem> => {
@@ -412,8 +541,17 @@ export const deleteMediaGalleryItem = async (id: string, title = "") => {
 export type MediaDownloadDraft = Omit<MediaDownload, "id" | "createdAt" | "downloads"> & { downloads?: number };
 
 export const getMediaDownloads = async (): Promise<MediaDownload[]> => {
-  const snapshot = await getDocs(query(collection(db, DOWNLOADS), orderBy("createdAt", "desc")));
-  return mapDocs<MediaDownload>(snapshot);
+  try {
+    const snapshot = await withTimeout(
+      getDocs(query(collection(db, DOWNLOADS), orderBy("createdAt", "desc"))),
+      2500,
+      null
+    );
+    if (!snapshot) return [];
+    return mapDocs<MediaDownload>(snapshot);
+  } catch {
+    return [];
+  }
 };
 
 export const createMediaDownload = async (draft: MediaDownloadDraft): Promise<MediaDownload> => {
@@ -437,21 +575,128 @@ export const deleteMediaDownload = async (id: string, title = "") => {
 /* ------------------------------------------------------------------ */
 
 export const getPublishedPlaylists = async (): Promise<MediaPlaylist[]> => {
-  const items = await getMediaPlaylists().catch(() => [] as MediaPlaylist[]);
-  return items.filter((item) => item.status === "published");
+  let cmsVideos: CmsMediaVideo[] = [];
+  try {
+    const res = await getVideoList();
+    cmsVideos = res.videos || [];
+  } catch {
+    cmsVideos = getCachedVideos();
+  }
+
+  const cmsPlaylists: MediaPlaylist[] = cmsVideos
+    .filter((v) => v.type === "playlist")
+    .map((v) => ({
+      id: v.id,
+      name: v.title_bn || v.title_en || "প্লেলিস্ট",
+      playlistId: v.youtube_video_id,
+      youtubeUrl: v.youtube_url,
+      thumbnailUrl: `https://img.youtube.com/vi/${v.youtube_video_id}/hqdefault.jpg`,
+      description: v.title_en || undefined,
+      featured: Boolean(v.is_featured),
+      status: "published",
+      createdAt: v.created_at ? new Date(v.created_at).getTime() : Date.now(),
+      updatedAt: v.updated_at ? new Date(v.updated_at).getTime() : Date.now(),
+    }));
+
+  let firestorePlaylists: MediaPlaylist[] = [];
+  try {
+    const all = await getMediaPlaylists();
+    firestorePlaylists = all.filter((item) => item.status === "published");
+  } catch {
+    firestorePlaylists = [];
+  }
+
+  const ids = new Set(cmsPlaylists.map((p) => p.id));
+  return [...cmsPlaylists, ...firestorePlaylists.filter((p) => !ids.has(p.id))];
 };
 
 export const getPublishedGalleryItems = async (): Promise<MediaGalleryItem[]> => {
-  const items = await getMediaGalleryItems().catch(() => [] as MediaGalleryItem[]);
-  return items.filter((item) => item.status === "published");
+  let cmsGallery: GalleryItem[] = [];
+  try {
+    cmsGallery = await getGalleryList();
+  } catch {
+    cmsGallery = [];
+  }
+
+  const mappedGallery: MediaGalleryItem[] = cmsGallery.map((g) => ({
+    id: g.id,
+    title: g.title_bn || g.title_en || "ছবি",
+    imageUrl: g.image_url,
+    album: g.category,
+    category: (g.category === "academic" ? "students" : g.category === "achievement" ? "competitions" : g.category) as MediaGalleryCategory,
+    featured: false,
+    status: "published",
+    createdAt: g.created_at ? new Date(g.created_at).getTime() : Date.now(),
+  }));
+
+  let firestoreItems: MediaGalleryItem[] = [];
+  try {
+    const all = await getMediaGalleryItems();
+    firestoreItems = all.filter((item) => item.status === "published");
+  } catch {
+    firestoreItems = [];
+  }
+
+  const ids = new Set(mappedGallery.map((i) => i.id));
+  return [...mappedGallery, ...firestoreItems.filter((i) => !ids.has(i.id))];
 };
 
 export const getPublishedDownloads = async (): Promise<MediaDownload[]> => {
-  const items = await getMediaDownloads().catch(() => [] as MediaDownload[]);
-  return items.filter((item) => item.status === "published");
+  let cmsDownloads: DownloadItem[] = [];
+  try {
+    cmsDownloads = await getDownloadsList();
+  } catch {
+    cmsDownloads = [];
+  }
+
+  const mappedDownloads: MediaDownload[] = cmsDownloads
+    .filter((d) => d.is_active)
+    .map((d) => ({
+      id: d.id,
+      title: d.title_bn || d.title_en || "ডকুমেন্ট",
+      category: (d.category === "routine" ? "routine" : d.category === "admission" ? "admission-form" : d.category === "syllabus" ? "syllabus" : "others") as DownloadCategory,
+      fileUrl: d.file_url,
+      fileName: `${d.title_en || d.title_bn}.pdf`,
+      description: d.description_bn || d.description_en,
+      status: "published",
+      downloads: d.download_count || 0,
+      createdAt: d.created_at ? new Date(d.created_at).getTime() : Date.now(),
+    }));
+
+  let firestoreDownloads: MediaDownload[] = [];
+  try {
+    const all = await getMediaDownloads();
+    firestoreDownloads = all.filter((item) => item.status === "published");
+  } catch {
+    firestoreDownloads = [];
+  }
+
+  const ids = new Set(mappedDownloads.map((d) => d.id));
+  return [...mappedDownloads, ...firestoreDownloads.filter((d) => !ids.has(d.id))];
 };
 
 export const getActiveLiveStream = async (): Promise<MediaLiveStream | null> => {
+  let cmsVideos: CmsMediaVideo[] = [];
+  try {
+    const res = await getVideoList();
+    cmsVideos = res.videos || [];
+  } catch {
+    cmsVideos = getCachedVideos();
+  }
+
+  const cmsLive = cmsVideos.find((v) => v.type === "livestream");
+  if (cmsLive) {
+    return {
+      title: cmsLive.title_bn || cmsLive.title_en || "লাইভ স্ট্রিম",
+      description: cmsLive.title_en || undefined,
+      youtubeUrl: cmsLive.youtube_url,
+      videoId: cmsLive.youtube_video_id,
+      embedUrl: `https://www.youtube.com/embed/${cmsLive.youtube_video_id}?autoplay=1`,
+      status: "live",
+      updatedAt: cmsLive.updated_at ? new Date(cmsLive.updated_at).getTime() : Date.now(),
+    };
+  }
+
   const stream = await getMediaLiveStream().catch(() => null);
   return stream && stream.status === "live" ? stream : null;
 };
