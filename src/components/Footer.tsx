@@ -24,27 +24,27 @@ import { useSiteSettings } from "@/lib/siteSettings";
 
 const DEFAULT_MAPS_URL =
   "https://www.google.com/maps/place/%E0%A6%86%E0%A6%A8%E0%A6%A8%E0%A7%82%E0%A6%B0+%E0%A6%A4%E0%A6%BE%E0%A6%B9%E0%A6%AB%E0%A6%BF%E0%A6%9C%E0%A7%81%E0%A6%B2+%E0%A6%95%E0%A7%81%E0%A6%B0%E0%A6%86%E0%A6%A8+%E0%A6%AE%E0%A6%BE%E0%A6%A6%E0%A6%B0%E0%A6%BE%E0%A6%B8%E0%A6%BE+%E0%A6%93+%E0%A6%AE%E0%A6%A1%E0%A7%87%E0%A6%B2+%E0%A6%8F%E0%A6%95%E0%A6%BE%E0%A6%A1%E0%A7%87%E0%A6%AE%E0%A7%80/@24.1119189,90.5677945,21z/data=!4m6!3m5!1s0x3755d59d76b2ffd9:0xde5de9aa6b8378aa!8m2!3d24.1118467!4d90.5680587!16s%2Fg%2F11khdsnx7w?entry=ttu&g_ep=EgoyMDI2MDMzMS4wIKXMDSoASAFQAw%3D%3D";
-const GOOGLE_MAPS_URL = DEFAULT_MAPS_URL;
 
 const DEFAULT_LOGO = "/site-logo.png";
-const BANK_ACCOUNT_NUMBER = "20503760201161316";
 
 const Footer = () => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { settings } = useSiteSettings();
   const [copiedBank, setCopiedBank] = useState(false);
 
   const siteLogo = settings.logo_url || DEFAULT_LOGO;
   const mapsUrl = settings.google_maps_url || DEFAULT_MAPS_URL;
   const facebookUrl = settings.facebook_url || "https://www.facebook.com/profile.php?id=61595529418669";
-  const facebookGroupUrl = "https://www.facebook.com/share/g/1Pg8FaZjsn/";
+  const facebookGroupUrl = settings.facebook_group_url || "https://www.facebook.com/share/g/1Pg8FaZjsn/";
   const youtubeUrl = settings.youtube_url || "https://www.youtube.com/@ANNOORMADRASA";
   const hotline = settings.phone_primary || "01820811511";
-  const cleanWhatsapp = (settings.whatsapp_number || "01581818368").replace(/[^0-9]/g, "");
+  const cleanWhatsapp = (settings.whatsapp_number || settings.phone_primary || "01581818368").replace(/[^0-9]/g, "");
   const whatsappUrl = `https://wa.me/88${cleanWhatsapp.startsWith("88") ? cleanWhatsapp.slice(2) : cleanWhatsapp}`;
 
+  const bankAccountNo = settings.bank_account_no || "20503760201161316";
+
   const handleCopyBank = () => {
-    navigator.clipboard.writeText(BANK_ACCOUNT_NUMBER);
+    navigator.clipboard.writeText(bankAccountNo);
     setCopiedBank(true);
     toast.success(t("ব্যাংক অ্যাকাউন্ট নম্বর কপি করা হয়েছে!", "Bank account number copied!"));
     setTimeout(() => setCopiedBank(false), 2500);
@@ -306,44 +306,48 @@ const Footer = () => {
 
               {/* Direct Personnel Helplines */}
               <div className="space-y-2 rounded-xl border border-white/10 bg-white/5 p-3 text-xs backdrop-blur-sm">
+                {/* Founder / Key Leader */}
                 <div className="flex items-center justify-between border-b border-white/10 pb-2">
                   <div>
                     <span className="font-semibold text-white">
-                      {t("প্রতিষ্ঠাতা পরিচালক:", "Founder Director:")}
-                    </span>{" "}
+                      {settings.founder_title_bn
+                        ? (lang === "bn" ? settings.founder_title_bn : settings.founder_title_en || settings.founder_title_bn)
+                        : t("প্রতিষ্ঠাতা পরিচালক:", "Founder Director:")}{" "}
+                    </span>
                     <span className="text-emerald-200">
-                      {t("হাফেজ আমানউল্লাহ", "Hafez Amanullah")}
+                      {settings.founder_name_bn
+                        ? (lang === "bn" ? settings.founder_name_bn : settings.founder_name_en || settings.founder_name_bn)
+                        : t("মুফতি আব্দুল্লাহ আল মামুন", "Mufti Abdullah Al Mamon")}
                     </span>
                   </div>
                   <a
-                    href={`tel:${(settings.phone_primary || "01820811511").replace(/[^0-9]/g, "")}`}
+                    href={`tel:${(settings.founder_phone || settings.phone_primary || "01820811511").replace(/[^0-9]/g, "")}`}
                     className="font-mono font-bold text-accent hover:underline"
                   >
-                    {settings.phone_primary || "01820-811511"}
+                    {settings.founder_phone || settings.phone_primary || "01820-811511"}
                   </a>
                 </div>
 
+                {/* Principal / Head */}
                 <div className="flex items-center justify-between pt-1">
                   <div>
                     <span className="font-semibold text-white">
-                      {t("ম্যানেজার ও প্রতিষ্ঠাতা পরিচালক:", "Manager & Founding Director:")}
-                    </span>{" "}
+                      {settings.principal_title_bn
+                        ? (lang === "bn" ? settings.principal_title_bn : settings.principal_title_en || settings.principal_title_bn)
+                        : t("প্রধান শিক্ষক:", "Principal:")}{" "}
+                    </span>
                     <span className="text-emerald-200">
-                      {t("মুফতি আব্দুল্লাহ আল মামুন", "Mufti Abdullah Al Mamon")}
+                      {settings.principal_name_bn
+                        ? (lang === "bn" ? settings.principal_name_bn : settings.principal_name_en || settings.principal_name_bn)
+                        : t("হাফেজ আমানউল্লাহ", "Hafez Amanullah")}
                     </span>
                   </div>
                   <div className="text-right">
                     <a
-                      href="tel:01312200043"
+                      href={`tel:${(settings.principal_phone || settings.phone_secondary || "01581818368").replace(/[^0-9]/g, "")}`}
                       className="block font-mono font-bold text-accent hover:underline"
                     >
-                      01312200043
-                    </a>
-                    <a
-                      href={`tel:${(settings.phone_secondary || "01581818368").replace(/[^0-9]/g, "")}`}
-                      className="block font-mono text-[11px] text-emerald-200/80 hover:underline"
-                    >
-                      {settings.phone_secondary || "01581-818368"}
+                      {settings.principal_phone || settings.phone_secondary || "01581-818368"}
                     </a>
                   </div>
                 </div>
@@ -366,10 +370,13 @@ const Footer = () => {
                   </button>
                 </div>
                 <p className="mt-1.5 text-white/90">
-                  {t("ইসলামী ব্যাংক বাংলাদেশ পিএলসি, কাপাসিয়া শাখা", "Islami Bank Bangladesh PLC, Kapasia Branch")}
+                  {t(
+                    `${settings.bank_name_bn || "ইসলামী ব্যাংক বাংলাদেশ পিএলসি"}, ${settings.bank_branch_bn || "কাপাসিয়া শাখা"}`,
+                    `${settings.bank_name_en || "Islami Bank Bangladesh PLC"}, ${settings.bank_branch_en || "Kapasia Branch"}`
+                  )}
                 </p>
                 <p className="font-mono font-bold tracking-wide text-white">
-                  A/C: {BANK_ACCOUNT_NUMBER}
+                  A/C: {bankAccountNo}
                 </p>
               </div>
 
@@ -387,7 +394,10 @@ const Footer = () => {
               <p>
                 © {new Date().getFullYear()}{" "}
                 <span className="font-semibold text-white">
-                  {t("আননূর শিক্ষা পরিবার", "Annoor Education Family")}
+                  {t(
+                    settings.institution_name_bn || "শিক্ষা পরিবার",
+                    settings.institution_name_en || "Education Family"
+                  )}
                 </span>
                 । {t("সর্বস্বত্ব সংরক্ষিত।", "All rights reserved.")}
               </p>

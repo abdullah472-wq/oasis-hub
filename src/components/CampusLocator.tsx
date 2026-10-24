@@ -29,27 +29,29 @@ export const CampusLocator: React.FC<{ className?: string }> = ({ className = ""
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   const institutionNameBn =
-    settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা";
+    settings.institution_name_bn || "";
   const institutionNameEn =
-    settings.institution_name_en || "Annoor Tahfizul Quran Madrasa";
+    settings.institution_name_en || "";
 
   const addressBn =
     settings.address_boys_campus_bn ||
-    "কাপাসিয়া বাজার, কলেজ রোড মোড় (সিঙ্গার শোরুম সংলগ্ন), কাপাসিয়া, গাজীপুর-১৭৩০";
+    settings.address_office_bn ||
+    "";
   const addressEn =
     settings.address_boys_campus_en ||
-    "Kapasia Bazar, College Road Mor (Beside Singer Showroom), Kapasia, Gazipur-1730";
+    settings.address_office_en ||
+    "";
 
-  const phone = settings.phone_primary || "01820811511";
-  const secondaryPhone = settings.phone_secondary || "01581818368";
-  const rawWa = (settings.whatsapp_number || phone).replace(/[^0-9]/g, "");
+  const phone = settings.phone_primary || "";
+  const secondaryPhone = settings.phone_secondary || "";
+  const rawWa = (settings.whatsapp_number || settings.hotline_or_whatsapp || phone).replace(/[^0-9]/g, "");
   const cleanWa = rawWa.startsWith("88") ? rawWa : `88${rawWa}`;
 
   const coords = { lat: 24.1118467, lng: 90.5680587 };
 
   const mapsUrl =
     settings.google_maps_url ||
-    "https://www.google.com/maps/place/%E0%A6%86%E0%A6%A8%E0%A6%A8%E0%A7%82%E0%A6%B0+%E0%A6%A4%E0%A6%BE%E0%A6%B9%E0%A6%AB%E0%A6%BF%E0%A6%9C%E0%A7%81%E0%A6%B2+%E0%A6%95%E0%A7%81%E0%A6%B0%E0%A6%86%E0%A6%A8+%E0%A6%AE%E0%A6%BE%E0%A6%A6%E0%A6%B0%E0%A6%BE%E0%A6%B8%E0%A6%BE+%E0%A6%93+%E0%A6%AE%E0%A6%A1%E0%A7%87%E0%A6%B2+%E0%A6%8F%E0%A6%95%E0%A6%BE%E0%A6%A1%E0%A7%87%E0%A6%AE%E0%A7%80/@24.1119189,90.5677945,21z/data=!4m6!3m5!1s0x3755d59d76b2ffd9:0xde5de9aa6b8378aa!8m2!3d24.1118467!4d90.5680587!16s%2Fg%2F11khdsnx7w";
+    "https://maps.google.com";
 
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lng}`;
   const embedUrl = `https://www.google.com/maps?q=${coords.lat},${coords.lng}&hl=bn&z=19&output=embed`;

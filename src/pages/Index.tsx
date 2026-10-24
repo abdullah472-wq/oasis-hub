@@ -632,8 +632,8 @@ const Index = () => {
       <section className="relative min-h-[500px] lg:min-h-[560px] overflow-hidden flex items-start justify-start pt-4 pb-12 sm:pt-6 sm:pb-14 lg:pt-6 lg:pb-16">
         <div className="absolute inset-0">
           <img
-            src={heroImg}
-            alt="Annoor Education Family Campus"
+            src={settings.hero_image_url || heroImg}
+            alt={settings.institution_name_en || "Institution Campus"}
             className="w-full h-full object-cover object-center"
             fetchpriority="high"
             sizes="100vw"
@@ -651,7 +651,7 @@ const Index = () => {
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold text-slate-100 backdrop-blur-md border border-white/20 shadow-md">
               <span className="flex h-2 w-2 rounded-full bg-accent animate-ping" />
               <span style={{ fontFamily: "'Noto Serif Bengali', serif" }}>
-                {t("প্রতিষ্ঠিত ২০২১ইং", "(Est. 2021)")}
+                {t(`প্রতিষ্ঠিত ${settings.founding_year || "২০২১"}ইং`, `(Est. ${settings.founding_year || "2021"})`)}
               </span>
             </div>
 
@@ -662,7 +662,10 @@ const Index = () => {
               }}
               className="font-extrabold leading-[1.2] md:leading-[1.22] tracking-tight text-white drop-shadow-md"
             >
-              {t("একই স্থানে, একই খরচে, সকল শিক্ষা একইসাথে", "Building Faith, Knowledge & Character Together")}
+              {t(
+                settings.tagline_bn || "একই স্থানে, একই খরচে, সকল শিক্ষা একইসাথে",
+                settings.tagline_en || "Building Faith, Knowledge & Character Together"
+              )}
             </h1>
 
             <p

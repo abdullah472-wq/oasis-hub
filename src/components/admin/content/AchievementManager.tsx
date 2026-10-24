@@ -10,7 +10,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase, logAdminActivity } from "@/lib/supabase/client";
+import { getAchievementsList, deleteAchievement } from "@/lib/achievements";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Achievement } from "@/types/cms";
 import { AchievementDialog } from "./AchievementDialog";
@@ -42,14 +42,8 @@ export const AchievementManager = () => {
   const fetchAchievements = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("achievements")
-        .select("*")
-        .order("year", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setAchievements((data as Achievement[]) || []);
+      const data = await getAchievementsList();
+      setAchievements(data);
     } catch (err: any) {
       console.error("Error fetching achievements:", err);
       toast.error(t("অর্জন তালিকা লোড করতে সমস্যা হয়েছে", "Failed to load achievements"));
@@ -66,19 +60,7 @@ export const AchievementManager = () => {
     if (!deletingAchievement) return;
 
     try {
-      const { error } = await supabase
-        .from("achievements")
-        .delete()
-        .eq("id", deletingAchievement.id);
-
-      if (error) throw error;
-
-      await logAdminActivity(
-        "DELETE",
-        "achievements",
-        `অর্জন মুছে ফেলা: "${deletingAchievement.title_bn}"`
-      );
-
+      await deleteAchievement(deletingAchievement.id);
       toast.success(t("অর্জন সফলভাবে মুছে ফেলা হয়েছে", "Achievement deleted successfully"));
       setAchievements((prev) => prev.filter((a) => a.id !== deletingAchievement.id));
       setDeletingAchievement(null);

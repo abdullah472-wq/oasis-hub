@@ -23,8 +23,11 @@ import {
   Utensils,
   Home as HomeIcon,
   BookOpen,
+  Copy,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSiteSettings } from "@/lib/siteSettings";
 import WaveDivider from "@/components/WaveDivider";
 import AdmissionCountdownBanner from "@/components/admission/AdmissionCountdownBanner";
 import { springIn, springInDelay } from "@/lib/animations";
@@ -37,6 +40,7 @@ import {
 
 const Admission = () => {
   const { t } = useLanguage();
+  const { settings } = useSiteSettings();
   const [feeItems, setFeeItems] = useState<FeeStructureItem[]>([]);
   const [rules, setRules] = useState<AdmissionRuleItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -417,8 +421,8 @@ const Admission = () => {
                 </h4>
                 <p className="font-bengali text-xs sm:text-sm text-muted-foreground mt-0.5">
                   {t(
-                    "ক্যাম্পাস ক্যাশ কাউন্টার ছাড়াও বিকাশ, নগদ, রকেট ও নির্ধারিত ব্যাংক অ্যাকাউন্টের মাধ্যমে অফিসিয়াল রসিদ সহ ফি প্রদান করা যায়।",
-                    "Fees can be paid at campus accounts counters or through bKash, Nagad, Rocket, and designated bank accounts with official receipts."
+                    settings.payment_instructions_bn || "ক্যাম্পাস ক্যাশ কাউন্টার ছাড়াও বিকাশ, নগদ, রকেট ও নির্ধারিত ব্যাংক অ্যাকাউন্টের মাধ্যমে অফিসিয়াল রসিদ সহ ফি প্রদান করা যায়।",
+                    settings.payment_instructions_en || "Fees can be paid at campus accounts counters or through bKash, Nagad, Rocket, and designated bank accounts with official receipts."
                   )}
                 </p>
               </div>
@@ -432,6 +436,63 @@ const Admission = () => {
               <ChevronRight className="h-3.5 w-3.5" />
             </Link>
           </div>
+
+          {/* Dynamic Active Payment Accounts List */}
+          {Array.isArray(settings.payment_accounts) && settings.payment_accounts.filter((a) => a.is_active).length > 0 && (
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {settings.payment_accounts
+                .filter((a) => a.is_active)
+                .map((acc) => (
+                  <div
+                    key={acc.id}
+                    className="rounded-2xl border border-border/80 bg-card p-4 space-y-2.5 shadow-xs transition-shadow hover:shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold text-xs sm:text-sm text-foreground line-clamp-1">
+                        {acc.title_bn || acc.title_en}
+                      </span>
+                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-primary/10 text-primary shrink-0">
+                        {acc.type}
+                      </span>
+                    </div>
+
+                    {(acc.bank_name_bn || acc.bank_name_en) && (
+                      <p className="text-[11px] text-muted-foreground line-clamp-1">
+                        {acc.bank_name_bn || acc.bank_name_en}
+                        {acc.branch_bn ? ` (${acc.branch_bn})` : ""}
+                      </p>
+                    )}
+
+                    {acc.account_name && (
+                      <p className="text-[11px] text-muted-foreground line-clamp-1">
+                        {t("হিসাবধারক:", "A/C:")} {acc.account_name}
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-muted/30 border border-border/60 text-xs font-mono font-bold">
+                      <span className="truncate mr-2">{acc.account_number}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(acc.account_number);
+                          toast.success(t("অ্যাকাউন্ট নম্বর কপি করা হয়েছে", "Account number copied"));
+                        }}
+                        className="text-muted-foreground hover:text-primary transition-colors shrink-0 p-1 rounded-md hover:bg-background"
+                        title={t("কপি করুন", "Copy")}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    {(acc.instructions_bn || acc.instructions_en) && (
+                      <p className="text-[10px] text-muted-foreground italic line-clamp-2">
+                        {acc.instructions_bn || acc.instructions_en}
+                      </p>
+                    )}
+                  </div>
+                ))}
+            </div>
+          )}
         </section>
 
         {/* ================= SECTION 2: ADMISSION RULES & REQUIREMENTS ================= */}
@@ -764,10 +825,10 @@ const Admission = () => {
                   <div>
                     <p className="text-xs text-muted-foreground">{t("হটলাইন / ভর্তি ডেস্ক", "Hotline / Desk")}</p>
                     <a
-                      href="tel:01820811511"
+                      href={`tel:${(settings.hotline_or_whatsapp || settings.phone_primary || "01820811511").replace(/[\s\-\(\)]/g, "")}`}
                       className="text-base font-bold text-foreground hover:text-primary transition-colors"
                     >
-                      +880 1820-811511
+                      {settings.hotline_or_whatsapp || settings.phone_primary || "+880 1820-811511"}
                     </a>
                   </div>
                 </div>

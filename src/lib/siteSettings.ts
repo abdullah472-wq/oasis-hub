@@ -2,19 +2,22 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import type { SiteSettings } from "@/types/cms";
 
-const SETTINGS_CACHE_KEY = "oasis_site_settings_cache_v3";
-const LEGACY_CACHE_KEYS = ["oasis_site_settings_cache_v2", "oasis_site_settings_cache_v1"];
+const SETTINGS_CACHE_KEY = "oasis_site_settings_cache_v4";
+const LEGACY_CACHE_KEYS = ["oasis_site_settings_cache_v3", "oasis_site_settings_cache_v2", "oasis_site_settings_cache_v1"];
 
 export const defaultSiteSettings: SiteSettings = {
   id: 1,
   institution_name_bn: "আননূর তাহফিজুল কুরআন মাদরাসা",
   institution_name_en: "Annoor Tahfizul Quran Madrasa",
+  tagline_bn: "একই স্থানে, একই খরচে, সকল শিক্ষা একইসাথে",
+  tagline_en: "Building Faith, Knowledge & Character Together",
   emis_code: "",
   founding_year: "2021",
   phone_primary: "01820811511",
   phone_secondary: "01581818368",
   whatsapp_number: "01581818368",
   email_primary: "info@annoor.edu.bd",
+  website_url: "https://annoor.edu.bd",
   admission_status: "open",
   address_boys_campus_bn: "আননূর তাহফিজুল কুরআন মাদরাসা, কাপাসিয়া বাজার রোড, কাপাসিয়া, গাজীপুর",
   address_boys_campus_en: "Annoor Tahfizul Quran Madrasa, Kapasia Bazar Road, Kapasia, Gazipur",
@@ -23,9 +26,68 @@ export const defaultSiteSettings: SiteSettings = {
   google_maps_url:
     "https://www.google.com/maps/place/%E0%A6%86%E0%A6%A8%E0%A6%A8%E0%A7%82%E0%A6%B0+%E0%A6%A4%E0%A6%BE%E0%A6%B9%E0%A6%AB%E0%A6%BF%E0%A6%9C%E0%A7%81%E0%A6%B2+%E0%A6%95%E0%A7%81%E0%A6%B0%E0%A6%86%E0%A6%A8+%E0%A6%AE%E0%A6%BE%E0%A6%A6%E0%A6%B0%E0%A6%BE%E0%A6%B8%E0%A6%BE+%E0%A6%93+%E0%A6%AE%E0%A6%A1%E0%A7%87%E0%A6%B2+%E0%A6%8F%E0%A6%95%E0%A6%BE%E0%A6%A1%E0%A7%87%E0%A6%AE%E0%A7%80/@24.1119189,90.5677945,21z/data=!4m6!3m5!1s0x3755d59d76b2ffd9:0xde5de9aa6b8378aa!8m2!3d24.1118467!4d90.5680587!16s%2Fg%2F11khdsnx7w?entry=ttu&g_ep=EgoyMDI2MDMzMS4wIKXMDSoASAFQAw%3D%3D",
   facebook_url: "https://www.facebook.com/profile.php?id=61595529418669",
+  facebook_group_url: "https://www.facebook.com/share/g/1Pg8FaZjsn/",
   youtube_url: "https://www.youtube.com/@ANNOORMADRASA",
   logo_url: "/site-logo.png",
   favicon_url: "/favicon.ico",
+  hero_image_url: null,
+
+  // Banking & Payment
+  bank_name_bn: "ইসলামী ব্যাংক বাংলাদেশ পিএলসি",
+  bank_name_en: "Islami Bank Bangladesh PLC",
+  bank_account_name: "Annoor Tahfizul Quran Madrasa",
+  bank_account_no: "20503760201161316",
+  bank_branch_bn: "কাপাসিয়া শাখা, গাজীপুর",
+  bank_branch_en: "Kapasia Branch, Gazipur",
+  bank_routing_no: "125271874",
+  bkash_number: "01820811511",
+  bkash_type: "personal",
+  nagad_number: "01581818368",
+  nagad_type: "personal",
+  rocket_number: "",
+  rocket_type: "personal",
+  payment_instructions_bn:
+    "ক্যাম্পাস ক্যাশ কাউন্টার ছাড়াও বিকাশ, নগদ, রকেট ও নির্ধারিত ব্যাংক অ্যাকাউন্টের মাধ্যমে অফিসিয়াল রসিদ সহ ফি প্রদান করা যায়। ট্রানজাকশনের রেফারেন্সে শিক্ষার্থীর রোল/নাম লিখুন এবং হিসাব শাখায় অবহিত করুন।",
+  payment_instructions_en:
+    "Fees can be paid at campus accounts counters or through bKash, Nagad, Rocket, and designated bank accounts with official receipts. Please include student roll/name in payment reference.",
+  payment_accounts: [],
+
+  // Leadership & Administration
+  founder_name_bn: "মুফতি আব্দুল্লাহ আল মামুন",
+  founder_name_en: "Mufti Abdullah Al Mamon",
+  founder_title_bn: "ম্যানেজার ও প্রতিষ্ঠাতা পরিচালক",
+  founder_title_en: "Manager & Founding Director",
+  founder_message_bn:
+    "শিক্ষা শুধু বইয়ের পাতার মুখস্থ নয়, এটি শিশুর চিন্তা ও চরিত্রের আত্মিক পরিশুদ্ধি। আননূর শিক্ষা পরিবারে আমরা প্রতিটি সন্তানকে আন্তরিক ভালোবাসা ও দায়িত্বশীলতার সাথে গড়ে তুলি।",
+  founder_message_en:
+    "Education is not mere textbook cramming; it is the spiritual and intellectual purification of a child's character with deep love and institutional care.",
+  founder_image_url: "/abdullah.png",
+  founder_phone: "01312200043",
+
+  principal_name_bn: "হাফেজ আমানউল্লাহ",
+  principal_name_en: "Hafez Amanullah",
+  principal_title_bn: "প্রধান শিক্ষক ও হিফজ প্রধান",
+  principal_title_en: "Principal & Head of Hifz",
+  principal_message_bn:
+    "কুরআন হলো জীবনের হেদায়েতের নূর। আমরা চাই আমাদের শিক্ষার্থীরা বিশুদ্ধ কুরআন বক্ষে ধারণ করে ডাক্তার, ইঞ্জিনিয়ার, অধ্যাপক বা আদর্শ আলেম হয়ে জাতির মুখ উজ্জ্বল করুক।",
+  principal_message_en:
+    "The Quran is the light of guidance. We strive for students who hold the Quran in their hearts while excelling as doctors, engineers, professors, or noble scholars.",
+  principal_image_url: "/gallery/campus_main.jpg",
+  principal_phone: "01820811511",
+  principal_email: "principal@annoor.edu.bd",
+
+  vice_principal_name_bn: "মুফতি মাহমুদুল হাসান",
+  vice_principal_name_en: "Mufti Mahmudul Hasan",
+  vice_principal_title_bn: "সহকারী প্রধান শিক্ষক (একাডেমিক)",
+  vice_principal_title_en: "Vice Principal (Academic)",
+  vice_principal_message_bn:
+    "নিয়মিত পাঠদান ও নিবিড় পরিচর্যার মাধ্যমেই প্রতিটি শিক্ষার্থীর মেধার সর্বোচ্চ বিকাশ সম্ভব।",
+  vice_principal_message_en:
+    "Through consistent guidance and compassionate mentorship, every student's latent potential can truly flourish.",
+  vice_principal_image_url: null,
+  vice_principal_phone: "01581818368",
+  vice_principal_email: "academic@annoor.edu.bd",
+
   updated_at: new Date().toISOString(),
 };
 
@@ -161,9 +223,13 @@ export async function fetchSiteSettings(forceFresh = false): Promise<SiteSetting
         emis_code: sanitizedRemote.emis_code === "12345678" ? "" : (sanitizedRemote.emis_code ?? ""),
         logo_url: data.logo_url || defaultSiteSettings.logo_url,
         favicon_url: data.favicon_url || defaultSiteSettings.favicon_url,
+        hero_image_url: data.hero_image_url || defaultSiteSettings.hero_image_url,
         facebook_url: data.facebook_url || defaultSiteSettings.facebook_url,
         youtube_url: data.youtube_url || defaultSiteSettings.youtube_url,
         google_maps_url: data.google_maps_url || defaultSiteSettings.google_maps_url,
+        payment_accounts: Array.isArray(data.payment_accounts)
+          ? data.payment_accounts
+          : (Array.isArray(sanitizedRemote.payment_accounts) ? sanitizedRemote.payment_accounts : []),
       };
 
       lastFetchTimestamp = Date.now();

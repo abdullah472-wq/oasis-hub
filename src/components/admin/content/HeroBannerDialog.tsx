@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Loader2, UploadCloud, Image as ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
-import { supabase, uploadCmsFile, logAdminActivity } from "@/lib/supabase/client";
+import { uploadCmsFile } from "@/lib/supabase/client";
+import { saveHeroBanner } from "@/lib/heroBannerService";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { HeroBanner } from "@/types/cms";
 import {
@@ -133,34 +134,16 @@ export const HeroBannerDialog = ({
         is_active: formData.is_active,
       };
 
-      if (bannerToEdit) {
-        const { error } = await supabase
-          .from("hero_banners")
-          .update(payload)
-          .eq("id", bannerToEdit.id);
+      await saveHeroBanner({
+        ...(bannerToEdit ? { id: bannerToEdit.id } : {}),
+        ...payload,
+      });
 
-        if (error) throw error;
-
-        await logAdminActivity(
-          "UPDATE",
-          "hero_banners",
-          `হিরো ব্যানার আপডেট: "${payload.title_bn}"`
-        );
-        toast.success(t("হিরো ব্যানার সফলভাবে আপডেট করা হয়েছে", "Hero banner updated successfully"));
-      } else {
-        const { error } = await supabase
-          .from("hero_banners")
-          .insert([payload]);
-
-        if (error) throw error;
-
-        await logAdminActivity(
-          "CREATE",
-          "hero_banners",
-          `নতুন হিরো ব্যানার যুক্ত: "${payload.title_bn}"`
-        );
-        toast.success(t("নতুন ব্যানার সফলভাবে যুক্ত করা হয়েছে", "Hero banner added successfully"));
-      }
+      toast.success(
+        bannerToEdit
+          ? t("হিরো ব্যানার সফলভাবে আপডেট করা হয়েছে", "Hero banner updated successfully")
+          : t("নতুন ব্যানার সফলভাবে যুক্ত করা হয়েছে", "Hero banner added successfully")
+      );
 
       onSuccess();
       onClose();

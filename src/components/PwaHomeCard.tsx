@@ -108,7 +108,7 @@ const PwaHomeCard = () => {
               </p>
             </div>
             <a
-              href={`tel:${(settings.phone_secondary || settings.phone_primary || "01820811511").replace(/[^0-9]/g, "")}`}
+              href={`tel:${(settings.phone_secondary || settings.phone_primary || "").replace(/[^0-9]/g, "")}`}
               className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:scale-105"
               aria-label={t("ফোন করুন", "Call now")}
             >

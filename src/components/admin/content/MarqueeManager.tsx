@@ -12,7 +12,11 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase, logAdminActivity } from "@/lib/supabase/client";
+import {
+  getMarqueeList,
+  toggleMarqueeActive,
+  deleteMarqueeNotice,
+} from "@/lib/marqueeService";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { MarqueeNotice } from "@/types/cms";
 import { MarqueeFormDialog } from "./MarqueeFormDialog";
@@ -52,14 +56,8 @@ export const MarqueeManager = () => {
   const fetchMarqueeNotices = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("marquee_notices")
-        .select("*")
-        .order("priority", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setNotices((data as MarqueeNotice[]) || []);
+      const data = await getMarqueeList();
+      setNotices(data);
     } catch (err: any) {
       console.error("Error fetching marquee notices:", err);
       toast.error(t("মারকুই নোটিশ লোড করতে সমস্যা হয়েছে", "Failed to load marquee notices"));
@@ -75,21 +73,10 @@ export const MarqueeManager = () => {
   const handleToggleActive = async (notice: MarqueeNotice) => {
     try {
       const updatedStatus = !notice.is_active;
-      const { error } = await supabase
-        .from("marquee_notices")
-        .update({ is_active: updatedStatus })
-        .eq("id", notice.id);
-
-      if (error) throw error;
+      await toggleMarqueeActive(notice.id, updatedStatus);
 
       setNotices((prev) =>
         prev.map((n) => (n.id === notice.id ? { ...n, is_active: updatedStatus } : n))
-      );
-
-      await logAdminActivity(
-        "UPDATE",
-        "marquee_notices",
-        `মারকুই নোটিশ স্ট্যাটাস পরিবর্তন: "${notice.text_bn.slice(0, 30)}" -> ${updatedStatus ? "Active" : "Inactive"}`
       );
 
       toast.success(
@@ -107,19 +94,7 @@ export const MarqueeManager = () => {
     if (!deletingNotice) return;
 
     try {
-      const { error } = await supabase
-        .from("marquee_notices")
-        .delete()
-        .eq("id", deletingNotice.id);
-
-      if (error) throw error;
-
-      await logAdminActivity(
-        "DELETE",
-        "marquee_notices",
-        `মারকুই নোটিশ মুছে ফেলা: "${deletingNotice.text_bn.slice(0, 30)}"`
-      );
-
+      await deleteMarqueeNotice(deletingNotice.id);
       toast.success(t("নোটিশ সফলভাবে মুছে ফেলা হয়েছে", "Notice deleted successfully"));
       setNotices((prev) => prev.filter((n) => n.id !== deletingNotice.id));
       setDeletingNotice(null);

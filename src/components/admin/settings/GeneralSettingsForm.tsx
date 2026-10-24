@@ -27,6 +27,8 @@ export const GeneralSettingsForm = () => {
     return {
       institution_name_bn: cached.institution_name_bn || defaultSiteSettings.institution_name_bn,
       institution_name_en: cached.institution_name_en || defaultSiteSettings.institution_name_en,
+      tagline_bn: cached.tagline_bn || defaultSiteSettings.tagline_bn || "",
+      tagline_en: cached.tagline_en || defaultSiteSettings.tagline_en || "",
       emis_code: cached.emis_code === "12345678" ? "" : (cached.emis_code || ""),
       founding_year: cached.founding_year || defaultSiteSettings.founding_year || "2021",
       phone_primary: cached.phone_primary || defaultSiteSettings.phone_primary,
@@ -69,6 +71,8 @@ export const GeneralSettingsForm = () => {
         setFormData({
           institution_name_bn: cleanBn,
           institution_name_en: cleanEn,
+          tagline_bn: data.tagline_bn || defaultSiteSettings.tagline_bn || "",
+          tagline_en: data.tagline_en || defaultSiteSettings.tagline_en || "",
           emis_code: cleanEmis,
           founding_year: data.founding_year || defaultSiteSettings.founding_year || "2021",
           phone_primary: data.phone_primary || defaultSiteSettings.phone_primary,
@@ -101,6 +105,8 @@ export const GeneralSettingsForm = () => {
         id: 1,
         institution_name_bn: formData.institution_name_bn.trim(),
         institution_name_en: formData.institution_name_en.trim(),
+        tagline_bn: formData.tagline_bn.trim() || null,
+        tagline_en: formData.tagline_en.trim() || null,
         emis_code: formData.emis_code.trim() || null,
         founding_year: formData.founding_year.trim() || null,
         phone_primary: formData.phone_primary.trim(),
@@ -123,7 +129,7 @@ export const GeneralSettingsForm = () => {
       await logAdminActivity(
         "UPDATE",
         "site_settings",
-        `সাধারণ প্রতিষ্ঠান তথ্য ও যোগাযোগ সেটিংস আপডেট`
+        `সাধারণ প্রতিষ্ঠান তথ্য ও পরিচিতি সেটিংস আপডেট`
       );
 
       toast.success(t("সেটিংস সফলভাবে সংরক্ষিত হয়েছে", "Settings saved successfully"));
@@ -186,6 +192,33 @@ export const GeneralSettingsForm = () => {
                 value={formData.institution_name_en}
                 onChange={(e) => setFormData({ ...formData, institution_name_en: e.target.value })}
                 required
+              />
+            </div>
+          </div>
+
+          {/* Tagline / Slogan */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="tagline_bn" className="font-semibold">
+                {t("স্লোগান / মূলনীতি (বাংলা)", "Slogan / Tagline (Bangla)")}
+              </Label>
+              <Input
+                id="tagline_bn"
+                value={formData.tagline_bn}
+                onChange={(e) => setFormData({ ...formData, tagline_bn: e.target.value })}
+                placeholder="যেমন: একই স্থানে, একই খরচে, সকল শিক্ষা একইসাথে"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="tagline_en" className="font-semibold">
+                {t("স্লোগান / মূলনীতি (ইংরেজি)", "Slogan / Tagline (English)")}
+              </Label>
+              <Input
+                id="tagline_en"
+                value={formData.tagline_en}
+                onChange={(e) => setFormData({ ...formData, tagline_en: e.target.value })}
+                placeholder="e.g. Building Faith, Knowledge & Character Together"
               />
             </div>
           </div>
@@ -291,7 +324,7 @@ export const GeneralSettingsForm = () => {
             </div>
           </div>
 
-          <div className="flex justify-end pt-2">
+          <div className="flex justify-end pt-4 border-t border-border/50">
             <Button type="submit" disabled={saving} className="gap-2 bg-primary">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               <span>{t("সেটিংস সংরক্ষণ করুন", "Save Settings")}</span>

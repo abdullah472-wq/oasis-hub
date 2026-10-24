@@ -164,39 +164,48 @@ const Contact = () => {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Principal */}
             <motion.div
               {...springIn}
               className="rounded-3xl border border-border/70 bg-card p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none" />
               <div className="flex items-center gap-4 mb-4">
-                <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">
-                  <User className="h-6 w-6" />
+                <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-lg overflow-hidden">
+                  {settings.principal_image_url ? (
+                    <img src={settings.principal_image_url} alt="Principal" className="h-full w-full object-cover" />
+                  ) : (
+                    <User className="h-6 w-6" />
+                  )}
                 </div>
                 <div>
                   <h3 className="font-bengali font-bold text-lg text-foreground">
-                    {t("হাফেজ আমানুল্লাহ", "Hafez Amanullah")}
+                    {settings.principal_name_bn
+                      ? (lang === "bn" ? settings.principal_name_bn : settings.principal_name_en || settings.principal_name_bn)
+                      : t("প্রধান শিক্ষক", "Principal")}
                   </h3>
                   <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs">
-                    {t("প্রধান শিক্ষক (Principal)", "Principal")}
+                    {settings.principal_title_bn
+                      ? (lang === "bn" ? settings.principal_title_bn : settings.principal_title_en || settings.principal_title_bn)
+                      : t("প্রধান শিক্ষক (Principal)", "Principal")}
                   </Badge>
                 </div>
               </div>
               <p className="font-bengali text-xs text-muted-foreground mb-4">
-                {t(
-                  "সার্বিক শিক্ষা পাঠ্যক্রম, হিফজ বিভাগীয় পর্যবেক্ষণ ও ছাত্র শৃঙ্খলা ব্যবস্থাপনা।",
-                  "Academic supervision, Hifz curriculum coordination, and student welfare."
-                )}
+                {settings.principal_message_bn
+                  ? (lang === "bn" ? settings.principal_message_bn : settings.principal_message_en || settings.principal_message_bn)
+                  : t(
+                      "সার্বিক শিক্ষা পাঠ্যক্রম, হিফজ বিভাগীয় পর্যবেক্ষণ ও ছাত্র শৃঙ্খলা ব্যবস্থাপনা।",
+                      "Academic supervision, Hifz curriculum coordination, and student welfare."
+                    )}
               </p>
               <div className="space-y-2 pt-2 border-t border-border/50">
                 <a
-                  href={`tel:${(settings.phone_primary || "01820811511").replace(/[^0-9]/g, "")}`}
+                  href={`tel:${(settings.principal_phone || settings.phone_primary || "01820811511").replace(/[^0-9]/g, "")}`}
                   className="flex items-center justify-between p-2.5 rounded-xl bg-muted/50 hover:bg-primary/10 text-xs font-semibold text-foreground hover:text-primary transition-colors"
                 >
                   <span className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-primary" />
-                    <span>{settings.phone_primary || "01820-811511"}</span>
+                    <span>{settings.principal_phone || settings.phone_primary || "01820-811511"}</span>
                   </span>
                   <span className="text-[11px] text-muted-foreground">{t("কল করুন", "Call")}</span>
                 </a>
@@ -215,7 +224,7 @@ const Contact = () => {
               </div>
             </motion.div>
 
-            {/* Manager */}
+            {/* Manager / Director */}
             <motion.div
               {...springIn}
               transition={springInDelay(0.1)}
@@ -223,32 +232,42 @@ const Contact = () => {
             >
               <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/5 rounded-bl-full pointer-events-none" />
               <div className="flex items-center gap-4 mb-4">
-                <div className="h-12 w-12 rounded-2xl bg-sky-500/10 text-sky-600 flex items-center justify-center font-bold text-lg">
-                  <ShieldCheck className="h-6 w-6" />
+                <div className="h-12 w-12 rounded-2xl bg-sky-500/10 text-sky-600 flex items-center justify-center font-bold text-lg overflow-hidden">
+                  {settings.founder_image_url ? (
+                    <img src={settings.founder_image_url} alt="Director" className="h-full w-full object-cover" />
+                  ) : (
+                    <ShieldCheck className="h-6 w-6" />
+                  )}
                 </div>
                 <div>
                   <h3 className="font-bengali font-bold text-lg text-foreground">
-                    {t("মুফতি আব্দুল্লাহ আল মামুন", "Mufti Abdullah Al Mamon")}
+                    {settings.founder_name_bn
+                      ? (lang === "bn" ? settings.founder_name_bn : settings.founder_name_en || settings.founder_name_bn)
+                      : t("ম্যানেজার ও প্রতিষ্ঠাতা পরিচালক", "Manager & Director")}
                   </h3>
                   <Badge variant="outline" className="bg-sky-50 text-sky-700 border-sky-200 text-xs">
-                    {t("ম্যানেজার ও সার্বিক পরিচালক", "Manager & Director")}
+                    {settings.founder_title_bn
+                      ? (lang === "bn" ? settings.founder_title_bn : settings.founder_title_en || settings.founder_title_bn)
+                      : t("ম্যানেজার ও সার্বিক পরিচালক", "Manager & Director")}
                   </Badge>
                 </div>
               </div>
               <p className="font-bengali text-xs text-muted-foreground mb-4">
-                {t(
-                  "ভর্তি তথ্য, প্রশাসনিক ব্যবস্থাপনা, অভিভাবক পরামর্শ ও আর্থিক কার্যক্রম পরিচালনা।",
-                  "Admission consultation, overall institutional management, and guardian relations."
-                )}
+                {settings.founder_message_bn
+                  ? (lang === "bn" ? settings.founder_message_bn : settings.founder_message_en || settings.founder_message_bn)
+                  : t(
+                      "ভর্তি তথ্য, প্রশাসনিক ব্যবস্থাপনা, অভিভাবক পরামর্শ ও আর্থিক কার্যক্রম পরিচালনা।",
+                      "Admission consultation, overall institutional management, and guardian relations."
+                    )}
               </p>
               <div className="space-y-2 pt-2 border-t border-border/50">
                 <a
-                  href={`tel:${(settings.phone_secondary || "01581818368").replace(/[^0-9]/g, "")}`}
+                  href={`tel:${(settings.founder_phone || settings.phone_secondary || "01581818368").replace(/[^0-9]/g, "")}`}
                   className="flex items-center justify-between p-2.5 rounded-xl bg-muted/50 hover:bg-sky-500/10 text-xs font-semibold text-foreground hover:text-sky-600 transition-colors"
                 >
                   <span className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-sky-600" />
-                    <span>{settings.phone_secondary || "01581-818368"}</span>
+                    <span>{settings.founder_phone || settings.phone_secondary || "01581-818368"}</span>
                   </span>
                   <span className="text-[11px] text-muted-foreground">{t("কল করুন", "Call")}</span>
                 </a>
@@ -295,12 +314,12 @@ const Contact = () => {
               </p>
               <div className="space-y-2 pt-2 border-t border-border/50">
                 <a
-                  href={`mailto:${settings.email_primary || "abdullahalmamon472@gmail.com"}`}
+                  href={`mailto:${settings.email_primary || "info@annoor.edu.bd"}`}
                   className="flex items-center justify-between p-2.5 rounded-xl bg-muted/50 hover:bg-amber-500/10 text-xs font-semibold text-foreground hover:text-amber-700 transition-colors"
                 >
                   <span className="flex items-center gap-2 truncate">
                     <Mail className="h-4 w-4 text-amber-600 shrink-0" />
-                    <span className="truncate">{settings.email_primary || "abdullahalmamon472@gmail.com"}</span>
+                    <span className="truncate">{settings.email_primary || "info@annoor.edu.bd"}</span>
                   </span>
                   <span className="text-[11px] shrink-0 text-muted-foreground">{t("ইমেইল", "Mail")}</span>
                 </a>

@@ -25,9 +25,13 @@ import { ActivityLogTable } from "@/components/admin/management/ActivityLogTable
 import { GeneralSettingsForm } from "@/components/admin/settings/GeneralSettingsForm";
 import { CampusAddressForm } from "@/components/admin/settings/CampusAddressForm";
 import { BrandingSettingsForm } from "@/components/admin/settings/BrandingSettingsForm";
+import { BankingSettingsForm } from "@/components/admin/settings/BankingSettingsForm";
+import { LeadershipSettingsForm } from "@/components/admin/settings/LeadershipSettingsForm";
 
 import { NoticeTable } from "@/components/admin/notices/NoticeTable";
 import { NoticeFormDialog } from "@/components/admin/notices/NoticeFormDialog";
+import { AdminAchievements } from "@/pages/admin/AdminAchievements";
+import { AdminWebContent } from "@/pages/admin/AdminWebContent";
 
 import { AuthProvider } from "@/contexts/AuthContext";
 import { BrowserRouter } from "react-router-dom";
@@ -90,11 +94,18 @@ describe("All CMS Components and Dialogs Rendering", () => {
     render(wrap(<GeneralSettingsForm />));
     render(wrap(<CampusAddressForm />));
     render(wrap(<BrandingSettingsForm />));
+    render(wrap(<BankingSettingsForm />));
+    render(wrap(<LeadershipSettingsForm />));
   });
 
   it("renders NoticeTable and NoticeFormDialog", () => {
     render(wrap(<NoticeTable notices={[]} loading={false} onEdit={() => {}} onDelete={() => {}} />));
     render(wrap(<NoticeFormDialog isOpen={true} onClose={() => {}} onSuccess={() => {}} />));
+  });
+
+  it("renders AdminAchievements and AdminWebContent pages", () => {
+    render(wrap(<AdminAchievements />));
+    render(wrap(<AdminWebContent />));
   });
 
   it("extracts YouTube video and playlist IDs correctly", async () => {

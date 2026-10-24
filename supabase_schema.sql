@@ -34,12 +34,15 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
   id INTEGER PRIMARY KEY DEFAULT 1,
   institution_name_bn TEXT NOT NULL DEFAULT 'আননূর তাহফিজুল কুরআন মাদরাসা',
   institution_name_en TEXT DEFAULT 'Annoor Tahfizul Quran Madrasa',
+  tagline_bn TEXT DEFAULT 'একই স্থানে, একই খরচে, সকল শিক্ষা একইসাথে',
+  tagline_en TEXT DEFAULT 'Building Faith, Knowledge & Character Together',
   emis_code TEXT,
   founding_year TEXT DEFAULT '2021',
   phone_primary TEXT NOT NULL DEFAULT '01820811511',
   phone_secondary TEXT,
   whatsapp_number TEXT NOT NULL DEFAULT '01581818368',
   email_primary TEXT NOT NULL DEFAULT 'info@annoor.edu.bd',
+  website_url TEXT DEFAULT 'https://annoor.edu.bd',
   admission_status TEXT NOT NULL DEFAULT 'open' CHECK (admission_status IN ('open', 'closed', 'upcoming')),
   address_boys_campus_bn TEXT,
   address_boys_campus_en TEXT,
@@ -47,13 +50,112 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
   address_girls_campus_en TEXT,
   google_maps_url TEXT,
   facebook_url TEXT,
+  facebook_group_url TEXT,
   youtube_url TEXT,
   logo_url TEXT,
   favicon_url TEXT,
+  hero_image_url TEXT,
+
+  -- Banking & Payment
+  bank_name_bn TEXT,
+  bank_name_en TEXT,
+  bank_account_name TEXT,
+  bank_account_no TEXT,
+  bank_branch_bn TEXT,
+  bank_branch_en TEXT,
+  bank_routing_no TEXT,
+  bkash_number TEXT,
+  bkash_type TEXT DEFAULT 'personal',
+  nagad_number TEXT,
+  nagad_type TEXT DEFAULT 'personal',
+  rocket_number TEXT,
+  rocket_type TEXT DEFAULT 'personal',
+  payment_instructions_bn TEXT,
+  payment_instructions_en TEXT,
+
+  -- Leadership & Administration
+  founder_name_bn TEXT,
+  founder_name_en TEXT,
+  founder_title_bn TEXT,
+  founder_title_en TEXT,
+  founder_message_bn TEXT,
+  founder_message_en TEXT,
+  founder_image_url TEXT,
+  founder_phone TEXT,
+
+  principal_name_bn TEXT,
+  principal_name_en TEXT,
+  principal_title_bn TEXT,
+  principal_title_en TEXT,
+  principal_message_bn TEXT,
+  principal_message_en TEXT,
+  principal_image_url TEXT,
+  principal_phone TEXT,
+  principal_email TEXT,
+
+  vice_principal_name_bn TEXT,
+  vice_principal_name_en TEXT,
+  vice_principal_title_bn TEXT,
+  vice_principal_title_en TEXT,
+  vice_principal_message_bn TEXT,
+  vice_principal_message_en TEXT,
+  vice_principal_image_url TEXT,
+  vice_principal_phone TEXT,
+  vice_principal_email TEXT,
+
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Idempotent column additions for existing installations
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS tagline_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS tagline_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS website_url TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS facebook_group_url TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bank_name_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bank_name_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bank_account_name TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bank_account_no TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bank_branch_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bank_branch_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bank_routing_no TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bkash_number TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bkash_type TEXT DEFAULT 'personal';
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS nagad_number TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS nagad_type TEXT DEFAULT 'personal';
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS rocket_number TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS rocket_type TEXT DEFAULT 'personal';
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS payment_instructions_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS payment_instructions_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS payment_accounts JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS hero_image_url TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_name_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_name_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_title_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_title_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_message_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_message_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_image_url TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_phone TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_name_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_name_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_title_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_title_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_message_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_message_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_image_url TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_phone TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_email TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_name_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_name_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_title_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_title_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_message_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_message_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_image_url TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_phone TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_email TEXT;
 
 -- Seed initial row in site_settings if empty
 INSERT INTO public.site_settings (

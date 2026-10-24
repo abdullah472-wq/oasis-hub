@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Loader2, Megaphone } from "lucide-react";
 import { toast } from "sonner";
-import { supabase, logAdminActivity } from "@/lib/supabase/client";
+import { saveMarqueeNotice } from "@/lib/marqueeService";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { MarqueeNotice } from "@/types/cms";
 import {
@@ -80,34 +80,16 @@ export const MarqueeFormDialog = ({
         is_active: formData.is_active,
       };
 
-      if (noticeToEdit) {
-        const { error } = await supabase
-          .from("marquee_notices")
-          .update(payload)
-          .eq("id", noticeToEdit.id);
+      await saveMarqueeNotice({
+        ...(noticeToEdit ? { id: noticeToEdit.id } : {}),
+        ...payload,
+      });
 
-        if (error) throw error;
-
-        await logAdminActivity(
-          "UPDATE",
-          "marquee_notices",
-          `মারকুই নোটিশ আপডেট: "${payload.text_bn.slice(0, 30)}..."`
-        );
-        toast.success(t("মারকুই নোটিশ আপডেট সম্পন্ন", "Marquee notice updated"));
-      } else {
-        const { error } = await supabase
-          .from("marquee_notices")
-          .insert([payload]);
-
-        if (error) throw error;
-
-        await logAdminActivity(
-          "CREATE",
-          "marquee_notices",
-          `নতুন মারকুই নোটিশ তৈরি: "${payload.text_bn.slice(0, 30)}..."`
-        );
-        toast.success(t("নতুন মারকুই নোটিশ তৈরি সম্পন্ন", "Marquee notice added"));
-      }
+      toast.success(
+        noticeToEdit
+          ? t("মারকুই নোটিশ আপডেট সম্পন্ন", "Marquee notice updated")
+          : t("নতুন মারকুই নোটিশ তৈরি সম্পন্ন", "Marquee notice added")
+      );
 
       onSuccess();
       onClose();

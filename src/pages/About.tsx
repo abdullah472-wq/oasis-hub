@@ -115,7 +115,6 @@ const About = () => {
     },
   ];
 
-
   const [facultyMembers, setFacultyMembers] = useState<FacultyMember[]>([]);
 
   useEffect(() => {
@@ -148,49 +147,62 @@ const About = () => {
 
   const leadership = [
     {
-      name: amanullahMember
+      name: settings.principal_name_bn
+        ? (lang === "bn" ? settings.principal_name_bn : settings.principal_name_en || settings.principal_name_bn)
+        : amanullahMember
         ? (lang === "bn" ? amanullahMember.name_bn : amanullahMember.name_en || amanullahMember.name_bn)
-        : t("হাফেজ আমানুল্লাহ", "Hafez Amanullah"),
-      role: amanullahMember
+        : t("হাফেজ আমানউল্লাহ", "Hafez Amanullah"),
+      role: settings.principal_title_bn
+        ? (lang === "bn" ? settings.principal_title_bn : settings.principal_title_en || settings.principal_title_bn)
+        : amanullahMember
         ? (lang === "bn" ? amanullahMember.designation_bn : amanullahMember.designation_en || amanullahMember.designation_bn)
         : t("প্রধান শিক্ষক ও হিফজ প্রধান", "Principal & Head of Hifz"),
       qualification: amanullahMember?.qualification_bn
         ? (lang === "bn" ? amanullahMember.qualification_bn : amanullahMember.qualification_en || amanullahMember.qualification_bn)
         : t("আন্তর্জাতিক সনদপ্রাপ্ত ক্বারী ও সিনিয়র হাফেজে কুরআন", "Certified International Qari & Senior Hafez"),
-      phone: amanullahMember?.phone || "01820-811511",
-      email: amanullahMember?.email || "principal@annoor.edu.bd",
+      phone: settings.principal_phone || amanullahMember?.phone || settings.phone_primary || "01820-811511",
+      email: settings.principal_email || amanullahMember?.email || settings.email_primary || "principal@annoor.edu.bd",
       experience: amanullahMember?.experience_bn
         ? (lang === "bn" ? amanullahMember.experience_bn : amanullahMember.experience_en || amanullahMember.experience_bn)
         : t("১৪+ বছরের পাঠদান ও প্রাতিষ্ঠানিক পরিচালনা", "14+ Years in Teaching & Leadership"),
-      quote: t(
-        "কুরআন হলো জীবনের হেদায়েতের নূর। আমরা চাই আমাদের শিক্ষার্থীরা বিশুদ্ধ কুরআন বক্ষে ধারণ করে ডাক্তার, ইঞ্জিনিয়ার, অধ্যাপক বা আদর্শ আলেম হয়ে জাতির মুখ উজ্জ্বল করুক।",
-        "The Quran is the light of guidance. We strive for students who hold the Quran in their hearts while excelling as doctors, engineers, professors, or noble scholars.",
-      ),
-      image: amanullahMember?.image_url || "/gallery/campus_main.jpg",
+      quote: settings.principal_message_bn
+        ? (lang === "bn" ? settings.principal_message_bn : settings.principal_message_en || settings.principal_message_bn)
+        : t(
+            "কুরআন হলো জীবনের হেদায়েতের নূর। আমরা চাই আমাদের শিক্ষার্থীরা বিশুদ্ধ কুরআন বক্ষে ধারণ করে ডাক্তার, ইঞ্জিনিয়ার, অধ্যাপক বা আদর্শ আলেম হয়ে জাতির মুখ উজ্জ্বল করুক।",
+            "The Quran is the light of guidance. We strive for students who hold the Quran in their hearts while excelling as doctors, engineers, professors, or noble scholars.",
+          ),
+      image: settings.principal_image_url || amanullahMember?.image_url || "/gallery/campus_main.jpg",
     },
     {
-      name: mamonMember
+      name: settings.founder_name_bn
+        ? (lang === "bn" ? settings.founder_name_bn : settings.founder_name_en || settings.founder_name_bn)
+        : mamonMember
         ? (lang === "bn" ? mamonMember.name_bn : mamonMember.name_en || mamonMember.name_bn)
         : t("মুফতি আব্দুল্লাহ আল মামুন", "Mufti Abdullah Al Mamon"),
-      role: mamonMember
+      role: settings.founder_title_bn
+        ? (lang === "bn" ? settings.founder_title_bn : settings.founder_title_en || settings.founder_title_bn)
+        : mamonMember
         ? (lang === "bn" ? mamonMember.designation_bn : mamonMember.designation_en || mamonMember.designation_bn)
         : t("ম্যানেজার ও প্রতিষ্ঠাতা পরিচালক", "Manager & Founding Director"),
       qualification: mamonMember?.qualification_bn
         ? (lang === "bn" ? mamonMember.qualification_bn : mamonMember.qualification_en || mamonMember.qualification_bn)
         : t("দাওরায়ে হাদিস ও উচ্চতর ইফতা, শিক্ষাবিদ ও সংগঠক", "Dawra-e-Hadith & Higher Ifta, Islamic Scholar"),
-      phone: mamonMember?.phone || "01312-200043, 01581-818368",
-      email: mamonMember?.email || "manager@annoor.edu.bd",
+      phone: settings.founder_phone || mamonMember?.phone || "01312-200043, 01581-818368",
+      email: mamonMember?.email || settings.email_primary || "manager@annoor.edu.bd",
       experience: mamonMember?.experience_bn
         ? (lang === "bn" ? mamonMember.experience_bn : mamonMember.experience_en || mamonMember.experience_bn)
         : t("৬+ বছর শিক্ষা ব্যবস্থাপনা ও প্রাতিষ্ঠানিক উন্নয়ন", "6+ Years Education Administration"),
-      quote: t(
-        "শিক্ষা শুধু বইয়ের পাতার মুখস্থ নয়, এটি শিশুর চিন্তা ও চরিত্রের আত্মিক পরিশুদ্ধি। আননূর শিক্ষা পরিবারে আমরা প্রতিটি সন্তানকে আন্তরিক ভালোবাসা ও দায়িত্বশীলতার সাথে গড়ে তুলি।",
-        "Education is not mere textbook cramming; it is the spiritual and intellectual purification of a child's character with deep love and institutional care.",
-      ),
+      quote: settings.founder_message_bn
+        ? (lang === "bn" ? settings.founder_message_bn : settings.founder_message_en || settings.founder_message_bn)
+        : t(
+            "শিক্ষা শুধু বইয়ের পাতার মুখস্থ নয়, এটি শিশুর চিন্তা ও চরিত্রের আত্মিক পরিশুদ্ধি। আননূর শিক্ষা পরিবারে আমরা প্রতিটি সন্তানকে আন্তরিক ভালোবাসা ও দায়িত্বশীলতার সাথে গড়ে তুলি।",
+            "Education is not mere textbook cramming; it is the spiritual and intellectual purification of a child's character with deep love and institutional care.",
+          ),
       image:
-        mamonMember?.image_url && !mamonMember.image_url.includes("example.com")
+        settings.founder_image_url ||
+        (mamonMember?.image_url && !mamonMember.image_url.includes("example.com")
           ? mamonMember.image_url
-          : "/abdullah.png",
+          : "/abdullah.png"),
     },
   ];
 
@@ -246,7 +258,7 @@ const About = () => {
         settings.address_girls_campus_bn || "মাদরাসা ক্যাম্পাস সংলগ্ন নিজস্ব আবাসিক ভবন, কাপাসিয়া, গাজীপুর",
         settings.address_girls_campus_en || "Campus residential building, Kapasia, Gazipur"
       ),
-      phone: "01312-200043, " + (settings.phone_primary || "01820-811511"),
+      phone: [settings.founder_phone, settings.phone_secondary, settings.phone_primary].filter(Boolean).join(", ") || settings.phone_primary,
       highlights: [
         t("স্বাস্থ্যসম্মত নিজস্ব ডাইনিং ও পুষ্টিকর ৩ বেলা খাবার", "In-house hygienic dining with nutritious meals"),
         t("সার্বক্ষণিক ওস্তাদগণের স্নেহময় তত্ত্বাবধান ও সান্নিধ্য", "24/7 caring supervision and direct teacher mentorship"),
@@ -262,7 +274,11 @@ const About = () => {
       {/* ================= HERO SECTION ================= */}
       <section className="relative overflow-hidden bg-gradient-to-b from-primary/95 via-primary to-primary/90 text-primary-foreground pt-8 pb-14 sm:pt-10 sm:pb-16 md:pt-12 md:pb-18">
         <div className="absolute inset-0 z-0 opacity-15">
-          <img src={heroImg} alt="Annoor Campus Background" className="h-full w-full object-cover" />
+          <img
+            src={settings.hero_image_url || heroImg}
+            alt="Campus Background"
+            className="h-full w-full object-cover"
+          />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-primary via-transparent to-primary/80 z-0" />
 

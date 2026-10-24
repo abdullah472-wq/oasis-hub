@@ -132,26 +132,100 @@ export interface Testimonial {
   platform?: ReviewPlatform;
 }
 
+export type PaymentMethodType = "bank" | "bkash" | "nagad" | "rocket" | "upay" | "other";
+
+export interface PaymentAccountItem {
+  id: string;
+  type: PaymentMethodType;
+  title_bn: string;
+  title_en: string;
+  account_number: string;
+  account_name?: string | null;
+  account_type?: "personal" | "merchant" | "agent" | "savings" | "current" | null;
+  bank_name_bn?: string | null;
+  bank_name_en?: string | null;
+  branch_bn?: string | null;
+  branch_en?: string | null;
+  routing_no?: string | null;
+  instructions_bn?: string | null;
+  instructions_en?: string | null;
+  is_active: boolean;
+}
+
 export interface SiteSettings {
   id: number;
   institution_name_bn: string;
   institution_name_en: string;
+  tagline_bn?: string | null;
+  tagline_en?: string | null;
   emis_code?: string | null;
   founding_year?: string | null;
   phone_primary: string;
   phone_secondary?: string | null;
   whatsapp_number: string;
   email_primary: string;
+  website_url?: string | null;
   address_boys_campus_bn?: string | null;
   address_boys_campus_en?: string | null;
   address_girls_campus_bn?: string | null;
   address_girls_campus_en?: string | null;
   google_maps_url?: string | null;
   facebook_url?: string | null;
+  facebook_group_url?: string | null;
   youtube_url?: string | null;
   logo_url?: string | null;
   favicon_url?: string | null;
+  hero_image_url?: string | null;
   admission_status: AdmissionStatusType;
+
+  // Banking & Payment
+  bank_name_bn?: string | null;
+  bank_name_en?: string | null;
+  bank_account_name?: string | null;
+  bank_account_no?: string | null;
+  bank_branch_bn?: string | null;
+  bank_branch_en?: string | null;
+  bank_routing_no?: string | null;
+  bkash_number?: string | null;
+  bkash_type?: "merchant" | "personal" | null;
+  nagad_number?: string | null;
+  nagad_type?: "merchant" | "personal" | null;
+  rocket_number?: string | null;
+  rocket_type?: "merchant" | "personal" | null;
+  payment_instructions_bn?: string | null;
+  payment_instructions_en?: string | null;
+  payment_accounts?: PaymentAccountItem[] | null;
+
+  // Leadership & Administration
+  founder_name_bn?: string | null;
+  founder_name_en?: string | null;
+  founder_title_bn?: string | null;
+  founder_title_en?: string | null;
+  founder_message_bn?: string | null;
+  founder_message_en?: string | null;
+  founder_image_url?: string | null;
+  founder_phone?: string | null;
+
+  principal_name_bn?: string | null;
+  principal_name_en?: string | null;
+  principal_title_bn?: string | null;
+  principal_title_en?: string | null;
+  principal_message_bn?: string | null;
+  principal_message_en?: string | null;
+  principal_image_url?: string | null;
+  principal_phone?: string | null;
+  principal_email?: string | null;
+
+  vice_principal_name_bn?: string | null;
+  vice_principal_name_en?: string | null;
+  vice_principal_title_bn?: string | null;
+  vice_principal_title_en?: string | null;
+  vice_principal_message_bn?: string | null;
+  vice_principal_message_en?: string | null;
+  vice_principal_image_url?: string | null;
+  vice_principal_phone?: string | null;
+  vice_principal_email?: string | null;
+
   updated_at: string;
   updated_by?: string | null;
 }

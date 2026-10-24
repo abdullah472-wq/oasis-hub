@@ -18,6 +18,7 @@ import {
   FileDown,
   UserCheck,
   MessageSquareQuote,
+  Award,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -109,8 +110,15 @@ export const adminNavItems = [
     badge: null,
   },
   {
-    titleBn: "ওয়েবসাইট কনটেন্ট",
-    titleEn: "Website Content",
+    titleBn: "অর্জন ও সাফল্য",
+    titleEn: "Achievements",
+    path: "/admin/achievements",
+    icon: Award,
+    badge: null,
+  },
+  {
+    titleBn: "ওয়েবসাইট ব্যানার",
+    titleEn: "Hero Banners",
     path: "/admin/content",
     icon: Globe,
     badge: null,

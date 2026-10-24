@@ -12,7 +12,11 @@ import {
   MoveRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase, logAdminActivity } from "@/lib/supabase/client";
+import {
+  getHeroBannersList,
+  toggleHeroBannerActive,
+  deleteHeroBanner,
+} from "@/lib/heroBannerService";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { HeroBanner } from "@/types/cms";
 import { HeroBannerDialog } from "./HeroBannerDialog";
@@ -45,14 +49,8 @@ export const HeroBannerManager = () => {
   const fetchBanners = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("hero_banners")
-        .select("*")
-        .order("order_index", { ascending: true })
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setBanners((data as HeroBanner[]) || []);
+      const data = await getHeroBannersList();
+      setBanners(data);
     } catch (err: any) {
       console.error("Error fetching hero banners:", err);
       toast.error(t("হিরো ব্যানার লোড করতে সমস্যা হয়েছে", "Failed to load hero banners"));
@@ -68,21 +66,10 @@ export const HeroBannerManager = () => {
   const handleToggleActive = async (banner: HeroBanner) => {
     try {
       const updatedStatus = !banner.is_active;
-      const { error } = await supabase
-        .from("hero_banners")
-        .update({ is_active: updatedStatus })
-        .eq("id", banner.id);
-
-      if (error) throw error;
+      await toggleHeroBannerActive(banner.id, updatedStatus);
 
       setBanners((prev) =>
         prev.map((b) => (b.id === banner.id ? { ...b, is_active: updatedStatus } : b))
-      );
-
-      await logAdminActivity(
-        "UPDATE",
-        "hero_banners",
-        `হিরো ব্যানার স্ট্যাটাস: "${banner.title_bn}" -> ${updatedStatus ? "Active" : "Inactive"}`
       );
 
       toast.success(
@@ -100,19 +87,7 @@ export const HeroBannerManager = () => {
     if (!deletingBanner) return;
 
     try {
-      const { error } = await supabase
-        .from("hero_banners")
-        .delete()
-        .eq("id", deletingBanner.id);
-
-      if (error) throw error;
-
-      await logAdminActivity(
-        "DELETE",
-        "hero_banners",
-        `হিরো ব্যানার মুছে ফেলা: "${deletingBanner.title_bn}"`
-      );
-
+      await deleteHeroBanner(deletingBanner.id);
       toast.success(t("ব্যানার সফলভাবে মুছে ফেলা হয়েছে", "Banner deleted successfully"));
       setBanners((prev) => prev.filter((b) => b.id !== deletingBanner.id));
       setDeletingBanner(null);
@@ -210,35 +185,40 @@ export const HeroBannerManager = () => {
             >
               <div>
                 {/* Visual Banner Preview */}
-                <div className="relative aspect-21/9 w-full bg-black/10 overflow-hidden">
+                <div className="relative h-48 sm:h-52 w-full bg-slate-900 overflow-hidden">
                   <img
                     src={banner.image_url}
                     alt={banner.title_bn}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/hero-campus.jpg";
+                    }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-4 flex flex-col justify-end text-white">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge className="bg-primary/90 text-white text-xs">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20 p-4 flex flex-col justify-between text-white pointer-events-none">
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-primary text-white text-xs shadow-md">
                         {t("স্লাইড", "Slide")} #{banner.order_index}
                       </Badge>
                       {banner.is_active ? (
-                        <Badge className="bg-emerald-500 text-white text-xs">
+                        <Badge className="bg-emerald-600 text-white text-xs shadow-md">
                           {t("সক্রিয়", "Active")}
                         </Badge>
                       ) : (
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-xs shadow-md">
                           {t("নিষ্ক্রিয়", "Inactive")}
                         </Badge>
                       )}
                     </div>
-                    <h3 className="font-bold text-base line-clamp-1 drop-shadow-sm">
-                      {banner.title_bn}
-                    </h3>
-                    {banner.subtitle_bn && (
-                      <p className="text-xs text-white/80 line-clamp-1 mt-0.5 drop-shadow-xs">
-                        {banner.subtitle_bn}
-                      </p>
-                    )}
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg line-clamp-1 drop-shadow-md text-white">
+                        {banner.title_bn}
+                      </h3>
+                      {banner.subtitle_bn && (
+                        <p className="text-xs sm:text-sm text-slate-200 line-clamp-1 mt-0.5 drop-shadow-sm">
+                          {banner.subtitle_bn}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
 

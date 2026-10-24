@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Loader2, UploadCloud, Award, X } from "lucide-react";
 import { toast } from "sonner";
-import { supabase, uploadCmsFile, logAdminActivity } from "@/lib/supabase/client";
+import { uploadCmsFile } from "@/lib/supabase/client";
+import { saveAchievement } from "@/lib/achievements";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Achievement } from "@/types/cms";
 import {
@@ -116,34 +117,16 @@ export const AchievementDialog = ({
         image_url: finalImageUrl || null,
       };
 
-      if (achievementToEdit) {
-        const { error } = await supabase
-          .from("achievements")
-          .update(payload)
-          .eq("id", achievementToEdit.id);
+      await saveAchievement({
+        ...(achievementToEdit ? { id: achievementToEdit.id } : {}),
+        ...payload,
+      });
 
-        if (error) throw error;
-
-        await logAdminActivity(
-          "UPDATE",
-          "achievements",
-          `অর্জন আপডেট: "${payload.title_bn}" (${payload.year})`
-        );
-        toast.success(t("অর্জন সফলভাবে আপডেট হয়েছে", "Achievement updated successfully"));
-      } else {
-        const { error } = await supabase
-          .from("achievements")
-          .insert([payload]);
-
-        if (error) throw error;
-
-        await logAdminActivity(
-          "CREATE",
-          "achievements",
-          `নতুন অর্জন যুক্ত: "${payload.title_bn}" (${payload.year})`
-        );
-        toast.success(t("নতুন অর্জন সফলভাবে যুক্ত হয়েছে", "Achievement added successfully"));
-      }
+      toast.success(
+        achievementToEdit
+          ? t("অর্জন সফলভাবে আপডেট হয়েছে", "Achievement updated successfully")
+          : t("নতুন অর্জন সফলভাবে যুক্ত হয়েছে", "Achievement added successfully")
+      );
 
       onSuccess();
       onClose();

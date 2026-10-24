@@ -69,6 +69,21 @@ export const DashboardMetrics = () => {
           }
         }
 
+        let activeTickers = tickerRes.count || 0;
+        if (activeTickers === 0 && typeof window !== "undefined") {
+          try {
+            const raw = localStorage.getItem("oasis_marquee_notices_cache_v1");
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) {
+                activeTickers = parsed.filter((n: any) => n.is_active).length;
+              }
+            }
+          } catch {
+            // ignore
+          }
+        }
+
         if (!mounted) return;
 
         setMetrics({
@@ -77,7 +92,7 @@ export const DashboardMetrics = () => {
           videosCount: videosRes.count || 0,
           galleryCount: galleryRes.count || 0,
           downloadsCount: downloadsRes.count || 0,
-          activeTickerCount: tickerRes.count || 0,
+          activeTickerCount: activeTickers,
           pendingReviewsCount: pendingReviews,
         });
       } catch (err) {
@@ -148,7 +163,7 @@ export const DashboardMetrics = () => {
       subtitleEn: "Active Running Ticker",
       icon: Globe,
       colorClass: "bg-teal-500/10 text-teal-600 border-teal-200/50",
-      href: "/admin/content?tab=marquee",
+      href: "/admin/notices?tab=marquee",
     },
     {
       key: "reviews",

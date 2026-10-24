@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Volume2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { supabase } from "@/lib/supabase/client";
+import { getMarqueeList } from "@/lib/marqueeService";
 import type { MarqueeNotice } from "@/types/cms";
 
 const defaultNotices: MarqueeNotice[] = [
@@ -37,19 +37,13 @@ const NoticeTicker = () => {
 
     const fetchTicker = async () => {
       try {
-        const { data, error } = await supabase
-          .from("marquee_notices")
-          .select("*")
-          .eq("is_active", true)
-          .order("priority", { ascending: false });
-
-        if (!error && Array.isArray(data) && data.length > 0) {
-          if (mounted) {
-            setNotices(data as MarqueeNotice[]);
-          }
+        const data = await getMarqueeList();
+        const active = data.filter((n) => n.is_active);
+        if (mounted && active.length > 0) {
+          setNotices(active);
         }
       } catch (err) {
-        console.warn("Failed to load marquee notices from remote, using defaults:", err);
+        console.warn("Failed to load marquee notices, using defaults:", err);
       }
     };
 

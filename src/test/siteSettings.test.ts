@@ -81,6 +81,30 @@ describe("Site Settings & Dynamic Branding / Registration Info", () => {
       expect(reFetched.institution_name_bn).toBe("আননূর ইসলামিক ইন্সটিটিউট");
       expect(reFetched.emis_code).toBe("৭৭৭/২০২৫");
     });
+
+    it("supports dynamic white-label configuration for banking and leadership", () => {
+      const updated = broadcastSiteSettingsUpdated({
+        bank_name: "Islami Bank Bangladesh PLC",
+        bank_account_number: "2050123456789",
+        bkash_number: "01700000000",
+        founder_name_bn: "মাওলানা মোহাম্মদ আব্দুল্লাহ",
+        principal_name_bn: "মুফতি আব্দুর রহমান",
+        tagline_bn: "কুরআনিক জ্ঞানের বাতিঘর",
+        hero_image_url: "https://example.com/custom-campus.jpg",
+      });
+
+      expect(updated.bank_name).toBe("Islami Bank Bangladesh PLC");
+      expect(updated.bkash_number).toBe("01700000000");
+      expect(updated.founder_name_bn).toBe("মাওলানা মোহাম্মদ আব্দুল্লাহ");
+      expect(updated.principal_name_bn).toBe("মুফতি আব্দুর রহমান");
+      expect(updated.tagline_bn).toBe("কুরআনিক জ্ঞানের বাতিঘর");
+      expect(updated.hero_image_url).toBe("https://example.com/custom-campus.jpg");
+
+      const cached = getCachedSiteSettings();
+      expect(cached.bank_name).toBe("Islami Bank Bangladesh PLC");
+      expect(cached.founder_name_bn).toBe("মাওলানা মোহাম্মদ আব্দুল্লাহ");
+      expect(cached.hero_image_url).toBe("https://example.com/custom-campus.jpg");
+    });
   });
 
   describe("Media Center Fast Loading", () => {
