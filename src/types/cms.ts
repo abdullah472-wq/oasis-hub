@@ -187,10 +187,13 @@ export interface SiteSettings {
   // Board Affiliations & Registrations
   befaq_name?: string | null;
   befaq_reg_no?: string | null;
+  befaq_cert_no?: string | null;
   huffaz_name?: string | null;
   huffaz_reg_no?: string | null;
+  huffaz_cert_no?: string | null;
   nurani_name?: string | null;
   nurani_reg_no?: string | null;
+  nurani_cert_no?: string | null;
   trade_license_no?: string | null;
 
   // Banking & Payment

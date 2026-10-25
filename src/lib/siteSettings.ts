@@ -42,10 +42,13 @@ export const defaultSiteSettings: SiteSettings = {
   // Board Affiliations & Registrations
   befaq_name: "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ (বেফাক)",
   befaq_reg_no: "",
+  befaq_cert_no: "",
   huffaz_name: "হুফ্ফাজুল কুরআন ফাউন্ডেশন বাংলাদেশ",
   huffaz_reg_no: "",
+  huffaz_cert_no: "",
   nurani_name: "নূরানী তা'লীমুল কুরআন বোর্ড বাংলাদেশ",
   nurani_reg_no: "",
+  nurani_cert_no: "",
   trade_license_no: "",
 
   // Banking & Payment
@@ -305,10 +308,13 @@ export async function fetchSiteSettings(forceFresh = false): Promise<SiteSetting
         accent_color: data.accent_color ?? sanitizedRemote.accent_color ?? null,
         befaq_name: data.befaq_name ?? sanitizedRemote.befaq_name ?? defaultSiteSettings.befaq_name,
         befaq_reg_no: data.befaq_reg_no ?? sanitizedRemote.befaq_reg_no ?? defaultSiteSettings.befaq_reg_no,
+        befaq_cert_no: data.befaq_cert_no ?? sanitizedRemote.befaq_cert_no ?? defaultSiteSettings.befaq_cert_no,
         huffaz_name: data.huffaz_name ?? sanitizedRemote.huffaz_name ?? defaultSiteSettings.huffaz_name,
         huffaz_reg_no: data.huffaz_reg_no ?? sanitizedRemote.huffaz_reg_no ?? defaultSiteSettings.huffaz_reg_no,
+        huffaz_cert_no: data.huffaz_cert_no ?? sanitizedRemote.huffaz_cert_no ?? defaultSiteSettings.huffaz_cert_no,
         nurani_name: data.nurani_name ?? sanitizedRemote.nurani_name ?? defaultSiteSettings.nurani_name,
         nurani_reg_no: data.nurani_reg_no ?? sanitizedRemote.nurani_reg_no ?? defaultSiteSettings.nurani_reg_no,
+        nurani_cert_no: data.nurani_cert_no ?? sanitizedRemote.nurani_cert_no ?? defaultSiteSettings.nurani_cert_no,
         trade_license_no: data.trade_license_no ?? sanitizedRemote.trade_license_no ?? defaultSiteSettings.trade_license_no,
       };
 

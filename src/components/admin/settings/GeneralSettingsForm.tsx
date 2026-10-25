@@ -38,10 +38,13 @@ export const GeneralSettingsForm = () => {
       admission_status: (cached.admission_status || "open") as AdmissionStatusType,
       befaq_name: cached.befaq_name || defaultSiteSettings.befaq_name || "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ (বেফাক)",
       befaq_reg_no: cached.befaq_reg_no || "",
+      befaq_cert_no: cached.befaq_cert_no || "",
       huffaz_name: cached.huffaz_name || defaultSiteSettings.huffaz_name || "হুফ্ফাজুল কুরআন ফাউন্ডেশন বাংলাদেশ",
       huffaz_reg_no: cached.huffaz_reg_no || "",
+      huffaz_cert_no: cached.huffaz_cert_no || "",
       nurani_name: cached.nurani_name || defaultSiteSettings.nurani_name || "নূরানী তা'লীমুল কুরআন বোর্ড বাংলাদেশ",
       nurani_reg_no: cached.nurani_reg_no || "",
+      nurani_cert_no: cached.nurani_cert_no || "",
       trade_license_no: cached.trade_license_no || "",
     };
   });
@@ -87,10 +90,13 @@ export const GeneralSettingsForm = () => {
             admission_status: data.admission_status || "open",
             befaq_name: data.befaq_name ?? defaultSiteSettings.befaq_name ?? "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ (বেফাক)",
             befaq_reg_no: data.befaq_reg_no ?? "",
+            befaq_cert_no: data.befaq_cert_no ?? "",
             huffaz_name: data.huffaz_name ?? defaultSiteSettings.huffaz_name ?? "হুফ্ফাজুল কুরআন ফাউন্ডেশন বাংলাদেশ",
             huffaz_reg_no: data.huffaz_reg_no ?? "",
+            huffaz_cert_no: data.huffaz_cert_no ?? "",
             nurani_name: data.nurani_name ?? defaultSiteSettings.nurani_name ?? "নূরানী তা'লীমুল কুরআন বোর্ড বাংলাদেশ",
             nurani_reg_no: data.nurani_reg_no ?? "",
+            nurani_cert_no: data.nurani_cert_no ?? "",
             trade_license_no: data.trade_license_no ?? "",
           });
         }
@@ -134,10 +140,13 @@ export const GeneralSettingsForm = () => {
         admission_status: formData.admission_status,
         befaq_name: formData.befaq_name.trim() || null,
         befaq_reg_no: formData.befaq_reg_no.trim() || null,
+        befaq_cert_no: formData.befaq_cert_no.trim() || null,
         huffaz_name: formData.huffaz_name.trim() || null,
         huffaz_reg_no: formData.huffaz_reg_no.trim() || null,
+        huffaz_cert_no: formData.huffaz_cert_no.trim() || null,
         nurani_name: formData.nurani_name.trim() || null,
         nurani_reg_no: formData.nurani_reg_no.trim() || null,
+        nurani_cert_no: formData.nurani_cert_no.trim() || null,
         trade_license_no: formData.trade_license_no.trim() || null,
         updated_at: new Date().toISOString(),
       };
@@ -403,6 +412,18 @@ export const GeneralSettingsForm = () => {
                     className="text-xs h-9 font-mono"
                   />
                 </div>
+                <div className="space-y-1">
+                  <Label htmlFor="befaq_cert_no" className="text-xs font-medium text-muted-foreground font-semibold">
+                    {t("বেফাক সনদ নম্বর / Certificate No.", "Befaq Certificate No.")}
+                  </Label>
+                  <Input
+                    id="befaq_cert_no"
+                    value={formData.befaq_cert_no}
+                    onChange={(e) => setFormData({ ...formData, befaq_cert_no: e.target.value })}
+                    placeholder="যেমন: CERT-12345 বা সনদ নং"
+                    className="text-xs h-9 font-mono"
+                  />
+                </div>
               </div>
 
               {/* Huffaz Board */}
@@ -439,6 +460,18 @@ export const GeneralSettingsForm = () => {
                     className="text-xs h-9 font-mono"
                   />
                 </div>
+                <div className="space-y-1">
+                  <Label htmlFor="huffaz_cert_no" className="text-xs font-medium text-muted-foreground font-semibold">
+                    {t("হুফ্ফাজ সনদ নম্বর / Certificate No.", "Huffaz Certificate No.")}
+                  </Label>
+                  <Input
+                    id="huffaz_cert_no"
+                    value={formData.huffaz_cert_no}
+                    onChange={(e) => setFormData({ ...formData, huffaz_cert_no: e.target.value })}
+                    placeholder="যেমন: HQF-CERT-98765 বা সনদ নং"
+                    className="text-xs h-9 font-mono"
+                  />
+                </div>
               </div>
 
               {/* Nurani Board */}
@@ -472,6 +505,18 @@ export const GeneralSettingsForm = () => {
                     value={formData.nurani_reg_no}
                     onChange={(e) => setFormData({ ...formData, nurani_reg_no: e.target.value })}
                     placeholder="যেমন: NTQB-54321 বা রেজি নং"
+                    className="text-xs h-9 font-mono"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="nurani_cert_no" className="text-xs font-medium text-muted-foreground font-semibold">
+                    {t("নূরানী সনদ নম্বর / Certificate No.", "Nurani Certificate No.")}
+                  </Label>
+                  <Input
+                    id="nurani_cert_no"
+                    value={formData.nurani_cert_no}
+                    onChange={(e) => setFormData({ ...formData, nurani_cert_no: e.target.value })}
+                    placeholder="যেমন: NTQB-CERT-54321 বা সনদ নং"
                     className="text-xs h-9 font-mono"
                   />
                 </div>

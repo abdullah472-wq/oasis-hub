@@ -713,7 +713,7 @@ const About = () => {
                 </p>
               </div>
 
-              <div className="border-t border-border/80 pt-4">
+              <div className="border-t border-border/80 pt-4 space-y-2.5">
                 <div className="rounded-xl bg-muted/60 p-3 border border-border/60">
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
@@ -737,6 +737,30 @@ const About = () => {
                     )}
                   </div>
                 </div>
+
+                {settings.befaq_cert_no?.trim() && (
+                  <div className="rounded-xl bg-emerald-500/10 p-2.5 border border-emerald-500/20">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 block font-bengali">
+                          {t("বেফাক সনদ নম্বর / Certificate No:", "Certificate Number:")}
+                        </span>
+                        <span className="font-mono text-xs font-bold text-foreground truncate block">
+                          {settings.befaq_cert_no}
+                        </span>
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
+                        onClick={() => handleCopy(settings.befaq_cert_no!, "befaq_cert")}
+                        title={t("কপি করুন", "Copy")}
+                      >
+                        {copiedKey === "befaq_cert" ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
 
@@ -768,7 +792,7 @@ const About = () => {
                 </p>
               </div>
 
-              <div className="border-t border-border/80 pt-4">
+              <div className="border-t border-border/80 pt-4 space-y-2.5">
                 <div className="rounded-xl bg-muted/60 p-3 border border-border/60">
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
@@ -792,6 +816,30 @@ const About = () => {
                     )}
                   </div>
                 </div>
+
+                {settings.huffaz_cert_no?.trim() && (
+                  <div className="rounded-xl bg-blue-500/10 p-2.5 border border-blue-500/20">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-semibold text-blue-700 dark:text-blue-400 block font-bengali">
+                          {t("হুফ্ফাজ সনদ নম্বর / Certificate No:", "Certificate Number:")}
+                        </span>
+                        <span className="font-mono text-xs font-bold text-foreground truncate block">
+                          {settings.huffaz_cert_no}
+                        </span>
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
+                        onClick={() => handleCopy(settings.huffaz_cert_no!, "huffaz_cert")}
+                        title={t("কপি করুন", "Copy")}
+                      >
+                        {copiedKey === "huffaz_cert" ? <Check className="h-3.5 w-3.5 text-blue-600" /> : <Copy className="h-3.5 w-3.5" />}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
 
@@ -823,7 +871,7 @@ const About = () => {
                 </p>
               </div>
 
-              <div className="border-t border-border/80 pt-4">
+              <div className="border-t border-border/80 pt-4 space-y-2.5">
                 <div className="rounded-xl bg-muted/60 p-3 border border-border/60">
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
@@ -847,6 +895,30 @@ const About = () => {
                     )}
                   </div>
                 </div>
+
+                {settings.nurani_cert_no?.trim() && (
+                  <div className="rounded-xl bg-purple-500/10 p-2.5 border border-purple-500/20">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-400 block font-bengali">
+                          {t("নূরানী সনদ নম্বর / Certificate No:", "Certificate Number:")}
+                        </span>
+                        <span className="font-mono text-xs font-bold text-foreground truncate block">
+                          {settings.nurani_cert_no}
+                        </span>
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
+                        onClick={() => handleCopy(settings.nurani_cert_no!, "nurani_cert")}
+                        title={t("কপি করুন", "Copy")}
+                      >
+                        {copiedKey === "nurani_cert" ? <Check className="h-3.5 w-3.5 text-purple-600" /> : <Copy className="h-3.5 w-3.5" />}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>

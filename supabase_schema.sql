@@ -803,5 +803,8 @@ ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS huffaz_name 
 ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS huffaz_reg_no TEXT;
 ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS nurani_name TEXT;
 ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS nurani_reg_no TEXT;
+ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS befaq_cert_no TEXT;
+ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS huffaz_cert_no TEXT;
+ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS nurani_cert_no TEXT;
 ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS trade_license_no TEXT;
 
