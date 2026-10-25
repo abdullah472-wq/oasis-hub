@@ -280,6 +280,17 @@ const About = () => {
     },
   ];
 
+  const hasBefaq = Boolean(settings.befaq_reg_no?.trim() || settings.befaq_cert_no?.trim());
+  const hasHuffaz = Boolean(settings.huffaz_reg_no?.trim() || settings.huffaz_cert_no?.trim());
+  const hasNurani = Boolean(settings.nurani_reg_no?.trim() || settings.nurani_cert_no?.trim());
+  const hasAnyBoard = hasBefaq || hasHuffaz || hasNurani;
+  const activeBoardsCount = (hasBefaq ? 1 : 0) + (hasHuffaz ? 1 : 0) + (hasNurani ? 1 : 0);
+  const hasInstitutionalInfo = Boolean(
+    settings.trade_license_no?.trim() ||
+    (settings.emis_code?.trim() && settings.emis_code !== "12345678") ||
+    settings.founding_year
+  );
+
   return (
     <div className="min-h-screen bg-background">
       {/* ================= HERO SECTION ================= */}
@@ -398,6 +409,321 @@ const About = () => {
           </div>
         </div>
       </section>
+
+      {/* ================= BOARD AFFILIATIONS & REGISTRATIONS ================= */}
+      {(hasAnyBoard || hasInstitutionalInfo) && (
+        <section className="py-14 md:py-20 bg-gradient-to-b from-card/40 via-card/80 to-card/40 border-y border-border/80 relative overflow-hidden">
+          <div className="container mx-auto max-w-6xl px-4">
+            <div className="text-center max-w-3xl mx-auto mb-12">
+              <Badge variant="outline" className="mb-3 px-3.5 py-1 text-xs font-semibold text-primary border-primary/30 uppercase tracking-wider inline-flex items-center gap-1.5">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                <span>{t("বোর্ড স্বীকৃতি ও অধিভুক্তি", "Board Affiliations & Registrations")}</span>
+              </Badge>
+              <h2 className="font-bengali font-extrabold text-3xl sm:text-4xl text-foreground">
+                {t("স্বীকৃত শিক্ষাবোর্ড ও কেন্দ্রীয় প্রাতিষ্ঠানিক নিবন্ধন", "Recognized Education Boards & Institutional Affiliations")}
+              </h2>
+              <p className="mt-3 font-bengali text-muted-foreground text-base max-w-2xl mx-auto">
+                {t(
+                  "আমাদের মাদরাসা জাতীয় কওমি শিক্ষাবোর্ড, আন্তর্জাতিক হিফজুল কুরআন মান সংস্থা ও নূরানী শিক্ষাবোর্ড কর্তৃক অনুমোদিত ও নিবন্ধিত প্রতিষ্ঠান।",
+                  "Officially registered and recognized under premier national Qawmi, Huffaz, and Nurani education boards."
+                )}
+              </p>
+            </div>
+
+            {hasAnyBoard && (
+              <div
+                className={`grid gap-6 ${
+                  activeBoardsCount === 1
+                    ? "max-w-md mx-auto"
+                    : activeBoardsCount === 2
+                    ? "grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto"
+                    : "grid-cols-1 md:grid-cols-3"
+                }`}
+              >
+                {/* Befaq */}
+                {hasBefaq && (
+                  <motion.div
+                    {...springIn}
+                    transition={springInDelay(0.08)}
+                    className="rounded-3xl border border-emerald-500/25 bg-gradient-to-b from-emerald-500/5 via-card to-card p-6 sm:p-7 shadow-md hover:shadow-lg transition-all flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600">
+                          <Award className="h-6 w-6" />
+                        </div>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-600 border border-emerald-500/20 font-bengali">
+                          <CheckCircle2 className="h-3 w-3" />
+                          <span>{t("কওমি শিক্ষাবোর্ড", "Qawmi Board")}</span>
+                        </span>
+                      </div>
+
+                      <h3 className="font-bengali text-lg sm:text-xl font-bold text-foreground mb-2 leading-snug">
+                        {settings.befaq_name || t("বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ (বেফাক)", "Befaqul Madarisil Arabia Bangladesh")}
+                      </h3>
+                      <p className="font-bengali text-xs sm:text-sm text-muted-foreground leading-relaxed mb-5">
+                        {t(
+                          "বাংলাদেশ সরকারের স্বীকৃতিপ্রাপ্ত সর্বোচ্চ কওমি মাদরাসা শিক্ষাবোর্ড। কওমি ধারার আদর্শ শিক্ষাক্রম, কেন্দ্রীয় পরীক্ষা ও সরকারি মান অনুযায়ী পরিচালিত।",
+                          "The apex national Qawmi madrasa education board recognized by the Government of Bangladesh."
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="border-t border-border/80 pt-4 space-y-2.5">
+                      {settings.befaq_reg_no?.trim() && (
+                        <div className="rounded-xl bg-muted/60 p-3 border border-border/60">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <span className="text-[11px] font-medium text-muted-foreground block font-bengali">
+                                {t("বোর্ড রেজিষ্ট্রেশন নম্বর:", "Befaq Reg. Number:")}
+                              </span>
+                              <span className="font-mono text-xs sm:text-sm font-bold text-foreground truncate block">
+                                {settings.befaq_reg_no}
+                              </span>
+                            </div>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+                              onClick={() => handleCopy(settings.befaq_reg_no!, "befaq")}
+                              title={t("কপি করুন", "Copy")}
+                            >
+                              {copiedKey === "befaq" ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {settings.befaq_cert_no?.trim() && (
+                        <div className="rounded-xl bg-emerald-500/10 p-2.5 border border-emerald-500/20">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 block font-bengali">
+                                {t("বেফাক সনদ নম্বর / Certificate No:", "Certificate Number:")}
+                              </span>
+                              <span className="font-mono text-xs font-bold text-foreground truncate block">
+                                {settings.befaq_cert_no}
+                              </span>
+                            </div>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
+                              onClick={() => handleCopy(settings.befaq_cert_no!, "befaq_cert")}
+                              title={t("কপি করুন", "Copy")}
+                            >
+                              {copiedKey === "befaq_cert" ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Huffaz Board */}
+                {hasHuffaz && (
+                  <motion.div
+                    {...springIn}
+                    transition={springInDelay(0.14)}
+                    className="rounded-3xl border border-blue-500/25 bg-gradient-to-b from-blue-500/5 via-card to-card p-6 sm:p-7 shadow-md hover:shadow-lg transition-all flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/15 text-blue-600">
+                          <BookOpen className="h-6 w-6" />
+                        </div>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-1 text-[11px] font-bold text-blue-600 border border-blue-500/20 font-bengali">
+                          <CheckCircle2 className="h-3 w-3" />
+                          <span>{t("হিফজ মান নিয়ন্ত্রণ", "Hifz Accreditation")}</span>
+                        </span>
+                      </div>
+
+                      <h3 className="font-bengali text-lg sm:text-xl font-bold text-foreground mb-2 leading-snug">
+                        {settings.huffaz_name || t("হুফ্ফাজুল কুরআন ফাউন্ডেশন বাংলাদেশ", "Huffazul Quran Foundation Bangladesh")}
+                      </h3>
+                      <p className="font-bengali text-xs sm:text-sm text-muted-foreground leading-relaxed mb-5">
+                        {t(
+                          "আন্তর্জাতিক মানের সহীহ তাজবীদ, লাহজা ও হিফজ মান তদারককারী দেশের শীর্ষ হুফফাজ সংস্থা। নিয়মিত অডিট ও কেন্দ্রীয় দস্তারবন্দী সনদ প্রদানকারী।",
+                          "Premier national Huffaz foundation overseeing international Tajweed standards, audits, and formal Dastarbandi certification."
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="border-t border-border/80 pt-4 space-y-2.5">
+                      {settings.huffaz_reg_no?.trim() && (
+                        <div className="rounded-xl bg-muted/60 p-3 border border-border/60">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <span className="text-[11px] font-medium text-muted-foreground block font-bengali">
+                                {t("হুফ্ফাজ রেজিষ্ট্রেশন নম্বর:", "Huffaz Reg. Number:")}
+                              </span>
+                              <span className="font-mono text-xs sm:text-sm font-bold text-foreground truncate block">
+                                {settings.huffaz_reg_no}
+                              </span>
+                            </div>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+                              onClick={() => handleCopy(settings.huffaz_reg_no!, "huffaz")}
+                              title={t("কপি করুন", "Copy")}
+                            >
+                              {copiedKey === "huffaz" ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {settings.huffaz_cert_no?.trim() && (
+                        <div className="rounded-xl bg-blue-500/10 p-2.5 border border-blue-500/20">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <span className="text-[10px] font-semibold text-blue-700 dark:text-blue-400 block font-bengali">
+                                {t("হুফ্ফাজ সনদ নম্বর / Certificate No:", "Certificate Number:")}
+                              </span>
+                              <span className="font-mono text-xs font-bold text-foreground truncate block">
+                                {settings.huffaz_cert_no}
+                              </span>
+                            </div>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
+                              onClick={() => handleCopy(settings.huffaz_cert_no!, "huffaz_cert")}
+                              title={t("কপি করুন", "Copy")}
+                            >
+                              {copiedKey === "huffaz_cert" ? <Check className="h-3.5 w-3.5 text-blue-600" /> : <Copy className="h-3.5 w-3.5" />}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Nurani Board */}
+                {hasNurani && (
+                  <motion.div
+                    {...springIn}
+                    transition={springInDelay(0.2)}
+                    className="rounded-3xl border border-purple-500/25 bg-gradient-to-b from-purple-500/5 via-card to-card p-6 sm:p-7 shadow-md hover:shadow-lg transition-all flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-600">
+                          <GraduationCap className="h-6 w-6" />
+                        </div>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2.5 py-1 text-[11px] font-bold text-purple-600 border border-purple-500/20 font-bengali">
+                          <CheckCircle2 className="h-3 w-3" />
+                          <span>{t("নূরানী শিক্ষাবোর্ড", "Nurani Board")}</span>
+                        </span>
+                      </div>
+
+                      <h3 className="font-bengali text-lg sm:text-xl font-bold text-foreground mb-2 leading-snug">
+                        {settings.nurani_name || t("নূরানী তা'লীমুল কুরআন বোর্ড বাংলাদেশ", "Nurani Talimul Quran Board Bangladesh")}
+                      </h3>
+                      <p className="font-bengali text-xs sm:text-sm text-muted-foreground leading-relaxed mb-5">
+                        {t(
+                          "শিশুদের অল্প সময়ে বিশুদ্ধ কুরআন তেলাওয়াত, মাসনূন আমল, বাংলা, ইংরেজি, গণিত ও আদব-আখলাক শিক্ষাদানের বৈজ্ঞানিক ও সর্বজনস্বীকৃত বোর্ড।",
+                          "Acclaimed pedagogy delivering Quran recitation fluency, foundational Islamic manners, and general academics for early childhood."
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="border-t border-border/80 pt-4 space-y-2.5">
+                      {settings.nurani_reg_no?.trim() && (
+                        <div className="rounded-xl bg-muted/60 p-3 border border-border/60">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <span className="text-[11px] font-medium text-muted-foreground block font-bengali">
+                                {t("নূরানী বোর্ড রেজিষ্ট্রেশন নম্বর:", "Nurani Reg. Number:")}
+                              </span>
+                              <span className="font-mono text-xs sm:text-sm font-bold text-foreground truncate block">
+                                {settings.nurani_reg_no}
+                              </span>
+                            </div>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+                              onClick={() => handleCopy(settings.nurani_reg_no!, "nurani")}
+                              title={t("কপি করুন", "Copy")}
+                            >
+                              {copiedKey === "nurani" ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {settings.nurani_cert_no?.trim() && (
+                        <div className="rounded-xl bg-purple-500/10 p-2.5 border border-purple-500/20">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-400 block font-bengali">
+                                {t("নূরানী সনদ নম্বর / Certificate No:", "Certificate Number:")}
+                              </span>
+                              <span className="font-mono text-xs font-bold text-foreground truncate block">
+                                {settings.nurani_cert_no}
+                              </span>
+                            </div>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
+                              onClick={() => handleCopy(settings.nurani_cert_no!, "nurani_cert")}
+                              title={t("কপি করুন", "Copy")}
+                            >
+                              {copiedKey === "nurani_cert" ? <Check className="h-3.5 w-3.5 text-purple-600" /> : <Copy className="h-3.5 w-3.5" />}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            )}
+
+            {/* Institutional summary bar */}
+            {hasInstitutionalInfo && (
+              <div className="mt-8 rounded-2xl border border-border bg-card/80 backdrop-blur-sm p-4 text-center">
+                <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-bengali text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5 font-semibold text-foreground">
+                    <Building2 className="h-4 w-4 text-primary" />
+                    <span>{settings.institution_name_bn}</span>
+                  </span>
+                  {settings.founding_year && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      <span>{t(`প্রতিষ্ঠার সাল: ${settings.founding_year} খ্রি.`, `Founded: ${settings.founding_year}`)}</span>
+                    </span>
+                  )}
+                  {settings.trade_license_no && (
+                    <span className="inline-flex items-center gap-1.5 font-mono font-semibold text-amber-800 dark:text-amber-300 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/25">
+                      <ShieldCheck className="h-4 w-4 text-amber-600" />
+                      <span>{t(`ট্রেড লাইসেন্স নং: ${settings.trade_license_no}`, `Trade License No: ${settings.trade_license_no}`)}</span>
+                      <button
+                        onClick={() => handleCopy(settings.trade_license_no!, "license")}
+                        className="ml-1 text-muted-foreground hover:text-foreground cursor-pointer"
+                        title={t("কপি করুন", "Copy")}
+                      >
+                        {copiedKey === "license" ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                      </button>
+                    </span>
+                  )}
+                  {settings.emis_code && settings.emis_code !== "12345678" && (
+                    <span className="inline-flex items-center gap-1.5 font-mono font-semibold text-primary">
+                      <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                      <span>{formatRegistrationNumber(settings.emis_code, lang === "bn" ? "bn" : "en")}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* ================= MISSION & VISION ================= */}
       <section className="py-16 md:py-24">
@@ -662,303 +988,6 @@ const About = () => {
               </Button>
             </Link>
           </div>
-        </div>
-      </section>
-
-      {/* ================= BOARD AFFILIATIONS & REGISTRATIONS ================= */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-card/40 via-card/80 to-card/40 border-b border-border/80 relative overflow-hidden">
-        <div className="container mx-auto max-w-6xl px-4">
-          <div className="text-center max-w-3xl mx-auto mb-14">
-            <Badge variant="outline" className="mb-3 px-3.5 py-1 text-xs font-semibold text-primary border-primary/30 uppercase tracking-wider inline-flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-              <span>{t("বোর্ড স্বীকৃতি ও অধিভুক্তি", "Board Affiliations & Registrations")}</span>
-            </Badge>
-            <h2 className="font-bengali font-extrabold text-3xl sm:text-4xl text-foreground">
-              {t("স্বীকৃত শিক্ষাবোর্ড ও কেন্দ্রীয় প্রাতিষ্ঠানিক নিবন্ধন", "Recognized Education Boards & Institutional Affiliations")}
-            </h2>
-            <p className="mt-3 font-bengali text-muted-foreground text-base max-w-2xl mx-auto">
-              {t(
-                "আমাদের মাদরাসা জাতীয় কওমি শিক্ষাবোর্ড, আন্তর্জাতিক হিফজুল কুরআন মান সংস্থা ও নূরানী শিক্ষাবোর্ড কর্তৃক অনুমোদিত ও নিবন্ধিত প্রতিষ্ঠান।",
-                "Officially registered and recognized under premier national Qawmi, Huffaz, and Nurani education boards."
-              )}
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-3">
-            {/* Befaq */}
-            <motion.div
-              {...springIn}
-              transition={springInDelay(0.08)}
-              className="rounded-3xl border border-emerald-500/25 bg-gradient-to-b from-emerald-500/5 via-card to-card p-6 sm:p-7 shadow-md hover:shadow-lg transition-all flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-600">
-                    <Award className="h-6 w-6" />
-                  </div>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-600 border border-emerald-500/20 font-bengali">
-                    <CheckCircle2 className="h-3 w-3" />
-                    <span>{t("কওমি শিক্ষাবোর্ড", "Qawmi Board")}</span>
-                  </span>
-                </div>
-
-                <h3 className="font-bengali text-lg sm:text-xl font-bold text-foreground mb-2 leading-snug">
-                  {settings.befaq_name || t("বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ (বেফাক)", "Befaqul Madarisil Arabia Bangladesh")}
-                </h3>
-                <p className="font-bengali text-xs sm:text-sm text-muted-foreground leading-relaxed mb-5">
-                  {t(
-                    "বাংলাদেশ সরকারের স্বীকৃতিপ্রাপ্ত সর্বোচ্চ কওমি মাদরাসা শিক্ষাবোর্ড। কওমি ধারার আদর্শ শিক্ষাক্রম, কেন্দ্রীয় পরীক্ষা ও সরকারি মান অনুযায়ী পরিচালিত।",
-                    "The apex national Qawmi madrasa education board recognized by the Government of Bangladesh."
-                  )}
-                </p>
-              </div>
-
-              <div className="border-t border-border/80 pt-4 space-y-2.5">
-                <div className="rounded-xl bg-muted/60 p-3 border border-border/60">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0">
-                      <span className="text-[11px] font-medium text-muted-foreground block font-bengali">
-                        {t("বোর্ড রেজিষ্ট্রেশন নম্বর:", "Befaq Reg. Number:")}
-                      </span>
-                      <span className="font-mono text-xs sm:text-sm font-bold text-foreground truncate block">
-                        {settings.befaq_reg_no?.trim() || t("নিবন্ধিত প্রতিষ্ঠান (কেন্দ্রীয় কোডপ্রাপ্ত)", "Affiliated & Code Assigned")}
-                      </span>
-                    </div>
-                    {settings.befaq_reg_no?.trim() && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
-                        onClick={() => handleCopy(settings.befaq_reg_no!, "befaq")}
-                        title={t("কপি করুন", "Copy")}
-                      >
-                        {copiedKey === "befaq" ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                {settings.befaq_cert_no?.trim() && (
-                  <div className="rounded-xl bg-emerald-500/10 p-2.5 border border-emerald-500/20">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 block font-bengali">
-                          {t("বেফাক সনদ নম্বর / Certificate No:", "Certificate Number:")}
-                        </span>
-                        <span className="font-mono text-xs font-bold text-foreground truncate block">
-                          {settings.befaq_cert_no}
-                        </span>
-                      </div>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
-                        onClick={() => handleCopy(settings.befaq_cert_no!, "befaq_cert")}
-                        title={t("কপি করুন", "Copy")}
-                      >
-                        {copiedKey === "befaq_cert" ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-
-            {/* Huffaz Board */}
-            <motion.div
-              {...springIn}
-              transition={springInDelay(0.14)}
-              className="rounded-3xl border border-blue-500/25 bg-gradient-to-b from-blue-500/5 via-card to-card p-6 sm:p-7 shadow-md hover:shadow-lg transition-all flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/15 text-blue-600">
-                    <BookOpen className="h-6 w-6" />
-                  </div>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-1 text-[11px] font-bold text-blue-600 border border-blue-500/20 font-bengali">
-                    <CheckCircle2 className="h-3 w-3" />
-                    <span>{t("হিফজ মান নিয়ন্ত্রণ", "Hifz Accreditation")}</span>
-                  </span>
-                </div>
-
-                <h3 className="font-bengali text-lg sm:text-xl font-bold text-foreground mb-2 leading-snug">
-                  {settings.huffaz_name || t("হুফ্ফাজুল কুরআন ফাউন্ডেশন বাংলাদেশ", "Huffazul Quran Foundation Bangladesh")}
-                </h3>
-                <p className="font-bengali text-xs sm:text-sm text-muted-foreground leading-relaxed mb-5">
-                  {t(
-                    "আন্তর্জাতিক মানের সহীহ তাজবীদ, লাহজা ও হিফজ মান তদারককারী দেশের শীর্ষ হুফফাজ সংস্থা। নিয়মিত অডিট ও কেন্দ্রীয় দস্তারবন্দী সনদ প্রদানকারী।",
-                    "Premier national Huffaz foundation overseeing international Tajweed standards, audits, and formal Dastarbandi certification."
-                  )}
-                </p>
-              </div>
-
-              <div className="border-t border-border/80 pt-4 space-y-2.5">
-                <div className="rounded-xl bg-muted/60 p-3 border border-border/60">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0">
-                      <span className="text-[11px] font-medium text-muted-foreground block font-bengali">
-                        {t("হুফ্ফাজ রেজিষ্ট্রেশন নম্বর:", "Huffaz Reg. Number:")}
-                      </span>
-                      <span className="font-mono text-xs sm:text-sm font-bold text-foreground truncate block">
-                        {settings.huffaz_reg_no?.trim() || t("অনুমোদিত হিফজ প্রশিক্ষণ কেন্দ্র", "Approved Hifz Training Center")}
-                      </span>
-                    </div>
-                    {settings.huffaz_reg_no?.trim() && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
-                        onClick={() => handleCopy(settings.huffaz_reg_no!, "huffaz")}
-                        title={t("কপি করুন", "Copy")}
-                      >
-                        {copiedKey === "huffaz" ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                {settings.huffaz_cert_no?.trim() && (
-                  <div className="rounded-xl bg-blue-500/10 p-2.5 border border-blue-500/20">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <span className="text-[10px] font-semibold text-blue-700 dark:text-blue-400 block font-bengali">
-                          {t("হুফ্ফাজ সনদ নম্বর / Certificate No:", "Certificate Number:")}
-                        </span>
-                        <span className="font-mono text-xs font-bold text-foreground truncate block">
-                          {settings.huffaz_cert_no}
-                        </span>
-                      </div>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
-                        onClick={() => handleCopy(settings.huffaz_cert_no!, "huffaz_cert")}
-                        title={t("কপি করুন", "Copy")}
-                      >
-                        {copiedKey === "huffaz_cert" ? <Check className="h-3.5 w-3.5 text-blue-600" /> : <Copy className="h-3.5 w-3.5" />}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-
-            {/* Nurani Board */}
-            <motion.div
-              {...springIn}
-              transition={springInDelay(0.2)}
-              className="rounded-3xl border border-purple-500/25 bg-gradient-to-b from-purple-500/5 via-card to-card p-6 sm:p-7 shadow-md hover:shadow-lg transition-all flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-600">
-                    <GraduationCap className="h-6 w-6" />
-                  </div>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2.5 py-1 text-[11px] font-bold text-purple-600 border border-purple-500/20 font-bengali">
-                    <CheckCircle2 className="h-3 w-3" />
-                    <span>{t("নূরানী শিক্ষাবোর্ড", "Nurani Board")}</span>
-                  </span>
-                </div>
-
-                <h3 className="font-bengali text-lg sm:text-xl font-bold text-foreground mb-2 leading-snug">
-                  {settings.nurani_name || t("নূরানী তা'লীমুল কুরআন বোর্ড বাংলাদেশ", "Nurani Talimul Quran Board Bangladesh")}
-                </h3>
-                <p className="font-bengali text-xs sm:text-sm text-muted-foreground leading-relaxed mb-5">
-                  {t(
-                    "শিশুদের অল্প সময়ে বিশুদ্ধ কুরআন তেলাওয়াত, মাসনূন আমল, বাংলা, ইংরেজি, গণিত ও আদব-আখলাক শিক্ষাদানের বৈজ্ঞানিক ও সর্বজনস্বীকৃত বোর্ড।",
-                    "Acclaimed pedagogy delivering Quran recitation fluency, foundational Islamic manners, and general academics for early childhood."
-                  )}
-                </p>
-              </div>
-
-              <div className="border-t border-border/80 pt-4 space-y-2.5">
-                <div className="rounded-xl bg-muted/60 p-3 border border-border/60">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0">
-                      <span className="text-[11px] font-medium text-muted-foreground block font-bengali">
-                        {t("নূরানী বোর্ড রেজিষ্ট্রেশন নম্বর:", "Nurani Reg. Number:")}
-                      </span>
-                      <span className="font-mono text-xs sm:text-sm font-bold text-foreground truncate block">
-                        {settings.nurani_reg_no?.trim() || t("অনুমোদিত নূরানী শিক্ষা শাখা", "Approved Nurani Education Branch")}
-                      </span>
-                    </div>
-                    {settings.nurani_reg_no?.trim() && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
-                        onClick={() => handleCopy(settings.nurani_reg_no!, "nurani")}
-                        title={t("কপি করুন", "Copy")}
-                      >
-                        {copiedKey === "nurani" ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                {settings.nurani_cert_no?.trim() && (
-                  <div className="rounded-xl bg-purple-500/10 p-2.5 border border-purple-500/20">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-400 block font-bengali">
-                          {t("নূরানী সনদ নম্বর / Certificate No:", "Certificate Number:")}
-                        </span>
-                        <span className="font-mono text-xs font-bold text-foreground truncate block">
-                          {settings.nurani_cert_no}
-                        </span>
-                      </div>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
-                        onClick={() => handleCopy(settings.nurani_cert_no!, "nurani_cert")}
-                        title={t("কপি করুন", "Copy")}
-                      >
-                        {copiedKey === "nurani_cert" ? <Check className="h-3.5 w-3.5 text-purple-600" /> : <Copy className="h-3.5 w-3.5" />}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Institutional summary bar */}
-          {(settings.emis_code || settings.founding_year || settings.trade_license_no) && (
-            <div className="mt-8 rounded-2xl border border-border bg-card/80 backdrop-blur-sm p-4 text-center">
-              <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-bengali text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5 font-semibold text-foreground">
-                  <Building2 className="h-4 w-4 text-primary" />
-                  <span>{settings.institution_name_bn}</span>
-                </span>
-                {settings.founding_year && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Calendar className="h-4 w-4 text-primary" />
-                    <span>{t(`প্রতিষ্ঠার সাল: ${settings.founding_year} খ্রি.`, `Founded: ${settings.founding_year}`)}</span>
-                  </span>
-                )}
-                {settings.trade_license_no && (
-                  <span className="inline-flex items-center gap-1.5 font-mono font-semibold text-amber-800 dark:text-amber-300 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/25">
-                    <ShieldCheck className="h-4 w-4 text-amber-600" />
-                    <span>{t(`ট্রেড লাইসেন্স নং: ${settings.trade_license_no}`, `Trade License No: ${settings.trade_license_no}`)}</span>
-                    <button
-                      onClick={() => handleCopy(settings.trade_license_no!, "license")}
-                      className="ml-1 text-muted-foreground hover:text-foreground cursor-pointer"
-                      title={t("কপি করুন", "Copy")}
-                    >
-                      {copiedKey === "license" ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-                    </button>
-                  </span>
-                )}
-                {settings.emis_code && settings.emis_code !== "12345678" && (
-                  <span className="inline-flex items-center gap-1.5 font-mono font-semibold text-primary">
-                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                    <span>{formatRegistrationNumber(settings.emis_code, lang === "bn" ? "bn" : "en")}</span>
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </section>
 
