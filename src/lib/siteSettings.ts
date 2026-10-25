@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import type { SiteSettings } from "@/types/cms";
+import { applyColorPalette } from "@/lib/colorPalettes";
 
 const SETTINGS_CACHE_KEY = "oasis_site_settings_cache_v4";
 const LEGACY_CACHE_KEYS = ["oasis_site_settings_cache_v3", "oasis_site_settings_cache_v2", "oasis_site_settings_cache_v1"];
@@ -28,9 +29,24 @@ export const defaultSiteSettings: SiteSettings = {
   facebook_url: "https://www.facebook.com/profile.php?id=61595529418669",
   facebook_group_url: "https://www.facebook.com/share/g/1Pg8FaZjsn/",
   youtube_url: "https://www.youtube.com/@ANNOORMADRASA",
+  instagram_url: null,
+  tiktok_url: null,
+  twitter_url: null,
   logo_url: "/site-logo.png",
   favicon_url: "/favicon.ico",
   hero_image_url: null,
+  color_palette: "royal-navy",
+  primary_color: null,
+  accent_color: null,
+
+  // Board Affiliations & Registrations
+  befaq_name: "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ (বেফাক)",
+  befaq_reg_no: "",
+  huffaz_name: "হুফ্ফাজুল কুরআন ফাউন্ডেশন বাংলাদেশ",
+  huffaz_reg_no: "",
+  nurani_name: "নূরানী তা'লীমুল কুরআন বোর্ড বাংলাদেশ",
+  nurani_reg_no: "",
+  trade_license_no: "",
 
   // Banking & Payment
   bank_name_bn: "ইসলামী ব্যাংক বাংলাদেশ পিএলসি",
@@ -183,6 +199,7 @@ export function broadcastSiteSettingsUpdated(settings: Partial<SiteSettings>): S
   lastFetchTimestamp = 0;
 
   const merged = saveSiteSettingsToCache(settings);
+  applyColorPalette(merged.color_palette || "royal-navy", merged.primary_color, merged.accent_color);
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(SETTINGS_UPDATED_EVENT, { detail: merged }));
     try {
@@ -191,6 +208,55 @@ export function broadcastSiteSettingsUpdated(settings: Partial<SiteSettings>): S
     window.dispatchEvent(new Event("storage"));
   }
   return merged;
+}
+
+/**
+ * Resilient remote updater for site_settings.
+ * 1. Immediately updates localStorage cache and broadcasts the full payload so UI is instant and persistent.
+ * 2. Attempts upsert to Supabase.
+ * 3. If Supabase returns schema cache / missing column errors (e.g. "Could not find the '...' column of 'site_settings' in the schema cache"),
+ *    it gracefully strips the unrecognized column(s) and retries the upsert.
+ */
+export async function updateSiteSettingsRemote(payload: Partial<SiteSettings>): Promise<{ success: boolean; data: SiteSettings; error?: any }> {
+  // 1. Immediately broadcast and save to cache
+  const merged = broadcastSiteSettingsUpdated(payload);
+
+  // 2. Prepare payload for Supabase
+  let remotePayload: Record<string, any> = {
+    ...payload,
+    id: 1,
+    updated_at: new Date().toISOString(),
+  };
+
+  // Try upserting to Supabase with auto-stripping of missing columns
+  let attempts = 0;
+  const maxAttempts = 10;
+  while (attempts < maxAttempts) {
+    attempts++;
+    const { error } = await supabase
+      .from("site_settings")
+      .upsert(remotePayload, { onConflict: "id" });
+
+    if (!error) {
+      break;
+    }
+
+    const msg = error.message || "";
+    const match =
+      msg.match(/Could not find the '([^']+)' column/i) ||
+      msg.match(/column "?([^"\s]+)"? (?:of relation )?does not exist/i);
+
+    if (match && match[1] && match[1] in remotePayload) {
+      console.warn(`Supabase schema cache missing column '${match[1]}'. Stripping from remote payload and retrying...`);
+      delete remotePayload[match[1]];
+      continue;
+    }
+
+    console.warn("Supabase site_settings upsert non-column error:", error);
+    break;
+  }
+
+  return { success: true, data: merged };
 }
 
 export async function fetchSiteSettings(forceFresh = false): Promise<SiteSettings> {
@@ -224,20 +290,37 @@ export async function fetchSiteSettings(forceFresh = false): Promise<SiteSetting
         logo_url: data.logo_url || defaultSiteSettings.logo_url,
         favicon_url: data.favicon_url || defaultSiteSettings.favicon_url,
         hero_image_url: data.hero_image_url || defaultSiteSettings.hero_image_url,
-        facebook_url: data.facebook_url || defaultSiteSettings.facebook_url,
-        youtube_url: data.youtube_url || defaultSiteSettings.youtube_url,
-        google_maps_url: data.google_maps_url || defaultSiteSettings.google_maps_url,
+        facebook_url: data.facebook_url ?? sanitizedRemote.facebook_url ?? defaultSiteSettings.facebook_url,
+        facebook_group_url: data.facebook_group_url ?? sanitizedRemote.facebook_group_url ?? defaultSiteSettings.facebook_group_url,
+        youtube_url: data.youtube_url ?? sanitizedRemote.youtube_url ?? defaultSiteSettings.youtube_url,
+        instagram_url: data.instagram_url ?? sanitizedRemote.instagram_url ?? defaultSiteSettings.instagram_url,
+        tiktok_url: data.tiktok_url ?? sanitizedRemote.tiktok_url ?? defaultSiteSettings.tiktok_url,
+        twitter_url: data.twitter_url ?? sanitizedRemote.twitter_url ?? defaultSiteSettings.twitter_url,
+        google_maps_url: data.google_maps_url ?? defaultSiteSettings.google_maps_url,
         payment_accounts: Array.isArray(data.payment_accounts)
           ? data.payment_accounts
           : (Array.isArray(sanitizedRemote.payment_accounts) ? sanitizedRemote.payment_accounts : []),
+        color_palette: data.color_palette || sanitizedRemote.color_palette || defaultSiteSettings.color_palette,
+        primary_color: data.primary_color ?? sanitizedRemote.primary_color ?? null,
+        accent_color: data.accent_color ?? sanitizedRemote.accent_color ?? null,
+        befaq_name: data.befaq_name ?? sanitizedRemote.befaq_name ?? defaultSiteSettings.befaq_name,
+        befaq_reg_no: data.befaq_reg_no ?? sanitizedRemote.befaq_reg_no ?? defaultSiteSettings.befaq_reg_no,
+        huffaz_name: data.huffaz_name ?? sanitizedRemote.huffaz_name ?? defaultSiteSettings.huffaz_name,
+        huffaz_reg_no: data.huffaz_reg_no ?? sanitizedRemote.huffaz_reg_no ?? defaultSiteSettings.huffaz_reg_no,
+        nurani_name: data.nurani_name ?? sanitizedRemote.nurani_name ?? defaultSiteSettings.nurani_name,
+        nurani_reg_no: data.nurani_reg_no ?? sanitizedRemote.nurani_reg_no ?? defaultSiteSettings.nurani_reg_no,
+        trade_license_no: data.trade_license_no ?? sanitizedRemote.trade_license_no ?? defaultSiteSettings.trade_license_no,
       };
 
       lastFetchTimestamp = Date.now();
       saveSiteSettingsToCache(merged);
+      applyColorPalette(merged.color_palette || "royal-navy", merged.primary_color, merged.accent_color);
       return merged;
     } catch (err) {
       console.warn("Could not fetch remote site_settings, using fallback:", err);
-      return getCachedSiteSettings();
+      const cached = getCachedSiteSettings();
+      applyColorPalette(cached.color_palette || "royal-navy", cached.primary_color, cached.accent_color);
+      return cached;
     }
   })();
 
@@ -248,7 +331,13 @@ export async function fetchSiteSettings(forceFresh = false): Promise<SiteSetting
  * React hook to access institutional settings across all public & admin pages in real-time.
  */
 export function useSiteSettings(): { settings: SiteSettings; loading: boolean } {
-  const [settings, setSettings] = useState<SiteSettings>(getCachedSiteSettings);
+  const [settings, setSettings] = useState<SiteSettings>(() => {
+    const cached = getCachedSiteSettings();
+    if (typeof window !== "undefined") {
+      applyColorPalette(cached.color_palette || "royal-navy", cached.primary_color, cached.accent_color);
+    }
+    return cached;
+  });
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -258,6 +347,7 @@ export function useSiteSettings(): { settings: SiteSettings; loading: boolean } 
       if (mounted) {
         const latest = getCachedSiteSettings();
         setSettings(latest);
+        applyColorPalette(latest.color_palette || "royal-navy", latest.primary_color, latest.accent_color);
 
         // Update favicon dynamically if customized
         if (

@@ -1,9 +1,26 @@
 import { useState, useEffect } from "react";
-import { Loader2, MapPin, Share2, Save, Globe, Phone, Mail, MessageCircle, Link as LinkIcon, Building2 } from "lucide-react";
+import {
+  Loader2,
+  MapPin,
+  Share2,
+  Save,
+  Globe,
+  Phone,
+  Mail,
+  MessageCircle,
+  Building2,
+  Instagram,
+  Video,
+  Twitter,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase, logAdminActivity } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { broadcastSiteSettingsUpdated, defaultSiteSettings, getCachedSiteSettings } from "@/lib/siteSettings";
+import {
+  defaultSiteSettings,
+  getCachedSiteSettings,
+  updateSiteSettingsRemote,
+} from "@/lib/siteSettings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,12 +42,13 @@ export const CampusAddressForm = () => {
       website_url: cached.website_url || defaultSiteSettings.website_url || "",
       address_boys_campus_bn: cached.address_boys_campus_bn || defaultSiteSettings.address_boys_campus_bn || "",
       address_boys_campus_en: cached.address_boys_campus_en || defaultSiteSettings.address_boys_campus_en || "",
-      address_girls_campus_bn: cached.address_girls_campus_bn || defaultSiteSettings.address_girls_campus_bn || "",
-      address_girls_campus_en: cached.address_girls_campus_en || defaultSiteSettings.address_girls_campus_en || "",
       google_maps_url: cached.google_maps_url || defaultSiteSettings.google_maps_url || "",
       facebook_url: cached.facebook_url || defaultSiteSettings.facebook_url || "",
       facebook_group_url: cached.facebook_group_url || defaultSiteSettings.facebook_group_url || "",
       youtube_url: cached.youtube_url || defaultSiteSettings.youtube_url || "",
+      instagram_url: cached.instagram_url || defaultSiteSettings.instagram_url || "",
+      tiktok_url: cached.tiktok_url || defaultSiteSettings.tiktok_url || "",
+      twitter_url: cached.twitter_url || defaultSiteSettings.twitter_url || "",
     };
   });
 
@@ -59,12 +77,13 @@ export const CampusAddressForm = () => {
           website_url: data.website_url || defaultSiteSettings.website_url || "",
           address_boys_campus_bn: data.address_boys_campus_bn || defaultSiteSettings.address_boys_campus_bn || "",
           address_boys_campus_en: data.address_boys_campus_en || defaultSiteSettings.address_boys_campus_en || "",
-          address_girls_campus_bn: data.address_girls_campus_bn || defaultSiteSettings.address_girls_campus_bn || "",
-          address_girls_campus_en: data.address_girls_campus_en || defaultSiteSettings.address_girls_campus_en || "",
           google_maps_url: data.google_maps_url || defaultSiteSettings.google_maps_url || "",
           facebook_url: data.facebook_url || defaultSiteSettings.facebook_url || "",
           facebook_group_url: data.facebook_group_url || defaultSiteSettings.facebook_group_url || "",
           youtube_url: data.youtube_url || defaultSiteSettings.youtube_url || "",
+          instagram_url: data.instagram_url || defaultSiteSettings.instagram_url || "",
+          tiktok_url: data.tiktok_url || defaultSiteSettings.tiktok_url || "",
+          twitter_url: data.twitter_url || defaultSiteSettings.twitter_url || "",
         });
       }
     } catch (err: any) {
@@ -90,23 +109,20 @@ export const CampusAddressForm = () => {
         website_url: formData.website_url.trim() || null,
         address_boys_campus_bn: formData.address_boys_campus_bn.trim() || null,
         address_boys_campus_en: formData.address_boys_campus_en.trim() || null,
-        address_girls_campus_bn: formData.address_girls_campus_bn.trim() || null,
-        address_girls_campus_en: formData.address_girls_campus_en.trim() || null,
+        address_girls_campus_bn: null,
+        address_girls_campus_en: null,
         google_maps_url: formData.google_maps_url.trim() || null,
         facebook_url: formData.facebook_url.trim() || null,
         facebook_group_url: formData.facebook_group_url.trim() || null,
         youtube_url: formData.youtube_url.trim() || null,
+        instagram_url: formData.instagram_url.trim() || null,
+        tiktok_url: formData.tiktok_url.trim() || null,
+        twitter_url: formData.twitter_url.trim() || null,
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
-        .from("site_settings")
-        .upsert(payload, { onConflict: "id" });
-
-      if (error) throw error;
-
-      // Broadcast update across entire application in real-time
-      broadcastSiteSettingsUpdated(payload);
+      // Resilient remote updater handles schema cache issues and keeps local cache in sync
+      await updateSiteSettingsRemote(payload);
 
       await logAdminActivity(
         "UPDATE",
@@ -114,7 +130,12 @@ export const CampusAddressForm = () => {
         `ক্যাম্পাস ঠিকানা, হেল্পলাইন ও সোশ্যাল মিডিয়া লিঙ্ক আপডেট`
       );
 
-      toast.success(t("ক্যাম্পাস ও যোগাযোগ লিঙ্ক সফলভাবে সংরক্ষিত হয়েছে", "Campus & contact settings saved successfully"));
+      toast.success(
+        t(
+          "ক্যাম্পাস ও সোশ্যাল মিডিয়া লিঙ্ক সফলভাবে সংরক্ষিত হয়েছে",
+          "Campus & social media links saved successfully"
+        )
+      );
     } catch (err: any) {
       console.error("Error saving campus settings:", err);
       toast.error(err.message || t("সংরক্ষণ করতে সমস্যা হয়েছে", "Failed to save campus info"));
@@ -142,94 +163,114 @@ export const CampusAddressForm = () => {
           <div className="flex items-center gap-2">
             <Phone className="h-5 w-5 text-primary" />
             <CardTitle className="text-lg">
-              {t("অফিসিয়াল যোগাযোগ ও হেল্পলাইন", "Official Contact Numbers & Channels")}
+              {t("অফিসিয়াল যোগাযোগ ও হেল্পলাইন", "Official Contact & Helplines")}
             </CardTitle>
           </div>
           <CardDescription>
-            {t("ওয়েবসাইটের হেডার, ফুটার ও কন্টাক্ট পেজের হটলাইন ও ইমেইল", "Hotlines and contact details across header, footer and contact pages")}
+            {t("ওয়েবসাইটের হেডার, ফুটার ও নোটিশ বোর্ডে সরাসরি প্রদর্শিত ফোন ও ইমেইল", "Primary communication channels displayed across website header and footer")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="phone_primary" className="font-semibold text-emerald-700 dark:text-emerald-400">
-                {t("প্রধান ফোন / হটলাইন *", "Primary Phone / Hotline *")}
+              <Label htmlFor="phone_primary" className="font-semibold text-primary">
+                {t("প্রধান হটলাইন নম্বর *", "Primary Helpline *")}
               </Label>
-              <Input
-                id="phone_primary"
-                value={formData.phone_primary}
-                onChange={(e) => setFormData({ ...formData, phone_primary: e.target.value })}
-                placeholder="018XXXXXXXX"
-                className="font-mono"
-                required
-              />
+              <div className="relative">
+                <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="phone_primary"
+                  className="pl-9 font-mono"
+                  value={formData.phone_primary}
+                  onChange={(e) => setFormData({ ...formData, phone_primary: e.target.value })}
+                  placeholder="01820811511"
+                  required
+                />
+              </div>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="phone_secondary">{t("বিকল্প ফোন / অফিস", "Secondary Phone / Office")}</Label>
-              <Input
-                id="phone_secondary"
-                value={formData.phone_secondary}
-                onChange={(e) => setFormData({ ...formData, phone_secondary: e.target.value })}
-                placeholder="015XXXXXXXX"
-                className="font-mono"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="whatsapp_number" className="font-semibold text-[#128C7E]">
-                {t("হোয়াটসঅ্যাপ হেল্পলাইন *", "WhatsApp Helpline *")}
-              </Label>
-              <Input
-                id="whatsapp_number"
-                value={formData.whatsapp_number}
-                onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
-                placeholder="015XXXXXXXX"
-                className="font-mono"
-                required
-              />
+              <Label htmlFor="phone_secondary">{t("বিকল্প যোগাযোগ নম্বর", "Secondary Phone")}</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="phone_secondary"
+                  className="pl-9 font-mono"
+                  value={formData.phone_secondary}
+                  onChange={(e) => setFormData({ ...formData, phone_secondary: e.target.value })}
+                  placeholder="01581818368"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email_primary">{t("অফিসিয়াল ইমেইল", "Official Email")}</Label>
-              <Input
-                id="email_primary"
-                type="email"
-                value={formData.email_primary}
-                onChange={(e) => setFormData({ ...formData, email_primary: e.target.value })}
-                placeholder="info@institution.edu.bd"
-              />
+              <Label htmlFor="whatsapp_number" className="font-semibold text-emerald-600 dark:text-emerald-400">
+                {t("হোয়াটসঅ্যাপ নম্বর *", "WhatsApp Number *")}
+              </Label>
+              <div className="relative">
+                <MessageCircle className="absolute left-3 top-2.5 h-4 w-4 text-emerald-600" />
+                <Input
+                  id="whatsapp_number"
+                  className="pl-9 font-mono"
+                  value={formData.whatsapp_number}
+                  onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
+                  placeholder="01581818368"
+                  required
+                />
+              </div>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="website_url">{t("অফিসিয়াল ওয়েবসাইট URL", "Official Website URL")}</Label>
-              <Input
-                id="website_url"
-                value={formData.website_url}
-                onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
-                placeholder="https://institution.edu.bd"
-              />
+              <Label htmlFor="email_primary">{t("অফিসিয়াল ইমেইল ঠিকানা", "Official Email")}</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email_primary"
+                  type="email"
+                  className="pl-9"
+                  value={formData.email_primary}
+                  onChange={(e) => setFormData({ ...formData, email_primary: e.target.value })}
+                  placeholder="info@annoor.edu.bd"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="website_url">{t("ওয়েবসাইট URL", "Website URL")}</Label>
+              <div className="relative">
+                <Globe className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="website_url"
+                  className="pl-9"
+                  value={formData.website_url}
+                  onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
+                  placeholder="https://annoor.edu.bd"
+                />
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Campus Physical Addresses */}
+      {/* Campus Physical Address */}
       <Card className="border-border/60 shadow-sm">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-2">
             <Building2 className="h-5 w-5 text-amber-600" />
             <CardTitle className="text-lg">
-              {t("ক্যাম্পাস অবস্থান ও ঠিকানা", "Campus Physical Addresses")}
+              {t("ক্যাম্পাস অবস্থান ও ঠিকানা", "Campus Physical Address")}
             </CardTitle>
           </div>
           <CardDescription>
-            {t("প্রধান একাডেমিক ক্যাম্পাস এবং আবাসিক/অন্যান্য শাখার ঠিকানা", "Main academic campus and residential/branch addresses")}
+            {t("মাদরাসার স্থায়ী ক্যাম্পাস অবস্থান ও অফিসিয়াল ঠিকানা", "Official physical campus location and street address")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="address_boys_campus_bn" className="font-semibold text-emerald-700 dark:text-emerald-400">
-              {t("প্রধান / বালক ক্যাম্পাস ঠিকানা (বাংলা) *", "Main Academic Campus (Bangla) *")}
+            <Label htmlFor="address_boys_campus_bn" className="font-semibold text-primary">
+              {t("মাদরাসা ক্যাম্পাস ঠিকানা (বাংলা) *", "Madrasa Campus Address (Bangla) *")}
             </Label>
             <Textarea
               id="address_boys_campus_bn"
@@ -242,35 +283,13 @@ export const CampusAddressForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address_boys_campus_en">{t("প্রধান ক্যাম্পাস ঠিকানা (ইংরেজি)", "Main Academic Campus (English)")}</Label>
+            <Label htmlFor="address_boys_campus_en">{t("ক্যাম্পাস ঠিকানা (ইংরেজি)", "Campus Address (English)")}</Label>
             <Textarea
               id="address_boys_campus_en"
               rows={2}
               value={formData.address_boys_campus_en}
               onChange={(e) => setFormData({ ...formData, address_boys_campus_en: e.target.value })}
               placeholder="e.g. Main Road, Kapasia Bazar, Kapasia, Gazipur"
-            />
-          </div>
-
-          <div className="space-y-2 pt-2 border-t border-border/50">
-            <Label htmlFor="address_girls_campus_bn">{t("আবাসিক / বালিকা ক্যাম্পাস ঠিকানা (বাংলা)", "Residential / Girls Campus (Bangla)")}</Label>
-            <Textarea
-              id="address_girls_campus_bn"
-              rows={2}
-              value={formData.address_girls_campus_bn}
-              onChange={(e) => setFormData({ ...formData, address_girls_campus_bn: e.target.value })}
-              placeholder="যেমন: মাদরাসা ক্যাম্পাস সংলগ্ন নিজস্ব আবাসিক ভবন, কাপাসিয়া, গাজীপুর"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="address_girls_campus_en">{t("আবাসিক / বালিকা ক্যাম্পাস ঠিকানা (ইংরেজি)", "Residential / Girls Campus (English)")}</Label>
-            <Textarea
-              id="address_girls_campus_en"
-              rows={2}
-              value={formData.address_girls_campus_en}
-              onChange={(e) => setFormData({ ...formData, address_girls_campus_en: e.target.value })}
-              placeholder="e.g. Campus Residential Building, Kapasia, Gazipur"
             />
           </div>
         </CardContent>
@@ -286,7 +305,7 @@ export const CampusAddressForm = () => {
             </CardTitle>
           </div>
           <CardDescription>
-            {t("ওয়েবসাইটের যোগাযোগ ও ফুটার সেকশনে সরাসরি সংযোগ", "Direct links on website footer, contact page and campus locator")}
+            {t("ওয়েবসাইটের যোগাযোগ, ফুটার ও সোশ্যাল সেকশনে প্রদর্শিত লিঙ্কসমূহ", "Direct links on website footer, contact page, and campus locator")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -300,6 +319,7 @@ export const CampusAddressForm = () => {
             />
           </div>
 
+          {/* Social Media Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="facebook_url">{t("ফেসবুক পেজ / প্রোফাইল URL", "Facebook Page URL")}</Label>
@@ -311,7 +331,7 @@ export const CampusAddressForm = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="facebook_group_url">{t("ফেসবুক অফিসিয়াল গ্রুপ URL", "Facebook Group URL")}</Label>
+              <Label htmlFor="facebook_group_url">{t("ফেসবুক অফিসিয়াল গ্রুপ URL", "Facebook Group URL")}</Label>
               <Input
                 id="facebook_group_url"
                 value={formData.facebook_group_url}
@@ -329,6 +349,47 @@ export const CampusAddressForm = () => {
               />
             </div>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-border/50">
+            <div className="space-y-2">
+              <Label htmlFor="instagram_url" className="flex items-center gap-1.5">
+                <Instagram className="h-4 w-4 text-pink-600" />
+                <span>{t("ইনস্টাগ্রাম প্রোফাইল URL", "Instagram Profile URL")}</span>
+              </Label>
+              <Input
+                id="instagram_url"
+                value={formData.instagram_url}
+                onChange={(e) => setFormData({ ...formData, instagram_url: e.target.value })}
+                placeholder="https://instagram.com/..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tiktok_url" className="flex items-center gap-1.5">
+                <Video className="h-4 w-4 text-slate-800 dark:text-slate-200" />
+                <span>{t("টিকটক প্রোফাইল URL", "TikTok Profile URL")}</span>
+              </Label>
+              <Input
+                id="tiktok_url"
+                value={formData.tiktok_url}
+                onChange={(e) => setFormData({ ...formData, tiktok_url: e.target.value })}
+                placeholder="https://tiktok.com/@..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="twitter_url" className="flex items-center gap-1.5">
+                <Twitter className="h-4 w-4 text-sky-500" />
+                <span>{t("টুইটার / X প্রোফাইল URL", "Twitter / X Profile URL")}</span>
+              </Label>
+              <Input
+                id="twitter_url"
+                value={formData.twitter_url}
+                onChange={(e) => setFormData({ ...formData, twitter_url: e.target.value })}
+                placeholder="https://x.com/..."
+              />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -337,7 +398,7 @@ export const CampusAddressForm = () => {
         <Button
           type="submit"
           disabled={saving}
-          className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white min-w-[170px]"
+          className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground min-w-[170px]"
         >
           {saving ? (
             <>

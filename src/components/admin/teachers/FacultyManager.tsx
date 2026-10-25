@@ -235,9 +235,7 @@ export const FacultyManager = () => {
             {t("ক্যাম্পাস ফিল্টার:", "Campus:")}
           </span>
           {[
-            { id: "all", labelBn: "সকল ক্যাম্পাস", labelEn: "All" },
-            { id: "boys", labelBn: "বালক শাখা", labelEn: "Boys" },
-            { id: "girls", labelBn: "বালিকা শাখা", labelEn: "Girls" },
+            { id: "all", labelBn: "সকল শিক্ষক ও সদস্য", labelEn: "All Faculty" },
           ].map((c) => (
             <button
               key={c.id}

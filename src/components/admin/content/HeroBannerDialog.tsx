@@ -321,7 +321,7 @@ export const HeroBannerDialog = ({
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
               {t("বাতিল", "Cancel")}
             </Button>
-            <Button type="submit" disabled={loading} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+            <Button type="submit" disabled={loading} className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground">
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {bannerToEdit ? t("আপডেট করুন", "Save Changes") : t("যুক্ত করুন", "Save Banner")}
             </Button>

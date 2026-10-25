@@ -3,7 +3,7 @@ import { Loader2, UploadCloud, Sparkles, Image as ImageIcon, Save, Check, X, Rot
 import { toast } from "sonner";
 import { supabase, uploadCmsFile, logAdminActivity } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { broadcastSiteSettingsUpdated } from "@/lib/siteSettings";
+import { broadcastSiteSettingsUpdated, updateSiteSettingsRemote } from "@/lib/siteSettings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -26,45 +26,55 @@ export const BrandingSettingsForm = () => {
   const heroInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetchBranding();
-  }, []);
+    let isMounted = true;
 
-  const fetchBranding = async () => {
-    try {
-      setLoading(true);
-      let { data, error } = await supabase
-        .from("site_settings")
-        .select("logo_url, favicon_url, hero_image_url")
-        .order("id", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-
-      if (error && error.code === "42703") {
-        // Graceful fallback if remote schema hasn't run the migration yet
-        const fallback = await supabase
+    const fetchBranding = async () => {
+      try {
+        setLoading(true);
+        let { data, error } = await supabase
           .from("site_settings")
-          .select("logo_url, favicon_url")
+          .select("logo_url, favicon_url, hero_image_url")
           .order("id", { ascending: true })
           .limit(1)
           .maybeSingle();
-        data = fallback.data as any;
-        error = fallback.error;
-      }
 
-      if (error && error.code !== "PGRST116") throw error;
+        if (error && error.code === "42703") {
+          // Graceful fallback if remote schema hasn't run the migration yet
+          const fallback = await supabase
+            .from("site_settings")
+            .select("logo_url, favicon_url")
+            .order("id", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+          data = fallback.data as any;
+          error = fallback.error;
+        }
 
-      if (data) {
-        setLogoUrl(data.logo_url || "");
-        setFaviconUrl(data.favicon_url || "");
-        setHeroImageUrl(data.hero_image_url || "");
+        if (error && error.code !== "PGRST116") throw error;
+
+        if (isMounted && data) {
+          setLogoUrl(data.logo_url || "");
+          setFaviconUrl(data.favicon_url || "");
+          setHeroImageUrl(data.hero_image_url || "");
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          console.error("Error fetching branding settings:", err);
+          toast.error(t("ব্র্যান্ডিং তথ্য লোড করতে সমস্যা হয়েছে", "Failed to load branding info"));
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-    } catch (err: any) {
-      console.error("Error fetching branding settings:", err);
-      toast.error(t("ব্র্যান্ডিং তথ্য লোড করতে সমস্যা হয়েছে", "Failed to load branding info"));
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchBranding();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleLogoFileChange = (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -132,14 +142,8 @@ export const BrandingSettingsForm = () => {
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
-        .from("site_settings")
-        .upsert(payload, { onConflict: "id" });
-
-      if (error) throw error;
-
-      // Broadcast new logo, favicon, and hero image across all components in real-time
-      broadcastSiteSettingsUpdated(payload);
+      // Resilient remote updater handles schema cache and broadcasts sync
+      await updateSiteSettingsRemote(payload);
 
       await logAdminActivity(
         "UPDATE",

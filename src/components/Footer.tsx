@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useSiteSettings } from "@/lib/siteSettings";
+import { useSiteSettings, formatRegistrationNumber } from "@/lib/siteSettings";
 
 const DEFAULT_MAPS_URL =
   "https://www.google.com/maps/place/%E0%A6%86%E0%A6%A8%E0%A6%A8%E0%A7%82%E0%A6%B0+%E0%A6%A4%E0%A6%BE%E0%A6%B9%E0%A6%AB%E0%A6%BF%E0%A6%9C%E0%A7%81%E0%A6%B2+%E0%A6%95%E0%A7%81%E0%A6%B0%E0%A6%86%E0%A6%A8+%E0%A6%AE%E0%A6%BE%E0%A6%A6%E0%A6%B0%E0%A6%BE%E0%A6%B8%E0%A6%BE+%E0%A6%93+%E0%A6%AE%E0%A6%A1%E0%A7%87%E0%A6%B2+%E0%A6%8F%E0%A6%95%E0%A6%BE%E0%A6%A1%E0%A7%87%E0%A6%AE%E0%A7%80/@24.1119189,90.5677945,21z/data=!4m6!3m5!1s0x3755d59d76b2ffd9:0xde5de9aa6b8378aa!8m2!3d24.1118467!4d90.5680587!16s%2Fg%2F11khdsnx7w?entry=ttu&g_ep=EgoyMDI2MDMzMS4wIKXMDSoASAFQAw%3D%3D";
@@ -52,7 +52,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="relative overflow-hidden border-t border-primary/40 bg-gradient-to-b from-[#08185A] via-[#061244] to-[#040D33] text-primary-foreground">
+    <footer className="relative overflow-hidden border-t border-primary/40 bg-gradient-to-b from-primary via-primary/95 to-slate-950 text-primary-foreground">
       {/* Subtle Islamic Geometric Accent Background */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.035]"
@@ -125,10 +125,17 @@ const Footer = () => {
                     settings.institution_name_en || "Annoor Tahfizul Quran Madrasa"
                   )}
                 </h3>
-                <p className="font-bengali text-xs font-medium text-accent">
-                  {t(
-                    `প্রতিষ্ঠিত: ${settings.founding_year || "২০২১"} • কাপাসিয়া, গাজীপুর`,
-                    `Est. ${settings.founding_year || "2021"} • Kapasia, Gazipur`
+                <p className="font-bengali text-xs font-medium text-accent flex flex-wrap items-center gap-1.5 mt-0.5">
+                  <span>
+                    {t(
+                      `প্রতিষ্ঠিত: ${settings.founding_year || "২০২১"} • কাপাসিয়া, গাজীপুর`,
+                      `Est. ${settings.founding_year || "2021"} • Kapasia, Gazipur`
+                    )}
+                  </span>
+                  {settings.emis_code && settings.emis_code !== "12345678" && (
+                    <span className="rounded bg-accent/20 px-2 py-0.5 text-[10px] text-accent font-mono font-semibold border border-accent/40 shadow-xs">
+                      {formatRegistrationNumber(settings.emis_code, lang === "bn" ? "bn" : "en")}
+                    </span>
                   )}
                 </p>
               </div>
@@ -158,42 +165,105 @@ const Footer = () => {
                   <Facebook className="h-5 w-5" />
                 </a>
 
-                <a
-                  href={facebookGroupUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Facebook Group"
-                  title={t("অফিসিয়াল ফেসবুক গ্রুপ", "Official Facebook Group")}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-blue-400/40 hover:bg-[#1877F2] hover:text-white hover:shadow-lg hover:shadow-blue-600/30 active:scale-95"
-                >
-                  <Users className="h-5 w-5" />
-                </a>
+                {facebookGroupUrl && (
+                  <a
+                    href={facebookGroupUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Facebook Group"
+                    title={t("অফিসিয়াল ফেসবুক গ্রুপ", "Official Facebook Group")}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-blue-400/40 hover:bg-[#1877F2] hover:text-white hover:shadow-lg hover:shadow-blue-600/30 active:scale-95"
+                  >
+                    <Users className="h-5 w-5" />
+                  </a>
+                )}
 
                 <a
                   href={youtubeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="YouTube Channel"
+                  title={t("ইউটিউব চ্যানেল", "YouTube Channel")}
                   className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-red-400/40 hover:bg-red-600 hover:text-white hover:shadow-lg hover:shadow-red-600/30 active:scale-95"
                 >
                   <Youtube className="h-5 w-5" />
                 </a>
+
+                {settings.instagram_url && (
+                  <a
+                    href={settings.instagram_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram Profile"
+                    title={t("অফিসিয়াল ইনস্টাগ্রাম", "Official Instagram")}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-pink-400/40 hover:bg-gradient-to-tr hover:from-amber-500 hover:via-pink-500 hover:to-purple-600 hover:text-white hover:shadow-lg hover:shadow-pink-600/30 active:scale-95"
+                  >
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                    </svg>
+                  </a>
+                )}
+
+                {settings.tiktok_url && (
+                  <a
+                    href={settings.tiktok_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="TikTok Profile"
+                    title={t("অফিসিয়াল টিকটক", "Official TikTok")}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-slate-400 hover:bg-black hover:text-white hover:shadow-lg hover:shadow-slate-900/40 active:scale-95"
+                  >
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.5 6.28 6.28 0 0 0 1.91-4.49V8.8a8.31 8.31 0 0 0 4.86 1.56V6.9a4.85 4.85 0 0 1-1-.21z"/>
+                    </svg>
+                  </a>
+                )}
+
+                {settings.twitter_url && (
+                  <a
+                    href={settings.twitter_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Twitter / X Profile"
+                    title={t("অফিসিয়াল এক্স / টুইটার", "Official X / Twitter")}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-slate-400 hover:bg-slate-900 hover:text-white hover:shadow-lg hover:shadow-slate-900/40 active:scale-95"
+                  >
+                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                  </a>
+                )}
 
                 <a
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="WhatsApp Helpline"
+                  title={t("অফিসিয়াল হোয়াটসঅ্যাপ", "Official WhatsApp")}
                   className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-emerald-400/40 hover:bg-emerald-600 hover:text-white hover:shadow-lg hover:shadow-emerald-600/30 active:scale-95"
                 >
                   <MessageCircle className="h-5 w-5" />
                 </a>
+
+                {settings.email_primary && (
+                  <a
+                    href={`mailto:${settings.email_primary}`}
+                    aria-label="Official Email"
+                    title={t("অফিসিয়াল ইমেইল", "Official Email")}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-primary/40 hover:bg-primary hover:text-primary-foreground hover:shadow-lg active:scale-95"
+                  >
+                    <Mail className="h-5 w-5" />
+                  </a>
+                )}
 
                 <a
                   href={mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Google Maps"
+                  title={t("গুগল ম্যাপে মাদরাসা অবস্থান", "Google Maps Location")}
                   className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-accent/40 hover:bg-accent hover:text-slate-950 hover:shadow-lg hover:shadow-accent/30 active:scale-95"
                 >
                   <MapPin className="h-5 w-5" />

@@ -225,8 +225,7 @@ export const HafezDialog = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="boys">{t("বালক শাখা (হাফেজ)", "Boys Section")}</SelectItem>
-                  <SelectItem value="girls">{t("বালিকা শাখা (হাফেজা)", "Girls Section")}</SelectItem>
+                  <SelectItem value="boys">{t("হিফজ বিভাগ", "Hifz Section")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

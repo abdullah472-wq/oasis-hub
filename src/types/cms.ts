@@ -173,10 +173,25 @@ export interface SiteSettings {
   facebook_url?: string | null;
   facebook_group_url?: string | null;
   youtube_url?: string | null;
+  instagram_url?: string | null;
+  tiktok_url?: string | null;
+  twitter_url?: string | null;
   logo_url?: string | null;
   favicon_url?: string | null;
   hero_image_url?: string | null;
+  color_palette?: string | null;
+  primary_color?: string | null;
+  accent_color?: string | null;
   admission_status: AdmissionStatusType;
+
+  // Board Affiliations & Registrations
+  befaq_name?: string | null;
+  befaq_reg_no?: string | null;
+  huffaz_name?: string | null;
+  huffaz_reg_no?: string | null;
+  nurani_name?: string | null;
+  nurani_reg_no?: string | null;
+  trade_license_no?: string | null;
 
   // Banking & Payment
   bank_name_bn?: string | null;

@@ -139,7 +139,7 @@ export const HeroBannerManager = () => {
               setSelectedBanner(null);
               setIsDialogOpen(true);
             }}
-            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
+            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs"
           >
             <Plus className="h-4 w-4" />
             <span>{t("নতুন ব্যানার", "Add Banner")}</span>

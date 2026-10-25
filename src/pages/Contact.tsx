@@ -392,7 +392,7 @@ const Contact = () => {
                   {t("সোশ্যাল মিডিয়ায় সংযুক্ত থাকুন:", "Connect Online:")}
                 </span>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <a
                     href={facebookUrl}
                     target="_blank"
@@ -402,6 +402,17 @@ const Contact = () => {
                     <span>Facebook</span>
                     <ExternalLink className="h-3 w-3" />
                   </a>
+                  {settings.facebook_group_url && (
+                    <a
+                      href={settings.facebook_group_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-colors text-xs font-semibold"
+                    >
+                      <span>FB Group</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
                   <a
                     href={youtubeUrl}
                     target="_blank"
@@ -411,6 +422,28 @@ const Contact = () => {
                     <span>YouTube</span>
                     <ExternalLink className="h-3 w-3" />
                   </a>
+                  {settings.instagram_url && (
+                    <a
+                      href={settings.instagram_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-600/10 text-pink-600 hover:bg-pink-600 hover:text-white transition-colors text-xs font-semibold"
+                    >
+                      <span>Instagram</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                  {settings.tiktok_url && (
+                    <a
+                      href={settings.tiktok_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/10 text-slate-800 dark:text-slate-200 hover:bg-black hover:text-white transition-colors text-xs font-semibold"
+                    >
+                      <span>TikTok</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
                 </div>
               </div>
             </motion.div>

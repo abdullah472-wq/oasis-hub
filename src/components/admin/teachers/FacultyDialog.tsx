@@ -328,9 +328,7 @@ export const FacultyDialog = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="boys">{t("বালক ক্যাম্পাস", "Boys Campus")}</SelectItem>
-                  <SelectItem value="girls">{t("বালিকা ক্যাম্পাস", "Girls Campus")}</SelectItem>
-                  <SelectItem value="both">{t("উভয় ক্যাম্পাস / সাধারণ", "Both Campuses / General")}</SelectItem>
+                  <SelectItem value="both">{t("মাদরাসা ক্যাম্পাস", "Madrasa Campus")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

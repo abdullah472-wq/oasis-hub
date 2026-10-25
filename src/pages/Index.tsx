@@ -1321,7 +1321,7 @@ const Index = () => {
       </section>
 
       {/* ================= DOWNLOAD CORNER PROMO ================= */}
-      <section className="py-14 bg-gradient-to-r from-[#08185A] via-[#0D1D66] to-[#040D33] text-white relative overflow-hidden">
+      <section className="py-14 bg-gradient-to-r from-primary via-primary/95 to-slate-950 text-white relative overflow-hidden">
         <div className="container mx-auto px-4 max-w-6xl relative z-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-2 text-center md:text-left">

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Loader2, Building2, Phone, Mail, Hash, Calendar, GraduationCap, Save } from "lucide-react";
+import { Loader2, Building2, Phone, Mail, Hash, Calendar, GraduationCap, Save, Award, ShieldCheck, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { supabase, logAdminActivity } from "@/lib/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { broadcastSiteSettingsUpdated, defaultSiteSettings, getCachedSiteSettings } from "@/lib/siteSettings";
+import { broadcastSiteSettingsUpdated, defaultSiteSettings, getCachedSiteSettings, updateSiteSettingsRemote } from "@/lib/siteSettings";
 import type { SiteSettings, AdmissionStatusType } from "@/types/cms";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,59 +36,77 @@ export const GeneralSettingsForm = () => {
       whatsapp_number: cached.whatsapp_number || defaultSiteSettings.whatsapp_number,
       email_primary: cached.email_primary || defaultSiteSettings.email_primary,
       admission_status: (cached.admission_status || "open") as AdmissionStatusType,
+      befaq_name: cached.befaq_name || defaultSiteSettings.befaq_name || "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ (বেফাক)",
+      befaq_reg_no: cached.befaq_reg_no || "",
+      huffaz_name: cached.huffaz_name || defaultSiteSettings.huffaz_name || "হুফ্ফাজুল কুরআন ফাউন্ডেশন বাংলাদেশ",
+      huffaz_reg_no: cached.huffaz_reg_no || "",
+      nurani_name: cached.nurani_name || defaultSiteSettings.nurani_name || "নূরানী তা'লীমুল কুরআন বোর্ড বাংলাদেশ",
+      nurani_reg_no: cached.nurani_reg_no || "",
+      trade_license_no: cached.trade_license_no || "",
     };
   });
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    let isMounted = true;
+    const fetchSettings = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from("site_settings")
+          .select("*")
+          .order("id", { ascending: true })
+          .limit(1)
+          .maybeSingle();
 
-  const fetchSettings = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("site_settings")
-        .select("*")
-        .order("id", { ascending: true })
-        .limit(1)
-        .maybeSingle();
+        if (error && error.code !== "PGRST116") throw error;
 
-      if (error && error.code !== "PGRST116") throw error;
+        if (isMounted && data) {
+          const cleanBn =
+            data.institution_name_bn === "আননূর তাহফিজুল কুরআন মাদরাসা ও মডেল একাডেমী"
+              ? defaultSiteSettings.institution_name_bn
+              : (data.institution_name_bn || defaultSiteSettings.institution_name_bn);
 
-      if (data) {
-        const cleanBn =
-          data.institution_name_bn === "আননূর তাহফিজুল কুরআন মাদরাসা ও মডেল একাডেমী"
-            ? defaultSiteSettings.institution_name_bn
-            : (data.institution_name_bn || defaultSiteSettings.institution_name_bn);
+          const cleanEn =
+            data.institution_name_en === "Annoor Tahfizul Quran Madrasa & Model Academy"
+              ? defaultSiteSettings.institution_name_en
+              : (data.institution_name_en || defaultSiteSettings.institution_name_en);
 
-        const cleanEn =
-          data.institution_name_en === "Annoor Tahfizul Quran Madrasa & Model Academy"
-            ? defaultSiteSettings.institution_name_en
-            : (data.institution_name_en || defaultSiteSettings.institution_name_en);
+          const cleanEmis = data.emis_code === "12345678" ? "" : (data.emis_code || "");
 
-        const cleanEmis = data.emis_code === "12345678" ? "" : (data.emis_code || "");
-
-        setFormData({
-          institution_name_bn: cleanBn,
-          institution_name_en: cleanEn,
-          tagline_bn: data.tagline_bn || defaultSiteSettings.tagline_bn || "",
-          tagline_en: data.tagline_en || defaultSiteSettings.tagline_en || "",
-          emis_code: cleanEmis,
-          founding_year: data.founding_year || defaultSiteSettings.founding_year || "2021",
-          phone_primary: data.phone_primary || defaultSiteSettings.phone_primary,
-          phone_secondary: data.phone_secondary || defaultSiteSettings.phone_secondary || "",
-          whatsapp_number: data.whatsapp_number || defaultSiteSettings.whatsapp_number,
-          email_primary: data.email_primary || defaultSiteSettings.email_primary,
-          admission_status: data.admission_status || "open",
-        });
+          setFormData({
+            institution_name_bn: cleanBn,
+            institution_name_en: cleanEn,
+            tagline_bn: data.tagline_bn || defaultSiteSettings.tagline_bn || "",
+            tagline_en: data.tagline_en || defaultSiteSettings.tagline_en || "",
+            emis_code: cleanEmis,
+            founding_year: data.founding_year || defaultSiteSettings.founding_year || "2021",
+            phone_primary: data.phone_primary || defaultSiteSettings.phone_primary,
+            phone_secondary: data.phone_secondary || defaultSiteSettings.phone_secondary || "",
+            whatsapp_number: data.whatsapp_number || defaultSiteSettings.whatsapp_number,
+            email_primary: data.email_primary || defaultSiteSettings.email_primary,
+            admission_status: data.admission_status || "open",
+            befaq_name: data.befaq_name ?? defaultSiteSettings.befaq_name ?? "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ (বেফাক)",
+            befaq_reg_no: data.befaq_reg_no ?? "",
+            huffaz_name: data.huffaz_name ?? defaultSiteSettings.huffaz_name ?? "হুফ্ফাজুল কুরআন ফাউন্ডেশন বাংলাদেশ",
+            huffaz_reg_no: data.huffaz_reg_no ?? "",
+            nurani_name: data.nurani_name ?? defaultSiteSettings.nurani_name ?? "নূরানী তা'লীমুল কুরআন বোর্ড বাংলাদেশ",
+            nurani_reg_no: data.nurani_reg_no ?? "",
+            trade_license_no: data.trade_license_no ?? "",
+          });
+        }
+      } catch (err: any) {
+        console.error("Error fetching site settings:", err);
+        if (isMounted) toast.error(t("সেটিংস লোড করতে সমস্যা হয়েছে", "Failed to load settings"));
+      } finally {
+        if (isMounted) setLoading(false);
       }
-    } catch (err: any) {
-      console.error("Error fetching site settings:", err);
-      toast.error(t("সেটিংস লোড করতে সমস্যা হয়েছে", "Failed to load settings"));
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchSettings();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,17 +132,18 @@ export const GeneralSettingsForm = () => {
         whatsapp_number: formData.whatsapp_number.trim(),
         email_primary: formData.email_primary.trim(),
         admission_status: formData.admission_status,
+        befaq_name: formData.befaq_name.trim() || null,
+        befaq_reg_no: formData.befaq_reg_no.trim() || null,
+        huffaz_name: formData.huffaz_name.trim() || null,
+        huffaz_reg_no: formData.huffaz_reg_no.trim() || null,
+        nurani_name: formData.nurani_name.trim() || null,
+        nurani_reg_no: formData.nurani_reg_no.trim() || null,
+        trade_license_no: formData.trade_license_no.trim() || null,
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
-        .from("site_settings")
-        .upsert(payload, { onConflict: "id" });
-
-      if (error) throw error;
-
-      // Broadcast update across entire application in real-time
-      broadcastSiteSettingsUpdated(payload);
+      // Resilient remote updater handles schema cache and broadcasts sync
+      await updateSiteSettingsRemote(payload);
 
       await logAdminActivity(
         "UPDATE",
@@ -321,6 +340,170 @@ export const GeneralSettingsForm = () => {
                 placeholder="info@annoor.edu.bd"
                 required
               />
+            </div>
+          </div>
+
+          {/* Board Affiliations & Registrations */}
+          <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-card p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Award className="h-4 w-4" />
+                </div>
+                <div>
+                  <h4 className="font-bengali font-bold text-sm text-foreground">
+                    {t("বোর্ড স্বীকৃতি, অধিভুক্তি ও রেজিস্ট্রেশন নম্বর", "Board Affiliations & Registration Numbers")}
+                  </h4>
+                  <p className="text-xs text-muted-foreground font-bengali">
+                    {t(
+                      "এখানে এন্ট্রি করা বোর্ডের নাম ও রেজি. নম্বর সরাসরি 'আমাদের সম্পর্কে' (About Us) পেজে ভেরিফাইড ব্যাজসহ প্রদর্শিত হবে",
+                      "Board names and registration numbers entered here will appear on the public 'About Us' page with verified badges"
+                    )}
+                  </p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                <ShieldCheck className="h-3 w-3" />
+                <span>{t("About Us পেজে লাইভ", "Live on About Us")}</span>
+              </span>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {/* Befaq */}
+              <div className="rounded-xl border border-border/70 bg-card p-3.5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/15 text-emerald-600 font-bold text-xs">
+                    ১
+                  </span>
+                  <span className="font-bengali font-bold text-xs text-foreground">
+                    {t("বেফাকুল মাদারিসিল আরাবিয়া (বেফাক)", "Befaqul Madarisil Arabia")}
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="befaq_name" className="text-xs font-medium text-muted-foreground">
+                    {t("বোর্ডের নাম", "Board Name")}
+                  </Label>
+                  <Input
+                    id="befaq_name"
+                    value={formData.befaq_name}
+                    onChange={(e) => setFormData({ ...formData, befaq_name: e.target.value })}
+                    placeholder="বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ (বেফাক)"
+                    className="text-xs h-9"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="befaq_reg_no" className="text-xs font-medium text-emerald-700 dark:text-emerald-400 font-semibold">
+                    {t("বেফাক রেজি: নম্বর", "Befaq Reg. No")}
+                  </Label>
+                  <Input
+                    id="befaq_reg_no"
+                    value={formData.befaq_reg_no}
+                    onChange={(e) => setFormData({ ...formData, befaq_reg_no: e.target.value })}
+                    placeholder="যেমন: B-12345 বা রেজি নং"
+                    className="text-xs h-9 font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Huffaz Board */}
+              <div className="rounded-xl border border-border/70 bg-card p-3.5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-500/15 text-blue-600 font-bold text-xs">
+                    ২
+                  </span>
+                  <span className="font-bengali font-bold text-xs text-foreground">
+                    {t("হুফ্ফাজুল কুরআন ফাউন্ডেশন", "Huffazul Quran Foundation")}
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="huffaz_name" className="text-xs font-medium text-muted-foreground">
+                    {t("সংস্থা / বোর্ডের নাম", "Board / Body Name")}
+                  </Label>
+                  <Input
+                    id="huffaz_name"
+                    value={formData.huffaz_name}
+                    onChange={(e) => setFormData({ ...formData, huffaz_name: e.target.value })}
+                    placeholder="হুফ্ফাজুল কুরআন ফাউন্ডেশন বাংলাদেশ"
+                    className="text-xs h-9"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="huffaz_reg_no" className="text-xs font-medium text-blue-700 dark:text-blue-400 font-semibold">
+                    {t("হুফ্ফাজ রেজি: নম্বর", "Huffaz Reg. No")}
+                  </Label>
+                  <Input
+                    id="huffaz_reg_no"
+                    value={formData.huffaz_reg_no}
+                    onChange={(e) => setFormData({ ...formData, huffaz_reg_no: e.target.value })}
+                    placeholder="যেমন: HQF-98765 বা রেজি নং"
+                    className="text-xs h-9 font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Nurani Board */}
+              <div className="rounded-xl border border-border/70 bg-card p-3.5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-md bg-purple-500/15 text-purple-600 font-bold text-xs">
+                    ৩
+                  </span>
+                  <span className="font-bengali font-bold text-xs text-foreground">
+                    {t("নূরানী তা'লীমুল কুরআন বোর্ড", "Nurani Talimul Quran Board")}
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="nurani_name" className="text-xs font-medium text-muted-foreground">
+                    {t("বোর্ডের নাম", "Board Name")}
+                  </Label>
+                  <Input
+                    id="nurani_name"
+                    value={formData.nurani_name}
+                    onChange={(e) => setFormData({ ...formData, nurani_name: e.target.value })}
+                    placeholder="নূরানী তা'লীমুল কুরআন বোর্ড বাংলাদেশ"
+                    className="text-xs h-9"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="nurani_reg_no" className="text-xs font-medium text-purple-700 dark:text-purple-400 font-semibold">
+                    {t("নূরানী বোর্ড রেজি: নম্বর", "Nurani Reg. No")}
+                  </Label>
+                  <Input
+                    id="nurani_reg_no"
+                    value={formData.nurani_reg_no}
+                    onChange={(e) => setFormData({ ...formData, nurani_reg_no: e.target.value })}
+                    placeholder="যেমন: NTQB-54321 বা রেজি নং"
+                    className="text-xs h-9 font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Government Trade License Number */}
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3.5 mt-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/20 text-amber-600 font-bold text-xs">
+                    ৪
+                  </span>
+                  <div>
+                    <h5 className="font-bengali font-bold text-xs sm:text-sm text-foreground">
+                      {t("সরকারি ট্রেড লাইসেন্স নম্বর (Trade License No)", "Trade License Number")}
+                    </h5>
+                    <p className="text-[11px] text-muted-foreground font-bengali">
+                      {t("স্থানীয় পৌরসভা/ইউনিয়ন পরিষদ অনুমোদিত প্রাতিষ্ঠানিক ট্রেড লাইসেন্স নম্বর", "Authorized Institutional Trade License Number")}
+                    </p>
+                  </div>
+                </div>
+                <div className="w-full sm:w-80">
+                  <Input
+                    id="trade_license_no"
+                    value={formData.trade_license_no}
+                    onChange={(e) => setFormData({ ...formData, trade_license_no: e.target.value })}
+                    placeholder="যেমন: TRAD/KAP/2024/XXXX"
+                    className="h-9 font-mono text-xs bg-background"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

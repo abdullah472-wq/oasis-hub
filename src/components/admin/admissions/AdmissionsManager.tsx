@@ -323,9 +323,8 @@ export const AdmissionsManager = () => {
                 <SelectValue placeholder={t("ক্যাম্পাস", "Campus")} />
               </SelectTrigger>
               <SelectContent className="font-bengali text-xs">
-                <SelectItem value="all">{t("উভয় ক্যাম্পাস", "All Campuses")}</SelectItem>
-                <SelectItem value="বালক">{t("বালক শাখা", "Boys Campus")}</SelectItem>
-                <SelectItem value="বালিকা">{t("বালিকা শাখা", "Girls Campus")}</SelectItem>
+                <SelectItem value="all">{t("সকল আবেদন", "All Applications")}</SelectItem>
+                <SelectItem value="প্রধান">{t("প্রধান ক্যাম্পাস", "Main Campus")}</SelectItem>
               </SelectContent>
             </Select>
 

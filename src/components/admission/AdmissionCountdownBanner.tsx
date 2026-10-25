@@ -158,7 +158,7 @@ export const AdmissionCountdownBanner = ({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#08185A] via-[#0D1D66] to-[#040D33] p-6 sm:p-8 md:p-10 text-white shadow-2xl ${className}`}
+      className={`relative overflow-hidden rounded-[2rem] border border-white/15 bg-gradient-to-br from-primary via-primary/95 to-slate-950 p-6 sm:p-8 md:p-10 text-white shadow-2xl ${className}`}
     >
       {/* Decorative ambient background lights */}
       <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-accent/15 blur-3xl pointer-events-none" />

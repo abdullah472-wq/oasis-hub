@@ -55,6 +55,9 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
   logo_url TEXT,
   favicon_url TEXT,
   hero_image_url TEXT,
+  color_palette TEXT DEFAULT 'royal-navy',
+  primary_color TEXT,
+  accent_color TEXT,
 
   -- Banking & Payment
   bank_name_bn TEXT,
@@ -156,6 +159,12 @@ ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_message
 ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_image_url TEXT;
 ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_phone TEXT;
 ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_email TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS color_palette TEXT DEFAULT 'royal-navy';
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS primary_color TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS accent_color TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS instagram_url TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS tiktok_url TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS twitter_url TEXT;
 
 -- Seed initial row in site_settings if empty
 INSERT INTO public.site_settings (
@@ -780,3 +789,19 @@ CREATE POLICY "Authenticated users can update/delete objects"
   ON storage.objects FOR ALL
   TO authenticated
   USING (bucket_id IN ('cms-notices', 'cms-gallery', 'cms-downloads', 'cms-branding'));
+
+-- ==============================================================================
+-- SITE SETTINGS EXTENSIONS & BOARD AFFILIATIONS
+-- ==============================================================================
+ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS facebook_group_url TEXT;
+ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS instagram_url TEXT;
+ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS tiktok_url TEXT;
+ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS twitter_url TEXT;
+ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS befaq_name TEXT;
+ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS befaq_reg_no TEXT;
+ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS huffaz_name TEXT;
+ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS huffaz_reg_no TEXT;
+ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS nurani_name TEXT;
+ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS nurani_reg_no TEXT;
+ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS trade_license_no TEXT;
+

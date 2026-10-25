@@ -102,11 +102,11 @@ const Admission = () => {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-primary via-primary/95 to-emerald-950 py-20 lg:py-28 text-white">
+      <section className="relative overflow-hidden bg-gradient-to-b from-primary via-primary/95 to-slate-950 py-20 lg:py-28 text-white">
         {/* Background Islamic Pattern & Glows */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.12),transparent_60%)]" />
         <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-emerald-400/15 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-primary/20 blur-3xl pointer-events-none" />
 
         <div className="container relative z-10 mx-auto px-4 text-center max-w-4xl">
           <motion.div
@@ -233,7 +233,7 @@ const Admission = () => {
         <section id="fee-structure" className="scroll-mt-36">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 font-bengali mb-2">
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3.5 py-1 text-xs font-semibold text-primary font-bengali mb-2">
                 <CreditCard className="h-3.5 w-3.5" />
                 <span>{t("স্বচ্ছ ও সুনির্দিষ্ট হিসাব", "Transparent & Fixed Structure")}</span>
               </div>
@@ -312,7 +312,7 @@ const Admission = () => {
                                 : t("অন্যান্য", "Other")}
                         </span>
                         {item.category === "tuition" && isHighlight ? (
-                          <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                          <div className="flex items-center gap-1 text-xs text-primary font-medium">
                             <HomeIcon className="h-3.5 w-3.5" />
                             <Utensils className="h-3.5 w-3.5" />
                           </div>
@@ -337,7 +337,7 @@ const Admission = () => {
 
                     {isHighlight && (
                       <div className="mt-4 pt-4 border-t border-border/60">
-                        <p className="font-bengali text-xs text-emerald-700 dark:text-emerald-300 font-medium flex items-center gap-1.5">
+                        <p className="font-bengali text-xs text-primary font-medium flex items-center gap-1.5">
                           <BadgeCheck className="h-4 w-4 shrink-0" />
                           {t(
                             "৩ বেলা সুষম পুষ্টিকর খাবার, আরামদায়ক শয্যা ও সার্বক্ষণিক তত্ত্বাবধান অন্তর্ভুক্ত।",

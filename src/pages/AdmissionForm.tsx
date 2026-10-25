@@ -36,7 +36,7 @@ const defaultInterviewReferences = Array.from({ length: 3 }, () => ({
 }));
 
 const fieldClass =
-  "w-full rounded-xl border border-sky-200 bg-white px-4 py-3 text-sm text-foreground shadow-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/15";
+  "w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground shadow-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-2 focus:ring-primary/15";
 
 const textAreaClass = `${fieldClass} min-h-[104px] resize-none`;
 
@@ -51,14 +51,14 @@ const SectionCard = ({
   description: string;
   children: React.ReactNode;
 }) => (
-  <section className="rounded-[1.75rem] border border-sky-100 bg-white p-6 shadow-[0_22px_70px_-52px_rgba(14,116,144,0.38)] md:p-7">
-    <div className="mb-5 flex items-start gap-4 border-b border-sky-100 pb-5">
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
+  <section className="rounded-[1.75rem] border border-border bg-card p-6 shadow-sm md:p-7">
+    <div className="mb-5 flex items-start gap-4 border-b border-border/80 pb-5">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
         <Icon className="h-6 w-6" />
       </div>
       <div>
-        <h2 className="font-bengali text-xl font-bold text-slate-900 md:text-[1.65rem]">{title}</h2>
-        <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
+        <h2 className="font-bengali text-xl font-bold text-foreground md:text-[1.65rem]">{title}</h2>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
       </div>
     </div>
     {children}

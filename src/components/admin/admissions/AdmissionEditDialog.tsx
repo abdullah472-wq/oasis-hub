@@ -320,8 +320,7 @@ export const AdmissionEditDialog = ({
                     <SelectValue placeholder={t("ক্যাম্পাস নির্বাচন করুন", "Select campus")} />
                   </SelectTrigger>
                   <SelectContent className="font-bengali">
-                    <SelectItem value="বালক শাখা (কাপাসিয়া বাজার)">{t("বালক শাখা (কাপাসিয়া বাজার)", "Boys Campus (Kapasia Bazar)")}</SelectItem>
-                    <SelectItem value="বালিকা শাখা (বাঁশতলা মোড়)">{t("বালিকা শাখা (বাঁশতলা মোড়)", "Girls Campus (Bashtola More)")}</SelectItem>
+                    <SelectItem value="প্রধান ক্যাম্পাস (কাপাসিয়া বাজার)">{t("প্রধান ক্যাম্পাস (কাপাসিয়া বাজার)", "Main Campus (Kapasia Bazar)")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

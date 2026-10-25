@@ -32,6 +32,47 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="আননূর মাদরাসা" />
 
+    <!-- Immediate Theme Palette Pre-hydration Script to prevent FOIC -->
+    <script>
+      (function() {
+        try {
+          var raw = localStorage.getItem("oasis_site_settings_cache_v4");
+          if (!raw) return;
+          var s = JSON.parse(raw);
+          var palette = s.color_palette || "royal-navy";
+          var pLight = "228 84% 19%";
+          var aLight = "16 88% 54%";
+          var pDark = "228 80% 65%";
+          var aDark = "16 88% 54%";
+          
+          if (palette === "rose-girls") {
+            pLight = "343 79% 35%"; aLight = "350 89% 60%";
+            pDark = "343 85% 65%"; aDark = "350 89% 65%";
+          } else if (palette === "islamic-emerald") {
+            pLight = "166 85% 17%"; aLight = "37 91% 44%";
+            pDark = "160 84% 45%"; aDark = "45 93% 58%";
+          } else if (palette === "ocean-teal") {
+            pLight = "192 72% 21%"; aLight = "23 83% 48%";
+            pDark = "187 85% 55%"; aDark = "27 96% 61%";
+          } else if (palette === "deep-maroon") {
+            pLight = "0 63% 31%"; aLight = "38 92% 50%";
+            pDark = "0 74% 65%"; aDark = "38 92% 50%";
+          } else if (palette === "royal-purple") {
+            pLight = "263 67% 35%"; aLight = "48 89% 50%";
+            pDark = "263 70% 65%"; aDark = "48 89% 55%";
+          } else if (palette === "classic-sapphire") {
+            pLight = "224 64% 33%"; aLight = "199 89% 48%";
+            pDark = "217 91% 65%"; aDark = "199 89% 55%";
+          }
+          
+          var style = document.createElement("style");
+          style.id = "dynamic-theme-palette";
+          style.innerHTML = ":root { --primary: " + pLight + " !important; --accent: " + aLight + " !important; --ring: " + pLight + " !important; --sidebar-primary: " + pLight + " !important; } .dark { --primary: " + pDark + " !important; --accent: " + aDark + " !important; --ring: " + pDark + " !important; --sidebar-primary: " + pDark + " !important; }";
+          document.head.appendChild(style);
+        } catch(e) {}
+      })();
+    </script>
+
     <meta property="og:title" content="আননূর তাহফিজুল কুরআন মাদরাসা | Annoor Tahfizul Quran Madrasa" />
     <meta
       property="og:description"

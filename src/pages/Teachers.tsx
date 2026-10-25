@@ -125,10 +125,10 @@ const Teachers = () => {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-primary via-primary/95 to-emerald-950 py-20 lg:py-28 text-white">
+      <section className="relative overflow-hidden bg-gradient-to-b from-primary via-primary/95 to-slate-950 py-20 lg:py-28 text-white">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.12),transparent_60%)]" />
         <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-emerald-400/15 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-primary/20 blur-3xl pointer-events-none" />
 
         <div className="container relative z-10 mx-auto px-4 text-center max-w-4xl">
           <motion.div
@@ -274,11 +274,7 @@ const Teachers = () => {
                       </span>
 
                       <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground font-bengali">
-                        {member.campus === "boys"
-                          ? t("বালক ক্যাম্পাস", "Boys Campus")
-                          : member.campus === "girls"
-                            ? t("বালিকা ক্যাম্পাস", "Girls Campus")
-                            : t("উভয় ক্যাম্পাস / সাধারণ", "Both Campuses")}
+                        {t("মাদরাসা ক্যাম্পাস", "Madrasa Campus")}
                       </span>
                     </div>
 

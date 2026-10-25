@@ -231,9 +231,7 @@ export const HuffazManager = () => {
             {t("ক্যাম্পাস শাখা:", "Campus:")}
           </span>
           {[
-            { id: "all", labelBn: "সকল", labelEn: "All" },
-            { id: "boys", labelBn: "বালক শাখা", labelEn: "Boys" },
-            { id: "girls", labelBn: "বালিকা শাখা", labelEn: "Girls" },
+            { id: "all", labelBn: "সকল শিক্ষার্থী", labelEn: "All Students" },
           ].map((c) => (
             <button
               key={c.id}
