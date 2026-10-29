@@ -22,10 +22,24 @@ Options -MultiViews
   RewriteEngine On
   RewriteBase /
 
-  # 301 Permanent Redirects for legacy crawled paths to eliminate GSC Soft 404s
+  # 1. Force HTTPS to eliminate HTTP/HTTPS duplicate canonical issues
+  RewriteCond %{HTTPS} off
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # 2. Canonical redirect: eliminate /index.html duplicate of /
+  RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.html\ HTTP/
+  RewriteRule ^index\.html$ / [R=301,L]
+
+  # 3. 301 Permanent Redirects for legacy crawled paths to eliminate GSC Soft 404s
   RewriteRule ^courses/?$ /curriculum [R=301,L]
   RewriteRule ^faq/?$ /admission [R=301,L]
   RewriteRule ^privacy/?$ /about [R=301,L]
+
+  # 4. Direct serving of pre-rendered static route HTML files for search crawlers (e.g. /curriculum -> curriculum.html)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+  RewriteRule ^([a-zA-Z0-9\-_]+)/?$ $1.html [L]
 
   RewriteRule ^index\.html$ - [L]
 

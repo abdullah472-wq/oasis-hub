@@ -1,35 +1,14 @@
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
-
-const SITE_URL = (process.env.VITE_SITE_URL || "https://annoor.codbotbd.com").replace(/\/+$/, "");
-
-const routes = [
-  { path: "/", priority: "1.0", changefreq: "daily" },
-  { path: "/about", priority: "0.9", changefreq: "weekly" },
-  { path: "/admission", priority: "0.9", changefreq: "weekly" },
-  { path: "/admission-form", priority: "0.9", changefreq: "weekly" },
-  { path: "/curriculum", priority: "0.8", changefreq: "weekly" },
-  { path: "/notices", priority: "0.9", changefreq: "daily" },
-  { path: "/teachers", priority: "0.8", changefreq: "monthly" },
-  { path: "/huffaz", priority: "0.8", changefreq: "monthly" },
-  { path: "/achievements", priority: "0.8", changefreq: "monthly" },
-  { path: "/news", priority: "0.8", changefreq: "daily" },
-  { path: "/events", priority: "0.8", changefreq: "weekly" },
-  { path: "/gallery", priority: "0.7", changefreq: "weekly" },
-  { path: "/media", priority: "0.7", changefreq: "weekly" },
-  { path: "/downloads", priority: "0.8", changefreq: "weekly" },
-  { path: "/virtual-tour", priority: "0.7", changefreq: "monthly" },
-  { path: "/contact", priority: "0.8", changefreq: "monthly" },
-  { path: "/sitemap", priority: "0.6", changefreq: "monthly" },
-  { path: "/privacy-policy", priority: "0.5", changefreq: "monthly" },
-];
+import { routes, SITE_URL } from "./routes-metadata.mjs";
 
 export function buildSitemapXml(baseUrl = SITE_URL) {
   const today = new Date().toISOString().split("T")[0];
 
   const xmlEntries = routes
     .map((r) => {
-      const loc = `${baseUrl}${r.path === "/" ? "" : r.path}`;
+      // Root URL should strictly end with trailing slash according to canonical standard
+      const loc = `${baseUrl}${r.path === "/" ? "/" : r.path}`;
       return `  <url>
     <loc>${loc}</loc>
     <lastmod>${today}</lastmod>

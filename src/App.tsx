@@ -77,24 +77,118 @@ const RouteFallback = () => (
   </div>
 );
 
-const ROUTE_PAGE_TITLES: Record<string, { bn: string; en: string }> = {
-  "/": { bn: "হোম", en: "Home" },
-  "/about": { bn: "আমাদের সম্পর্কে", en: "About Us" },
-  "/achievements": { bn: "আমাদের অর্জন", en: "Achievements" },
-  "/notices": { bn: "নোটিশ বোর্ড", en: "Notice Board" },
-  "/virtual-tour": { bn: "ভার্চুয়াল ক্যাম্পাস ট্যুর", en: "Virtual Tour" },
-  "/admission": { bn: "ভর্তি তথ্য ও ফি নির্দেশিকা", en: "Admission Info" },
-  "/admission-form": { bn: "অনলাইন ভর্তি ফরম", en: "Online Admission Form" },
-  "/gallery": { bn: "ফটো গ্যালারি", en: "Gallery" },
-  "/media": { bn: "মিডিয়া সেন্টার", en: "Media Center" },
-  "/news": { bn: "সংবাদ ও বিজ্ঞপ্তি", en: "News" },
-  "/events": { bn: "ইভেন্ট ক্যালেন্ডার", en: "Events" },
-  "/curriculum": { bn: "শিক্ষা কারিকুলাম ও সিলেবাস", en: "Curriculum" },
-  "/downloads": { bn: "ডাউনলোড কর্নার", en: "Downloads" },
-  "/teachers": { bn: "শিক্ষক ও পরিচালকমণ্ডলী", en: "Teachers & Staff" },
-  "/huffaz": { bn: "কৃতি হাফেজদের তালিকা", en: "Wall of Huffaz" },
-  "/contact": { bn: "যোগাযোগ ও ক্যাম্পাস লোকেশন", en: "Contact Us" },
-  "/sitemap": { bn: "সাইটম্যাপ", en: "Sitemap" },
+const ROUTE_PAGE_METAS: Record<
+  string,
+  { bn: string; en: string; descBn: string; descEn: string }
+> = {
+  "/": {
+    bn: "হোম",
+    en: "Home",
+    descBn: "আননূর তাহফিজুল কুরআন মাদরাসা (কাপাসিয়া, গাজীপুর) — নূরানী, নাজেরা, আন্তর্জাতিক মানের হিফজুল কুরআন ও সমন্বিত আধুনিক শিক্ষা প্রতিষ্ঠান।",
+    descEn: "Annoor Tahfizul Quran Madrasa (Kapasia, Gazipur) — International standard Hifzul Quran, Noorani and integrated modern education.",
+  },
+  "/about": {
+    bn: "আমাদের সম্পর্কে",
+    en: "About Us",
+    descBn: "আননূর তাহফিজুল কুরআন মাদরাসার পরিচিতি, লক্ষ্য, উদ্দেশ্য, বৈশিষ্ট্য এবং প্রশাসনিক ইতিহাস জানুন।",
+    descEn: "Learn about the mission, vision, history, and administrative excellence of Annoor Tahfizul Quran Madrasa.",
+  },
+  "/achievements": {
+    bn: "আমাদের অর্জন",
+    en: "Achievements",
+    descBn: "জাতীয় ও বিভাগীয় হিফজুল কুরআন প্রতিযোগিতা ও মেধা অন্বেষণে আননূর মাদরাসার সাফল্য ও অর্জন।",
+    descEn: "National and division-level achievements and awards of Annoor Tahfizul Quran Madrasa students.",
+  },
+  "/notices": {
+    bn: "নোটিশ বোর্ড",
+    en: "Notice Board",
+    descBn: "মাদরাসার সাম্প্রতিক নোটিশ, একাডেমিক ঘোষণা, পরীক্ষার রুটিন ও প্রাতিষ্ঠানিক জরুরি নির্দেশনাবলী।",
+    descEn: "Latest academic notices, institutional announcements, exam schedules, and official circulars.",
+  },
+  "/virtual-tour": {
+    bn: "ভার্চুয়াল ক্যাম্পাস ট্যুর",
+    en: "Virtual Tour",
+    descBn: "আননূর মাদরাসার আধুনিক শ্রেণিকক্ষ, ক্যাম্পাস প্রাঙ্গণ ও হোস্টেল সুবিধার ভার্চুয়াল ভিডিও ট্যুর।",
+    descEn: "Experience our campus, modern classrooms, library, and boarding facilities through our virtual tour.",
+  },
+  "/admission": {
+    bn: "ভর্তি তথ্য ও ফি নির্দেশিকা",
+    en: "Admission Info",
+    descBn: "ভর্তি নির্দেশিকা, যোগ্যতা, প্রয়োজনীয় কাগজপত্র, ফি কাঠামো এবং নতুন শিক্ষাবর্ষে ভর্তির পূর্ণাঙ্গ নিয়মাবলী।",
+    descEn: "Admission guidelines, eligibility criteria, required documents, fee structure, and enrollment procedures.",
+  },
+  "/admission-form": {
+    bn: "অনলাইন ভর্তি ফরম",
+    en: "Online Admission Form",
+    descBn: "অনলাইন ভর্তি আবেদন ফরম পূরণ করুন এবং তাৎক্ষণিক অ্যাপ্লিকেশন ট্র্যাকিং কোড সংগ্রহ করুন।",
+    descEn: "Complete the online admission application form and receive your applicant tracking number instantly.",
+  },
+  "/gallery": {
+    bn: "ফটো গ্যালারি",
+    en: "Gallery",
+    descBn: "ক্যাম্পাস জীবন, হিফজ ক্লাস, পুরস্কার বিতরণী ও বিভিন্ন অনুষ্ঠানের আনন্দঘন মুহূর্তের ফটো গ্যালারি।",
+    descEn: "Photo gallery featuring campus life, Hifz classes, prize ceremonies, and institutional events.",
+  },
+  "/media": {
+    bn: "মিডিয়া সেন্টার",
+    en: "Media Center",
+    descBn: "কুরআন তিলাওয়াত, ইসলামিক সংগীত, মাদরাসার ভিডিও ডকুমেন্টারি ও ভিডিও মিডিয়া কনটেন্ট।",
+    descEn: "Media center featuring Quran recitations, Islamic nasheed, video documentaries, and lectures.",
+  },
+  "/news": {
+    bn: "সংবাদ ও বিজ্ঞপ্তি",
+    en: "News",
+    descBn: "আননূর মাদরাসার সর্বশেষ সংবাদ, শিক্ষামূলক প্রতিবেদন ও সমসাময়িক কার্যক্রমের খবরাখবর।",
+    descEn: "Latest news, updates, educational features, and campus happenings from Annoor Madrasa.",
+  },
+  "/events": {
+    bn: "ইভেন্ট ক্যালেন্ডার",
+    en: "Events",
+    descBn: "বার্ষিক ক্রীড়া প্রতিযোগিতা, সাংস্কৃতিক অনুষ্ঠান, সেমিনার ও ইসলামিক সম্মেলন ক্যালেন্ডার।",
+    descEn: "Academic calendar, annual sports, cultural events, seminars, and Islamic conferences.",
+  },
+  "/curriculum": {
+    bn: "শিক্ষা কারিকুলাম ও সিলেবাস",
+    en: "Curriculum",
+    descBn: "নূরানী, নাজেরা, হিফজুল কুরআন ও জেনারেল শিক্ষার পূর্ণাঙ্গ সিলেবাস এবং আধুনিক শিক্ষাক্রম বিন্যাস।",
+    descEn: "Detailed academic curriculum and syllabus for Noorani, Nazera, Hifzul Quran, and modern general education.",
+  },
+  "/downloads": {
+    bn: "ডাউনলোড কর্নার",
+    en: "Downloads",
+    descBn: "ভর্তি ফরম, বার্ষিক সিলেবাস, ক্লাস ও পরীক্ষার রুটিন, একাডেমিক ক্যালেন্ডার ও প্রসপেক্টাস ডাউনলোড।",
+    descEn: "Download admission forms, annual syllabus, class routines, academic calendars, and prospectus.",
+  },
+  "/teachers": {
+    bn: "শিক্ষক ও পরিচালকমণ্ডলী",
+    en: "Teachers & Staff",
+    descBn: "অভিজ্ঞ শিক্ষকমণ্ডলী, আন্তর্জাতিক মানের ক্বারী ও সুযোগ্য পরিচালনা পরিষদের পরিচিতি ও প্রোফাইল।",
+    descEn: "Meet our qualified faculty members, certified Qaris, and esteemed governing body of Annoor Madrasa.",
+  },
+  "/huffaz": {
+    bn: "কৃতি হাফেজদের তালিকা",
+    en: "Wall of Huffaz",
+    descBn: "আননূর তাহফিজুল কুরআন মাদরাসার কৃতি হাফেজদের তালিকা ও হিফজ সমাপনের গৌরবোজ্জ্বল ইতিহাস।",
+    descEn: "Wall of Huffaz — Celebrating the brilliant Quran memorizers of Annoor Tahfizul Quran Madrasa.",
+  },
+  "/contact": {
+    bn: "যোগাযোগ ও ক্যাম্পাস লোকেশন",
+    en: "Contact Us",
+    descBn: "যোগাযোগের পূর্ণাঙ্গ ঠিকানা, ফোন নম্বর, ইমেইল, গুগল ম্যাপ লোকেশন ও সরাসরি বার্তা পাঠানোর ফরম।",
+    descEn: "Contact details, official phone numbers, email address, campus map location, and inquiry form.",
+  },
+  "/sitemap": {
+    bn: "সাইটম্যাপ",
+    en: "Sitemap",
+    descBn: "আননূর তাহফিজুল কুরআন মাদরাসা ওয়েবসাইটের সকল পেজ ও সেবার পূর্ণাঙ্গ সাইটম্যাপ।",
+    descEn: "Complete HTML sitemap and directory of all pages across the Annoor Madrasa portal.",
+  },
+  "/privacy-policy": {
+    bn: "গোপনীয়তা নীতিমালা",
+    en: "Privacy Policy",
+    descBn: "শিক্ষার্থী ও অভিভাবকদের তথ্যের নিরাপত্তা, সুরক্ষা ও গোপনীয়তা সংক্রান্ত প্রাতিষ্ঠানিক নীতিমালা।",
+    descEn: "Institutional privacy policy regarding data protection, security, and guardian consent.",
+  },
 };
 
 const AppShell = () => {
@@ -110,24 +204,33 @@ const AppShell = () => {
       ? (settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা")
       : (settings.institution_name_en || "Annoor Tahfizul Quran Madrasa");
 
-    if (location.pathname === "/") {
-      document.title = siteTitle;
-    } else if (isAdminRoute) {
-      document.title = `${lang === "bn" ? "অ্যাডমিন প্যানেল" : "Admin Dashboard"} | ${baseName}`;
-    } else {
-      const pageInfo = ROUTE_PAGE_TITLES[location.pathname];
-      const pageLabel = pageInfo ? (lang === "bn" ? pageInfo.bn : pageInfo.en) : "";
-      document.title = pageLabel ? `${pageLabel} | ${baseName}` : siteTitle;
-    }
+    const metaInfo = ROUTE_PAGE_METAS[location.pathname];
+    const pageLabel = metaInfo ? (lang === "bn" ? metaInfo.bn : metaInfo.en) : "";
+    const computedTitle =
+      location.pathname === "/"
+        ? siteTitle
+        : isAdminRoute
+          ? `${lang === "bn" ? "অ্যাডমিন প্যানেল" : "Admin Dashboard"} | ${baseName}`
+          : pageLabel
+            ? `${pageLabel} | ${baseName}`
+            : siteTitle;
 
-    // Dynamic canonical link update to resolve Google Search Console canonical mismatch
+    document.title = computedTitle;
+
+    // Dynamic canonical link & robots & meta description update
     if (typeof document !== "undefined") {
+      const robotsMeta = document.querySelector<HTMLMetaElement>("meta[name='robots']");
+      if (robotsMeta) {
+        robotsMeta.setAttribute("content", isAdminRoute ? "noindex, nofollow" : "index, follow");
+      }
+
       const canonicalBase =
         typeof window !== "undefined" && window.location.hostname === "annoor.codbotbd.com"
           ? "https://annoor.codbotbd.com"
           : (typeof window !== "undefined" && window.location.origin ? window.location.origin : "https://annoor.codbotbd.com");
 
-      const cleanPath = location.pathname === "/" ? "" : location.pathname;
+      // Root URL should strictly end with trailing slash according to canonical standard
+      const cleanPath = location.pathname === "/" ? "/" : location.pathname.replace(/\/+$/, "");
       const canonicalHref = `${canonicalBase}${cleanPath}`;
 
       let canonicalLink = document.querySelector<HTMLLinkElement>("link[rel='canonical']");
@@ -137,6 +240,22 @@ const AppShell = () => {
         document.head.appendChild(canonicalLink);
       }
       canonicalLink.setAttribute("href", canonicalHref);
+
+      if (metaInfo) {
+        const descText = lang === "bn" ? metaInfo.descBn : metaInfo.descEn;
+
+        const descMeta = document.querySelector<HTMLMetaElement>("meta[name='description']");
+        if (descMeta) descMeta.setAttribute("content", descText);
+
+        const ogTitle = document.querySelector<HTMLMetaElement>("meta[property='og:title']");
+        if (ogTitle) ogTitle.setAttribute("content", computedTitle);
+
+        const ogDesc = document.querySelector<HTMLMetaElement>("meta[property='og:description']");
+        if (ogDesc) ogDesc.setAttribute("content", descText);
+
+        const ogUrl = document.querySelector<HTMLMetaElement>("meta[property='og:url']");
+        if (ogUrl) ogUrl.setAttribute("content", canonicalHref);
+      }
     }
   }, [location.pathname, lang, settings, isAdminRoute]);
 

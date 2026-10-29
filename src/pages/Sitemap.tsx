@@ -544,7 +544,12 @@ const Sitemap = () => {
                       }
 
                       return (
-                        <Link key={link.path} to={link.path} className="block h-full">
+                        <Link
+                          key={link.path}
+                          to={link.path}
+                          rel={link.path.startsWith("/admin") ? "nofollow" : undefined}
+                          className="block h-full"
+                        >
                           {content}
                         </Link>
                       );

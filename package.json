@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "vite",
     "generate:sitemap": "node scripts/generate-sitemap.mjs",
-    "build": "node scripts/generate-sitemap.mjs && vite build && node scripts/sync-public-files.mjs",
-    "build:cpanel": "node scripts/generate-sitemap.mjs && vite build && node scripts/sync-public-files.mjs",
-    "build:dev": "node scripts/generate-sitemap.mjs && vite build --mode development && node scripts/sync-public-files.mjs",
+    "build": "node scripts/generate-sitemap.mjs && vite build && node scripts/sync-public-files.mjs && node scripts/generate-static-pages.mjs",
+    "build:cpanel": "node scripts/generate-sitemap.mjs && vite build && node scripts/sync-public-files.mjs && node scripts/generate-static-pages.mjs",
+    "build:dev": "node scripts/generate-sitemap.mjs && vite build --mode development && node scripts/sync-public-files.mjs && node scripts/generate-static-pages.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",

@@ -509,6 +509,7 @@ const Footer = () => {
 
               <Link
                 to="/admin/login"
+                rel="nofollow"
                 className="group inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-emerald-200/80 transition-colors hover:border-emerald-400/40 hover:bg-white/10 hover:text-white"
               >
                 <Shield className="h-3 w-3 text-accent transition-transform group-hover:scale-110" />
