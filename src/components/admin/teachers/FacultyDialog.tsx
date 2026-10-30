@@ -152,14 +152,17 @@ export const FacultyDialog = ({
 
       toast.success(
         facultyItem
-          ? t("সদস্য তথ্য আপডেট হয়েছে", "Member updated successfully")
+          ? t("সদস্য তথ্য সফলভাবে আপডেট হয়েছে", "Member updated successfully")
           : t("নতুন সদস্য যুক্ত হয়েছে", "New member added successfully")
       );
       onSuccess();
       onClose();
     } catch (err: any) {
       console.error("Save faculty error:", err);
-      toast.error(t("তথ্য সংরক্ষণ ব্যর্থ হয়েছে", "Failed to save member"));
+      toast.error(
+        t("তথ্য সংরক্ষণ ব্যর্থ হয়েছে: ", "Failed to save: ") +
+          (err?.message || t("অপ্রত্যাশিত ত্রুটি", "Unexpected error"))
+      );
     } finally {
       setLoading(false);
     }
@@ -221,16 +224,15 @@ export const FacultyDialog = ({
               {/* NID Input */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold flex items-center justify-between">
-                  <span>{t("জাতীয় পরিচয়পত্র নম্বর (NID) *", "National ID (NID) *")}</span>
+                  <span>{t("জাতীয় পরিচয়পত্র নম্বর (NID)", "National ID (NID)")}</span>
                   <span className="text-[10px] text-muted-foreground font-normal">
-                    {nid ? `${nid.length} ডিজিট` : t("১০/১৩/১৭ সংখ্যা", "10/13/17 digits")}
+                    {nid ? `${nid.length} ডিজিট` : t("১০/১৩/১৭ সংখ্যা (ঐচ্ছিক)", "10/13/17 digits (optional)")}
                   </span>
                 </Label>
                 <Input
                   placeholder="যেমন: 1235468452"
                   value={nid}
                   onChange={(e) => setNid(e.target.value.replace(/\D/g, ""))}
-                  required
                   className="font-mono"
                 />
               </div>
@@ -328,7 +330,9 @@ export const FacultyDialog = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="both">{t("মাদরাসা ক্যাম্পাস", "Madrasa Campus")}</SelectItem>
+                  <SelectItem value="both">{t("উভয় ক্যাম্পাস / সাধারণ", "Both Campuses / General")}</SelectItem>
+                  <SelectItem value="boys">{t("বালক ক্যাম্পাস", "Boys Campus")}</SelectItem>
+                  <SelectItem value="girls">{t("বালিকা ক্যাম্পাস", "Girls Campus")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

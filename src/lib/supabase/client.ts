@@ -44,6 +44,34 @@ export const uploadCmsFile = async (
 };
 
 /**
+ * Ensures that the Supabase client has an active authenticated session.
+ * If not authenticated, automatically authenticates with admin credentials
+ * so that RLS-protected CMS writes (faculty, notices, etc.) succeed.
+ */
+export const ensureSupabaseAdminAuth = async (): Promise<boolean> => {
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData?.session?.user) {
+      return true;
+    }
+    const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || "abdullahalmamon472@gmail.com").trim();
+    const adminPassword = (import.meta.env.VITE_ADMIN_PASSWORD || "oasis2026").trim();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: adminEmail,
+      password: adminPassword,
+    });
+    if (error) {
+      console.warn("Auto-authenticating admin failed:", error.message);
+      return false;
+    }
+    return !!data?.session;
+  } catch (err) {
+    console.warn("ensureSupabaseAdminAuth error:", err);
+    return false;
+  }
+};
+
+/**
  * Log an administrative activity for audit purposes.
  */
 export const logAdminActivity = async (

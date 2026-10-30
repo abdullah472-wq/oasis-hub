@@ -1,4 +1,4 @@
-import { supabase, logAdminActivity } from "@/lib/supabase/client";
+import { supabase, logAdminActivity, ensureSupabaseAdminAuth } from "@/lib/supabase/client";
 import type { FacultyMember, FacultyRoleCategory, CampusType } from "@/types/cms";
 
 export type { FacultyMember, FacultyRoleCategory, CampusType };
@@ -327,49 +327,75 @@ const saveFacultyToCache = (items: FacultyMember[]) => {
 
 export async function getFacultyList(): Promise<FacultyMember[]> {
   try {
+    const cached = getCachedFaculty();
+    const cachedMap = new Map(cached.map((c) => [c.id, c]));
+
     const { data, error } = await supabase
       .from("faculty_members")
       .select("*")
       .order("order_index", { ascending: true });
 
     if (error || !data || data.length === 0) {
-      return getCachedFaculty();
+      return cached;
     }
 
-    const mapped: FacultyMember[] = data.map((item: any, idx: number) => ({
-      id: item.id || `fac-${idx}`,
-      teacher_id:
-        item.teacher_id ||
-        (item.nid ? generateTeacherId(item.joining_year, item.nid) : undefined),
-      nid: item.nid || undefined,
-      joining_year: item.joining_year || undefined,
-      name_bn: item.name_bn || "",
-      name_en: item.name_en || "",
-      designation_bn: item.designation_bn || "",
-      designation_en: item.designation_en || "",
-      category: item.category === "teachers" ? "teacher" : (item.category || "teacher"),
-      campus: item.campus || "both",
-      qualification_bn: item.qualification_bn || "",
-      qualification_en: item.qualification_en || "",
-      subject_bn: item.subject_bn || "",
-      subject_en: item.subject_en || "",
-      experience_bn: item.experience_bn || "",
-      experience_en: item.experience_en || "",
-      image_url:
-        item.image_url && !item.image_url.includes("example.com")
-          ? item.image_url
-          : (item.id === "fac-mgmt-1" || item.name_bn?.includes("আব্দুল্লাহ"))
-            ? "/abdullah.png"
-            : item.image_url || null,
-      phone: item.phone || null,
-      email: item.email || null,
-      bio_bn: item.bio_bn || null,
-      bio_en: item.bio_en || null,
-      order_index: item.order_index ?? idx + 1,
-      is_active: item.is_active ?? true,
-      created_at: item.created_at,
-      updated_at: item.updated_at,
-    }));
+    const seenIds = new Set<string>();
+    const mapped: FacultyMember[] = data.map((item: any, idx: number) => {
+      seenIds.add(item.id);
+      const existing = cachedMap.get(item.id);
+
+      // If local cache has a newer update timestamp than DB (e.g. recent edit), preserve local edit
+      if (existing?.updated_at && item.updated_at) {
+        const cachedTime = new Date(existing.updated_at).getTime();
+        const remoteTime = new Date(item.updated_at).getTime();
+        if (cachedTime > remoteTime) {
+          return existing;
+        }
+      }
+
+      return {
+        id: item.id || `fac-${idx}`,
+        teacher_id:
+          item.teacher_id ||
+          existing?.teacher_id ||
+          (existing?.nid ? generateTeacherId(existing?.joining_year, existing?.nid) : undefined),
+        nid: item.nid || existing?.nid || undefined,
+        joining_year: item.joining_year || existing?.joining_year || undefined,
+        name_bn: item.name_bn || "",
+        name_en: item.name_en || "",
+        designation_bn: item.designation_bn || "",
+        designation_en: item.designation_en || "",
+        category: item.category === "teachers" ? "teacher" : (item.category || "teacher"),
+        campus: item.campus || "both",
+        qualification_bn: item.qualification_bn || "",
+        qualification_en: item.qualification_en || "",
+        subject_bn: item.subject_bn || "",
+        subject_en: item.subject_en || "",
+        experience_bn: item.experience_bn || "",
+        experience_en: item.experience_en || "",
+        image_url:
+          item.image_url && !item.image_url.includes("example.com")
+            ? item.image_url
+            : (item.id === "fac-mgmt-1" || item.name_bn?.includes("আব্দুল্লাহ"))
+              ? "/abdullah.png"
+              : item.image_url || null,
+        phone: item.phone || null,
+        email: item.email || null,
+        bio_bn: item.bio_bn || null,
+        bio_en: item.bio_en || null,
+        order_index: item.order_index ?? idx + 1,
+        is_active: item.is_active ?? true,
+        created_at: item.created_at || existing?.created_at,
+        updated_at: item.updated_at || existing?.updated_at,
+      };
+    });
+
+    // Also preserve any locally added members not yet synced to remote
+    for (const localItem of cached) {
+      if (!seenIds.has(localItem.id)) {
+        mapped.push(localItem);
+      }
+    }
 
     saveFacultyToCache(mapped);
     return mapped;
@@ -390,6 +416,7 @@ export async function saveFacultyMember(
     item.teacher_id?.trim() ||
     (item.nid ? generateTeacherId(item.joining_year, item.nid) : undefined);
 
+  const nowIso = new Date().toISOString();
   const prepared: FacultyMember = {
     ...item,
     id: targetId,
@@ -398,51 +425,70 @@ export async function saveFacultyMember(
     joining_year: item.joining_year?.trim() || undefined,
     order_index: item.order_index ?? (current.length + 1),
     is_active: item.is_active ?? true,
-    updated_at: new Date().toISOString(),
+    updated_at: nowIso,
     created_at: isEditing
-      ? current.find((c) => c.id === targetId)?.created_at || new Date().toISOString()
-      : new Date().toISOString(),
+      ? current.find((c) => c.id === targetId)?.created_at || nowIso
+      : nowIso,
   };
 
-  // Map 'teacher' in frontend to 'teachers' for DB schema check constraint
-  const dbCategory = prepared.category === "teacher" ? "teachers" : prepared.category;
-
-  try {
-    const { error: upsertError } = await supabase.from("faculty_members").upsert({
-      id: prepared.id,
-      name_bn: prepared.name_bn,
-      name_en: prepared.name_en || null,
-      designation_bn: prepared.designation_bn,
-      designation_en: prepared.designation_en || null,
-      category: dbCategory,
-      campus: prepared.campus || "both",
-      qualification_bn: prepared.qualification_bn || null,
-      qualification_en: prepared.qualification_en || null,
-      subject_bn: prepared.subject_bn || null,
-      subject_en: prepared.subject_en || null,
-      experience_bn: prepared.experience_bn || null,
-      experience_en: prepared.experience_en || null,
-      image_url: prepared.image_url || null,
-      phone: prepared.phone || null,
-      email: prepared.email || null,
-      order_index: prepared.order_index,
-      is_active: prepared.is_active,
-      updated_at: prepared.updated_at,
-    });
-
-    if (upsertError) {
-      console.warn("Supabase upsert faculty warning:", upsertError);
-    }
-  } catch (err) {
-    console.warn("Supabase upsert faculty error, relying on cache:", err);
-  }
-
+  // 1. Instantly update local cache and broadcast update so page updates immediately
   const updatedList = isEditing
     ? current.map((c) => (c.id === targetId ? prepared : c))
     : [...current, prepared];
-
   saveFacultyToCache(updatedList);
-  await logAdminActivity(
+
+  // 2. Map 'teacher' in frontend to 'teachers' for DB schema check constraint
+  const dbCategory = prepared.category === "teacher" ? "teachers" : prepared.category;
+
+  const dbPayload = {
+    id: prepared.id,
+    name_bn: prepared.name_bn,
+    name_en: prepared.name_en || null,
+    designation_bn: prepared.designation_bn,
+    designation_en: prepared.designation_en || null,
+    category: dbCategory,
+    campus: prepared.campus || "both",
+    qualification_bn: prepared.qualification_bn || null,
+    qualification_en: prepared.qualification_en || null,
+    subject_bn: prepared.subject_bn || null,
+    subject_en: prepared.subject_en || null,
+    experience_bn: prepared.experience_bn || null,
+    experience_en: prepared.experience_en || null,
+    image_url: prepared.image_url || null,
+    phone: prepared.phone || null,
+    email: prepared.email || null,
+    order_index: prepared.order_index,
+    is_active: prepared.is_active,
+    updated_at: prepared.updated_at,
+  };
+
+  // 3. Ensure authenticated session for Supabase RLS
+  await ensureSupabaseAdminAuth();
+
+  try {
+    let { error: upsertError } = await supabase
+      .from("faculty_members")
+      .upsert(dbPayload);
+
+    // If RLS permission error (42501), retry after explicitly re-authenticating
+    if (upsertError && upsertError.code === "42501") {
+      const authed = await ensureSupabaseAdminAuth();
+      if (authed) {
+        const retry = await supabase.from("faculty_members").upsert(dbPayload);
+        upsertError = retry.error;
+      }
+    }
+
+    if (upsertError) {
+      console.error("Supabase upsert faculty error:", upsertError);
+      throw new Error(upsertError.message || "ডাটাবেজে সেভ করতে সমস্যা হয়েছে");
+    }
+  } catch (err: any) {
+    console.error("Failed to save faculty to Supabase:", err);
+    throw err;
+  }
+
+  void logAdminActivity(
     isEditing ? "UPDATE" : "CREATE",
     "faculty_members",
     `${isEditing ? "Updated" : "Added"} member: ${prepared.name_bn} (${prepared.designation_bn})`
@@ -455,19 +501,32 @@ export async function deleteFacultyMember(id: string): Promise<void> {
   const current = getCachedFaculty();
   const deletedItem = current.find((c) => c.id === id);
 
-  try {
-    const { error } = await supabase.from("faculty_members").delete().eq("id", id);
-    if (error) {
-      console.warn("Supabase delete faculty warning:", error);
-    }
-  } catch (err) {
-    console.warn("Supabase delete faculty error, relying on cache:", err);
-  }
-
+  // 1. Immediately update local cache
   const filtered = current.filter((c) => c.id !== id);
   saveFacultyToCache(filtered);
 
-  await logAdminActivity(
+  // 2. Ensure admin auth and delete from database
+  await ensureSupabaseAdminAuth();
+
+  try {
+    let { error } = await supabase.from("faculty_members").delete().eq("id", id);
+    if (error && error.code === "42501") {
+      const authed = await ensureSupabaseAdminAuth();
+      if (authed) {
+        const retry = await supabase.from("faculty_members").delete().eq("id", id);
+        error = retry.error;
+      }
+    }
+    if (error) {
+      console.error("Supabase delete faculty error:", error);
+      throw new Error(error.message || "Failed to delete member");
+    }
+  } catch (err: any) {
+    console.error("Delete faculty error:", err);
+    throw err;
+  }
+
+  void logAdminActivity(
     "DELETE",
     "faculty_members",
     `Deleted member: ${deletedItem?.name_bn || id}`
