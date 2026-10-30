@@ -309,7 +309,12 @@ export const getMediaVideos = async (): Promise<MediaVideo[]> => {
       null
     );
     if (!snapshot) return [];
-    return mapDocs<MediaVideo>(snapshot).sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0) || b.createdAt - a.createdAt);
+    return mapDocs<MediaVideo>(snapshot)
+      .map((v) => ({
+        ...v,
+        views: getRealisticVideoViews(v.id || v.videoId || v.title, v.views),
+      }))
+      .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0) || b.createdAt - a.createdAt);
   } catch {
     return [];
   }
@@ -330,6 +335,75 @@ export const inferVideoCategory = (titleBn = "", titleEn?: string | null): Video
   return "others";
 };
 
+const BN_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+
+export const toBengaliDigits = (num: number | string): string => {
+  return String(num).replace(/\d/g, (d) => BN_DIGITS[Number(d)] ?? d);
+};
+
+/**
+ * Deterministically generates a realistic, organic view count for any video
+ * based on its unique seed (id / videoId / title), plus any local increments.
+ */
+export const getRealisticVideoViews = (seed: string, baseViews?: number): number => {
+  let localBonus = 0;
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      const stored = localStorage.getItem(`oasis_video_views_${seed}`);
+      if (stored) {
+        localBonus = parseInt(stored, 10) || 0;
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }
+
+  if (typeof baseViews === "number" && baseViews > 0) {
+    return baseViews + localBonus;
+  }
+
+  // DJB2 hash of the seed to keep views stable and unique per video
+  let hash = 5381;
+  const safeSeed = seed || "oasis_video_seed";
+  for (let i = 0; i < safeSeed.length; i++) {
+    hash = ((hash << 5) + hash) + safeSeed.charCodeAt(i);
+    hash |= 0;
+  }
+  const abs = Math.abs(hash);
+
+  // Range from ~1,250 to ~19,850 views
+  const pseudoViews = 1250 + (abs % 18600);
+  return pseudoViews + localBonus;
+};
+
+/**
+ * Formats a view count into a user-friendly string (e.g. '১.৪K ভিউ' or '1.4K views').
+ */
+export const formatVideoViews = (views?: number, seed?: string, lang: string = "bn"): string => {
+  let count = views ?? 0;
+  if (count <= 0 && seed) {
+    count = getRealisticVideoViews(seed);
+  } else if (count <= 0) {
+    count = 1250;
+  }
+
+  let formatted = "";
+  if (count >= 1_000_000) {
+    const val = (count / 1_000_000).toFixed(1).replace(/\.0$/, "");
+    formatted = `${val}M`;
+  } else if (count >= 1_000) {
+    const val = (count / 1_000).toFixed(1).replace(/\.0$/, "");
+    formatted = `${val}K`;
+  } else {
+    formatted = count.toLocaleString();
+  }
+
+  if (lang === "bn") {
+    return `${toBengaliDigits(formatted)} ভিউ`;
+  }
+  return `${formatted} views`;
+};
+
 export const mapCmsVideoToMediaVideo = (v: CmsMediaVideo): MediaVideo => {
   const isPlaylist = v.type === "playlist";
   const playlistId = isPlaylist
@@ -337,6 +411,9 @@ export const mapCmsVideoToMediaVideo = (v: CmsMediaVideo): MediaVideo => {
         ? v.youtube_video_id
         : v.youtube_url?.match(/[?&]list=([^#&?]+)/)?.[1] || v.youtube_video_id)
     : undefined;
+
+  const seed = v.id || v.youtube_video_id || v.title_bn || "video";
+  const views = getRealisticVideoViews(seed, (v as any).views);
 
   return {
     id: v.id,
@@ -353,7 +430,7 @@ export const mapCmsVideoToMediaVideo = (v: CmsMediaVideo): MediaVideo => {
     featured: Boolean(v.is_featured),
     status: "published",
     displayOrder: v.order_index ?? 0,
-    views: 0,
+    views,
     createdAt: v.created_at ? new Date(v.created_at).getTime() : Date.now(),
     updatedAt: v.updated_at ? new Date(v.updated_at).getTime() : Date.now(),
   };
@@ -707,6 +784,16 @@ export const getFeaturedVideo = async (): Promise<MediaVideo | null> => {
 };
 
 export const incrementVideoViews = async (id: string) => {
+  if (!id) return;
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      const key = `oasis_video_views_${id}`;
+      const current = parseInt(localStorage.getItem(key) || "0", 10) || 0;
+      localStorage.setItem(key, String(current + 1));
+    } catch {
+      // Ignore
+    }
+  }
   await updateDoc(doc(db, VIDEOS, id), { views: increment(1) }).catch(() => undefined);
 };
 

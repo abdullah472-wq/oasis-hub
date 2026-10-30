@@ -26,6 +26,7 @@ import {
   getPublishedPlaylists,
   getPublishedVideos,
   getYouTubePlaylistEmbedUrl,
+  formatVideoViews,
   incrementDownloadCount,
   incrementVideoViews,
   type MediaDownload,
@@ -119,7 +120,7 @@ const MediaCenter = () => {
 
   const openVideo = (video: MediaVideo) => {
     setActiveVideo(video);
-    void incrementVideoViews(video.id);
+    void incrementVideoViews(video.id || video.videoId);
   };
 
   const handleDownload = async (item: MediaDownload) => {
@@ -274,7 +275,7 @@ const MediaCenter = () => {
                         <Badge variant="outline" className="rounded-full text-xs">
                           {lang === "bn" ? VIDEO_CATEGORY_LABELS[video.category]?.bn : VIDEO_CATEGORY_LABELS[video.category]?.en}
                         </Badge>
-                        <span className="text-xs text-muted-foreground">{video.views ?? 0} {t("ভিউ", "views")}</span>
+                        <span className="text-xs text-muted-foreground">{formatVideoViews(video.views, video.id || video.videoId || video.title, lang)}</span>
                       </div>
                     </button>
                   ))}

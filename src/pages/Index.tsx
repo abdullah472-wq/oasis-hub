@@ -52,7 +52,7 @@ import { springIn, springInDelay } from "@/lib/animations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useSiteSettings } from "@/lib/siteSettings";
-import { getPublishedVideos, type MediaVideo } from "@/lib/mediaCenter";
+import { getPublishedVideos, formatVideoViews, incrementVideoViews, type MediaVideo } from "@/lib/mediaCenter";
 import { VIDEOS_UPDATED_EVENT } from "@/lib/videoService";
 
 const GoogleIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
@@ -2084,7 +2084,7 @@ const Index = () => {
                   key={video.id || idx}
                   {...springIn}
                   transition={springInDelay(idx * 0.1)}
-                  onClick={() => setActiveHomeVideo(video)}
+                  onClick={() => { setActiveHomeVideo(video); void incrementVideoViews(video.id || video.videoId); }}
                   className="group overflow-hidden rounded-3xl border border-border/70 bg-card text-left transition-all hover:shadow-xl hover:border-primary/50 cursor-pointer flex flex-col justify-between"
                 >
                   <div className="w-full">
@@ -2128,7 +2128,7 @@ const Index = () => {
                       <span>{t("ভিডিওটি দেখুন", "Watch Video")}</span>
                       <ChevronRight className="h-3.5 w-3.5" />
                     </span>
-                    <span className="text-xs text-muted-foreground">{video.views ?? 0} {t("ভিউ", "views")}</span>
+                    <span className="text-xs text-muted-foreground">{formatVideoViews(video.views, video.id || video.videoId || video.title, lang)}</span>
                   </div>
                 </motion.div>
               ))}
