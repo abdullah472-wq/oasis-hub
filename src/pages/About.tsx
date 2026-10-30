@@ -435,7 +435,7 @@ const About = () => {
 
       {/* ================= BOARD AFFILIATIONS & REGISTRATIONS ================= */}
       {(hasAnyBoard || hasInstitutionalInfo) && (
-        <section className="py-14 md:py-20 bg-gradient-to-b from-card/40 via-card/80 to-card/40 border-y border-border/80 relative overflow-hidden">
+        <section id="boards" className="scroll-mt-24 sm:scroll-mt-28 py-14 md:py-20 bg-gradient-to-b from-card/40 via-card/80 to-card/40 border-y border-border/80 relative overflow-hidden">
           <div className="container mx-auto max-w-6xl px-4">
             <div className="text-center max-w-3xl mx-auto mb-12">
               <Badge variant="outline" className="mb-3 px-3.5 py-1 text-xs font-semibold text-primary border-primary/30 uppercase tracking-wider inline-flex items-center gap-1.5">
@@ -749,7 +749,7 @@ const About = () => {
       )}
 
       {/* ================= MISSION & VISION ================= */}
-      <section className="py-16 md:py-24">
+      <section id="mission-vision" className="scroll-mt-24 sm:scroll-mt-28 py-16 md:py-24">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <Badge variant="outline" className="mb-3 px-3.5 py-1 text-xs font-semibold text-primary border-primary/30 uppercase tracking-wider">
@@ -832,7 +832,7 @@ const About = () => {
       </section>
 
       {/* ================= 4 CORE PILLARS ================= */}
-      <section className="py-16 bg-muted/40 border-y border-border">
+      <section id="pillars" className="scroll-mt-24 sm:scroll-mt-28 py-16 bg-muted/40 border-y border-border">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <Badge variant="outline" className="mb-3 px-3.5 py-1 text-xs font-semibold text-primary border-primary/30 uppercase tracking-wider">
@@ -877,7 +877,7 @@ const About = () => {
       </section>
 
       {/* ================= DUAL CAMPUSES SHOWCASE ================= */}
-      <section className="py-16 md:py-24">
+      <section id="campuses" className="scroll-mt-24 sm:scroll-mt-28 py-16 md:py-24">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <Badge variant="outline" className="mb-3 px-3.5 py-1 text-xs font-semibold text-primary border-primary/30 uppercase tracking-wider">
@@ -960,7 +960,7 @@ const About = () => {
       </section>
 
       {/* ================= TEACHING METHODOLOGY ================= */}
-      <section className="py-16 md:py-24 bg-muted/30 border-y border-border">
+      <section id="methodology" className="scroll-mt-24 sm:scroll-mt-28 py-16 md:py-24 bg-muted/30 border-y border-border">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <Badge variant="outline" className="mb-3 px-3.5 py-1 text-xs font-semibold text-primary border-primary/30 uppercase tracking-wider">
@@ -1015,7 +1015,7 @@ const About = () => {
       </section>
 
       {/* ================= LEADERSHIP & GUIDING VISION ================= */}
-      <section className="py-16 md:py-24">
+      <section id="leadership" className="scroll-mt-24 sm:scroll-mt-28 py-16 md:py-24">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <Badge variant="outline" className="mb-3 px-3.5 py-1 text-xs font-semibold text-primary border-primary/30 uppercase tracking-wider">

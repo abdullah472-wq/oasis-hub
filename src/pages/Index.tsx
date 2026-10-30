@@ -940,7 +940,7 @@ const Index = () => {
       </section>
 
       {/* ================= CAMPUS INFRASTRUCTURE & FACILITIES ================= */}
-      <section className="py-20 relative overflow-hidden bg-gradient-to-b from-muted/30 via-background to-muted/20">
+      <section id="campus-facilities" className="scroll-mt-24 sm:scroll-mt-28 py-20 relative overflow-hidden bg-gradient-to-b from-muted/30 via-background to-muted/20">
         <div className="container mx-auto px-4 max-w-6xl relative z-10">
           {/* Section Header */}
           <div className="text-center mb-12 space-y-3">
@@ -2060,7 +2060,7 @@ const Index = () => {
 
       {/* ================= FEATURED VIDEOS & MEDIA SHOWCASE ================= */}
       {featuredVideos.length > 0 && (
-        <section className="py-16 bg-card/60 border-t border-b border-border/40">
+        <section id="video-gallery" className="scroll-mt-24 sm:scroll-mt-28 py-16 bg-card/60 border-t border-b border-border/40">
           <div className="container mx-auto px-4 max-w-6xl">
             <motion.div {...springIn} className="text-center mb-10 space-y-2">
               <Badge className="bg-red-500/10 text-red-600 border-red-500/20 text-xs gap-1.5 font-medium">
@@ -2184,7 +2184,7 @@ const Index = () => {
       </Dialog>
 
       {/* ================= FAQ SECTION ================= */}
-      <section className="py-16 bg-muted/20">
+      <section id="faq" className="scroll-mt-24 sm:scroll-mt-28 py-16 bg-muted/20">
         <div className="container mx-auto px-4 max-w-3xl">
           <motion.div {...springIn} className="text-center mb-10 space-y-2">
             <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">

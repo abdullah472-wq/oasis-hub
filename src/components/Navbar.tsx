@@ -37,11 +37,50 @@ const Navbar = () => {
     { to: "/contact", label: t("যোগাযোগ", "Contact") },
   ];
 
+  const homeLinks = [
+    {
+      to: "/",
+      hash: "#madrasha-features",
+      label: t("মাদরাসার বৈশিষ্ট্য", "Features of the Madrasha"),
+      description: t("প্রতিষ্ঠানের বিশেষ দিকগুলো ও স্বকীয়তা", "Explore our standout features"),
+    },
+    {
+      to: "/",
+      hash: "#reviews",
+      label: t("অভিভাবকদের মতামত", "What Guardians Say"),
+      description: t("রিভিউ ও অভিভাবকদের বাস্তব মূল্যায়ন", "Read verified guardian feedback"),
+    },
+    {
+      to: "/",
+      hash: "#campus-facilities",
+      label: t("ক্যাম্পাস পরিকাঠামো ও সুবিধা", "Campus & Facilities"),
+      description: t("আধুনিক ক্লাসরুম, হোস্টেল ও নিরাপত্তা", "Classrooms, boarding & safety"),
+    },
+    {
+      to: "/",
+      hash: "#faq",
+      label: t("সাধারণ জিজ্ঞাসা ও উত্তর (FAQ)", "General FAQ"),
+      description: t("অভিভাবকদের জরুরি প্রশ্নাবলীর সমাধান", "Answers to common queries"),
+    },
+  ];
+
   const aboutLinks = [
     {
       to: "/about",
       label: t("আমাদের পরিচিতি", "About Us"),
-      description: t("প্রতিষ্ঠানের লক্ষ্য, ইতিহাস ও পরিচালনা পর্ষদ", "Our vision, history & leadership"),
+      description: t("প্রতিষ্ঠানের লক্ষ্য, ইতিহাস ও পরিচিতি", "Our vision, history & legacy"),
+    },
+    {
+      to: "/about",
+      hash: "#boards",
+      label: t("বোর্ড অনুমোদন ও স্বীকৃতি", "Board Affiliations"),
+      description: t("বেফাক, হুফ্ফাজ ও নূরানী বোর্ডের নিবন্ধন", "Befaq, Huffaz & Nurani recognition"),
+    },
+    {
+      to: "/about",
+      hash: "#leadership",
+      label: t("পরিচালনা পর্ষদ ও নেতৃত্ব", "Leadership & Guidance"),
+      description: t("দিকনির্দেশনায় অভিজ্ঞ উলামায়ে কেরাম", "Scholars & managing committee"),
     },
     {
       to: "/achievements",
@@ -60,31 +99,44 @@ const Navbar = () => {
     },
   ];
 
-  const homeLinks = [
-    {
-      hash: "#madrasha-features",
-      label: t("মাদরাসার বৈশিষ্ট্য", "Features of the Madrasha"),
-      description: t("প্রতিষ্ঠানের বিশেষ দিকগুলো দেখুন", "Explore the institution's standout qualities"),
-    },
-    {
-      hash: "#reviews",
-      label: t("অভিভাবকদের মতামত", "What Guardians Say"),
-      description: t("রিভিউ ও অভিভাবকদের মতামত দেখুন", "Read reviews and guardian feedback"),
-    },
-  ];
-
   const admissionLinks = [
-    { to: "/admission", label: t("ভর্তি তথ্য", "Admission Info") },
-    { to: "/admission-form", label: t("অনলাইন ভর্তি", "Online Admission") },
+    {
+      to: "/admission",
+      label: t("ভর্তি তথ্য নির্দেশিকা", "Admission Guide"),
+      description: t("ভর্তি শিক্ষাবর্ষ ২০২৬-২০২৭ পূর্ণাঙ্গ তথ্য", "Complete guidance for 2026-27"),
+    },
+    {
+      to: "/admission",
+      hash: "#fee-structure",
+      label: t("অনুমোদিত ফি কাঠামো", "Fee Structure"),
+      description: t("মাসিক বেতন, ভর্তি ও আবাসিক ফি তালিকা", "Tuition, enrollment & boarding fees"),
+    },
+    {
+      to: "/admission",
+      hash: "#rules-requirements",
+      label: t("ভর্তির নিয়ম ও কাগজপত্র", "Rules & Requirements"),
+      description: t("শর্তাবলী ও আবশ্যকীয় কাগজপত্রের চেকলিস্ট", "Requirements & submission checklist"),
+    },
+    {
+      to: "/admission",
+      hash: "#admission-steps",
+      label: t("ভর্তি প্রক্রিয়ার ধাপসমূহ", "Admission Steps"),
+      description: t("ভর্তি সম্পন্ন করার ৪টি সহজ ধাপ", "4 simple steps to admission"),
+    },
+    {
+      to: "/admission-form",
+      label: t("অনলাইন ভর্তি আবেদন", "Online Admission Form"),
+      description: t("ঘরে বসেই ডিজিটাল ভর্তি ফরম পূরণ করুন", "Submit application form online"),
+    },
   ];
 
   const academicLinks = [
-    { to: "/curriculum", label: t("আমাদের শিক্ষা কারিকুলাম", "Our Curriculum") },
-    { to: "/downloads", label: t("ডাউনলোড কর্নার (সিলেবাস ও রুটিন)", "Download Corner (Syllabus & Routine)") },
-    { to: "/teachers", label: t("শিক্ষক ও পরিচালকমণ্ডলী", "Teachers & Staff") },
-    { to: "/huffaz", label: t("কৃতি হাফেজদের তালিকা", "Wall of Huffaz") },
-    { to: "/notices", label: t("নোটিশ বোর্ড", "Notice") },
-    { to: "/events", label: t("ইভেন্ট ক্যালেন্ডার", "Events") },
+    { to: "/curriculum", label: t("আমাদের শিক্ষা কারিকুলাম", "Our Curriculum"), description: t("হিফজ, নূরানী ও আধুনিক সাধারণ শিক্ষা", "Hifz, Nurani and integrated modern curriculum") },
+    { to: "/downloads", label: t("ডাউনলোড কর্নার (সিলেবাস ও রুটিন)", "Download Corner (Syllabus & Routine)"), description: t("ক্লাস রুটিন, বুক লিস্ট ও পরীক্ষার সিলেবাস", "Class routines, book lists & exam syllabus") },
+    { to: "/teachers", label: t("শিক্ষক ও পরিচালকমণ্ডলী", "Teachers & Staff"), description: t("অভিজ্ঞ ও আন্তরিক শিক্ষকমণ্ডলী", "Qualified & caring educators") },
+    { to: "/huffaz", label: t("কৃতি হাফেজদের তালিকা", "Wall of Huffaz"), description: t("আমাদের সম্মানিত হাফেজ শিক্ষার্থীদের তালিকা", "Honor roll of completed Huffaz") },
+    { to: "/notices", label: t("নোটিশ বোর্ড", "Notice Board"), description: t("প্রতিদিনের প্রাতিষ্ঠানিক নোটিশ ও বিজ্ঞপ্তি", "Official daily announcements & notices") },
+    { to: "/events", label: t("ইভেন্ট ক্যালেন্ডার", "Events Calendar"), description: t("বার্ষিক অনুষ্ঠান, মাহফিল ও প্রতিযোগিতার দিনপঞ্জি", "Annual events, competitions & holidays") },
   ];
 
   useEffect(() => {
@@ -100,39 +152,49 @@ const Navbar = () => {
     };
   }, []);
 
-  const handleHomeSectionNavigate = (hash: string) => {
+  const handleNavClick = (toPath: string, hash?: string) => {
     setHomeOpen(false);
+    setAboutOpen(false);
+    setAcademicOpen(false);
+    setAdmissionOpen(false);
     setIsOpen(false);
     setMobileHomeOpen(false);
+    setMobileAboutOpen(false);
+    setMobileAcademicOpen(false);
+    setMobileAdmissionOpen(false);
 
-    const sectionId = hash.replace(/^#/, "");
+    const isCurrentPage = location.pathname === toPath;
 
-    const performScroll = (smooth = true) => {
-      const el = document.getElementById(sectionId);
-      if (el) {
-        const nav = document.querySelector("nav");
-        const navHeight = nav ? Math.min(nav.offsetHeight, 90) : 80;
-        const targetY = el.getBoundingClientRect().top + window.scrollY - navHeight - 16;
-        window.scrollTo({
-          top: Math.max(0, targetY),
-          behavior: smooth ? "smooth" : "auto",
-        });
+    if (!hash) {
+      if (!isCurrentPage) {
+        navigate(toPath);
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
-    };
-
-    if (location.pathname !== "/") {
-      navigate(`/${hash}`);
       return;
     }
 
-    navigate({ pathname: "/", hash }, { replace: true });
+    const sectionId = hash.replace(/^#/, "");
 
-    // Immediate scroll
-    performScroll(true);
+    if (isCurrentPage) {
+      const el = document.getElementById(sectionId);
+      if (el) {
+        const nav = document.querySelector("nav");
+        const navHeight = nav ? Math.min(nav.offsetHeight, 100) : 80;
+        const targetY = Math.max(0, el.getBoundingClientRect().top + window.scrollY - navHeight - 16);
+        window.scrollTo({
+          top: targetY,
+          behavior: "smooth",
+        });
+      }
+      navigate({ pathname: toPath, hash }, { replace: true });
+    } else {
+      navigate(`${toPath}${hash}`);
+    }
+  };
 
-    // Additional scrolls as mobile menu collapse animation completes
-    setTimeout(() => performScroll(true), 120);
-    setTimeout(() => performScroll(true), 320);
+  const handleHomeSectionNavigate = (hash: string) => {
+    handleNavClick("/", hash);
   };
 
   if (!ENABLE_EXPERIMENTAL_NAVBAR) {
@@ -724,19 +786,27 @@ const Navbar = () => {
                         {t("পরিচিতি ও মিডিয়া", "About & Media")}
                       </p>
                       <div className="space-y-1">
-                        {aboutLinks.map((link) => (
-                          <Link
-                            key={link.to}
-                            to={link.to}
-                            onClick={() => setAboutOpen(false)}
-                            className="block rounded-2xl px-3 py-2.5 text-sm font-medium font-bengali text-foreground transition-colors hover:bg-primary/8"
-                          >
-                            <span className="block font-semibold">{link.label}</span>
-                            <span className="mt-0.5 block text-xs text-muted-foreground">
-                              {link.description}
-                            </span>
-                          </Link>
-                        ))}
+                        {aboutLinks.map((link) => {
+                          const target = link.hash ? `${link.to}${link.hash}` : link.to;
+                          return (
+                            <Link
+                              key={target}
+                              to={target}
+                              onClick={(e) => {
+                                if (link.hash && location.pathname === link.to) {
+                                  e.preventDefault();
+                                }
+                                handleNavClick(link.to, link.hash);
+                              }}
+                              className="block rounded-2xl px-3 py-2.5 text-sm font-medium font-bengali text-foreground transition-colors hover:bg-primary/8"
+                            >
+                              <span className="block font-semibold">{link.label}</span>
+                              <span className="mt-0.5 block text-xs text-muted-foreground">
+                                {link.description}
+                              </span>
+                            </Link>
+                          );
+                        })}
                       </div>
                     </motion.div>
                   )}
@@ -807,14 +877,27 @@ const Navbar = () => {
                         {t("ভর্তি সাপোর্ট", "Admission support")}
                       </p>
                       <div className="space-y-1">
-                        {admissionLinks.map((link) => (
-                          <Link key={link.to} to={link.to} className="block rounded-2xl px-3 py-3 text-sm font-medium font-bengali text-foreground transition-colors hover:bg-primary/8">
-                            <span className="block">{link.label}</span>
-                            <span className="mt-1 block text-xs text-muted-foreground">
-                              {t("নির্দেশনা, সময়সূচি ও আবেদনপত্র দেখুন", "View guidance, schedule and application")}
-                            </span>
-                          </Link>
-                        ))}
+                        {admissionLinks.map((link) => {
+                          const target = link.hash ? `${link.to}${link.hash}` : link.to;
+                          return (
+                            <Link
+                              key={target}
+                              to={target}
+                              onClick={(e) => {
+                                if (link.hash && location.pathname === link.to) {
+                                  e.preventDefault();
+                                }
+                                handleNavClick(link.to, link.hash);
+                              }}
+                              className="block rounded-2xl px-3 py-2.5 text-sm font-medium font-bengali text-foreground transition-colors hover:bg-primary/8"
+                            >
+                              <span className="block font-semibold">{link.label}</span>
+                              <span className="mt-0.5 block text-xs text-muted-foreground">
+                                {link.description || t("নির্দেশনা, সময়সূচি ও আবেদনপত্র দেখুন", "View guidance, schedule and application")}
+                              </span>
+                            </Link>
+                          );
+                        })}
                       </div>
                     </motion.div>
                   )}
@@ -900,19 +983,24 @@ const Navbar = () => {
               <AnimatePresence>
                 {mobileAboutOpen && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                    {aboutLinks.map((link) => (
-                      <Link
-                        key={link.to}
-                        to={link.to}
-                        onClick={() => {
-                          setIsOpen(false);
-                          setMobileAboutOpen(false);
-                        }}
-                        className="block rounded-xl py-2 pl-8 pr-4 font-bengali font-medium text-foreground hover:bg-secondary"
-                      >
-                        {link.label}
-                      </Link>
-                    ))}
+                    {aboutLinks.map((link) => {
+                      const target = link.hash ? `${link.to}${link.hash}` : link.to;
+                      return (
+                        <Link
+                          key={target}
+                          to={target}
+                          onClick={(e) => {
+                            if (link.hash && location.pathname === link.to) {
+                              e.preventDefault();
+                            }
+                            handleNavClick(link.to, link.hash);
+                          }}
+                          className="block rounded-xl py-2 pl-8 pr-4 font-bengali font-medium text-foreground hover:bg-secondary"
+                        >
+                          {link.label}
+                        </Link>
+                      );
+                    })}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -954,19 +1042,24 @@ const Navbar = () => {
               <AnimatePresence>
                 {mobileAdmissionOpen && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                    {admissionLinks.map((link) => (
-                      <Link
-                        key={link.to}
-                        to={link.to}
-                        onClick={() => {
-                          setIsOpen(false);
-                          setMobileAdmissionOpen(false);
-                        }}
-                        className="block rounded-xl py-2 pl-8 pr-4 font-bengali font-medium text-foreground hover:bg-secondary"
-                      >
-                        {link.label}
-                      </Link>
-                    ))}
+                    {admissionLinks.map((link) => {
+                      const target = link.hash ? `${link.to}${link.hash}` : link.to;
+                      return (
+                        <Link
+                          key={target}
+                          to={target}
+                          onClick={(e) => {
+                            if (link.hash && location.pathname === link.to) {
+                              e.preventDefault();
+                            }
+                            handleNavClick(link.to, link.hash);
+                          }}
+                          className="block rounded-xl py-2 pl-8 pr-4 font-bengali font-medium text-foreground hover:bg-secondary"
+                        >
+                          {link.label}
+                        </Link>
+                      );
+                    })}
                   </motion.div>
                 )}
               </AnimatePresence>

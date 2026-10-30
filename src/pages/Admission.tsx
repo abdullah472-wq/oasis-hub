@@ -69,6 +69,22 @@ const Admission = () => {
     window.print();
   };
 
+  const scrollToSection = (sectionId: string) => {
+    const el = document.getElementById(sectionId);
+    if (!el) return;
+    const nav = document.querySelector("nav");
+    const navHeight = nav ? Math.min(nav.offsetHeight, 100) : 80;
+    const pillBarHeight = 64;
+    const targetY = Math.max(0, el.getBoundingClientRect().top + window.scrollY - navHeight - pillBarHeight - 12);
+    window.scrollTo({
+      top: targetY,
+      behavior: "smooth",
+    });
+    if (window.history?.replaceState) {
+      window.history.replaceState(null, "", `#${sectionId}`);
+    }
+  };
+
   const steps = [
     {
       num: "০১",
@@ -182,6 +198,7 @@ const Admission = () => {
           <div className="flex items-center justify-center sm:justify-start gap-2 overflow-x-auto no-scrollbar py-1 text-sm font-bengali">
             <a
               href="#countdown-notice"
+              onClick={(e) => { e.preventDefault(); scrollToSection("countdown-notice"); }}
               className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 transition-colors"
             >
               <Clock className="h-4 w-4" />
@@ -189,6 +206,7 @@ const Admission = () => {
             </a>
             <a
               href="#fee-structure"
+              onClick={(e) => { e.preventDefault(); scrollToSection("fee-structure"); }}
               className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
             >
               <CreditCard className="h-4 w-4" />
@@ -196,6 +214,7 @@ const Admission = () => {
             </a>
             <a
               href="#rules-requirements"
+              onClick={(e) => { e.preventDefault(); scrollToSection("rules-requirements"); }}
               className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
             >
               <CheckCircle2 className="h-4 w-4" />
@@ -203,6 +222,7 @@ const Admission = () => {
             </a>
             <a
               href="#required-documents"
+              onClick={(e) => { e.preventDefault(); scrollToSection("required-documents"); }}
               className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
             >
               <FileText className="h-4 w-4" />
@@ -210,6 +230,7 @@ const Admission = () => {
             </a>
             <a
               href="#admission-steps"
+              onClick={(e) => { e.preventDefault(); scrollToSection("admission-steps"); }}
               className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
             >
               <GraduationCap className="h-4 w-4" />
@@ -217,6 +238,7 @@ const Admission = () => {
             </a>
             <a
               href="#academic-calendar"
+              onClick={(e) => { e.preventDefault(); scrollToSection("academic-calendar"); }}
               className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-1.5 font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
             >
               <Calendar className="h-4 w-4" />
