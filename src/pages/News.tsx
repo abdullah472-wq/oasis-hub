@@ -104,10 +104,12 @@ const News = () => {
     };
 
     window.addEventListener("oasis-news-updated", handleNewsUpdated);
+    window.addEventListener("storage", handleNewsUpdated);
 
     return () => {
       isMountedRef.current = false;
       window.removeEventListener("oasis-news-updated", handleNewsUpdated);
+      window.removeEventListener("storage", handleNewsUpdated);
     };
   }, []);
 

@@ -100,11 +100,11 @@ export const NewsDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.titleBn.trim() || !formData.titleEn.trim()) {
+    if (!formData.titleBn.trim()) {
       toast.error(
         t(
-          "অনুগ্রহ করে বাংলা ও ইংরেজি উভয় শিরোনাম পূরণ করুন",
-          "Please fill in both Bangla and English titles"
+          "অনুগ্রহ করে সংবাদের বাংলা শিরোনাম পূরণ করুন",
+          "Please fill in the Bangla title"
         )
       );
       return;
@@ -127,7 +127,7 @@ export const NewsDialog = ({
 
       const payload = {
         titleBn: formData.titleBn.trim(),
-        titleEn: formData.titleEn.trim(),
+        titleEn: formData.titleEn.trim() || formData.titleBn.trim(),
         excerptBn: formData.excerptBn.trim(),
         excerptEn: formData.excerptEn.trim() || formData.excerptBn.trim(),
         date: formData.date || new Date().toISOString().split("T")[0],
@@ -149,10 +149,8 @@ export const NewsDialog = ({
     } catch (err: any) {
       console.error("Error saving news:", err);
       toast.error(
-        t(
-          "সংবাদ সংরক্ষণ করতে সমস্যা হয়েছে",
-          "Failed to save news"
-        )
+        t("সংবাদ সংরক্ষণ করতে সমস্যা হয়েছে: ", "Failed to save news: ") +
+          (err?.message || "")
       );
     } finally {
       setLoading(false);

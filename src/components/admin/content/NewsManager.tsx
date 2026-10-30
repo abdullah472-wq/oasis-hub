@@ -75,8 +75,10 @@ export const NewsManager = () => {
     };
 
     window.addEventListener("oasis-news-updated", handleNewsUpdate);
+    window.addEventListener("storage", handleNewsUpdate);
     return () => {
       window.removeEventListener("oasis-news-updated", handleNewsUpdate);
+      window.removeEventListener("storage", handleNewsUpdate);
     };
   }, []);
 

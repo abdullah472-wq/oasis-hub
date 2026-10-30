@@ -1,5 +1,4 @@
-import { db } from "./firebase";
-import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, updateDoc } from "firebase/firestore";
+import { supabase, ensureSupabaseAdminAuth, logAdminActivity } from "./supabase/client";
 
 export interface NewsPost {
   id?: string;
@@ -14,8 +13,8 @@ export interface NewsPost {
   createdAt: number;
 }
 
-const NEWS_COLLECTION = "news";
 const NEWS_CACHE_KEY = "oasis_news_cache_v2";
+const EMBED_DELIMITER_REGEX = /<!--embed:([\s\S]*?)-->/;
 
 export const defaultNewsPosts: NewsPost[] = [
   {
@@ -75,91 +74,235 @@ const writeNewsCache = (items: NewsPost[]) => {
   try {
     window.localStorage.setItem(NEWS_CACHE_KEY, JSON.stringify(items));
     window.dispatchEvent(new CustomEvent("oasis-news-updated", { detail: items }));
+    window.dispatchEvent(new StorageEvent("storage", { key: NEWS_CACHE_KEY }));
   } catch {
     // ignore
   }
 };
 
+function mapRowToNewsPost(row: any): NewsPost {
+  let embedCode: string | undefined = undefined;
+  let cleanContentBn = row.content_bn || "";
+  let cleanContentEn = row.content_en || "";
+
+  const matchEn = cleanContentEn.match(EMBED_DELIMITER_REGEX);
+  if (matchEn) {
+    embedCode = matchEn[1];
+    cleanContentEn = cleanContentEn.replace(EMBED_DELIMITER_REGEX, "").trim();
+  }
+
+  const matchBn = cleanContentBn.match(EMBED_DELIMITER_REGEX);
+  if (matchBn) {
+    if (!embedCode) embedCode = matchBn[1];
+    cleanContentBn = cleanContentBn.replace(EMBED_DELIMITER_REGEX, "").trim();
+  }
+
+  const rawDate = row.published_at || row.created_at || new Date().toISOString();
+  const dateStr = typeof rawDate === "string" ? rawDate.split("T")[0] : new Date(rawDate).toISOString().split("T")[0];
+  const createdAtMs = row.created_at ? new Date(row.created_at).getTime() : Date.now();
+
+  return {
+    id: row.id,
+    titleBn: row.title_bn || "",
+    titleEn: row.title_en || row.title_bn || "",
+    excerptBn: cleanContentBn,
+    excerptEn: cleanContentEn || cleanContentBn,
+    date: dateStr,
+    imageUrl: row.image_url || "/hero-campus.jpg",
+    category: row.category || "সাধারণ",
+    embedCode: embedCode || undefined,
+    createdAt: createdAtMs,
+  };
+}
+
+function mapNewsPostToDb(post: Partial<NewsPost>) {
+  let contentEn = (post.excerptEn || post.excerptBn || "").trim();
+  if (post.embedCode && post.embedCode.trim()) {
+    contentEn = `${contentEn}\n<!--embed:${post.embedCode.trim()}-->`;
+  }
+
+  let publishedAt = new Date().toISOString();
+  if (post.date) {
+    const parsed = new Date(post.date);
+    if (!isNaN(parsed.getTime())) {
+      publishedAt = parsed.toISOString();
+    }
+  }
+
+  return {
+    title_bn: (post.titleBn || "").trim(),
+    title_en: (post.titleEn || post.titleBn || "").trim(),
+    content_bn: (post.excerptBn || "").trim(),
+    content_en: contentEn,
+    category: post.category || "সাধারণ",
+    image_url: post.imageUrl || "/hero-campus.jpg",
+    is_published: true,
+    published_at: publishedAt,
+  };
+}
+
 export const saveNewsToFirestore = async (
   post: Omit<NewsPost, "id" | "createdAt">
 ): Promise<NewsPost> => {
-  const newPost: NewsPost = {
+  await ensureSupabaseAdminAuth();
+
+  const dbPayload = mapNewsPostToDb(post);
+
+  let newPost: NewsPost = {
     ...post,
     id: `news-${Date.now()}`,
     createdAt: Date.now(),
   };
 
   try {
-    if (db) {
-      const docRef = await addDoc(collection(db, NEWS_COLLECTION), {
-        ...post,
-        createdAt: newPost.createdAt,
-      });
-      newPost.id = docRef.id;
+    let { data, error } = await supabase
+      .from("news")
+      .insert([dbPayload])
+      .select()
+      .single();
+
+    if (error && error.code === "42501") {
+      const authed = await ensureSupabaseAdminAuth();
+      if (authed) {
+        const retry = await supabase
+          .from("news")
+          .insert([dbPayload])
+          .select()
+          .single();
+        data = retry.data;
+        error = retry.error;
+      }
     }
-  } catch (error) {
-    console.warn("Firestore save news fallback to local cache:", error);
+
+    if (error) {
+      console.error("Supabase news insert error:", error);
+      throw new Error(error.message || "সংবাদ সংরক্ষণ করতে ব্যর্থ হয়েছে");
+    }
+
+    if (data) {
+      newPost = mapRowToNewsPost(data);
+    }
+  } catch (err: any) {
+    console.error("News save error:", err);
+    throw err;
   }
 
-  // Update local cache and broadcast
+  // Update local cache and broadcast update
   const cached = readNewsCache();
   const updated = [newPost, ...cached.filter((item) => item.id !== newPost.id)];
   writeNewsCache(updated);
+
+  void logAdminActivity(
+    "CREATE",
+    "news",
+    `Published news: ${newPost.titleBn}`
+  );
 
   return newPost;
 };
 
 export const getNewsFromFirestore = async (): Promise<NewsPost[]> => {
   try {
-    if (db) {
-      const q = query(collection(db, NEWS_COLLECTION), orderBy("createdAt", "desc"));
-      const snapshot = await getDocs(q);
-      if (!snapshot.empty) {
-        const items = snapshot.docs.map((docItem) => ({
-          id: docItem.id,
-          ...docItem.data(),
-        })) as NewsPost[];
+    const cached = readNewsCache();
 
-        if (items.length > 0) {
-          writeNewsCache(items);
-          return items;
+    const { data, error } = await supabase
+      .from("news")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.warn("Supabase get news warning:", error);
+      return cached.length > 0 ? cached : defaultNewsPosts;
+    }
+
+    if (data && data.length > 0) {
+      const mapped = data.map(mapRowToNewsPost);
+
+      // Preserve any recently saved local posts not yet reflected
+      const seenIds = new Set(mapped.map((m) => m.id));
+      for (const localItem of cached) {
+        if (localItem.id && !seenIds.has(localItem.id)) {
+          if (Date.now() - (localItem.createdAt || 0) < 5 * 60 * 1000) {
+            mapped.unshift(localItem);
+          }
         }
       }
-    }
-  } catch (error) {
-    console.warn("Firestore get news failed, using cache:", error);
-  }
 
-  return readNewsCache();
+      writeNewsCache(mapped);
+      return mapped;
+    }
+
+    return cached.length > 0 ? cached : defaultNewsPosts;
+  } catch (err) {
+    console.warn("Failed to load news, falling back to cache:", err);
+    return readNewsCache();
+  }
 };
 
 export const deleteNewsFromFirestore = async (id: string): Promise<void> => {
+  await ensureSupabaseAdminAuth();
+
   try {
-    if (db) {
-      await deleteDoc(doc(db, NEWS_COLLECTION, id));
+    let { error } = await supabase.from("news").delete().eq("id", id);
+    if (error && error.code === "42501") {
+      const authed = await ensureSupabaseAdminAuth();
+      if (authed) {
+        const retry = await supabase.from("news").delete().eq("id", id);
+        error = retry.error;
+      }
     }
-  } catch (error) {
-    console.warn("Firestore delete news fallback to local cache:", error);
+    if (error) {
+      console.error("Supabase news delete error:", error);
+      throw new Error(error.message || "Failed to delete news from database");
+    }
+  } catch (err) {
+    console.error("News delete error:", err);
+    throw err;
   }
 
   const cached = readNewsCache();
   const updated = cached.filter((item) => item.id !== id);
   writeNewsCache(updated);
+
+  void logAdminActivity(
+    "DELETE",
+    "news",
+    `Deleted news item: ${id}`
+  );
 };
 
 export const updateNewsInFirestore = async (
   id: string,
   payload: Partial<Omit<NewsPost, "id" | "createdAt">>
 ): Promise<void> => {
+  await ensureSupabaseAdminAuth();
+
+  const dbPayload = mapNewsPostToDb(payload);
+
   try {
-    if (db) {
-      await updateDoc(doc(db, NEWS_COLLECTION, id), {
-        ...payload,
-        updatedAt: Date.now(),
-      });
+    let { error } = await supabase
+      .from("news")
+      .update(dbPayload)
+      .eq("id", id);
+
+    if (error && error.code === "42501") {
+      const authed = await ensureSupabaseAdminAuth();
+      if (authed) {
+        const retry = await supabase
+          .from("news")
+          .update(dbPayload)
+          .eq("id", id);
+        error = retry.error;
+      }
     }
-  } catch (error) {
-    console.warn("Firestore update news fallback to local cache:", error);
+
+    if (error) {
+      console.error("Supabase news update error:", error);
+      throw new Error(error.message || "Failed to update news in database");
+    }
+  } catch (err) {
+    console.error("News update error:", err);
+    throw err;
   }
 
   const cached = readNewsCache();
@@ -167,4 +310,16 @@ export const updateNewsInFirestore = async (
     item.id === id ? { ...item, ...payload, updatedAt: Date.now() } : item
   );
   writeNewsCache(updated);
+
+  void logAdminActivity(
+    "UPDATE",
+    "news",
+    `Updated news: ${payload.titleBn || id}`
+  );
 };
+
+// Aliases for modern naming
+export const getNewsList = getNewsFromFirestore;
+export const saveNewsPost = saveNewsToFirestore;
+export const updateNewsPost = updateNewsInFirestore;
+export const deleteNewsPost = deleteNewsFromFirestore;
