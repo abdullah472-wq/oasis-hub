@@ -1105,7 +1105,7 @@ const Admission = () => {
             </div>
           </div>
           <div className="text-center mt-3 text-[8.5px] text-slate-500">
-            আননূর তাহফিজুল কুরআন মাদরাসা ও মডেল একাডেমি • মেইন রোড, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর • হেল্পলাইন: {settings.hotline_or_whatsapp || settings.phone_primary || "01820811511"}
+            {settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা"} • {settings.address_boys_campus_bn || "মেইন রোড, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর"} • হেল্পলাইন: {settings.hotline_or_whatsapp || settings.phone_primary || "01820811511"}
           </div>
         </div>
       </div>
