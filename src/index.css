@@ -184,3 +184,65 @@
   }
 }
 
+/* ================= PRINT STYLES ================= */
+@media print {
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  html,
+  body {
+    background-color: #ffffff !important;
+    background-image: none !important;
+    color: #0f172a !important;
+    font-size: 10.5pt !important;
+    line-height: 1.35 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Global elements to hide during print */
+  header,
+  nav:not(.printable-nav),
+  footer,
+  aside,
+  .print\:hidden,
+  [data-print-hidden="true"],
+  .notice-ticker,
+  .nasheed-player,
+  .whatsapp-fab,
+  .admission-fab,
+  .scroll-to-top,
+  .sonner-toaster,
+  div[role="status"],
+  button:not(.printable-button),
+  .no-print {
+    display: none !important;
+  }
+
+  /* Avoid awkward page cuts inside cards and table rows */
+  .break-inside-avoid,
+  .print-avoid-break,
+  tr,
+  figure,
+  blockquote {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Remove default link URLs in printed output */
+  a[href]:after {
+    content: none !important;
+  }
+
+  /* Standard A4 print margin setup */
+  @page {
+    size: A4 portrait;
+    margin: 1cm 1cm 1cm 1cm;
+  }
+}
+
+

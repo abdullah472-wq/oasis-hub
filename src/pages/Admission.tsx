@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useSiteSettings } from "@/lib/siteSettings";
+import { useSiteSettings, formatRegistrationNumber } from "@/lib/siteSettings";
 import WaveDivider from "@/components/WaveDivider";
 import AdmissionCountdownBanner from "@/components/admission/AdmissionCountdownBanner";
 import { springIn, springInDelay } from "@/lib/animations";
@@ -41,6 +41,7 @@ import {
 const Admission = () => {
   const { t } = useLanguage();
   const { settings } = useSiteSettings();
+  const siteLogo = settings.logo_url || "/site-logo.png";
   const [feeItems, setFeeItems] = useState<FeeStructureItem[]>([]);
   const [rules, setRules] = useState<AdmissionRuleItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,8 +101,10 @@ const Admission = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
-      {/* Hero Section */}
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary print:min-h-0 print:bg-white print:text-black">
+      {/* Screen Web Presentation */}
+      <div className="print:hidden">
+        {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-primary via-primary/95 to-slate-950 py-20 lg:py-28 text-white">
         {/* Background Islamic Pattern & Glows */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.12),transparent_60%)]" />
@@ -867,6 +870,245 @@ const Admission = () => {
           </div>
         </section>
       </main>
+      </div>
+
+      {/* ================= OFFICIAL PRINTABLE ADMISSION CIRCULAR & PROSPECTUS ================= */}
+      <div className="hidden print:block print:w-full print:text-slate-900 font-bengali text-[10.5pt] leading-normal p-4">
+        {/* 1. Official Institutional Pad Header */}
+        <div className="border-b-2 border-slate-900 pb-3 mb-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <img
+                src={siteLogo}
+                alt="Logo"
+                className="h-16 w-16 object-contain shrink-0"
+              />
+              <div>
+                <h1 className="text-xl font-black text-slate-950 leading-tight">
+                  {settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা"}
+                </h1>
+                <p className="text-[11px] font-semibold text-slate-700">
+                  {settings.institution_name_en || "Annoor Tahfizul Quran Madrasa"}
+                </p>
+                <p className="text-[10px] text-slate-600 font-mono mt-0.5">
+                  {Boolean(formatRegistrationNumber(settings, "bn"))
+                    ? `${formatRegistrationNumber(settings, "bn")} | `
+                    : ""}
+                  ক্যাম্পাস: {settings.address_boys_campus_bn || "কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর"}
+                </p>
+              </div>
+            </div>
+
+            <div className="text-right text-[10.5px] leading-tight space-y-0.5 shrink-0">
+              <span className="inline-block rounded border border-slate-900 bg-slate-100 px-2 py-0.5 font-bold text-slate-950 text-[10px]">
+                অফিসিয়াল ভর্তি নির্দেশিকা
+              </span>
+              <p className="font-semibold text-slate-800">
+                হটলাইন: {settings.hotline_or_whatsapp || settings.phone_primary || "01820811511"}
+              </p>
+              <p className="text-slate-600 font-mono text-[9.5px]">
+                {settings.email_primary || "annoor.madrasa@gmail.com"}
+              </p>
+            </div>
+          </div>
+
+          <div className="text-center pt-2 mt-2 border-t border-slate-300">
+            <h2 className="text-base font-black tracking-wide text-slate-950">
+              ভর্তি তথ্য ও ফি কাঠামো বিবরণী — শিক্ষাবর্ষ ২০২৬-২০২৭
+            </h2>
+            <p className="text-[11px] text-slate-600">
+              হিফজুল কুরআন, আন্তর্জাতিক মানের তাজবিদ, নূরানী, নাজেরা ও আধুনিক সমন্বিত ইসলামিক বিদ্যাপীঠ
+            </p>
+          </div>
+        </div>
+
+        {/* 2. Admission Schedule & Key Notes */}
+        <div className="print-avoid-break mb-4 p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-[10.5px]">
+          <div className="grid grid-cols-3 gap-2 text-center divide-x divide-slate-300">
+            <div>
+              <p className="text-slate-500 font-semibold">আবেদন ফরম বিতরণ ও জমা</p>
+              <p className="font-bold text-slate-900 mt-0.5">চলমান (অনলাইন ও সরাসরি অফিসে)</p>
+            </div>
+            <div>
+              <p className="text-slate-500 font-semibold">ভর্তি পরীক্ষা ও মৌখিক যাচাই</p>
+              <p className="font-bold text-slate-900 mt-0.5">নির্ধারিত তারিখে (ফোনে জানানো হবে)</p>
+            </div>
+            <div>
+              <p className="text-slate-500 font-semibold">অফিস যোগাযোগের সময়</p>
+              <p className="font-bold text-slate-900 mt-0.5">সকাল ৮:০০ - বিকাল ৪:০০ (শনি-বৃহস্পতি)</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. Official Fee Structure Table */}
+        <div className="print-avoid-break mb-4">
+          <h3 className="text-sm font-black text-slate-950 mb-1.5 flex items-center justify-between border-b border-slate-300 pb-1">
+            <span>১. অনুমোদিত ও নির্ধারিত ফি কাঠামো (সর্বশেষ হালনাগাদ)</span>
+            <span className="text-[10px] font-normal text-slate-600 font-mono">* কোনো অতিরিক্ত বা অপ্রকাশ্য চার্জ নেই</span>
+          </h3>
+
+          <table className="w-full border-collapse border border-slate-400 text-[10.5px] text-slate-900">
+            <thead>
+              <tr className="bg-slate-100 border-b border-slate-400">
+                <th className="border border-slate-400 py-1.5 px-2 text-center w-10 font-bold">ক্রম</th>
+                <th className="border border-slate-400 py-1.5 px-2 text-left font-bold">ফি-এর বিবরণ ও শ্রেণি</th>
+                <th className="border border-slate-400 py-1.5 px-2 text-center w-24 font-bold">পরিমাণ</th>
+                <th className="border border-slate-400 py-1.5 px-2 text-center w-24 font-bold">পরিশোধের মেয়াদ</th>
+                <th className="border border-slate-400 py-1.5 px-2 text-left font-bold">মন্তব্য / বিশেষ সুবিধা</th>
+              </tr>
+            </thead>
+            <tbody>
+              {feeItems.map((item, idx) => (
+                <tr key={item.id} className="border-b border-slate-300">
+                  <td className="border border-slate-300 py-1 px-2 text-center font-mono">{idx + 1}</td>
+                  <td className="border border-slate-300 py-1 px-2 font-semibold">
+                    {item.type_bn} {item.highlight ? <span className="text-[9.5px] font-bold text-slate-700 bg-slate-200 px-1 py-0.2 rounded ml-1">(আবাসিক)</span> : null}
+                  </td>
+                  <td className="border border-slate-300 py-1 px-2 text-center font-bold font-mono">
+                    {item.amount_bn}
+                  </td>
+                  <td className="border border-slate-300 py-1 px-2 text-center">
+                    {item.category === "tuition" ? "প্রতি মাসে" : item.category === "admission" ? "এককালীন" : "প্রয়োজন মাফিক"}
+                  </td>
+                  <td className="border border-slate-300 py-1 px-2 text-slate-700 text-[10px]">
+                    {item.note_bn || "-"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <p className="mt-1 text-[9.5px] text-slate-600 italic">
+            * আবাসিক শিক্ষার্থীদের জন্য ৩ বেলা সুষম পুষ্টিকর খাবার, আরামদায়ক শয্যা ও সার্বক্ষণিক শিক্ষকমণ্ডলীর নিবিড় তত্ত্বাবধান অন্তর্ভুক্ত।
+          </p>
+        </div>
+
+        {/* 4. Rules & Document Checklist (2 Columns side by side) */}
+        <div className="print-avoid-break mb-4 grid grid-cols-2 gap-3">
+          {/* Rules */}
+          <div className="border border-slate-300 rounded-lg p-2.5 bg-slate-50/50">
+            <h4 className="text-xs font-black text-slate-950 mb-1.5 border-b border-slate-300 pb-1">
+              ২. ভর্তির সাধারণ নিয়মাবলী ও শর্তসমূহ
+            </h4>
+            <ol className="list-decimal list-inside space-y-1 text-[10px] text-slate-800 leading-tight">
+              {rules
+                .filter((r) => r.type === "rule")
+                .map((r) => (
+                  <li key={r.id}>
+                    <span className="font-medium">{r.rule_bn}</span>
+                  </li>
+                ))}
+              <li>মাদরাসা ও স্কুল উভয় শাখার ক্লাসে নিয়মিত উপস্থিতি আবশ্যক। ছুটি পূর্বানুমোদন সাপেক্ষ।</li>
+            </ol>
+          </div>
+
+          {/* Required Documents */}
+          <div className="border border-slate-300 rounded-lg p-2.5 bg-slate-50/50">
+            <h4 className="text-xs font-black text-slate-950 mb-1.5 border-b border-slate-300 pb-1">
+              ৩. আবশ্যকীয় কাগজপত্র চেকলিস্ট
+            </h4>
+            <ul className="space-y-1 text-[10px] text-slate-800 leading-tight">
+              {rules
+                .filter((r) => r.type === "document")
+                .map((doc) => (
+                  <li key={doc.id} className="flex items-start gap-1.5">
+                    <span className="text-slate-900 font-bold shrink-0">✓</span>
+                    <span>{doc.rule_bn} {doc.is_required ? "(বাধ্যতামূলক)" : ""}</span>
+                  </li>
+                ))}
+              <li className="flex items-start gap-1.5">
+                <span className="text-slate-900 font-bold shrink-0">✓</span>
+                <span>পিতা ও মাতার জাতীয় পরিচয়পত্রের ফটোকপি।</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <span className="text-slate-900 font-bold shrink-0">✓</span>
+                <span>অনলাইনে আবেদনের কপি অথবা পূরণকৃত অফিসিয়াল ভর্তি ফরম।</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* 5. 4 Simple Admission Steps */}
+        <div className="print-avoid-break mb-4 p-2.5 rounded-lg border border-slate-300 text-[10px]">
+          <h4 className="text-xs font-black text-slate-950 mb-1.5 border-b border-slate-200 pb-1">
+            ৪. ভর্তি প্রক্রিয়ার ৪টি সহজ ধাপ
+          </h4>
+          <div className="grid grid-cols-4 gap-2 text-center">
+            <div className="p-1.5 bg-slate-50 rounded border border-slate-200">
+              <span className="font-bold text-slate-900 block">০১. ফরম পূরণ</span>
+              <span className="text-[9px] text-slate-600">অনলাইনে বা ক্যাম্পাস থেকে ফরম সংগ্রহ ও জমা</span>
+            </div>
+            <div className="p-1.5 bg-slate-50 rounded border border-slate-200">
+              <span className="font-bold text-slate-900 block">০২. পরীক্ষা ও ভাইভা</span>
+              <span className="text-[9px] text-slate-600">মেধা ও মৌলিক জ্ঞান মূল্যায়ন পরীক্ষা</span>
+            </div>
+            <div className="p-1.5 bg-slate-50 rounded border border-slate-200">
+              <span className="font-bold text-slate-900 block">০৩. ফলাফল প্রকাশ</span>
+              <span className="text-[9px] text-slate-600">উত্তীর্ণ শিক্ষার্থীদের তালিকা প্রকাশ</span>
+            </div>
+            <div className="p-1.5 bg-slate-50 rounded border border-slate-200">
+              <span className="font-bold text-slate-900 block">০৪. ফি ও নিশ্চয়ন</span>
+              <span className="text-[9px] text-slate-600">ফি পরিশোধ সাপেক্ষে আইডি কার্ড ও বই গ্রহণ</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 6. Payment Modes & Bank / Mobile Accounts */}
+        <div className="print-avoid-break mb-4 p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-[10px]">
+          <h4 className="text-xs font-black text-slate-950 mb-1">
+            ৫. ফি পরিশোধের মাধ্যম ও হিসাব বিবরণী
+          </h4>
+          <p className="text-slate-700 mb-1.5 text-[9.5px]">
+            ক্যাম্পাস ক্যাশ কাউন্টার ছাড়াও বিকাশ, নগদ, রকেট অথবা সরাসরি ব্যাংকে ফি জমা দেওয়া যাবে:
+          </p>
+          <div className="grid grid-cols-3 gap-2 font-mono text-[9.5px]">
+            <div className="p-1.5 bg-white rounded border border-slate-200">
+              <span className="font-bold text-slate-900 block font-bengali">ইসলামী ব্যাংক বাংলাদেশ লি:</span>
+              <span>হিসাব: {settings.bank_account_no || "20503760201161316"}</span>
+              <span className="block text-[8.5px] text-slate-500 font-bengali">কাপাসিয়া শাখা, গাজীপুর</span>
+            </div>
+            <div className="p-1.5 bg-white rounded border border-slate-200">
+              <span className="font-bold text-slate-900 block font-bengali">বিকাশ / নগদ (মার্চেন্ট/পার্সোনাল)</span>
+              <span>নম্বর: {settings.hotline_or_whatsapp || settings.phone_primary || "01820-811511"}</span>
+              <span className="block text-[8.5px] text-slate-500 font-bengali">রেফারেন্সে শিক্ষার্থীর নাম লিখুন</span>
+            </div>
+            <div className="p-1.5 bg-white rounded border border-slate-200">
+              <span className="font-bold text-slate-900 block font-bengali">অনলাইন ভর্তি পোর্টাল</span>
+              <span>annoor.codbotbd.com/admission-form</span>
+              <span className="block text-[8.5px] text-slate-500 font-bengali">সরাসরি ডিজিটাল আবেদন</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 7. Signatures & Official Endorsement */}
+        <div className="print-avoid-break pt-6 mt-4 border-t-2 border-slate-400">
+          <div className="grid grid-cols-4 gap-4 text-center text-[10px] text-slate-700">
+            <div>
+              <div className="border-t border-slate-400 pt-1 w-3/4 mx-auto font-semibold">
+                অভিভাবকের স্বাক্ষর
+              </div>
+            </div>
+            <div>
+              <div className="border-t border-slate-400 pt-1 w-3/4 mx-auto font-semibold">
+                হিসাব শাখা
+              </div>
+            </div>
+            <div>
+              <div className="border-t border-slate-400 pt-1 w-3/4 mx-auto font-semibold">
+                ভর্তি সেল ইনচার্জ
+              </div>
+            </div>
+            <div>
+              <div className="border-t border-slate-400 pt-1 w-3/4 mx-auto font-bold text-slate-950">
+                মুহতামিম / অধ্যক্ষ
+              </div>
+            </div>
+          </div>
+          <div className="text-center mt-3 text-[8.5px] text-slate-500">
+            আননূর তাহফিজুল কুরআন মাদরাসা ও মডেল একাডেমি • মেইন রোড, কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর • হেল্পলাইন: {settings.hotline_or_whatsapp || settings.phone_primary || "01820811511"}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

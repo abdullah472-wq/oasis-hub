@@ -50,7 +50,7 @@ export const AdmissionFloatingFAB = () => {
   }
 
   return (
-    <div className="fixed bottom-24 right-4 sm:right-6 z-[9999] flex flex-col items-end pointer-events-auto">
+    <div className="fixed bottom-24 right-4 sm:right-6 z-[9999] flex flex-col items-end pointer-events-auto print:hidden">
       <AnimatePresence mode="wait">
         {!minimized ? (
           <motion.div

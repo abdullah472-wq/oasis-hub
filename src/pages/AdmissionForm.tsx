@@ -168,12 +168,12 @@ const AdmissionFormPage = () => {
 
   if (submitted && submittedRecord) {
     return (
-      <div className="bg-gradient-to-b from-emerald-50/40 via-background to-background min-h-screen py-10 sm:py-14">
-        <div className="mx-auto max-w-4xl px-4 space-y-8">
+      <div className="bg-gradient-to-b from-emerald-50/40 via-background to-background min-h-screen py-10 sm:py-14 print:min-h-0 print:py-0 print:bg-white">
+        <div className="mx-auto max-w-4xl px-4 space-y-8 print:max-w-none print:px-0 print:space-y-0">
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-[2rem] border border-emerald-200 bg-gradient-to-r from-emerald-800 via-primary to-emerald-950 p-8 sm:p-12 text-center text-white shadow-xl"
+            className="rounded-[2rem] border border-emerald-200 bg-gradient-to-r from-emerald-800 via-primary to-emerald-950 p-8 sm:p-12 text-center text-white shadow-xl print:hidden"
           >
             <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-md">
               <CheckCircle2 className="h-10 w-10 text-emerald-300" />
@@ -208,8 +208,8 @@ const AdmissionFormPage = () => {
           </motion.div>
 
           {/* OFFICIAL PRINTABLE ADMISSION SLIP */}
-          <div className="mx-auto max-w-3xl">
-            <div className="bg-card border-2 border-border shadow-2xl rounded-3xl p-6 sm:p-10 space-y-6 text-foreground">
+          <div className="mx-auto max-w-3xl print:max-w-none print:w-full print:m-0">
+            <div className="bg-card border-2 border-border shadow-2xl rounded-3xl p-6 sm:p-10 space-y-6 text-foreground print:shadow-none print:border print:border-slate-400 print:rounded-xl print:p-6 print:text-slate-900 print:bg-white">
               {/* Slip Header */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b-2 border-primary/20 pb-6 text-center sm:text-left">
                 <div className="flex items-center gap-4">
@@ -239,7 +239,7 @@ const AdmissionFormPage = () => {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleCopyTracking(submittedRecord.trackingId)}
-                      className="h-7 w-7 text-muted-foreground hover:text-primary"
+                      className="h-7 w-7 text-muted-foreground hover:text-primary print:hidden"
                       title={t("ট্র্যাকিং কোড কপি করুন", "Copy Code")}
                     >
                       <Copy className="h-3.5 w-3.5" />

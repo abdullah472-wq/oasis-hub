@@ -52,7 +52,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="relative overflow-hidden border-t border-primary/40 bg-gradient-to-b from-primary via-primary/95 to-slate-950 text-primary-foreground">
+    <footer className="relative overflow-hidden border-t border-primary/40 bg-gradient-to-b from-primary via-primary/95 to-slate-950 text-primary-foreground print:hidden">
       {/* Subtle Islamic Geometric Accent Background */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.035]"

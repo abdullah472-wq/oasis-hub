@@ -138,7 +138,7 @@ const Navbar = () => {
   if (!ENABLE_EXPERIMENTAL_NAVBAR) {
     return (
       <nav
-        className={`sticky top-0 z-50 transition-all duration-300 relative ${
+        className={`sticky top-0 z-50 transition-all duration-300 relative print:hidden ${
           isHomePage && !isCompact
             ? "border-transparent bg-white dark:bg-card lg:bg-transparent"
             : "border-b border-border bg-card/80 backdrop-blur-lg"
@@ -497,7 +497,7 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`sticky top-0 z-50 transition-all duration-300 relative ${
+      className={`sticky top-0 z-50 transition-all duration-300 relative print:hidden ${
         isCompact
           ? "border-b border-border/70 bg-card/90 backdrop-blur-xl shadow-sm"
           : "border-b border-border/40 shadow-xs bg-white dark:bg-card lg:bg-transparent"

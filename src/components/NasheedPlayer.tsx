@@ -193,7 +193,7 @@ export const NasheedPlayer = () => {
       {/* Floating Container (Bottom-Left) with Outside-Click ref */}
       <div
         ref={containerRef}
-        className="fixed bottom-6 left-5 sm:left-6 z-[9995] select-none font-bengali"
+        className="fixed bottom-6 left-5 sm:left-6 z-[9995] select-none font-bengali print:hidden"
       >
         <AnimatePresence mode="wait">
           {isExpanded ? (

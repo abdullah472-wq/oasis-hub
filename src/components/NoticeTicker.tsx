@@ -55,7 +55,7 @@ const NoticeTicker = () => {
   }, []);
 
   return (
-    <div className="relative z-30 overflow-hidden border-b border-border/70 bg-white dark:bg-card text-foreground shadow-xs">
+    <div className="relative z-30 overflow-hidden border-b border-border/70 bg-white dark:bg-card text-foreground shadow-xs print:hidden">
       <div className="flex items-center">
         {/* Notice Badge */}
         <div className="z-10 flex items-center gap-1.5 bg-primary px-3.5 py-1.5 text-xs font-bold font-bengali text-primary-foreground shadow-xs uppercase tracking-wider shrink-0">
