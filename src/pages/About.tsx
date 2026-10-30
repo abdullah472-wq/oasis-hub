@@ -336,15 +336,15 @@ const About = () => {
                   `স্থাপিত: ${settings.founding_year || "২০২১"} খ্রি.${
                     settings.trade_license_no ? ` | ট্রেড লাইসেন্স: ${settings.trade_license_no}` : ""
                   }${
-                    settings.emis_code && settings.emis_code !== "12345678"
-                      ? ` | ${formatRegistrationNumber(settings.emis_code, "bn")}`
+                    formatRegistrationNumber(settings, "bn")
+                      ? ` | ${formatRegistrationNumber(settings, "bn")}`
                       : ""
                   }`,
                   `Est. ${settings.founding_year || "2021"}${
                     settings.trade_license_no ? ` | Lic: ${settings.trade_license_no}` : ""
                   }${
-                    settings.emis_code && settings.emis_code !== "12345678"
-                      ? ` | ${formatRegistrationNumber(settings.emis_code, "en")}`
+                    formatRegistrationNumber(settings, "en")
+                      ? ` | ${formatRegistrationNumber(settings, "en")}`
                       : ""
                   }`
                 )}
@@ -735,10 +735,10 @@ const About = () => {
                       </button>
                     </span>
                   )}
-                  {settings.emis_code && settings.emis_code !== "12345678" && (
+                  {Boolean(formatRegistrationNumber(settings, lang === "bn" ? "bn" : "en")) && (
                     <span className="inline-flex items-center gap-1.5 font-mono font-semibold text-primary">
                       <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                      <span>{formatRegistrationNumber(settings.emis_code, lang === "bn" ? "bn" : "en")}</span>
+                      <span>{formatRegistrationNumber(settings, lang === "bn" ? "bn" : "en")}</span>
                     </span>
                   )}
                 </div>

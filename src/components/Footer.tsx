@@ -132,9 +132,9 @@ const Footer = () => {
                       `Est. ${settings.founding_year || "2021"} • Kapasia, Gazipur`
                     )}
                   </span>
-                  {settings.emis_code && settings.emis_code !== "12345678" && (
+                  {Boolean(formatRegistrationNumber(settings, lang === "bn" ? "bn" : "en")) && (
                     <span className="rounded bg-accent/20 px-2 py-0.5 text-[10px] text-accent font-mono font-semibold border border-accent/40 shadow-xs">
-                      {formatRegistrationNumber(settings.emis_code, lang === "bn" ? "bn" : "en")}
+                      {formatRegistrationNumber(settings, lang === "bn" ? "bn" : "en")}
                     </span>
                   )}
                 </p>

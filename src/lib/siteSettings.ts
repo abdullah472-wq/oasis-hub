@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { supabase, ensureSupabaseAdminAuth } from "@/lib/supabase/client";
 import type { SiteSettings } from "@/types/cms";
 import { applyColorPalette } from "@/lib/colorPalettes";
 
 const SETTINGS_CACHE_KEY = "oasis_site_settings_cache_v4";
 const LEGACY_CACHE_KEYS = ["oasis_site_settings_cache_v3", "oasis_site_settings_cache_v2", "oasis_site_settings_cache_v1"];
+export const EXT_SETTINGS_PREFIX = "__EXT_SETTINGS_V1__";
 
 export const defaultSiteSettings: SiteSettings = {
   id: 1,
@@ -113,13 +114,44 @@ export const defaultSiteSettings: SiteSettings = {
 export const SETTINGS_UPDATED_EVENT = "oasis_site_settings_updated";
 
 /**
- * Format registration / EMIS code cleanly for display.
+ * Extracts the primary registration / affiliation number from settings.
+ * Checks emis_code first, then falls back to board registration numbers (Befaq, Nurani, Huffaz, Trade License).
+ */
+export function getPrimaryRegistrationNumber(settings: SiteSettings | null | undefined): string {
+  if (!settings) return "";
+  if (settings.emis_code && settings.emis_code.trim() && settings.emis_code !== "12345678") {
+    return settings.emis_code.trim();
+  }
+  if (settings.befaq_reg_no && settings.befaq_reg_no.trim()) {
+    return settings.befaq_reg_no.trim();
+  }
+  if (settings.nurani_reg_no && settings.nurani_reg_no.trim()) {
+    return settings.nurani_reg_no.trim();
+  }
+  if (settings.huffaz_reg_no && settings.huffaz_reg_no.trim()) {
+    return settings.huffaz_reg_no.trim();
+  }
+  if (settings.trade_license_no && settings.trade_license_no.trim()) {
+    return settings.trade_license_no.trim();
+  }
+  return "";
+}
+
+/**
+ * Format registration / EMIS / Board code cleanly for display.
  * Avoids prepending duplicate prefixes if user input already includes 'রেজি' or 'Reg'.
+ * Accepts either a raw string or full SiteSettings object.
  */
 export function formatRegistrationNumber(
-  emisCode: string | null | undefined,
+  input: string | SiteSettings | null | undefined,
   lang: "bn" | "en" = "bn"
 ): string {
+  let emisCode: string | null | undefined;
+  if (typeof input === "object" && input !== null) {
+    emisCode = getPrimaryRegistrationNumber(input);
+  } else {
+    emisCode = input;
+  }
   if (!emisCode || !emisCode.trim() || emisCode === "12345678") return "";
   const trimmed = emisCode.trim();
   if (/^(রেজি|রেজিস্ট্রেশন|reg|reg\.|regno|reg no)/i.test(trimmed)) {
@@ -216,29 +248,122 @@ export function broadcastSiteSettingsUpdated(settings: Partial<SiteSettings>): S
 /**
  * Resilient remote updater for site_settings.
  * 1. Immediately updates localStorage cache and broadcasts the full payload so UI is instant and persistent.
- * 2. Attempts upsert to Supabase.
- * 3. If Supabase returns schema cache / missing column errors (e.g. "Could not find the '...' column of 'site_settings' in the schema cache"),
- *    it gracefully strips the unrecognized column(s) and retries the upsert.
+ * 2. Authenticates admin session to satisfy Supabase RLS.
+ * 3. Packages extended settings (board affiliations, registrations, etc.) into an ultra-reliable JSON payload.
+ * 4. Upserts to Supabase with auto-retry and schema resilience.
  */
 export async function updateSiteSettingsRemote(payload: Partial<SiteSettings>): Promise<{ success: boolean; data: SiteSettings; error?: any }> {
   // 1. Immediately broadcast and save to cache
   const merged = broadcastSiteSettingsUpdated(payload);
 
-  // 2. Prepare payload for Supabase
+  // 2. Ensure admin auth session for Supabase RLS
+  await ensureSupabaseAdminAuth();
+
+  // 3. Package all extended fields that are not native columns in site_settings table
+  const extFields: Record<string, any> = {
+    tagline_bn: merged.tagline_bn,
+    tagline_en: merged.tagline_en,
+    befaq_name: merged.befaq_name,
+    befaq_reg_no: merged.befaq_reg_no,
+    befaq_cert_no: merged.befaq_cert_no,
+    huffaz_name: merged.huffaz_name,
+    huffaz_reg_no: merged.huffaz_reg_no,
+    huffaz_cert_no: merged.huffaz_cert_no,
+    nurani_name: merged.nurani_name,
+    nurani_reg_no: merged.nurani_reg_no,
+    nurani_cert_no: merged.nurani_cert_no,
+    trade_license_no: merged.trade_license_no,
+    color_palette: merged.color_palette,
+    primary_color: merged.primary_color,
+    accent_color: merged.accent_color,
+    bank_name_bn: merged.bank_name_bn,
+    bank_name_en: merged.bank_name_en,
+    bank_account_name: merged.bank_account_name,
+    bank_account_no: merged.bank_account_no,
+    bank_branch_bn: merged.bank_branch_bn,
+    bank_branch_en: merged.bank_branch_en,
+    bank_routing_no: merged.bank_routing_no,
+    bkash_number: merged.bkash_number,
+    bkash_type: merged.bkash_type,
+    nagad_number: merged.nagad_number,
+    nagad_type: merged.nagad_type,
+    rocket_number: merged.rocket_number,
+    rocket_type: merged.rocket_type,
+    payment_instructions_bn: merged.payment_instructions_bn,
+    payment_instructions_en: merged.payment_instructions_en,
+    payment_accounts: merged.payment_accounts,
+    founder_name_bn: merged.founder_name_bn,
+    founder_name_en: merged.founder_name_en,
+    founder_title_bn: merged.founder_title_bn,
+    founder_title_en: merged.founder_title_en,
+    founder_message_bn: merged.founder_message_bn,
+    founder_message_en: merged.founder_message_en,
+    founder_image_url: merged.founder_image_url,
+    founder_phone: merged.founder_phone,
+    principal_name_bn: merged.principal_name_bn,
+    principal_name_en: merged.principal_name_en,
+    principal_title_bn: merged.principal_title_bn,
+    principal_title_en: merged.principal_title_en,
+    principal_message_bn: merged.principal_message_bn,
+    principal_message_en: merged.principal_message_en,
+    principal_image_url: merged.principal_image_url,
+    principal_phone: merged.principal_phone,
+    principal_email: merged.principal_email,
+    vice_principal_name_bn: merged.vice_principal_name_bn,
+    vice_principal_name_en: merged.vice_principal_name_en,
+    vice_principal_title_bn: merged.vice_principal_title_bn,
+    vice_principal_title_en: merged.vice_principal_title_en,
+    vice_principal_message_bn: merged.vice_principal_message_bn,
+    vice_principal_message_en: merged.vice_principal_message_en,
+    vice_principal_image_url: merged.vice_principal_image_url,
+    vice_principal_phone: merged.vice_principal_phone,
+    vice_principal_email: merged.vice_principal_email,
+  };
+
+  const extPayloadString = EXT_SETTINGS_PREFIX + JSON.stringify(extFields);
+
+  // 4. Remote payload keeping standard columns + storing extended fields in address_girls_campus_en
   let remotePayload: Record<string, any> = {
-    ...payload,
     id: 1,
+    institution_name_bn: merged.institution_name_bn,
+    institution_name_en: merged.institution_name_en,
+    emis_code: merged.emis_code || null,
+    founding_year: merged.founding_year || null,
+    phone_primary: merged.phone_primary || null,
+    phone_secondary: merged.phone_secondary || null,
+    whatsapp_number: merged.whatsapp_number || null,
+    email_primary: merged.email_primary || null,
+    admission_status: merged.admission_status || "open",
+    address_boys_campus_bn: merged.address_boys_campus_bn || null,
+    address_boys_campus_en: merged.address_boys_campus_en || null,
+    address_girls_campus_bn: merged.address_girls_campus_bn || null,
+    address_girls_campus_en: extPayloadString,
+    google_maps_url: merged.google_maps_url || null,
+    facebook_url: merged.facebook_url || null,
+    youtube_url: merged.youtube_url || null,
+    logo_url: merged.logo_url || null,
+    favicon_url: merged.favicon_url || null,
     updated_at: new Date().toISOString(),
   };
 
-  // Try upserting to Supabase with auto-stripping of missing columns
   let attempts = 0;
-  const maxAttempts = 10;
+  const maxAttempts = 6;
   while (attempts < maxAttempts) {
     attempts++;
-    const { error } = await supabase
+    let { error } = await supabase
       .from("site_settings")
       .upsert(remotePayload, { onConflict: "id" });
+
+    // Handle RLS permission error 42501 by re-authenticating as admin
+    if (error && error.code === "42501") {
+      const authed = await ensureSupabaseAdminAuth(true);
+      if (authed) {
+        const retry = await supabase
+          .from("site_settings")
+          .upsert(remotePayload, { onConflict: "id" });
+        error = retry.error;
+      }
+    }
 
     if (!error) {
       break;
@@ -255,7 +380,7 @@ export async function updateSiteSettingsRemote(payload: Partial<SiteSettings>): 
       continue;
     }
 
-    console.warn("Supabase site_settings upsert non-column error:", error);
+    console.warn("Supabase site_settings upsert error:", error);
     break;
   }
 
@@ -282,40 +407,62 @@ export async function fetchSiteSettings(forceFresh = false): Promise<SiteSetting
         return getCachedSiteSettings();
       }
 
+      // Check for packed extended settings in address_girls_campus_en
+      let extSettings: Record<string, any> = {};
+      if (
+        data.address_girls_campus_en &&
+        typeof data.address_girls_campus_en === "string" &&
+        data.address_girls_campus_en.startsWith(EXT_SETTINGS_PREFIX)
+      ) {
+        try {
+          extSettings = JSON.parse(data.address_girls_campus_en.slice(EXT_SETTINGS_PREFIX.length));
+        } catch (e) {
+          console.warn("Failed to parse extended site settings JSON:", e);
+        }
+      }
+
+      const cached = getCachedSiteSettings();
       const sanitizedRemote = sanitizeSettingsObject(data);
 
       const merged: SiteSettings = {
         ...defaultSiteSettings,
+        ...cached,
         ...sanitizedRemote,
-        institution_name_bn: sanitizedRemote.institution_name_bn || defaultSiteSettings.institution_name_bn,
-        institution_name_en: sanitizedRemote.institution_name_en || defaultSiteSettings.institution_name_en,
-        emis_code: sanitizedRemote.emis_code === "12345678" ? "" : (sanitizedRemote.emis_code ?? ""),
-        logo_url: data.logo_url || defaultSiteSettings.logo_url,
-        favicon_url: data.favicon_url || defaultSiteSettings.favicon_url,
-        hero_image_url: data.hero_image_url || defaultSiteSettings.hero_image_url,
-        facebook_url: data.facebook_url ?? sanitizedRemote.facebook_url ?? defaultSiteSettings.facebook_url,
-        facebook_group_url: data.facebook_group_url ?? sanitizedRemote.facebook_group_url ?? defaultSiteSettings.facebook_group_url,
-        youtube_url: data.youtube_url ?? sanitizedRemote.youtube_url ?? defaultSiteSettings.youtube_url,
-        instagram_url: data.instagram_url ?? sanitizedRemote.instagram_url ?? defaultSiteSettings.instagram_url,
-        tiktok_url: data.tiktok_url ?? sanitizedRemote.tiktok_url ?? defaultSiteSettings.tiktok_url,
-        twitter_url: data.twitter_url ?? sanitizedRemote.twitter_url ?? defaultSiteSettings.twitter_url,
-        google_maps_url: data.google_maps_url ?? defaultSiteSettings.google_maps_url,
-        payment_accounts: Array.isArray(data.payment_accounts)
-          ? data.payment_accounts
-          : (Array.isArray(sanitizedRemote.payment_accounts) ? sanitizedRemote.payment_accounts : []),
-        color_palette: data.color_palette || sanitizedRemote.color_palette || defaultSiteSettings.color_palette,
-        primary_color: data.primary_color ?? sanitizedRemote.primary_color ?? null,
-        accent_color: data.accent_color ?? sanitizedRemote.accent_color ?? null,
-        befaq_name: data.befaq_name ?? sanitizedRemote.befaq_name ?? defaultSiteSettings.befaq_name,
-        befaq_reg_no: data.befaq_reg_no ?? sanitizedRemote.befaq_reg_no ?? defaultSiteSettings.befaq_reg_no,
-        befaq_cert_no: data.befaq_cert_no ?? sanitizedRemote.befaq_cert_no ?? defaultSiteSettings.befaq_cert_no,
-        huffaz_name: data.huffaz_name ?? sanitizedRemote.huffaz_name ?? defaultSiteSettings.huffaz_name,
-        huffaz_reg_no: data.huffaz_reg_no ?? sanitizedRemote.huffaz_reg_no ?? defaultSiteSettings.huffaz_reg_no,
-        huffaz_cert_no: data.huffaz_cert_no ?? sanitizedRemote.huffaz_cert_no ?? defaultSiteSettings.huffaz_cert_no,
-        nurani_name: data.nurani_name ?? sanitizedRemote.nurani_name ?? defaultSiteSettings.nurani_name,
-        nurani_reg_no: data.nurani_reg_no ?? sanitizedRemote.nurani_reg_no ?? defaultSiteSettings.nurani_reg_no,
-        nurani_cert_no: data.nurani_cert_no ?? sanitizedRemote.nurani_cert_no ?? defaultSiteSettings.nurani_cert_no,
-        trade_license_no: data.trade_license_no ?? sanitizedRemote.trade_license_no ?? defaultSiteSettings.trade_license_no,
+        ...extSettings,
+        address_girls_campus_en: null,
+        institution_name_bn: sanitizedRemote.institution_name_bn || cached.institution_name_bn || defaultSiteSettings.institution_name_bn,
+        institution_name_en: sanitizedRemote.institution_name_en || cached.institution_name_en || defaultSiteSettings.institution_name_en,
+        emis_code: sanitizedRemote.emis_code === "12345678" ? (cached.emis_code === "12345678" ? "" : cached.emis_code) : (sanitizedRemote.emis_code ?? cached.emis_code ?? ""),
+        logo_url: data.logo_url || cached.logo_url || defaultSiteSettings.logo_url,
+        favicon_url: data.favicon_url || cached.favicon_url || defaultSiteSettings.favicon_url,
+        hero_image_url: data.hero_image_url || cached.hero_image_url || defaultSiteSettings.hero_image_url,
+        facebook_url: data.facebook_url ?? extSettings.facebook_url ?? sanitizedRemote.facebook_url ?? defaultSiteSettings.facebook_url,
+        facebook_group_url: data.facebook_group_url ?? extSettings.facebook_group_url ?? sanitizedRemote.facebook_group_url ?? defaultSiteSettings.facebook_group_url,
+        youtube_url: data.youtube_url ?? extSettings.youtube_url ?? sanitizedRemote.youtube_url ?? defaultSiteSettings.youtube_url,
+        instagram_url: data.instagram_url ?? extSettings.instagram_url ?? sanitizedRemote.instagram_url ?? defaultSiteSettings.instagram_url,
+        tiktok_url: data.tiktok_url ?? extSettings.tiktok_url ?? sanitizedRemote.tiktok_url ?? defaultSiteSettings.tiktok_url,
+        twitter_url: data.twitter_url ?? extSettings.twitter_url ?? sanitizedRemote.twitter_url ?? defaultSiteSettings.twitter_url,
+        google_maps_url: data.google_maps_url ?? extSettings.google_maps_url ?? defaultSiteSettings.google_maps_url,
+        payment_accounts: Array.isArray(extSettings.payment_accounts)
+          ? extSettings.payment_accounts
+          : (Array.isArray(data.payment_accounts)
+            ? data.payment_accounts
+            : (Array.isArray(sanitizedRemote.payment_accounts) ? sanitizedRemote.payment_accounts : [])),
+        color_palette: extSettings.color_palette || data.color_palette || cached.color_palette || defaultSiteSettings.color_palette,
+        primary_color: extSettings.primary_color ?? data.primary_color ?? sanitizedRemote.primary_color ?? null,
+        accent_color: extSettings.accent_color ?? data.accent_color ?? sanitizedRemote.accent_color ?? null,
+        befaq_name: extSettings.befaq_name ?? data.befaq_name ?? cached.befaq_name ?? defaultSiteSettings.befaq_name,
+        befaq_reg_no: extSettings.befaq_reg_no ?? data.befaq_reg_no ?? cached.befaq_reg_no ?? defaultSiteSettings.befaq_reg_no,
+        befaq_cert_no: extSettings.befaq_cert_no ?? data.befaq_cert_no ?? cached.befaq_cert_no ?? defaultSiteSettings.befaq_cert_no,
+        huffaz_name: extSettings.huffaz_name ?? data.huffaz_name ?? cached.huffaz_name ?? defaultSiteSettings.huffaz_name,
+        huffaz_reg_no: extSettings.huffaz_reg_no ?? data.huffaz_reg_no ?? cached.huffaz_reg_no ?? defaultSiteSettings.huffaz_reg_no,
+        huffaz_cert_no: extSettings.huffaz_cert_no ?? data.huffaz_cert_no ?? cached.huffaz_cert_no ?? defaultSiteSettings.huffaz_cert_no,
+        nurani_name: extSettings.nurani_name ?? data.nurani_name ?? cached.nurani_name ?? defaultSiteSettings.nurani_name,
+        nurani_reg_no: extSettings.nurani_reg_no ?? data.nurani_reg_no ?? cached.nurani_reg_no ?? defaultSiteSettings.nurani_reg_no,
+        nurani_cert_no: extSettings.nurani_cert_no ?? data.nurani_cert_no ?? cached.nurani_cert_no ?? defaultSiteSettings.nurani_cert_no,
+        trade_license_no: extSettings.trade_license_no ?? data.trade_license_no ?? cached.trade_license_no ?? defaultSiteSettings.trade_license_no,
+        tagline_bn: extSettings.tagline_bn ?? data.tagline_bn ?? cached.tagline_bn ?? defaultSiteSettings.tagline_bn,
+        tagline_en: extSettings.tagline_en ?? data.tagline_en ?? cached.tagline_en ?? defaultSiteSettings.tagline_en,
       };
 
       lastFetchTimestamp = Date.now();

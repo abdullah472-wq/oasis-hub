@@ -222,8 +222,8 @@ const AdmissionFormPage = () => {
                       হিফজুল কুরআন ও আধুনিক সমন্বিত ইসলামিক বিদ্যাপীঠ
                     </p>
                     <p className="text-[11px] font-mono text-muted-foreground mt-1">
-                      {settings.emis_code && settings.emis_code !== "12345678"
-                        ? `${formatRegistrationNumber(settings.emis_code, "bn")} | `
+                      {Boolean(formatRegistrationNumber(settings, "bn"))
+                        ? `${formatRegistrationNumber(settings, "bn")} | `
                         : ""}
                       {settings.address_boys_campus_bn || "কাপাসিয়া বাজার, কাপাসিয়া, গাজীপুর"}
                     </p>
