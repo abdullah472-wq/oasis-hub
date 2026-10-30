@@ -47,12 +47,18 @@ export const uploadCmsFile = async (
  * Ensures that the Supabase client has an active authenticated session.
  * If not authenticated, automatically authenticates with admin credentials
  * so that RLS-protected CMS writes (faculty, notices, etc.) succeed.
+ * @param forceRefresh If true, forces a re-login even if a session is present.
  */
-export const ensureSupabaseAdminAuth = async (): Promise<boolean> => {
+export const ensureSupabaseAdminAuth = async (forceRefresh: boolean = false): Promise<boolean> => {
   try {
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (sessionData?.session?.user) {
-      return true;
+    if (!forceRefresh) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData?.session;
+      const now = Math.floor(Date.now() / 1000);
+      // Valid session that does not expire within next 60 seconds
+      if (session?.user && session.expires_at && session.expires_at > now + 60) {
+        return true;
+      }
     }
     const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || "abdullahalmamon472@gmail.com").trim();
     const adminPassword = (import.meta.env.VITE_ADMIN_PASSWORD || "oasis2026").trim();

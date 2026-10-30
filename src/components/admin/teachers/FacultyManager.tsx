@@ -13,6 +13,7 @@ import {
   Briefcase,
   Star,
   BookOpen,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -32,6 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   getFacultyList,
+  getCachedFaculty,
   deleteFacultyMember,
   saveFacultyMember,
   FACULTY_UPDATED_EVENT,
@@ -43,8 +45,8 @@ import { FacultyDialog } from "./FacultyDialog";
 
 export const FacultyManager = () => {
   const { t } = useLanguage();
-  const [faculty, setFaculty] = useState<FacultyMember[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [faculty, setFaculty] = useState<FacultyMember[]>(() => getCachedFaculty());
+  const [loading, setLoading] = useState(() => faculty.length === 0);
   const [searchQuery, setSearchQuery] = useState("");
 
   const [categoryFilter, setCategoryFilter] = useState<"all" | FacultyRoleCategory>("all");
@@ -54,25 +56,30 @@ export const FacultyManager = () => {
   const [selectedMember, setSelectedMember] = useState<FacultyMember | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<FacultyMember | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const loadData = async () => {
+  const loadData = async (showLoading: boolean = faculty.length === 0) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const data = await getFacultyList();
       setFaculty(data);
     } catch (err) {
       console.error("Failed to load faculty:", err);
       toast.error(t("তথ্য লোড করতে সমস্যা হয়েছে", "Failed to load data"));
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    loadData(faculty.length === 0);
 
-    const handleSync = () => {
-      void getFacultyList().then((data) => setFaculty(data));
+    const handleSync = (e?: Event) => {
+      if (e instanceof CustomEvent && Array.isArray(e.detail)) {
+        setFaculty(e.detail);
+        return;
+      }
+      setFaculty(getCachedFaculty());
     };
 
     window.addEventListener(FACULTY_UPDATED_EVENT, handleSync);
@@ -102,13 +109,18 @@ export const FacultyManager = () => {
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
+    const target = deleteTarget;
     try {
-      await deleteFacultyMember(deleteTarget.id);
+      setIsDeleting(true);
+      await deleteFacultyMember(target.id);
       toast.success(t("সদস্য সফলভাবে মুছে ফেলা হয়েছে", "Member deleted"));
       setDeleteTarget(null);
-      loadData();
-    } catch (err) {
-      toast.error(t("মুছে ফেলতে ব্যর্থ", "Failed to delete member"));
+      await loadData();
+    } catch (err: any) {
+      console.error("Delete faculty error:", err);
+      toast.error(err?.message || t("মুছে ফেলতে ব্যর্থ", "Failed to delete member"));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -400,7 +412,11 @@ export const FacultyManager = () => {
       {/* Delete Confirmation Alert */}
       <AlertDialog
         open={Boolean(deleteTarget)}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onOpenChange={(open) => {
+          if (!isDeleting && !open) {
+            setDeleteTarget(null);
+          }
+        }}
       >
         <AlertDialogContent className="font-bengali">
           <AlertDialogHeader>
@@ -412,12 +428,25 @@ export const FacultyManager = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel>{t("বাতিল", "Cancel")}</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>
+              {t("বাতিল", "Cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              onClick={async (e) => {
+                e.preventDefault();
+                await confirmDelete();
+              }}
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground gap-2 min-w-[120px]"
             >
-              {t("হ্যাঁ, মুছে ফেলুন", "Yes, Delete")}
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>{t("মুছে ফেলা হচ্ছে...", "Deleting...")}</span>
+                </>
+              ) : (
+                t("হ্যাঁ, মুছে ফেলুন", "Yes, Delete")
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

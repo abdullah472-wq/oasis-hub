@@ -26,6 +26,7 @@ import WaveDivider from "@/components/WaveDivider";
 import { springIn, springInDelay } from "@/lib/animations";
 import {
   getFacultyList,
+  getCachedFaculty,
   FACULTY_UPDATED_EVENT,
   type FacultyMember,
   type FacultyRoleCategory,
@@ -42,8 +43,12 @@ const categoryPills: { id: "all" | FacultyRoleCategory; labelBn: string; labelEn
 const Teachers = () => {
   const { t, lang } = useLanguage();
   const { settings } = useSiteSettings();
-  const [faculty, setFaculty] = useState<FacultyMember[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  // Instant initial load from cache to prevent skeleton flash & layout jump
+  const [faculty, setFaculty] = useState<FacultyMember[]>(() => {
+    return getCachedFaculty().filter((f) => f.is_active);
+  });
+  const [loading, setLoading] = useState(() => faculty.length === 0);
 
   // Filters
   const [selectedCategory, setSelectedCategory] = useState<"all" | FacultyRoleCategory>("all");
@@ -55,10 +60,23 @@ const Teachers = () => {
 
     async function loadData() {
       try {
-        setLoading(true);
         const data = await getFacultyList();
         if (mounted) {
-          setFaculty(data.filter((f) => f.is_active));
+          const activeOnly = data.filter((f) => f.is_active);
+          setFaculty((prev) => {
+            if (
+              prev.length === activeOnly.length &&
+              prev.every(
+                (p, i) =>
+                  p.id === activeOnly[i]?.id &&
+                  p.updated_at === activeOnly[i]?.updated_at &&
+                  p.order_index === activeOnly[i]?.order_index
+              )
+            ) {
+              return prev;
+            }
+            return activeOnly;
+          });
         }
       } catch (err) {
         console.error("Failed to load faculty:", err);
@@ -69,12 +87,14 @@ const Teachers = () => {
 
     loadData();
 
-    const handleSync = () => {
-      void getFacultyList().then((data) => {
-        if (mounted) {
-          setFaculty(data.filter((f) => f.is_active));
-        }
-      });
+    const handleSync = (e?: Event) => {
+      if (!mounted) return;
+      if (e instanceof CustomEvent && Array.isArray(e.detail)) {
+        setFaculty(e.detail.filter((f: FacultyMember) => f.is_active));
+        return;
+      }
+      const cached = getCachedFaculty();
+      setFaculty(cached.filter((f) => f.is_active));
     };
 
     window.addEventListener(FACULTY_UPDATED_EVENT, handleSync);

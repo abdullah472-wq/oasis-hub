@@ -293,17 +293,56 @@ export const defaultFacultyList: FacultyMember[] = [
   },
 ];
 
+const DELETED_FACULTY_KEY = "oasis_deleted_faculty_ids_v1";
+
+export const getDeletedFacultyIds = (): Set<string> => {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(DELETED_FACULTY_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+};
+
+export const trackDeletedFacultyId = (id: string) => {
+  if (typeof window === "undefined") return;
+  try {
+    const ids = getDeletedFacultyIds();
+    ids.add(id);
+    localStorage.setItem(DELETED_FACULTY_KEY, JSON.stringify(Array.from(ids)));
+  } catch {
+    // ignore
+  }
+};
+
+export const untrackDeletedFacultyId = (id: string) => {
+  if (typeof window === "undefined") return;
+  try {
+    const ids = getDeletedFacultyIds();
+    if (ids.has(id)) {
+      ids.delete(id);
+      localStorage.setItem(DELETED_FACULTY_KEY, JSON.stringify(Array.from(ids)));
+    }
+  } catch {
+    // ignore
+  }
+};
+
 // Local cache helpers
-const getCachedFaculty = (): FacultyMember[] => {
+export const getCachedFaculty = (): FacultyMember[] => {
   if (typeof window === "undefined") return defaultFacultyList;
   try {
+    const deletedIds = getDeletedFacultyIds();
     const raw = localStorage.getItem(FACULTY_CACHE_KEY);
     if (!raw) {
-      localStorage.setItem(FACULTY_CACHE_KEY, JSON.stringify(defaultFacultyList));
-      return defaultFacultyList;
+      const filtered = defaultFacultyList.filter((f) => !deletedIds.has(f.id));
+      localStorage.setItem(FACULTY_CACHE_KEY, JSON.stringify(filtered));
+      return filtered;
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : defaultFacultyList;
+    const list = Array.isArray(parsed) && parsed.length > 0 ? parsed : defaultFacultyList;
+    return list.filter((f) => !deletedIds.has(f.id));
   } catch (err) {
     console.warn("Failed to read faculty from cache:", err);
     return defaultFacultyList;
@@ -312,12 +351,18 @@ const getCachedFaculty = (): FacultyMember[] => {
 
 export const FACULTY_UPDATED_EVENT = "oasis_faculty_updated";
 
-const saveFacultyToCache = (items: FacultyMember[]) => {
+/**
+ * Saves faculty list to local cache and optionally broadcasts update event.
+ * Note: Only mutations (save/delete) should broadcast. Read queries must NOT broadcast,
+ * to prevent infinite re-fetching loops. Native StorageEvent automatically handles cross-tab sync.
+ */
+const saveFacultyToCache = (items: FacultyMember[], broadcast: boolean = false) => {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(FACULTY_CACHE_KEY, JSON.stringify(items));
-    window.dispatchEvent(new CustomEvent(FACULTY_UPDATED_EVENT, { detail: items }));
-    window.dispatchEvent(new StorageEvent("storage", { key: FACULTY_CACHE_KEY }));
+    if (broadcast) {
+      window.dispatchEvent(new CustomEvent(FACULTY_UPDATED_EVENT, { detail: items }));
+    }
   } catch (err) {
     console.warn("Failed to save faculty to cache:", err);
   }
@@ -390,14 +435,16 @@ export async function getFacultyList(): Promise<FacultyMember[]> {
       };
     });
 
+    const deletedIds = getDeletedFacultyIds();
     // Also preserve any locally added members not yet synced to remote
     for (const localItem of cached) {
-      if (!seenIds.has(localItem.id)) {
+      if (!seenIds.has(localItem.id) && !deletedIds.has(localItem.id)) {
         mapped.push(localItem);
       }
     }
 
-    saveFacultyToCache(mapped);
+    // Save to cache silently without broadcasting to prevent infinite event loops
+    saveFacultyToCache(mapped, false);
     return mapped;
   } catch (err) {
     console.warn("Using cached faculty list:", err);
@@ -432,10 +479,11 @@ export async function saveFacultyMember(
   };
 
   // 1. Instantly update local cache and broadcast update so page updates immediately
+  untrackDeletedFacultyId(targetId);
   const updatedList = isEditing
     ? current.map((c) => (c.id === targetId ? prepared : c))
     : [...current, prepared];
-  saveFacultyToCache(updatedList);
+  saveFacultyToCache(updatedList, true);
 
   // 2. Map 'teacher' in frontend to 'teachers' for DB schema check constraint
   const dbCategory = prepared.category === "teacher" ? "teachers" : prepared.category;
@@ -501,22 +549,36 @@ export async function deleteFacultyMember(id: string): Promise<void> {
   const current = getCachedFaculty();
   const deletedItem = current.find((c) => c.id === id);
 
-  // 1. Immediately update local cache
+  // 1. Immediately track as deleted and update local cache for snappy UI
+  trackDeletedFacultyId(id);
   const filtered = current.filter((c) => c.id !== id);
-  saveFacultyToCache(filtered);
+  saveFacultyToCache(filtered, true);
 
   // 2. Ensure admin auth and delete from database
   await ensureSupabaseAdminAuth();
 
   try {
-    let { error } = await supabase.from("faculty_members").delete().eq("id", id);
-    if (error && error.code === "42501") {
-      const authed = await ensureSupabaseAdminAuth();
+    let { data: deletedRows, error } = await supabase
+      .from("faculty_members")
+      .delete()
+      .eq("id", id)
+      .select();
+
+    // If RLS blocked it (42501 or 0 rows deleted due to missing/expired session), force re-auth
+    if (error || !deletedRows || deletedRows.length === 0) {
+      console.warn("Delete had 0 rows affected or error, re-authenticating as admin...");
+      const authed = await ensureSupabaseAdminAuth(true);
       if (authed) {
-        const retry = await supabase.from("faculty_members").delete().eq("id", id);
+        const retry = await supabase
+          .from("faculty_members")
+          .delete()
+          .eq("id", id)
+          .select();
         error = retry.error;
+        deletedRows = retry.data;
       }
     }
+
     if (error) {
       console.error("Supabase delete faculty error:", error);
       throw new Error(error.message || "Failed to delete member");

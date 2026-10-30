@@ -27,7 +27,12 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSiteSettings, formatRegistrationNumber } from "@/lib/siteSettings";
-import { getFacultyList, FACULTY_UPDATED_EVENT, type FacultyMember } from "@/lib/faculty";
+import {
+  getFacultyList,
+  getCachedFaculty,
+  FACULTY_UPDATED_EVENT,
+  type FacultyMember,
+} from "@/lib/faculty";
 import WaveDivider from "@/components/WaveDivider";
 import heroImg from "@/assets/hero-campus.jpg";
 import { springIn, springInDelay } from "@/lib/animations";
@@ -126,18 +131,36 @@ const About = () => {
     },
   ];
 
-  const [facultyMembers, setFacultyMembers] = useState<FacultyMember[]>([]);
+  const [facultyMembers, setFacultyMembers] = useState<FacultyMember[]>(() => getCachedFaculty());
 
   useEffect(() => {
     let mounted = true;
     void getFacultyList().then((data) => {
-      if (mounted) setFacultyMembers(data);
+      if (mounted) {
+        setFacultyMembers((prev) => {
+          if (
+            prev.length === data.length &&
+            prev.every(
+              (p, i) =>
+                p.id === data[i]?.id &&
+                p.updated_at === data[i]?.updated_at &&
+                p.order_index === data[i]?.order_index
+            )
+          ) {
+            return prev;
+          }
+          return data;
+        });
+      }
     });
 
-    const handleSync = () => {
-      void getFacultyList().then((data) => {
-        if (mounted) setFacultyMembers(data);
-      });
+    const handleSync = (e?: Event) => {
+      if (!mounted) return;
+      if (e instanceof CustomEvent && Array.isArray(e.detail)) {
+        setFacultyMembers(e.detail);
+        return;
+      }
+      setFacultyMembers(getCachedFaculty());
     };
 
     window.addEventListener(FACULTY_UPDATED_EVENT, handleSync);
