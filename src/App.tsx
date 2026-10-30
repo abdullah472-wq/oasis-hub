@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy, useEffect, useRef } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, useLocation, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -197,6 +197,7 @@ const AppShell = () => {
   const { settings } = useSiteSettings();
   const isAdminRoute = location.pathname.startsWith("/admin");
   const isPortalRoute = isAdminRoute;
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     const siteTitle = "আননূর তাহফিজুল কুরআন মাদরাসা | Annoor Tahfizul Quran Madrasa";
@@ -255,6 +256,15 @@ const AppShell = () => {
 
         const ogUrl = document.querySelector<HTMLMetaElement>("meta[property='og:url']");
         if (ogUrl) ogUrl.setAttribute("content", canonicalHref);
+      }
+
+      // Track SPA pageview in Meta Pixel on route changes (skipping initial render which fired from index.html)
+      if (isFirstRender.current) {
+        isFirstRender.current = false;
+      } else {
+        if (typeof (window as any).fbq === "function") {
+          (window as any).fbq("track", "PageView");
+        }
       }
     }
   }, [location.pathname, lang, settings, isAdminRoute]);
