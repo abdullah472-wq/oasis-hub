@@ -238,7 +238,7 @@ export const HeroBannerDialog = ({
               id="banner_title_bn"
               value={formData.title_bn}
               onChange={(e) => setFormData({ ...formData, title_bn: e.target.value })}
-              placeholder={t("যেমন: আননূর শিক্ষা পরিবার - আলোকিত মানুষ গড়ার প্রত্যয়", "e.g. Annoor Education Family")}
+              placeholder={t("যেমন: আননূর তাহফিজুল কুরআন মাদরাসা - আলোকিত মানুষ গড়ার প্রত্যয়", "e.g. Annoor Tahfizul Quran Madrasa")}
               required
             />
           </div>
@@ -252,7 +252,7 @@ export const HeroBannerDialog = ({
               id="banner_title_en"
               value={formData.title_en}
               onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
-              placeholder="e.g. Annoor Education Family - Nurturing Future Leaders"
+              placeholder="e.g. Annoor Tahfizul Quran Madrasa - Nurturing Future Leaders"
             />
           </div>
 

@@ -121,8 +121,8 @@ export const defaultDownloadsList: DownloadItem[] = [
   // ================= 3. ADMISSION & PROSPECTUS =================
   {
     id: "dl-adm-1",
-    title_bn: "আননূর শিক্ষা পরিবার পূর্ণাঙ্গ প্রাতিষ্ঠানিক প্রসপেক্টাস ২০২৬",
-    title_en: "Annoor Education Family Institutional Prospectus 2026",
+    title_bn: "আননূর তাহফিজুল কুরআন মাদরাসা পূর্ণাঙ্গ প্রাতিষ্ঠানিক প্রসপেক্টাস ২০২৬",
+    title_en: "Annoor Tahfizul Quran Madrasa Institutional Prospectus 2026",
     description_bn:
       "প্রতিষ্ঠানের লক্ষ্য, বৈশিষ্ট্য, ক্যাম্পাস সুবিধা, পরিবেশ ও সার্বিক তথ্যাবলী।",
     description_en:

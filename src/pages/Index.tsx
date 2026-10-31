@@ -309,7 +309,7 @@ const Index = () => {
       name: t("মাওলানা মুস্তাফিজুর রহমান", "Mawlana Mustafizur Rahman"),
       relation: t("স্থানীয় বাসিন্দা ও অভিভাবক", "Local Resident & Guardian"),
       review: t(
-        '"ওস্তাদদের সুন্দর আখলাক এবং ছাত্রদের নিয়মিত তিলাওয়াত শুনলে মন জুড়িয়ে যায়। এলাকার সেরা ও বিশ্বস্ত মাদরাসা হিসেবে আননূর শিক্ষা পরিবার শীর্ষস্থানে রয়েছে।"',
+        '"ওস্তাদদের সুন্দর আখলাক এবং ছাত্রদের নিয়মিত তিলাওয়াত শুনলে মন জুড়িয়ে যায়। এলাকার সেরা ও বিশ্বস্ত মাদরাসা হিসেবে আননূর তাহফিজুল কুরআন মাদরাসা শীর্ষস্থানে রয়েছে।"',
         '"The exemplary character of the teachers and beautiful recitation of the students is truly inspiring. Annoor is undoubtedly the top trusted madrasa in the area."'
       ),
       rating: 5,
@@ -333,7 +333,7 @@ const Index = () => {
       name: t("মাসুদ রানা", "Masud Rana"),
       relation: t("অভিভাবক · নাজেরা শাখা", "Guardian · Nazera"),
       review: t(
-        '"অনলাইনে নিয়মিত পরীক্ষার রেজাল্ট, বার্ষিক সিলেবাস ও নোটিশ পাওয়া যায় যা আমাদের মতো কর্মজীবী অভিভাবকদের জন্য অনেক বড় স্বস্তি। আননূর শিক্ষা পরিবারের সফলতা কামনা করি।"',
+        '"অনলাইনে নিয়মিত পরীক্ষার রেজাল্ট, বার্ষিক সিলেবাস ও নোটিশ পাওয়া যায় যা আমাদের মতো কর্মজীবী অভিভাবকদের জন্য অনেক বড় স্বস্তি। আননূর তাহফিজুল কুরআন মাদরাসার সফলতা কামনা করি।"',
         '"Getting exam results, syllabus, and notices directly online is a huge relief for working parents like us. Wishing Annoor continued success."'
       ),
       rating: 5,

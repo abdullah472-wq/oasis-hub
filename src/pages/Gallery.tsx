@@ -177,7 +177,7 @@ const Gallery = () => {
           <motion.div {...springIn} className="mx-auto max-w-3xl space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold text-emerald-100 backdrop-blur-md border border-white/15 shadow-sm">
               <Sparkles className="h-4 w-4 text-accent" />
-              <span>{t("আননূর শিক্ষা পরিবার স্মৃতি অ্যালবাম", "Annoor Education Family Photo Archive")}</span>
+              <span>{t("আননূর তাহফিজুল কুরআন মাদরাসা স্মৃতি অ্যালবাম", "Annoor Tahfizul Quran Madrasa Photo Archive")}</span>
             </div>
 
             <h1 className="font-bengali text-3xl font-extrabold tracking-tight sm:text-5xl md:text-6xl text-white drop-shadow-sm">

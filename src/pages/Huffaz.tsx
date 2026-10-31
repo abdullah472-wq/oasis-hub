@@ -129,7 +129,7 @@ const Huffaz = () => {
             className="font-bengali text-base sm:text-lg text-white/85 max-w-2xl mx-auto mb-8 leading-relaxed"
           >
             {t(
-              "পবিত্র কুরআনুল কারীমের সম্পূর্ণ ৩০ পারা হেফজ সম্পন্নকারী আননূর শিক্ষা পরিবারের প্রিয় হাফেজ ও হাফেজাদের গৌরবময় সম্মাননা প্রাচীর। মহান আল্লাহ তাদের সিনাকে কুরআনের নূর দ্বারা চির সমুজ্জ্বল রাখুন।",
+              "পবিত্র কুরআনুল কারীমের সম্পূর্ণ ৩০ পারা হেফজ সম্পন্নকারী আননূর তাহফিজুল কুরআন মাদরাসার প্রিয় হাফেজ ও হাফেজাদের গৌরবময় সম্মাননা প্রাচীর। মহান আল্লাহ তাদের সিনাকে কুরআনের নূর দ্বারা চির সমুজ্জ্বল রাখুন।",
               "Celebrating our students who completed the full memorization of the Holy Quran. May Allah illuminate their hearts with the eternal light of the Quran."
             )}
           </motion.p>

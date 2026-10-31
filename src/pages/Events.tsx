@@ -281,7 +281,7 @@ const Events = () => {
             className="font-bengali text-lg sm:text-xl text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed"
           >
             {t(
-              "আননূর শিক্ষা পরিবারের পরীক্ষা সময়সূচি, পবিত্র রমজান ও ঈদের ছুটি, বার্ষিক দস্তারবন্দী ও সাংস্কৃতিক মাহফিলের পূর্ণাঙ্গ সময়রেখা।",
+              "আননূর তাহফিজুল কুরআন মাদরাসার পরীক্ষা সময়সূচি, পবিত্র রমজান ও ঈদের ছুটি, বার্ষিক দস্তারবন্দী ও সাংস্কৃতিক মাহফিলের পূর্ণাঙ্গ সময়রেখা।",
               "Schedule of exams, vacations, annual award ceremonies, and extracurricular programs across our campuses.",
             )}
           </motion.p>

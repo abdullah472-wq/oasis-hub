@@ -146,7 +146,7 @@ const Downloads = () => {
             className="font-bengali text-base sm:text-lg text-white/85 max-w-2xl mx-auto mb-8 leading-relaxed"
           >
             {t(
-              "আননূর শিক্ষা পরিবারের শ্রেণিভিত্তিক বার্ষিক সিলেবাস, ক্লাস ও পরীক্ষার রুটিন, ভর্তি নির্দেশিকা, প্রাতিষ্ঠানিক প্রসপেক্টাস ও একাডেমিক ক্যালেন্ডার সরাসরি পিডিএফ ফরম্যাটে ডাউনলোড করুন।",
+              "আননূর তাহফিজুল কুরআন মাদরাসার শ্রেণিভিত্তিক বার্ষিক সিলেবাস, ক্লাস ও পরীক্ষার রুটিন, ভর্তি নির্দেশিকা, প্রাতিষ্ঠানিক প্রসপেক্টাস ও একাডেমিক ক্যালেন্ডার সরাসরি পিডিএফ ফরম্যাটে ডাউনলোড করুন।",
               "Download annual syllabuses, class and examination routines, admission guides, and academic calendars in official PDF format."
             )}
           </motion.p>

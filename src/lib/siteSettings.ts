@@ -78,7 +78,7 @@ export const defaultSiteSettings: SiteSettings = {
   founder_title_bn: "ম্যানেজার ও প্রতিষ্ঠাতা পরিচালক",
   founder_title_en: "Manager & Founding Director",
   founder_message_bn:
-    "শিক্ষা শুধু বইয়ের পাতার মুখস্থ নয়, এটি শিশুর চিন্তা ও চরিত্রের আত্মিক পরিশুদ্ধি। আননূর শিক্ষা পরিবারে আমরা প্রতিটি সন্তানকে আন্তরিক ভালোবাসা ও দায়িত্বশীলতার সাথে গড়ে তুলি।",
+    "শিক্ষা শুধু বইয়ের পাতার মুখস্থ নয়, এটি শিশুর চিন্তা ও চরিত্রের আত্মিক পরিশুদ্ধি। আননূর তাহফিজুল কুরআন মাদরাসায় আমরা প্রতিটি সন্তানকে আন্তরিক ভালোবাসা ও দায়িত্বশীলতার সাথে গড়ে তুলি।",
   founder_message_en:
     "Education is not mere textbook cramming; it is the spiritual and intellectual purification of a child's character with deep love and institutional care.",
   founder_image_url: "/abdullah.png",

@@ -467,8 +467,8 @@ const Footer = () => {
                 © {new Date().getFullYear()}{" "}
                 <span className="font-semibold text-white">
                   {t(
-                    settings.institution_name_bn || "শিক্ষা পরিবার",
-                    settings.institution_name_en || "Education Family"
+                    settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা",
+                    settings.institution_name_en || "Annoor Tahfizul Quran Madrasa"
                   )}
                 </span>
                 । {t("সর্বস্বত্ব সংরক্ষিত।", "All rights reserved.")}

@@ -230,8 +230,8 @@ const News = () => {
             className="font-bengali text-lg sm:text-xl text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed"
           >
             {t(
-              "আননূর শিক্ষা পরিবারের প্রাতিষ্ঠানিক কার্যক্রম, ভর্তি আপডেট, কৃতি শিক্ষার্থীদের গৌরবোজ্জ্বল সাফল্য ও বিভিন্ন ইসলামিক সম্মেলনসমূহের প্রামাণ্য সংবাদ।",
-              "Official announcements, admissions, academic achievements, and event reports from Annoor Education Family.",
+              "আননূর তাহফিজুল কুরআন মাদরাসার প্রাতিষ্ঠানিক কার্যক্রম, ভর্তি আপডেট, কৃতি শিক্ষার্থীদের গৌরবোজ্জ্বল সাফল্য ও বিভিন্ন ইসলামিক সম্মেলনসমূহের প্রামাণ্য সংবাদ।",
+              "Official announcements, admissions, academic achievements, and event reports from Annoor Tahfizul Quran Madrasa.",
             )}
           </motion.p>
         </div>

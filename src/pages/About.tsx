@@ -229,7 +229,7 @@ const About = () => {
       quote: settings.founder_message_bn
         ? (lang === "bn" ? settings.founder_message_bn : settings.founder_message_en || settings.founder_message_bn)
         : t(
-            "শিক্ষা শুধু বইয়ের পাতার মুখস্থ নয়, এটি শিশুর চিন্তা ও চরিত্রের আত্মিক পরিশুদ্ধি। আননূর শিক্ষা পরিবারে আমরা প্রতিটি সন্তানকে আন্তরিক ভালোবাসা ও দায়িত্বশীলতার সাথে গড়ে তুলি।",
+            "শিক্ষা শুধু বইয়ের পাতার মুখস্থ নয়, এটি শিশুর চিন্তা ও চরিত্রের আত্মিক পরিশুদ্ধি। আননূর তাহফিজুল কুরআন মাদরাসায় আমরা প্রতিটি সন্তানকে আন্তরিক ভালোবাসা ও দায়িত্বশীলতার সাথে গড়ে তুলি।",
             "Education is not mere textbook cramming; it is the spiritual and intellectual purification of a child's character with deep love and institutional care.",
           ),
       image:
@@ -1123,8 +1123,8 @@ const About = () => {
 
               <p className="font-bengali text-base sm:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
                 {t(
-                  "সহীহ কুরআন তেলাওয়াত, চরিত্র গঠন ও আধুনিক সাধারণ শিক্ষার অপূর্ব সমন্বয়ে আননূর শিক্ষা পরিবারে এখনই যোগাযোগ অথবা অনলাইনে ভর্তি আবেদন করুন।",
-                  "Connect with Annoor Education Family or apply online today to ensure your child's moral, spiritual, and intellectual excellence.",
+                  "সহীহ কুরআন তেলাওয়াত, চরিত্র গঠন ও আধুনিক সাধারণ শিক্ষার অপূর্ব সমন্বয়ে আননূর তাহফিজুল কুরআন মাদরাসায় এখনই যোগাযোগ অথবা অনলাইনে ভর্তি আবেদন করুন।",
+                  "Connect with Annoor Tahfizul Quran Madrasa or apply online today to ensure your child's moral, spiritual, and intellectual excellence.",
                 )}
               </p>
 

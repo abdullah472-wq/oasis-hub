@@ -152,8 +152,8 @@ const Admission = () => {
             className="font-bengali text-base sm:text-lg text-white/85 max-w-2xl mx-auto mb-8 leading-relaxed"
           >
             {t(
-              "আননূর শিক্ষা পরিবারে আদর্শ দ্বীনি ও আধুনিক যুগোপযোগী শিক্ষার সমন্বয়। স্বচ্ছ ফি নীতি ও সুশৃঙ্খল ভর্তি প্রক্রিয়ায় অংশ নিতে বিস্তারিত জেনে নিন।",
-              "A harmonious blend of authentic Islamic and modern education at Annoor Education Family. Explore our transparent fee policy and admission guidelines."
+              "আননূর তাহফিজুল কুরআন মাদরাসায় আদর্শ দ্বীনি ও আধুনিক যুগোপযোগী শিক্ষার সমন্বয়। স্বচ্ছ ফি নীতি ও সুশৃঙ্খল ভর্তি প্রক্রিয়ায় অংশ নিতে বিস্তারিত জেনে নিন।",
+              "A harmonious blend of authentic Islamic and modern education at Annoor Tahfizul Quran Madrasa. Explore our transparent fee policy and admission guidelines."
             )}
           </motion.p>
 

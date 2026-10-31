@@ -80,9 +80,9 @@ export const defaultGalleryItems: GalleryItem[] = [
   },
   {
     id: "gal-7",
-    title_bn: "আননূর শিক্ষা পরিবার প্রধান ক্যাম্পাস ভবন",
-    title_en: "Annoor Education Family Main Campus Building",
-    caption_bn: "গাজীপুরের কাপাসিয়া বাজারের কেন্দ্রস্থলে অবস্থিত আননূর শিক্ষা পরিবারের বহুতল আধুনিক ও সুপরিকল্পিত ক্যাম্পাস।",
+    title_bn: "আননূর তাহফিজুল কুরআন মাদরাসা প্রধান ক্যাম্পাস ভবন",
+    title_en: "Annoor Tahfizul Quran Madrasa Main Campus Building",
+    caption_bn: "গাজীপুরের কাপাসিয়া বাজারের কেন্দ্রস্থলে অবস্থিত আননূর তাহফিজুল কুরআন মাদরাসার বহুতল আধুনিক ও সুপরিকল্পিত ক্যাম্পাস।",
     caption_en: "Modern and well-planned campus infrastructure situated at Main Road, Kapasia Bazar, Gazipur.",
     image_url: "/gallery/campus_main.jpg",
     category: "campus",

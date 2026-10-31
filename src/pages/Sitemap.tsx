@@ -327,8 +327,8 @@ const Sitemap = () => {
           </h1>
           <p className="mx-auto mt-3 max-w-2xl font-bengali text-sm text-primary-foreground/85 md:text-base">
             {t(
-              "আননূর শিক্ষা পরিবারের সকল বিভাগ, প্রাতিষ্ঠানিক পাতা ও শিক্ষার্থী সেবার একটি সমন্বিত ও সুসংগঠিত ডিরেক্টরি।",
-              "A comprehensive, structured index of all sections, institutional pages, and student services of Annoor Education Family.",
+              "আননূর তাহফিজুল কুরআন মাদরাসার সকল বিভাগ, প্রাতিষ্ঠানিক পাতা ও শিক্ষার্থী সেবার একটি সমন্বিত ও সুসংগঠিত ডিরেক্টরি।",
+              "A comprehensive, structured index of all sections, institutional pages, and student services of Annoor Tahfizul Quran Madrasa.",
             )}
           </p>
         </motion.div>
@@ -575,7 +575,7 @@ const Sitemap = () => {
               <p>
                 {t(
                   "এই সাইটম্যাপটি গুগল, বিং এবং অন্যান্য সার্চ ইঞ্জিন ক্রলারদের দ্রুত এবং নিখুঁতভাবে ইনডেক্স করতে সহায়তা করে। আমাদের স্ট্যান্ডার্ড এক্সএমএল সাইটম্যাপটি স্বয়ংক্রিয়ভাবে আপডেট হয় এবং 'robots.txt' ফাইলের সাথে যুক্ত রয়েছে।",
-                  "This sitemap helps Google, Bing, and other web spiders crawl and index the pages of Annoor Education Family accurately. Our standard XML sitemap is auto-generated and configured in robots.txt.",
+                  "This sitemap helps Google, Bing, and other web spiders crawl and index the pages of Annoor Tahfizul Quran Madrasa accurately. Our standard XML sitemap is auto-generated and configured in robots.txt.",
                 )}
               </p>
               <p className="text-[11px] text-muted-foreground/80">

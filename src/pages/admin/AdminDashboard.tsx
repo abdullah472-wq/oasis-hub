@@ -12,7 +12,7 @@ export const AdminDashboard = () => {
   return (
     <AdminLayout
       title={t("ড্যাশবোর্ড ওভারভিউ", "Dashboard Overview")}
-      subtitle={`${settings.institution_name_bn || "আননূর শিক্ষা পরিবার"} - ${t("সেন্ট্রাল সিএমএস সারাংশ", "CMS Summary")}`}
+      subtitle={`${settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা"} - ${t("সেন্ট্রাল সিএমএস সারাংশ", "CMS Summary")}`}
     >
       <div className="space-y-8">
         {/* KPI Metrics */}

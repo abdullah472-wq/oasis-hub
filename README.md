@@ -1,6 +1,6 @@
-﻿# Oasis Hub
+# Oasis Hub
 
-Vite + React + TypeScript website for Annoor Education Family.
+Vite + React + TypeScript website for Annoor Tahfizul Quran Madrasa.
 
 ## Development
 

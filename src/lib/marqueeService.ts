@@ -15,8 +15,8 @@ export const defaultMarqueeNotices: MarqueeNotice[] = [
   },
   {
     id: "marquee-default-2",
-    text_bn: "আননূর শিক্ষা পরিবারের উভয় ক্যাম্পাসে আধুনিক দ্বীনি ও সাধারণ শিক্ষার সমন্বিত পাঠদান পরিচালিত হচ্ছে।",
-    text_en: "Annoor Education Family provides integrated Islamic and modern general education.",
+    text_bn: "আননূর তাহফিজুল কুরআন মাদরাসার উভয় ক্যাম্পাসে আধুনিক দ্বীনি ও সাধারণ শিক্ষার সমন্বিত পাঠদান পরিচালিত হচ্ছে।",
+    text_en: "Annoor Tahfizul Quran Madrasa provides integrated Islamic and modern general education.",
     link_url: "/about",
     is_active: true,
     priority: 2,

@@ -15,3 +15,4 @@ Write-Host "Created Zip Archive successfully:"
 Write-Host "File Name: $($zipFile.Name)"
 Write-Host "File Size: $([math]::Round($zipFile.Length / 1MB, 2)) MB ($($zipFile.Length) bytes)"
 Write-Host "Full Path: $($zipFile.FullName)"
+

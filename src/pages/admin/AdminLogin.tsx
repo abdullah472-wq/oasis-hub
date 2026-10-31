@@ -110,7 +110,7 @@ export const AdminLogin = () => {
               {t("অ্যাডমিন লগইন", "Admin Login")}
             </h1>
             <p className="mt-1.5 font-bengali text-xs text-muted-foreground">
-              {settings.institution_name_bn || "আননূর শিক্ষা পরিবার"} · {t("সেন্ট্রাল সিএমএস পোর্টাল", "Central CMS Portal")}
+              {settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা"} · {t("সেন্ট্রাল সিএমএস পোর্টাল", "Central CMS Portal")}
             </p>
           </div>
 
@@ -209,7 +209,7 @@ export const AdminLogin = () => {
 
         {/* Footer info */}
         <p className="text-center font-bengali text-xs text-muted-foreground">
-          © {new Date().getFullYear()} {settings.institution_name_bn || "আননূর শিক্ষা পরিবার"}। {t("সর্বস্বত্ব সংরক্ষিত।", "All rights reserved.")}
+          © {new Date().getFullYear()} {settings.institution_name_bn || "আননূর তাহফিজুল কুরআন মাদরাসা"}। {t("সর্বস্বত্ব সংরক্ষিত।", "All rights reserved.")}
         </p>
       </motion.div>
     </div>
