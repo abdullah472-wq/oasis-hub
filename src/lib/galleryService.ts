@@ -93,8 +93,11 @@ export const defaultGalleryItems: GalleryItem[] = [
 ];
 
 export const getCachedGallery = (): GalleryItem[] => {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return defaultGalleryItems;
+  }
   try {
-    const raw = localStorage.getItem(GALLERY_CACHE_KEY);
+    const raw = window.localStorage.getItem(GALLERY_CACHE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -108,8 +111,11 @@ export const getCachedGallery = (): GalleryItem[] => {
 };
 
 export const saveGalleryToCache = (items: GalleryItem[]): void => {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
   try {
-    localStorage.setItem(GALLERY_CACHE_KEY, JSON.stringify(items));
+    window.localStorage.setItem(GALLERY_CACHE_KEY, JSON.stringify(items));
   } catch (err) {
     console.warn("Failed to write gallery to cache:", err);
   }

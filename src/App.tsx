@@ -18,7 +18,7 @@ import AdmissionFloatingFAB from "@/components/admission/AdmissionFloatingFAB";
 import NasheedPlayer from "@/components/NasheedPlayer";
 
 // Public Pages
-import Index from "./pages/Index";
+const Index = lazy(() => import("./pages/Index"));
 const About = lazy(() => import("./pages/About"));
 const Achievements = lazy(() => import("./pages/Achievements"));
 const NoticeBoard = lazy(() => import("./pages/NoticeBoard"));

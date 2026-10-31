@@ -30,3 +30,22 @@ global.IntersectionObserver = class IntersectionObserver {
   takeRecords() { return []; }
 };
 
+const storageMap = new Map<string, string>();
+const localStorageMock = {
+  getItem: (key: string) => storageMap.get(key) ?? null,
+  setItem: (key: string, val: string) => { storageMap.set(key, String(val)); },
+  removeItem: (key: string) => { storageMap.delete(key); },
+  clear: () => { storageMap.clear(); },
+  get length() { return storageMap.size; },
+  key: (i: number) => Array.from(storageMap.keys())[i] ?? null,
+};
+
+if (typeof window !== "undefined") {
+  Object.defineProperty(window, "localStorage", {
+    value: localStorageMock,
+    writable: true,
+  });
+}
+if (typeof globalThis !== "undefined") {
+  (globalThis as any).localStorage = localStorageMock;
+}
