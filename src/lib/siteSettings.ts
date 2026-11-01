@@ -1,11 +1,86 @@
 import { useEffect, useState } from "react";
 import { supabase, ensureSupabaseAdminAuth } from "@/lib/supabase/client";
-import type { SiteSettings } from "@/types/cms";
+import type { SiteSettings, FeatureGroupItem } from "@/types/cms";
 import { applyColorPalette } from "@/lib/colorPalettes";
 
 const SETTINGS_CACHE_KEY = "oasis_site_settings_cache_v4";
 const LEGACY_CACHE_KEYS = ["oasis_site_settings_cache_v3", "oasis_site_settings_cache_v2", "oasis_site_settings_cache_v1"];
 export const EXT_SETTINGS_PREFIX = "__EXT_SETTINGS_V1__";
+
+export const defaultFeatureGroups: FeatureGroupItem[] = [
+  {
+    id: "academic",
+    title_bn: "একাডেমিক শ্রেষ্ঠত্ব",
+    title_en: "Academic Excellence",
+    points_bn: [
+      "দেশবরেণ্য আলেম-উলামাদের সার্বিক তত্ত্বাবধানে পরিচালিত।",
+      "প্রশিক্ষণপ্রাপ্ত অভিজ্ঞ শিক্ষকমণ্ডলী ও আদর-স্নেহের মাধ্যমে আনন্দঘন পরিবেশে পাঠদান।",
+      "ইংরেজি ও আরবি ভাষায় সাবলীল কথোপকথনের (Spoken) বিশেষ ক্লাসের ব্যবস্থা।",
+      "ক্লাসের পড়া ক্লাসেই আদায় করা হয়, তাই আলাদা কোনো প্রাইভেট বা টিউশনির প্রয়োজন নেই।",
+      "হাতের লেখা সুন্দরকরণে নিয়মিত বিশেষ হ্যান্ডরাইটিং প্রশিক্ষণ।",
+    ],
+    points_en: [
+      "Operated under the supervision of renowned Islamic scholars.",
+      "Experienced trained teachers create a joyful and caring learning environment.",
+      "Special spoken English and Arabic conversation classes are arranged.",
+      "Lessons are completed in class, so no separate private tutoring is needed.",
+      "Regular handwriting development sessions help students improve presentation.",
+    ],
+  },
+  {
+    id: "tarbiya",
+    title_bn: "তারবিয়াত ও মানসিক বিকাশ",
+    title_en: "Tarbiya and Character Building",
+    points_bn: [
+      "তালিমের সাথে তারবিয়াতের (আদব-কায়দা) সমান গুরুত্ব ও বাস্তব অনুশীলন।",
+      "কোমলমতি শিশুদের সহজ-সরল ও মনস্তাত্ত্বিক উপায়ে পাঠদান।",
+      "সম্পূর্ণ শারীরিক ও মানসিক নির্যাতনমুক্ত আধুনিক মাদরাসা।",
+      "সুপ্ত প্রতিভা বিকাশে নিয়মিত সাংস্কৃতিক প্রশিক্ষণ ও উন্মুক্ত পাঠাগার।",
+      "বার্ষিক শিক্ষাসফর, ইসলামী সংস্কৃতি চর্চা ও সুস্থ বিনোদনের সুব্যবস্থা।",
+    ],
+    points_en: [
+      "Equal emphasis is placed on tarbiya, manners, and real-life practice alongside learning.",
+      "Young children are taught through simple, gentle, and age-sensitive methods.",
+      "A modern madrasha environment free from physical and mental abuse.",
+      "Regular cultural training and an open library help nurture hidden talents.",
+      "Educational tours, Islamic cultural practice, and healthy recreation are arranged annually.",
+    ],
+  },
+  {
+    id: "security",
+    title_bn: "নিরাপত্তা ও পর্যবেক্ষণ",
+    title_en: "Security and Monitoring",
+    points_bn: [
+      "সার্বক্ষণিক সিসিটিভি ক্যামেরা পর্যবেক্ষণ ও ২৪ ঘণ্টা গেটলক ব্যবস্থা।",
+      "নিরাপত্তার জন্য দক্ষ সিকিউরিটি গার্ড ও ছোট শিক্ষার্থীদের জন্য নিবেদিত খাদেম।",
+      "প্রবাসী ও ব্যস্ত অভিভাবকদের সন্তানদের জন্য বিশেষ নিরাপত্তা ও অভিভাবকত্বের দায়িত্ব গ্রহণ।",
+      "স্বচ্ছতা, জবাবদিহিতা ও দায়িত্বশীলতার দৃঢ় প্রতিশ্রুতি।",
+    ],
+    points_en: [
+      "Round-the-clock CCTV coverage and a 24-hour gate-lock system ensure safety.",
+      "Trained security guards and dedicated caretakers support younger students.",
+      "Special protection and guardianship support are provided for children of expatriate and busy parents.",
+      "The institution remains committed to transparency, accountability, and responsibility.",
+    ],
+  },
+  {
+    id: "facilities",
+    title_bn: "উন্নত আবাসন ও জীবনমান",
+    title_en: "Facilities and Comfort",
+    points_bn: [
+      "কোলাহলমুক্ত নিরিবিলি ও মনোরম পরিবেশ এবং সার্বক্ষণিক বিদ্যুৎ (জেনারেটর) ব্যবস্থা।",
+      "নিজস্ব ব্যবস্থাপনায় স্বাস্থ্যসম্মত ও সুস্বাদু ঘরোয়া খাবার পরিবেশন।",
+      "শীতকালে গরম পানির সুবিধা ও নিয়মিত সুস্বাস্থ্য পরিচর্যায় নিজস্ব চিকিৎসক।",
+      "শিক্ষকের সরাসরি তত্ত্বাবধানে প্রতিদিন বিকেলে খেলাধুলার ব্যবস্থা।",
+    ],
+    points_en: [
+      "Students enjoy a peaceful campus atmosphere with uninterrupted electricity and generator backup.",
+      "Healthy and delicious homestyle meals are served under in-house management.",
+      "Hot water in winter and regular health care support from an in-house doctor are available.",
+      "Daily supervised afternoon sports help students stay healthy and active.",
+    ],
+  },
+];
 
 export const defaultSiteSettings: SiteSettings = {
   id: 1,
@@ -107,6 +182,35 @@ export const defaultSiteSettings: SiteSettings = {
   vice_principal_image_url: null,
   vice_principal_phone: "01581818368",
   vice_principal_email: "academic@annoor.edu.bd",
+
+  // Review Links & Ratings
+  google_review_url: "https://g.page/r/Cap4g2uq6V3eEAE/review",
+  facebook_review_url: "https://www.facebook.com/profile.php?id=61595529418669&sk=reviews",
+  trustpilot_review_url: null,
+  google_rating_score: "4.9",
+  google_review_count: "48+",
+
+  // Contact Page Details & Schedule
+  office_hours_bn: "শনিবার — বৃহস্পতিবার: সকাল ৮:০০টা — বিকাল ৫:০০টা",
+  office_hours_en: "Saturday — Thursday: 8:00 AM — 5:00 PM",
+  office_friday_hours_bn: "শুক্রবার: দুপুর ২:৩০টা — মাগরিব পর্যন্ত",
+  office_friday_hours_en: "Friday: 2:30 PM — Maghrib",
+  contact_landmark_bn: "মেইন রোড, কলেজ রোড মোড়, কাপাসিয়া বাজার (সিঙ্গার শোরুম এর পাশে)",
+  contact_landmark_en: "Main Road, College Road Crossing, Kapasia Bazar (Beside Singer Showroom)",
+  emergency_contact_phone: "01312200043",
+
+  // Admission Timeline & Session
+  admission_session_bn: "২০২৬-২০২৭",
+  admission_session_en: "2026-2027",
+  admission_start_date: "2026-01-01",
+  admission_end_date: "2026-03-31",
+  admission_deadline_bn: "৩১ মার্চ ২০২৬",
+  admission_deadline_en: "31 March 2026",
+  admission_notice_bn: "সীমিত আসনে ভর্তি চলছে, আসন পূর্ণ হলে আবেদন বন্ধ হয়ে যাবে।",
+  admission_notice_en: "Admissions open for limited seats. Applications will close once capacity is reached.",
+
+  // Institutional Features & Standout Qualities
+  institutional_features: defaultFeatureGroups,
 
   updated_at: new Date().toISOString(),
 };
@@ -318,6 +422,27 @@ export async function updateSiteSettingsRemote(payload: Partial<SiteSettings>): 
     vice_principal_image_url: merged.vice_principal_image_url,
     vice_principal_phone: merged.vice_principal_phone,
     vice_principal_email: merged.vice_principal_email,
+    google_review_url: merged.google_review_url,
+    facebook_review_url: merged.facebook_review_url,
+    trustpilot_review_url: merged.trustpilot_review_url,
+    google_rating_score: merged.google_rating_score,
+    google_review_count: merged.google_review_count,
+    office_hours_bn: merged.office_hours_bn,
+    office_hours_en: merged.office_hours_en,
+    office_friday_hours_bn: merged.office_friday_hours_bn,
+    office_friday_hours_en: merged.office_friday_hours_en,
+    contact_landmark_bn: merged.contact_landmark_bn,
+    contact_landmark_en: merged.contact_landmark_en,
+    emergency_contact_phone: merged.emergency_contact_phone,
+    admission_session_bn: merged.admission_session_bn,
+    admission_session_en: merged.admission_session_en,
+    admission_start_date: merged.admission_start_date,
+    admission_end_date: merged.admission_end_date,
+    admission_deadline_bn: merged.admission_deadline_bn,
+    admission_deadline_en: merged.admission_deadline_en,
+    admission_notice_bn: merged.admission_notice_bn,
+    admission_notice_en: merged.admission_notice_en,
+    institutional_features: merged.institutional_features,
   };
 
   const extPayloadString = EXT_SETTINGS_PREFIX + JSON.stringify(extFields);
@@ -463,6 +588,12 @@ export async function fetchSiteSettings(forceFresh = false): Promise<SiteSetting
         trade_license_no: extSettings.trade_license_no ?? data.trade_license_no ?? cached.trade_license_no ?? defaultSiteSettings.trade_license_no,
         tagline_bn: extSettings.tagline_bn ?? data.tagline_bn ?? cached.tagline_bn ?? defaultSiteSettings.tagline_bn,
         tagline_en: extSettings.tagline_en ?? data.tagline_en ?? cached.tagline_en ?? defaultSiteSettings.tagline_en,
+        institutional_features:
+          Array.isArray(extSettings.institutional_features) && extSettings.institutional_features.length > 0
+            ? extSettings.institutional_features
+            : (Array.isArray(cached.institutional_features) && cached.institutional_features.length > 0
+              ? cached.institutional_features
+              : defaultFeatureGroups),
       };
 
       lastFetchTimestamp = Date.now();

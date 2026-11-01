@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Building2, MapPin, Sparkles, CreditCard, Users, Palette } from "lucide-react";
+import { Settings, Building2, MapPin, Sparkles, CreditCard, Users, Palette, Award } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AdminLayout } from "@/components/admin/layout/AdminLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +9,7 @@ import { BankingSettingsForm } from "@/components/admin/settings/BankingSettings
 import { LeadershipSettingsForm } from "@/components/admin/settings/LeadershipSettingsForm";
 import { BrandingSettingsForm } from "@/components/admin/settings/BrandingSettingsForm";
 import { ThemeSettingsForm } from "@/components/admin/settings/ThemeSettingsForm";
+import { InstitutionalFeaturesForm } from "@/components/admin/settings/InstitutionalFeaturesForm";
 
 export const AdminSettings = () => {
   const { t } = useLanguage();
@@ -24,7 +25,7 @@ export const AdminSettings = () => {
     >
       <div className="space-y-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 max-w-5xl h-auto bg-muted/70 p-1 gap-1">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 max-w-6xl h-auto bg-muted/70 p-1 gap-1">
             <TabsTrigger value="general" className="gap-2 py-2 font-medium">
               <Building2 className="h-4 w-4 text-primary" />
               <span>{t("পরিচিতি ও মূল তথ্য", "General & Identity")}</span>
@@ -33,6 +34,11 @@ export const AdminSettings = () => {
             <TabsTrigger value="campus" className="gap-2 py-2 font-medium">
               <MapPin className="h-4 w-4 text-amber-500" />
               <span>{t("ক্যাম্পাস ও যোগাযোগ", "Contact & Location")}</span>
+            </TabsTrigger>
+
+            <TabsTrigger value="features" className="gap-2 py-2 font-medium">
+              <Award className="h-4 w-4 text-indigo-500" />
+              <span>{t("মাদরাসার বৈশিষ্ট্য", "Features")}</span>
             </TabsTrigger>
 
             <TabsTrigger value="banking" className="gap-2 py-2 font-medium">
@@ -63,6 +69,10 @@ export const AdminSettings = () => {
 
             <TabsContent value="campus" className="focus-visible:outline-none focus-visible:ring-0">
               <CampusAddressForm />
+            </TabsContent>
+
+            <TabsContent value="features" className="focus-visible:outline-none focus-visible:ring-0">
+              <InstitutionalFeaturesForm />
             </TabsContent>
 
             <TabsContent value="banking" className="focus-visible:outline-none focus-visible:ring-0">

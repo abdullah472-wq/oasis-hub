@@ -51,7 +51,7 @@ import { getNotices, type Notice } from "@/lib/notices";
 import { springIn, springInDelay } from "@/lib/animations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useSiteSettings } from "@/lib/siteSettings";
+import { useSiteSettings, defaultFeatureGroups } from "@/lib/siteSettings";
 import { getPublishedVideos, formatVideoViews, incrementVideoViews, type MediaVideo } from "@/lib/mediaCenter";
 import { VIDEOS_UPDATED_EVENT } from "@/lib/videoService";
 
@@ -523,84 +523,18 @@ const Index = () => {
     },
   ];
 
-  const featureGroups = [
-    {
-      id: "academic",
-      title: t("একাডেমিক শ্রেষ্ঠত্ব", "Academic Excellence"),
-      points: t(
-        [
-          "দেশবরেণ্য আলেম-উলামাদের সার্বিক তত্ত্বাবধানে পরিচালিত।",
-          "প্রশিক্ষণপ্রাপ্ত অভিজ্ঞ শিক্ষকমণ্ডলী ও আদর-স্নেহের মাধ্যমে আনন্দঘন পরিবেশে পাঠদান।",
-          "ইংরেজি ও আরবি ভাষায় সাবলীল কথোপকথনের (Spoken) বিশেষ ক্লাসের ব্যবস্থা।",
-          "ক্লাসের পড়া ক্লাসেই আদায় করা হয়, তাই আলাদা কোনো প্রাইভেট বা টিউশনির প্রয়োজন নেই।",
-          "হাতের লেখা সুন্দরকরণে নিয়মিত বিশেষ হ্যান্ডরাইটিং প্রশিক্ষণ।",
-        ],
-        [
-          "Operated under the supervision of renowned Islamic scholars.",
-          "Experienced trained teachers create a joyful and caring learning environment.",
-          "Special spoken English and Arabic conversation classes are arranged.",
-          "Lessons are completed in class, so no separate private tutoring is needed.",
-          "Regular handwriting development sessions help students improve presentation.",
-        ]
-      ),
-    },
-    {
-      id: "tarbiya",
-      title: t("তারবিয়াত ও মানসিক বিকাশ", "Tarbiya and Character Building"),
-      points: t(
-        [
-          "তালিমের সাথে তারবিয়াতের (আদব-কায়দা) সমান গুরুত্ব ও বাস্তব অনুশীলন।",
-          "কোমলমতি শিশুদের সহজ-সরল ও মনস্তাত্ত্বিক উপায়ে পাঠদান।",
-          "সম্পূর্ণ শারীরিক ও মানসিক নির্যাতনমুক্ত আধুনিক মাদরাসা।",
-          "সুপ্ত প্রতিভা বিকাশে নিয়মিত সাংস্কৃতিক প্রশিক্ষণ ও উন্মুক্ত পাঠাগার।",
-          "বার্ষিক শিক্ষাসফর, ইসলামী সংস্কৃতি চর্চা ও সুস্থ বিনোদনের সুব্যবস্থা।",
-        ],
-        [
-          "Equal emphasis is placed on tarbiya, manners, and real-life practice alongside learning.",
-          "Young children are taught through simple, gentle, and age-sensitive methods.",
-          "A modern madrasha environment free from physical and mental abuse.",
-          "Regular cultural training and an open library help nurture hidden talents.",
-          "Educational tours, Islamic cultural practice, and healthy recreation are arranged annually.",
-        ]
-      ),
-    },
-    {
-      id: "security",
-      title: t("নিরাপত্তা ও পর্যবেক্ষণ", "Security and Monitoring"),
-      points: t(
-        [
-          "সার্বক্ষণিক সিসিটিভি ক্যামেরা পর্যবেক্ষণ ও ২৪ ঘণ্টা গেটলক ব্যবস্থা।",
-          "নিরাপত্তার জন্য দক্ষ সিকিউরিটি গার্ড ও ছোট শিক্ষার্থীদের জন্য নিবেদিত খাদেম।",
-          "প্রবাসী ও ব্যস্ত অভিভাবকদের সন্তানদের জন্য বিশেষ নিরাপত্তা ও অভিভাবকত্বের দায়িত্ব গ্রহণ।",
-          "স্বচ্ছতা, জবাবদিহিতা ও দায়িত্বশীলতার দৃঢ় প্রতিশ্রুতি।",
-        ],
-        [
-          "Round-the-clock CCTV coverage and a 24-hour gate-lock system ensure safety.",
-          "Trained security guards and dedicated caretakers support younger students.",
-          "Special protection and guardianship support are provided for children of expatriate and busy parents.",
-          "The institution remains committed to transparency, accountability, and responsibility.",
-        ]
-      ),
-    },
-    {
-      id: "facilities",
-      title: t("উন্নত আবাসন ও জীবনমান", "Facilities and Comfort"),
-      points: t(
-        [
-          "কোলাহলমুক্ত নিরিবিলি ও মনোরম পরিবেশ এবং সার্বক্ষণিক বিদ্যুৎ (জেনারেটর) ব্যবস্থা।",
-          "নিজস্ব ব্যবস্থাপনায় স্বাস্থ্যসম্মত ও সুস্বাদু ঘরোয়া খাবার পরিবেশন।",
-          "শীতকালে গরম পানির সুবিধা ও নিয়মিত সুস্বাস্থ্য পরিচর্যায় নিজস্ব চিকিৎসক।",
-          "শিক্ষকের সরাসরি তত্ত্বাবধানে প্রতিদিন বিকেলে খেলাধুলার ব্যবস্থা।",
-        ],
-        [
-          "Students enjoy a peaceful campus atmosphere with uninterrupted electricity and generator backup.",
-          "Healthy and delicious homestyle meals are served under in-house management.",
-          "Hot water in winter and regular health care support from an in-house doctor are available.",
-          "Daily supervised afternoon sports help students stay healthy and active.",
-        ]
-      ),
-    },
-  ];
+  const featureGroups = useMemo(() => {
+    const rawGroups =
+      Array.isArray(settings.institutional_features) && settings.institutional_features.length > 0
+        ? settings.institutional_features
+        : defaultFeatureGroups;
+
+    return rawGroups.map((group) => ({
+      id: group.id,
+      title: lang === "bn" ? group.title_bn : group.title_en || group.title_bn,
+      points: lang === "bn" ? group.points_bn : (group.points_en && group.points_en.length > 0 ? group.points_en : group.points_bn),
+    }));
+  }, [settings.institutional_features, lang]);
 
   const displayedNotices =
     homeNotices.length > 0
@@ -1452,7 +1386,7 @@ const Index = () => {
 
             {/* Google Reviews Card */}
             <a
-              href="https://g.page/r/Cap4g2uq6V3eEAE/review"
+              href={settings.google_review_url || "https://g.page/r/Cap4g2uq6V3eEAE/review"}
               target="_blank"
               rel="noopener noreferrer"
               className="group block rounded-2xl border border-red-200/60 bg-gradient-to-br from-red-500/5 via-card to-card p-4 sm:p-5 shadow-sm hover:shadow-md hover:border-red-300 transition-all cursor-pointer"
@@ -1467,14 +1401,14 @@ const Index = () => {
                     <span className="text-[10px] text-muted-foreground font-bengali">{t("ভেরিফাইড রেটিং", "Verified Rating")}</span>
                   </div>
                 </div>
-                <span className="text-lg font-black font-mono text-foreground">4.9</span>
+                <span className="text-lg font-black font-mono text-foreground">{settings.google_rating_score || "4.9"}</span>
               </div>
               <div className="flex items-center gap-1 text-amber-400 mb-2">
                 {Array.from({ length: 5 }).map((_, idx) => (
                   <Star key={idx} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                 ))}
                 <span className="text-[11px] font-semibold text-muted-foreground font-bengali ml-1.5">
-                  ({t("৪৮+ রিভিউ", "48+ Reviews")})
+                  ({settings.google_review_count || "48+"} {t("রিভিউ", "Reviews")})
                 </span>
               </div>
               <div
@@ -1487,7 +1421,7 @@ const Index = () => {
 
             {/* Facebook Recommendations Card */}
             <a
-              href="https://www.facebook.com/profile.php?id=61595529418669&sk=reviews"
+              href={settings.facebook_review_url || "https://www.facebook.com/profile.php?id=61595529418669&sk=reviews"}
               target="_blank"
               rel="noopener noreferrer"
               className="group block rounded-2xl border border-blue-200/60 bg-gradient-to-br from-blue-500/5 via-card to-card p-4 sm:p-5 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer"
@@ -1540,14 +1474,26 @@ const Index = () => {
                 {Array.from({ length: 5 }).map((_, idx) => (
                   <Star key={idx} className="h-3.5 w-3.5 fill-emerald-500 text-emerald-500" />
                 ))}
-                <span className="text-[11px] font-semibold text-emerald-700 font-bengali ml-1.5">
-                  ({t("এক্সিলেন্ট", "Excellent")})
+                <span className="text-[11px] font-semibold text-muted-foreground font-bengali ml-1.5">
+                  ({t("রেটেড", "Rated")})
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-bengali mt-1">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                <span>{t("অভিভাবকদের শীর্ষ আস্থা", "Top Guardian Trust")}</span>
-              </div>
+              {settings.trustpilot_review_url ? (
+                <a
+                  href={settings.trustpilot_review_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:underline font-bengali mt-1"
+                >
+                  <span>{t("ট্রাস্টপাইলটে রিভিউ দিন", "View on Trustpilot")}</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              ) : (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-bengali mt-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>{t("অভিভাবকদের শীর্ষ আস্থা", "Top Guardian Trust")}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1631,7 +1577,33 @@ const Index = () => {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+              {settings.google_review_url && (
+                <a
+                  href={settings.google_review_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-2 bg-red-600/10 hover:bg-red-600 hover:text-white text-red-600 rounded-xl font-bengali font-semibold text-xs transition-colors flex items-center gap-1.5"
+                >
+                  <GoogleIcon className="h-3.5 w-3.5" />
+                  <span>{t("গুগলে রিভিউ দিন", "Google Review")}</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+
+              {settings.facebook_review_url && (
+                <a
+                  href={settings.facebook_review_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-2 bg-blue-600/10 hover:bg-blue-600 hover:text-white text-blue-600 rounded-xl font-bengali font-semibold text-xs transition-colors flex items-center gap-1.5"
+                >
+                  <FacebookIcon className="h-3.5 w-3.5" />
+                  <span>{t("ফেসবুকে মতামত দিন", "Facebook Review")}</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+
               <button
                 onClick={() => setShowReviewForm(!showReviewForm)}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-xl font-bengali font-semibold text-xs hover:bg-primary/90 transition-colors shadow-sm"

@@ -36,6 +36,14 @@ export const GeneralSettingsForm = () => {
       whatsapp_number: cached.whatsapp_number || defaultSiteSettings.whatsapp_number,
       email_primary: cached.email_primary || defaultSiteSettings.email_primary,
       admission_status: (cached.admission_status || "open") as AdmissionStatusType,
+      admission_session_bn: cached.admission_session_bn || defaultSiteSettings.admission_session_bn || "২০২৬-২০২৭",
+      admission_session_en: cached.admission_session_en || defaultSiteSettings.admission_session_en || "2026-2027",
+      admission_start_date: cached.admission_start_date || defaultSiteSettings.admission_start_date || "2026-01-01",
+      admission_end_date: cached.admission_end_date || defaultSiteSettings.admission_end_date || "2026-03-31",
+      admission_deadline_bn: cached.admission_deadline_bn || defaultSiteSettings.admission_deadline_bn || "৩১ মার্চ ২০২৬",
+      admission_deadline_en: cached.admission_deadline_en || defaultSiteSettings.admission_deadline_en || "31 March 2026",
+      admission_notice_bn: cached.admission_notice_bn || defaultSiteSettings.admission_notice_bn || "",
+      admission_notice_en: cached.admission_notice_en || defaultSiteSettings.admission_notice_en || "",
       befaq_name: cached.befaq_name || defaultSiteSettings.befaq_name || "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ (বেফাক)",
       befaq_reg_no: cached.befaq_reg_no || "",
       befaq_cert_no: cached.befaq_cert_no || "",
@@ -63,41 +71,50 @@ export const GeneralSettingsForm = () => {
 
         if (error && error.code !== "PGRST116") throw error;
 
-        if (isMounted && data) {
+        if (isMounted) {
+          const cached = getCachedSiteSettings();
           const cleanBn =
-            data.institution_name_bn === "আননূর তাহফিজুল কুরআন মাদরাসা ও মডেল একাডেমী"
+            data?.institution_name_bn === "আননূর তাহফিজুল কুরআন মাদরাসা ও মডেল একাডেমী"
               ? defaultSiteSettings.institution_name_bn
-              : (data.institution_name_bn || defaultSiteSettings.institution_name_bn);
+              : (data?.institution_name_bn || cached.institution_name_bn || defaultSiteSettings.institution_name_bn);
 
           const cleanEn =
-            data.institution_name_en === "Annoor Tahfizul Quran Madrasa & Model Academy"
+            data?.institution_name_en === "Annoor Tahfizul Quran Madrasa & Model Academy"
               ? defaultSiteSettings.institution_name_en
-              : (data.institution_name_en || defaultSiteSettings.institution_name_en);
+              : (data?.institution_name_en || cached.institution_name_en || defaultSiteSettings.institution_name_en);
 
-          const cleanEmis = data.emis_code === "12345678" ? "" : (data.emis_code || "");
+          const cleanEmis = data?.emis_code === "12345678" ? "" : (data?.emis_code || cached.emis_code || "");
 
           setFormData({
             institution_name_bn: cleanBn,
             institution_name_en: cleanEn,
-            tagline_bn: data.tagline_bn || defaultSiteSettings.tagline_bn || "",
-            tagline_en: data.tagline_en || defaultSiteSettings.tagline_en || "",
+            tagline_bn: data?.tagline_bn || cached.tagline_bn || defaultSiteSettings.tagline_bn || "",
+            tagline_en: data?.tagline_en || cached.tagline_en || defaultSiteSettings.tagline_en || "",
             emis_code: cleanEmis,
-            founding_year: data.founding_year || defaultSiteSettings.founding_year || "2021",
-            phone_primary: data.phone_primary || defaultSiteSettings.phone_primary,
-            phone_secondary: data.phone_secondary || defaultSiteSettings.phone_secondary || "",
-            whatsapp_number: data.whatsapp_number || defaultSiteSettings.whatsapp_number,
-            email_primary: data.email_primary || defaultSiteSettings.email_primary,
-            admission_status: data.admission_status || "open",
-            befaq_name: data.befaq_name ?? defaultSiteSettings.befaq_name ?? "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ (বেফাক)",
-            befaq_reg_no: data.befaq_reg_no ?? "",
-            befaq_cert_no: data.befaq_cert_no ?? "",
-            huffaz_name: data.huffaz_name ?? defaultSiteSettings.huffaz_name ?? "হুফ্ফাজুল কুরআন ফাউন্ডেশন বাংলাদেশ",
-            huffaz_reg_no: data.huffaz_reg_no ?? "",
-            huffaz_cert_no: data.huffaz_cert_no ?? "",
-            nurani_name: data.nurani_name ?? defaultSiteSettings.nurani_name ?? "নূরানী তা'লীমুল কুরআন বোর্ড বাংলাদেশ",
-            nurani_reg_no: data.nurani_reg_no ?? "",
-            nurani_cert_no: data.nurani_cert_no ?? "",
-            trade_license_no: data.trade_license_no ?? "",
+            founding_year: data?.founding_year || cached.founding_year || defaultSiteSettings.founding_year || "2021",
+            phone_primary: data?.phone_primary || cached.phone_primary || defaultSiteSettings.phone_primary,
+            phone_secondary: data?.phone_secondary || cached.phone_secondary || defaultSiteSettings.phone_secondary || "",
+            whatsapp_number: data?.whatsapp_number || cached.whatsapp_number || defaultSiteSettings.whatsapp_number,
+            email_primary: data?.email_primary || cached.email_primary || defaultSiteSettings.email_primary,
+            admission_status: (data?.admission_status || cached.admission_status || "open") as AdmissionStatusType,
+            admission_session_bn: data?.admission_session_bn || cached.admission_session_bn || defaultSiteSettings.admission_session_bn || "২০২৬-২০২৭",
+            admission_session_en: data?.admission_session_en || cached.admission_session_en || defaultSiteSettings.admission_session_en || "2026-2027",
+            admission_start_date: data?.admission_start_date || cached.admission_start_date || defaultSiteSettings.admission_start_date || "2026-01-01",
+            admission_end_date: data?.admission_end_date || cached.admission_end_date || defaultSiteSettings.admission_end_date || "2026-03-31",
+            admission_deadline_bn: data?.admission_deadline_bn || cached.admission_deadline_bn || defaultSiteSettings.admission_deadline_bn || "৩১ মার্চ ২০২৬",
+            admission_deadline_en: data?.admission_deadline_en || cached.admission_deadline_en || defaultSiteSettings.admission_deadline_en || "31 March 2026",
+            admission_notice_bn: data?.admission_notice_bn ?? cached.admission_notice_bn ?? "",
+            admission_notice_en: data?.admission_notice_en ?? cached.admission_notice_en ?? "",
+            befaq_name: data?.befaq_name ?? cached.befaq_name ?? defaultSiteSettings.befaq_name ?? "বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ (বেফাক)",
+            befaq_reg_no: data?.befaq_reg_no ?? cached.befaq_reg_no ?? "",
+            befaq_cert_no: data?.befaq_cert_no ?? cached.befaq_cert_no ?? "",
+            huffaz_name: data?.huffaz_name ?? cached.huffaz_name ?? defaultSiteSettings.huffaz_name ?? "হুফ্ফাজুল কুরআন ফাউন্ডেশন বাংলাদেশ",
+            huffaz_reg_no: data?.huffaz_reg_no ?? cached.huffaz_reg_no ?? "",
+            huffaz_cert_no: data?.huffaz_cert_no ?? cached.huffaz_cert_no ?? "",
+            nurani_name: data?.nurani_name ?? cached.nurani_name ?? defaultSiteSettings.nurani_name ?? "নূরানী তা'লীমুল কুরআন বোর্ড বাংলাদেশ",
+            nurani_reg_no: data?.nurani_reg_no ?? cached.nurani_reg_no ?? "",
+            nurani_cert_no: data?.nurani_cert_no ?? cached.nurani_cert_no ?? "",
+            trade_license_no: data?.trade_license_no ?? cached.trade_license_no ?? "",
           });
         }
       } catch (err: any) {
@@ -138,6 +155,14 @@ export const GeneralSettingsForm = () => {
         whatsapp_number: formData.whatsapp_number.trim(),
         email_primary: formData.email_primary.trim(),
         admission_status: formData.admission_status,
+        admission_session_bn: formData.admission_session_bn.trim() || null,
+        admission_session_en: formData.admission_session_en.trim() || null,
+        admission_start_date: formData.admission_start_date.trim() || null,
+        admission_end_date: formData.admission_end_date.trim() || null,
+        admission_deadline_bn: formData.admission_deadline_bn.trim() || null,
+        admission_deadline_en: formData.admission_deadline_en.trim() || null,
+        admission_notice_bn: formData.admission_notice_bn.trim() || null,
+        admission_notice_en: formData.admission_notice_en.trim() || null,
         befaq_name: formData.befaq_name.trim() || null,
         befaq_reg_no: formData.befaq_reg_no.trim() || null,
         befaq_cert_no: formData.befaq_cert_no.trim() || null,
@@ -278,31 +303,163 @@ export const GeneralSettingsForm = () => {
                 placeholder="2015"
               />
             </div>
+          </div>
 
-            <div className="space-y-1.5">
-              <Label className="flex items-center gap-1 font-semibold">
-                <GraduationCap className="h-3.5 w-3.5 text-primary" />
-                {t("ভর্তি কার্যক্রম স্ট্যাটাস *", "Admission Status *")}
-              </Label>
-              <Select
-                value={formData.admission_status}
-                onValueChange={(val: AdmissionStatusType) => setFormData({ ...formData, admission_status: val })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="open">
-                    <span className="font-medium text-emerald-600">● {t("ভর্তি চলছে (Open)", "Admission Open")}</span>
-                  </SelectItem>
-                  <SelectItem value="upcoming">
-                    <span className="font-medium text-amber-600">● {t("শীঘ্রই শুরু (Upcoming)", "Upcoming")}</span>
-                  </SelectItem>
-                  <SelectItem value="closed">
-                    <span className="font-medium text-rose-600">● {t("ভর্তি বন্ধ (Closed)", "Admission Closed")}</span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Admission Session, Timeline & Notice Settings */}
+          <div className="rounded-2xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/5 via-card to-card p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+                  <GraduationCap className="h-4 w-4" />
+                </div>
+                <div>
+                  <h4 className="font-bengali font-bold text-sm text-foreground">
+                    {t("ভর্তি সেশন, সময়সূচি ও নোটিশ সেটিংস", "Admission Session, Timeline & Notice Settings")}
+                  </h4>
+                  <p className="text-xs text-muted-foreground font-bengali">
+                    {t(
+                      "ভর্তি সংক্রান্ত সেশন (যেমন ২০২৬-২০২৭), আবেদন শুরুর তারিখ, শেষ সময় ও বিশেষ নোটিশ নিয়ন্ত্রণ করুন।",
+                      "Configure admission session year, start/end dates, deadline text, and custom announcement banners."
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1 font-semibold text-xs font-bengali">
+                  <GraduationCap className="h-3.5 w-3.5 text-emerald-600" />
+                  {t("ভর্তি কার্যক্রম স্ট্যাটাস *", "Admission Status *")}
+                </Label>
+                <Select
+                  value={formData.admission_status}
+                  onValueChange={(val: AdmissionStatusType) => setFormData({ ...formData, admission_status: val })}
+                >
+                  <SelectTrigger className="h-9 text-xs sm:text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="open">
+                      <span className="font-medium text-emerald-600">● {t("ভর্তি চলছে (Open)", "Admission Open")}</span>
+                    </SelectItem>
+                    <SelectItem value="upcoming">
+                      <span className="font-medium text-amber-600">● {t("শীঘ্রই শুরু (Upcoming)", "Upcoming")}</span>
+                    </SelectItem>
+                    <SelectItem value="closed">
+                      <span className="font-medium text-rose-600">● {t("ভর্তি বন্ধ (Closed)", "Admission Closed")}</span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="admission_session_bn" className="text-xs font-semibold font-bengali">
+                  {t("শিক্ষাবর্ষ / সেশন (বাংলা)", "Academic Session (Bangla)")}
+                </Label>
+                <Input
+                  id="admission_session_bn"
+                  value={formData.admission_session_bn}
+                  onChange={(e) => setFormData({ ...formData, admission_session_bn: e.target.value })}
+                  placeholder="যেমন: ২০২৬-২০২৭"
+                  className="h-9 text-xs sm:text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="admission_session_en" className="text-xs font-semibold font-bengali">
+                  {t("শিক্ষাবর্ষ / সেশন (ইংরেজি)", "Academic Session (English)")}
+                </Label>
+                <Input
+                  id="admission_session_en"
+                  value={formData.admission_session_en}
+                  onChange={(e) => setFormData({ ...formData, admission_session_en: e.target.value })}
+                  placeholder="e.g. 2026-2027"
+                  className="h-9 text-xs sm:text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="admission_start_date" className="text-xs font-medium text-muted-foreground font-bengali">
+                  {t("ভর্তি শুরুর তারিখ", "Admission Start Date")}
+                </Label>
+                <Input
+                  id="admission_start_date"
+                  type="date"
+                  value={formData.admission_start_date}
+                  onChange={(e) => setFormData({ ...formData, admission_start_date: e.target.value })}
+                  className="h-9 text-xs"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="admission_end_date" className="text-xs font-medium text-muted-foreground font-bengali">
+                  {t("ভর্তি সমাপ্তির তারিখ", "Admission End Date")}
+                </Label>
+                <Input
+                  id="admission_end_date"
+                  type="date"
+                  value={formData.admission_end_date}
+                  onChange={(e) => setFormData({ ...formData, admission_end_date: e.target.value })}
+                  className="h-9 text-xs"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="admission_deadline_bn" className="text-xs font-medium text-muted-foreground font-bengali">
+                  {t("আবেদনের শেষ সময় (বাংলা)", "Deadline Text (Bangla)")}
+                </Label>
+                <Input
+                  id="admission_deadline_bn"
+                  value={formData.admission_deadline_bn}
+                  onChange={(e) => setFormData({ ...formData, admission_deadline_bn: e.target.value })}
+                  placeholder="যেমন: ৩১ মার্চ ২০২৬"
+                  className="h-9 text-xs"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="admission_deadline_en" className="text-xs font-medium text-muted-foreground font-bengali">
+                  {t("আবেদনের শেষ সময় (ইংরেজি)", "Deadline Text (English)")}
+                </Label>
+                <Input
+                  id="admission_deadline_en"
+                  value={formData.admission_deadline_en}
+                  onChange={(e) => setFormData({ ...formData, admission_deadline_en: e.target.value })}
+                  placeholder="e.g. 31 March 2026"
+                  className="h-9 text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 pt-1">
+              <div className="space-y-1">
+                <Label htmlFor="admission_notice_bn" className="text-xs font-medium text-foreground font-bengali">
+                  {t("বিশেষ ভর্তি নোটিশ ব্যানার (বাংলা)", "Special Admission Notice Banner (Bangla)")}
+                </Label>
+                <Input
+                  id="admission_notice_bn"
+                  value={formData.admission_notice_bn}
+                  onChange={(e) => setFormData({ ...formData, admission_notice_bn: e.target.value })}
+                  placeholder="যেমন: সীমিত আসনে ভর্তি চলছে, আসন পূর্ণ হলে আবেদন বন্ধ হয়ে যাবে।"
+                  className="h-9 text-xs"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="admission_notice_en" className="text-xs font-medium text-foreground font-bengali">
+                  {t("বিশেষ ভর্তি নোটিশ ব্যানার (ইংরেজি)", "Special Admission Notice Banner (English)")}
+                </Label>
+                <Input
+                  id="admission_notice_en"
+                  value={formData.admission_notice_en}
+                  onChange={(e) => setFormData({ ...formData, admission_notice_en: e.target.value })}
+                  placeholder="e.g. Limited seats available. Applications will close soon."
+                  className="h-9 text-xs"
+                />
+              </div>
             </div>
           </div>
 

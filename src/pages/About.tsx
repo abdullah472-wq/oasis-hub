@@ -50,7 +50,7 @@ const About = () => {
       navigator.clipboard.writeText(text);
       setCopiedKey(key);
       setTimeout(() => setCopiedKey(null), 2000);
-    } catch {}
+    } catch { }
   };
 
   const stats = [
@@ -184,13 +184,13 @@ const About = () => {
       name: settings.principal_name_bn
         ? (lang === "bn" ? settings.principal_name_bn : settings.principal_name_en || settings.principal_name_bn)
         : amanullahMember
-        ? (lang === "bn" ? amanullahMember.name_bn : amanullahMember.name_en || amanullahMember.name_bn)
-        : t("হাফেজ আমানউল্লাহ", "Hafez Amanullah"),
+          ? (lang === "bn" ? amanullahMember.name_bn : amanullahMember.name_en || amanullahMember.name_bn)
+          : t("হাফেজ আমানউল্লাহ", "Hafez Amanullah"),
       role: settings.principal_title_bn
         ? (lang === "bn" ? settings.principal_title_bn : settings.principal_title_en || settings.principal_title_bn)
         : amanullahMember
-        ? (lang === "bn" ? amanullahMember.designation_bn : amanullahMember.designation_en || amanullahMember.designation_bn)
-        : t("প্রধান শিক্ষক ও হিফজ প্রধান", "Principal & Head of Hifz"),
+          ? (lang === "bn" ? amanullahMember.designation_bn : amanullahMember.designation_en || amanullahMember.designation_bn)
+          : t("প্রধান শিক্ষক ও হিফজ প্রধান", "Principal & Head of Hifz"),
       qualification: amanullahMember?.qualification_bn
         ? (lang === "bn" ? amanullahMember.qualification_bn : amanullahMember.qualification_en || amanullahMember.qualification_bn)
         : t("আন্তর্জাতিক সনদপ্রাপ্ত ক্বারী ও সিনিয়র হাফেজে কুরআন", "Certified International Qari & Senior Hafez"),
@@ -202,22 +202,22 @@ const About = () => {
       quote: settings.principal_message_bn
         ? (lang === "bn" ? settings.principal_message_bn : settings.principal_message_en || settings.principal_message_bn)
         : t(
-            "কুরআন হলো জীবনের হেদায়েতের নূর। আমরা চাই আমাদের শিক্ষার্থীরা বিশুদ্ধ কুরআন বক্ষে ধারণ করে ডাক্তার, ইঞ্জিনিয়ার, অধ্যাপক বা আদর্শ আলেম হয়ে জাতির মুখ উজ্জ্বল করুক।",
-            "The Quran is the light of guidance. We strive for students who hold the Quran in their hearts while excelling as doctors, engineers, professors, or noble scholars.",
-          ),
+          "কুরআন হলো জীবনের হেদায়েতের নূর। আমরা চাই আমাদের শিক্ষার্থীরা বিশুদ্ধ কুরআন বক্ষে ধারণ করে ডাক্তার, ইঞ্জিনিয়ার, অধ্যাপক বা আদর্শ আলেম হয়ে জাতির মুখ উজ্জ্বল করুক।",
+          "The Quran is the light of guidance. We strive for students who hold the Quran in their hearts while excelling as doctors, engineers, professors, or noble scholars.",
+        ),
       image: settings.principal_image_url || amanullahMember?.image_url || "/gallery/campus_main.jpg",
     },
     {
       name: settings.founder_name_bn
         ? (lang === "bn" ? settings.founder_name_bn : settings.founder_name_en || settings.founder_name_bn)
         : mamonMember
-        ? (lang === "bn" ? mamonMember.name_bn : mamonMember.name_en || mamonMember.name_bn)
-        : t("মুফতি আব্দুল্লাহ আল মামুন", "Mufti Abdullah Al Mamon"),
+          ? (lang === "bn" ? mamonMember.name_bn : mamonMember.name_en || mamonMember.name_bn)
+          : t("মুফতি আব্দুল্লাহ আল মামুন", "Mufti Abdullah Al Mamon"),
       role: settings.founder_title_bn
         ? (lang === "bn" ? settings.founder_title_bn : settings.founder_title_en || settings.founder_title_bn)
         : mamonMember
-        ? (lang === "bn" ? mamonMember.designation_bn : mamonMember.designation_en || mamonMember.designation_bn)
-        : t("ম্যানেজার ও প্রতিষ্ঠাতা পরিচালক", "Manager & Founding Director"),
+          ? (lang === "bn" ? mamonMember.designation_bn : mamonMember.designation_en || mamonMember.designation_bn)
+          : t("ম্যানেজার ও প্রতিষ্ঠাতা পরিচালক", "Manager & Founding Director"),
       qualification: mamonMember?.qualification_bn
         ? (lang === "bn" ? mamonMember.qualification_bn : mamonMember.qualification_en || mamonMember.qualification_bn)
         : t("দাওরায়ে হাদিস ও উচ্চতর ইফতা, শিক্ষাবিদ ও সংগঠক", "Dawra-e-Hadith & Higher Ifta, Islamic Scholar"),
@@ -229,9 +229,9 @@ const About = () => {
       quote: settings.founder_message_bn
         ? (lang === "bn" ? settings.founder_message_bn : settings.founder_message_en || settings.founder_message_bn)
         : t(
-            "শিক্ষা শুধু বইয়ের পাতার মুখস্থ নয়, এটি শিশুর চিন্তা ও চরিত্রের আত্মিক পরিশুদ্ধি। আননূর তাহফিজুল কুরআন মাদরাসায় আমরা প্রতিটি সন্তানকে আন্তরিক ভালোবাসা ও দায়িত্বশীলতার সাথে গড়ে তুলি।",
-            "Education is not mere textbook cramming; it is the spiritual and intellectual purification of a child's character with deep love and institutional care.",
-          ),
+          "শিক্ষা শুধু বইয়ের পাতার মুখস্থ নয়, এটি শিশুর চিন্তা ও চরিত্রের আত্মিক পরিশুদ্ধি। আননূর তাহফিজুল কুরআন মাদরাসায় আমরা প্রতিটি সন্তানকে আন্তরিক ভালোবাসা ও দায়িত্বশীলতার সাথে গড়ে তুলি।",
+          "Education is not mere textbook cramming; it is the spiritual and intellectual purification of a child's character with deep love and institutional care.",
+        ),
       image:
         settings.founder_image_url ||
         (mamonMember?.image_url && !mamonMember.image_url.includes("example.com")
@@ -333,19 +333,15 @@ const About = () => {
               <Sparkles className="h-4 w-4 text-amber-300" />
               <span>
                 {t(
-                  `স্থাপিত: ${settings.founding_year || "২০২১"} খ্রি.${
-                    settings.trade_license_no ? ` | ট্রেড লাইসেন্স: ${settings.trade_license_no}` : ""
-                  }${
-                    formatRegistrationNumber(settings, "bn")
-                      ? ` | ${formatRegistrationNumber(settings, "bn")}`
-                      : ""
+                  `স্থাপিত: ${settings.founding_year || "২০২১"} খ্রি.${settings.trade_license_no ? ` | ট্রেড লাইসেন্স: ${settings.trade_license_no}` : ""
+                  }${formatRegistrationNumber(settings, "bn")
+                    ? ` | ${formatRegistrationNumber(settings, "bn")}`
+                    : ""
                   }`,
-                  `Est. ${settings.founding_year || "2021"}${
-                    settings.trade_license_no ? ` | Lic: ${settings.trade_license_no}` : ""
-                  }${
-                    formatRegistrationNumber(settings, "en")
-                      ? ` | ${formatRegistrationNumber(settings, "en")}`
-                      : ""
+                  `Est. ${settings.founding_year || "2021"}${settings.trade_license_no ? ` | Lic: ${settings.trade_license_no}` : ""
+                  }${formatRegistrationNumber(settings, "en")
+                    ? ` | ${formatRegistrationNumber(settings, "en")}`
+                    : ""
                   }`
                 )}
               </span>
@@ -455,13 +451,12 @@ const About = () => {
 
             {hasAnyBoard && (
               <div
-                className={`grid gap-6 ${
-                  activeBoardsCount === 1
+                className={`grid gap-6 ${activeBoardsCount === 1
                     ? "max-w-md mx-auto"
                     : activeBoardsCount === 2
-                    ? "grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto"
-                    : "grid-cols-1 md:grid-cols-3"
-                }`}
+                      ? "grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto"
+                      : "grid-cols-1 md:grid-cols-3"
+                  }`}
               >
                 {/* Befaq */}
                 {hasBefaq && (

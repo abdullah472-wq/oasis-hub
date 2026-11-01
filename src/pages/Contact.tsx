@@ -45,7 +45,11 @@ const Contact = () => {
   const mapsUrl = settings.google_maps_url || DEFAULT_MAPS_URL;
   const facebookUrl = settings.facebook_url || "https://www.facebook.com/profile.php?id=61595529418669";
   const youtubeUrl = settings.youtube_url || "https://www.youtube.com/@ANNOORMADRASA";
-  const madrasaAddress = settings.address_boys_campus_bn || "মেইন রোড, কলেজ রোড মোড়, কাপাসিয়া বাজার (সিঙ্গার শোরুম এর পাশে), কাপাসিয়া, গাজীপুর-১৭৩০";
+  const madrasaAddress =
+    settings.address_boys_campus_bn ||
+    (settings.contact_landmark_bn
+      ? `${settings.contact_landmark_bn}, কাপাসিয়া, গাজীপুর`
+      : "মেইন রোড, কলেজ রোড মোড়, কাপাসিয়া বাজার (সিঙ্গার শোরুম এর পাশে), কাপাসিয়া, গাজীপুর-১৭৩০");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -135,6 +139,15 @@ const Contact = () => {
                 <Phone className="h-4 w-4 text-sky-300" />
                 <span>{t("অফিস:", "Office:")} {settings.phone_secondary || "01581-818368"}</span>
               </a>
+              {settings.emergency_contact_phone && (
+                <a
+                  href={`tel:${settings.emergency_contact_phone.replace(/[^0-9]/g, "")}`}
+                  className="flex items-center gap-2 rounded-xl bg-rose-500/20 px-4 py-2 border border-rose-500/30 backdrop-blur-sm text-xs font-medium text-rose-100 hover:bg-rose-500/30 transition-colors"
+                >
+                  <Phone className="h-4 w-4 text-rose-300" />
+                  <span>{t("জরুরি:", "Emergency:")} {settings.emergency_contact_phone}</span>
+                </a>
+              )}
               <a
                 href={`https://wa.me/${cleanQuickWa}`}
                 target="_blank"
@@ -325,7 +338,12 @@ const Contact = () => {
                 </a>
                 <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 text-xs flex items-center gap-2">
                   <Clock className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>{t("শনি - বৃহস্পতি: সকাল ৮:০০ - বিকাল ৫:০০", "Sat - Thu: 8:00 AM - 5:00 PM")}</span>
+                  <span>
+                    {t(
+                      `শনি - বৃহস্পতি: ${settings.office_hours_bn || "সকাল ৮:০০ - বিকাল ৫:০০"}`,
+                      `Sat - Thu: ${settings.office_hours_en || "8:00 AM - 5:00 PM"}`
+                    )}
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -369,12 +387,16 @@ const Contact = () => {
                 <div className="space-y-3 font-bengali text-xs sm:text-sm">
                   <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40">
                     <span className="font-medium text-foreground">{t("শনিবার — বৃহস্পতিবার", "Saturday — Thursday")}</span>
-                    <span className="font-semibold text-primary">{t("সকাল ৮:০০টা — বিকাল ৫:০০টা", "8:00 AM — 5:00 PM")}</span>
+                    <span className="font-semibold text-primary">
+                      {t(settings.office_hours_bn || "সকাল ৮:০০টা — বিকাল ৫:০০টা", settings.office_hours_en || "8:00 AM — 5:00 PM")}
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40">
                     <span className="font-medium text-foreground">{t("শুক্রবার (জুমআর দিন)", "Friday (Special Guardian Hour)")}</span>
-                    <span className="font-semibold text-emerald-700">{t("দুপুর ২:৩০টা — মাগরিব পর্যন্ত", "2:30 PM — Maghrib")}</span>
+                    <span className="font-semibold text-emerald-700">
+                      {t(settings.office_friday_hours_bn || "দুপুর ২:৩০টা — মাগরিব পর্যন্ত", settings.office_friday_hours_en || "2:30 PM — Maghrib")}
+                    </span>
                   </div>
 
                   <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200">

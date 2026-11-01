@@ -134,7 +134,22 @@ const Admission = () => {
           >
             <Sparkles className="h-4 w-4 text-accent" />
             <span className="font-bengali text-sm font-medium text-white/95">
-              {t("ভর্তি শিক্ষাবর্ষ ২০২৬-২০২৭ চলছে", "Admissions Open for Academic Year 2026-2027")}
+              {t(
+                `ভর্তি শিক্ষাবর্ষ ${settings.admission_session_bn || "২০২৬-২০২৭"} ${
+                  settings.admission_status === "closed"
+                    ? "সম্পন্ন"
+                    : settings.admission_status === "upcoming"
+                    ? "শীঘ্রই শুরু"
+                    : "চলছে"
+                }`,
+                `Admissions ${
+                  settings.admission_status === "closed"
+                    ? "Closed"
+                    : settings.admission_status === "upcoming"
+                    ? "Coming Soon"
+                    : "Open"
+                } for Academic Year ${settings.admission_session_en || "2026-2027"}`
+              )}
             </span>
           </motion.div>
 
@@ -936,7 +951,7 @@ const Admission = () => {
 
           <div className="text-center pt-2 mt-2 border-t border-slate-300">
             <h2 className="text-base font-black tracking-wide text-slate-950">
-              ভর্তি তথ্য ও ফি কাঠামো বিবরণী — শিক্ষাবর্ষ ২০২৬-২০২৭
+              ভর্তি তথ্য ও ফি কাঠামো বিবরণী — শিক্ষাবর্ষ {settings.admission_session_bn || "২০২৬-২০২৭"}
             </h2>
             <p className="text-[11px] text-slate-600">
               হিফজুল কুরআন, আন্তর্জাতিক মানের তাজবিদ, নূরানী, নাজেরা ও আধুনিক সমন্বিত ইসলামিক বিদ্যাপীঠ

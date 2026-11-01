@@ -173,6 +173,13 @@ export const CampusLocator: React.FC<{ className?: string }> = ({ className = ""
                   {coords.lat}, {coords.lng}
                 </span>
               </div>
+
+              {Boolean(settings.contact_landmark_bn) && (
+                <div className="pt-2 border-t border-border/50 text-[11px] text-muted-foreground font-bengali">
+                  <span className="font-semibold text-foreground">{t("নিকটবর্তী ল্যান্ডমার্ক: ", "Nearby Landmark: ")}</span>
+                  <span>{t(settings.contact_landmark_bn || "", settings.contact_landmark_en || settings.contact_landmark_bn || "")}</span>
+                </div>
+              )}
             </div>
 
             {/* Landmark & Visiting Hours */}

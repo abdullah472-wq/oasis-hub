@@ -411,7 +411,10 @@ const AdmissionFormPage = () => {
             <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-sky-100 bg-sky-50/70 px-6 py-5 text-center">
               <img src={siteLogo} alt={settings.institution_name_en || "Site logo"} className="h-20 w-20 object-contain md:h-24 md:w-24" />
               <span className="mt-4 rounded-full border border-sky-200 bg-white px-4 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">
-                {t("অনলাইন ভর্তি", "Online admission")}
+                {t(
+                  `শিক্ষাবর্ষ ${settings.admission_session_bn || "২০২৬-২০২৭"}`,
+                  `Session ${settings.admission_session_en || "2026-2027"}`
+                )}
               </span>
             </div>
 
@@ -439,6 +442,13 @@ const AdmissionFormPage = () => {
                   "Complete the required details following our official admission form structure. After submission, the madrasa office will verify the information and contact you.",
                 )}
               </p>
+
+              {Boolean(settings.admission_notice_bn) && (
+                <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 p-3.5 text-xs text-amber-900 font-bengali flex items-center gap-2">
+                  <span className="font-bold shrink-0">{t("জরুরি নোটিশ:", "Notice:")}</span>
+                  <span>{lang === "bn" ? settings.admission_notice_bn : settings.admission_notice_en || settings.admission_notice_bn}</span>
+                </div>
+              )}
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-2xl border border-sky-100 bg-sky-50/60 px-4 py-3">

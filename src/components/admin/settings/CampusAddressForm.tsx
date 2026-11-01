@@ -12,6 +12,12 @@ import {
   Instagram,
   Video,
   Twitter,
+  Star,
+  Clock,
+  Compass,
+  Sparkles,
+  PhoneCall,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase, logAdminActivity } from "@/lib/supabase/client";
@@ -20,6 +26,7 @@ import {
   defaultSiteSettings,
   getCachedSiteSettings,
   updateSiteSettingsRemote,
+  fetchSiteSettings,
 } from "@/lib/siteSettings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,6 +56,22 @@ export const CampusAddressForm = () => {
       instagram_url: cached.instagram_url || defaultSiteSettings.instagram_url || "",
       tiktok_url: cached.tiktok_url || defaultSiteSettings.tiktok_url || "",
       twitter_url: cached.twitter_url || defaultSiteSettings.twitter_url || "",
+
+      // Public Review Links & Ratings
+      google_review_url: cached.google_review_url || defaultSiteSettings.google_review_url || "",
+      facebook_review_url: cached.facebook_review_url || defaultSiteSettings.facebook_review_url || "",
+      trustpilot_review_url: cached.trustpilot_review_url || "",
+      google_rating_score: cached.google_rating_score || defaultSiteSettings.google_rating_score || "4.9",
+      google_review_count: cached.google_review_count || defaultSiteSettings.google_review_count || "48+",
+
+      // Contact Page Landmark, Helplines & Schedule
+      contact_landmark_bn: cached.contact_landmark_bn || defaultSiteSettings.contact_landmark_bn || "",
+      contact_landmark_en: cached.contact_landmark_en || defaultSiteSettings.contact_landmark_en || "",
+      emergency_contact_phone: cached.emergency_contact_phone || defaultSiteSettings.emergency_contact_phone || "",
+      office_hours_bn: cached.office_hours_bn || defaultSiteSettings.office_hours_bn || "",
+      office_hours_en: cached.office_hours_en || defaultSiteSettings.office_hours_en || "",
+      office_friday_hours_bn: cached.office_friday_hours_bn || defaultSiteSettings.office_friday_hours_bn || "",
+      office_friday_hours_en: cached.office_friday_hours_en || defaultSiteSettings.office_friday_hours_en || "",
     };
   });
 
@@ -59,31 +82,35 @@ export const CampusAddressForm = () => {
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("site_settings")
-        .select("*")
-        .order("id", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-
-      if (error && error.code !== "PGRST116") throw error;
-
+      const data = await fetchSiteSettings(true);
       if (data) {
         setFormData({
-          phone_primary: data.phone_primary || defaultSiteSettings.phone_primary || "",
-          phone_secondary: data.phone_secondary || defaultSiteSettings.phone_secondary || "",
-          whatsapp_number: data.whatsapp_number || defaultSiteSettings.whatsapp_number || "",
-          email_primary: data.email_primary || defaultSiteSettings.email_primary || "",
-          website_url: data.website_url || defaultSiteSettings.website_url || "",
-          address_boys_campus_bn: data.address_boys_campus_bn || defaultSiteSettings.address_boys_campus_bn || "",
-          address_boys_campus_en: data.address_boys_campus_en || defaultSiteSettings.address_boys_campus_en || "",
-          google_maps_url: data.google_maps_url || defaultSiteSettings.google_maps_url || "",
-          facebook_url: data.facebook_url || defaultSiteSettings.facebook_url || "",
-          facebook_group_url: data.facebook_group_url || defaultSiteSettings.facebook_group_url || "",
-          youtube_url: data.youtube_url || defaultSiteSettings.youtube_url || "",
-          instagram_url: data.instagram_url || defaultSiteSettings.instagram_url || "",
-          tiktok_url: data.tiktok_url || defaultSiteSettings.tiktok_url || "",
-          twitter_url: data.twitter_url || defaultSiteSettings.twitter_url || "",
+          phone_primary: data.phone_primary || "",
+          phone_secondary: data.phone_secondary || "",
+          whatsapp_number: data.whatsapp_number || "",
+          email_primary: data.email_primary || "",
+          website_url: data.website_url || "",
+          address_boys_campus_bn: data.address_boys_campus_bn || "",
+          address_boys_campus_en: data.address_boys_campus_en || "",
+          google_maps_url: data.google_maps_url || "",
+          facebook_url: data.facebook_url || "",
+          facebook_group_url: data.facebook_group_url || "",
+          youtube_url: data.youtube_url || "",
+          instagram_url: data.instagram_url || "",
+          tiktok_url: data.tiktok_url || "",
+          twitter_url: data.twitter_url || "",
+          google_review_url: data.google_review_url || "",
+          facebook_review_url: data.facebook_review_url || "",
+          trustpilot_review_url: data.trustpilot_review_url || "",
+          google_rating_score: data.google_rating_score || "4.9",
+          google_review_count: data.google_review_count || "48+",
+          contact_landmark_bn: data.contact_landmark_bn || "",
+          contact_landmark_en: data.contact_landmark_en || "",
+          emergency_contact_phone: data.emergency_contact_phone || "",
+          office_hours_bn: data.office_hours_bn || "",
+          office_hours_en: data.office_hours_en || "",
+          office_friday_hours_bn: data.office_friday_hours_bn || "",
+          office_friday_hours_en: data.office_friday_hours_en || "",
         });
       }
     } catch (err: any) {
@@ -118,6 +145,18 @@ export const CampusAddressForm = () => {
         instagram_url: formData.instagram_url.trim() || null,
         tiktok_url: formData.tiktok_url.trim() || null,
         twitter_url: formData.twitter_url.trim() || null,
+        google_review_url: formData.google_review_url.trim() || null,
+        facebook_review_url: formData.facebook_review_url.trim() || null,
+        trustpilot_review_url: formData.trustpilot_review_url.trim() || null,
+        google_rating_score: formData.google_rating_score.trim() || "4.9",
+        google_review_count: formData.google_review_count.trim() || "48+",
+        contact_landmark_bn: formData.contact_landmark_bn.trim() || null,
+        contact_landmark_en: formData.contact_landmark_en.trim() || null,
+        emergency_contact_phone: formData.emergency_contact_phone.trim() || null,
+        office_hours_bn: formData.office_hours_bn.trim() || null,
+        office_hours_en: formData.office_hours_en.trim() || null,
+        office_friday_hours_bn: formData.office_friday_hours_bn.trim() || null,
+        office_friday_hours_en: formData.office_friday_hours_en.trim() || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -291,6 +330,209 @@ export const CampusAddressForm = () => {
               onChange={(e) => setFormData({ ...formData, address_boys_campus_en: e.target.value })}
               placeholder="e.g. Main Road, Kapasia Bazar, Kapasia, Gazipur"
             />
+          </div>
+
+          {/* Landmark & Emergency Hotline */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-border/50">
+            <div className="space-y-1.5">
+              <Label htmlFor="contact_landmark_bn" className="text-xs font-semibold font-bengali">
+                {t("নিকটবর্তী ল্যান্ডমার্ক / দিকনির্দেশনা (বাংলা)", "Nearby Landmark / Directions (Bangla)")}
+              </Label>
+              <Input
+                id="contact_landmark_bn"
+                value={formData.contact_landmark_bn}
+                onChange={(e) => setFormData({ ...formData, contact_landmark_bn: e.target.value })}
+                placeholder="যেমন: কলেজ রোড মোড় (সিঙ্গার শোরুম এর পাশে)"
+                className="text-xs sm:text-sm"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="contact_landmark_en" className="text-xs font-semibold font-bengali">
+                {t("নিকটবর্তী ল্যান্ডমার্ক / দিকনির্দেশনা (ইংরেজি)", "Nearby Landmark / Directions (English)")}
+              </Label>
+              <Input
+                id="contact_landmark_en"
+                value={formData.contact_landmark_en}
+                onChange={(e) => setFormData({ ...formData, contact_landmark_en: e.target.value })}
+                placeholder="e.g. College Road Crossing (Beside Singer Showroom)"
+                className="text-xs sm:text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5 pt-1">
+            <Label htmlFor="emergency_contact_phone" className="text-xs font-semibold font-bengali flex items-center gap-1.5">
+              <PhoneCall className="h-3.5 w-3.5 text-rose-500" />
+              <span>{t("জরুরি সহায়তা / ভিজিটর হেল্পলাইন", "Emergency / Visitor Helpline")}</span>
+            </Label>
+            <Input
+              id="emergency_contact_phone"
+              value={formData.emergency_contact_phone}
+              onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
+              placeholder="01312200043"
+              className="text-xs sm:text-sm"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Office & Visitor Visiting Schedule */}
+      <Card className="border-border/60 shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-emerald-600" />
+            <CardTitle className="text-lg">
+              {t("অফিস সময় ও সাক্ষাতের সময়সূচি", "Office Hours & Visiting Schedule")}
+            </CardTitle>
+          </div>
+          <CardDescription>
+            {t("যোগাযোগ পেজে দর্শনার্থী ও অভিভাবকদের জন্য প্রদর্শিত অফিসিয়াল সময়তালিকা", "Official schedule shown on the Contact page for parents & visitors")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="office_hours_bn" className="text-xs font-semibold font-bengali">
+                {t("নিয়মিত অফিস সময় (বাংলা - শনি হতে বৃহস্পতি)", "Regular Office Hours (Bangla)")}
+              </Label>
+              <Input
+                id="office_hours_bn"
+                value={formData.office_hours_bn}
+                onChange={(e) => setFormData({ ...formData, office_hours_bn: e.target.value })}
+                placeholder="সকাল ৮:০০টা — বিকাল ৫:০০টা"
+                className="text-xs sm:text-sm"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="office_hours_en" className="text-xs font-semibold font-bengali">
+                {t("নিয়মিত অফিস সময় (ইংরেজি)", "Regular Office Hours (English)")}
+              </Label>
+              <Input
+                id="office_hours_en"
+                value={formData.office_hours_en}
+                onChange={(e) => setFormData({ ...formData, office_hours_en: e.target.value })}
+                placeholder="8:00 AM — 5:00 PM"
+                className="text-xs sm:text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="office_friday_hours_bn" className="text-xs font-semibold font-bengali">
+                {t("শুক্রবার / বিশেষ অভিভাবক সময় (বাংলা)", "Friday / Special Visiting Hours (Bangla)")}
+              </Label>
+              <Input
+                id="office_friday_hours_bn"
+                value={formData.office_friday_hours_bn}
+                onChange={(e) => setFormData({ ...formData, office_friday_hours_bn: e.target.value })}
+                placeholder="দুপুর ২:৩০টা — মাগরিব পর্যন্ত"
+                className="text-xs sm:text-sm"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="office_friday_hours_en" className="text-xs font-semibold font-bengali">
+                {t("শুক্রবার / বিশেষ অভিভাবক সময় (ইংরেজি)", "Friday / Special Visiting Hours (English)")}
+              </Label>
+              <Input
+                id="office_friday_hours_en"
+                value={formData.office_friday_hours_en}
+                onChange={(e) => setFormData({ ...formData, office_friday_hours_en: e.target.value })}
+                placeholder="2:30 PM — Maghrib"
+                className="text-xs sm:text-sm"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Public Review Links & Ratings */}
+      <Card className="border-border/60 shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2">
+            <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
+            <CardTitle className="text-lg">
+              {t("গুগল ও ফেসবুক রিভিউ লিংক ও রেটিং", "Google & Facebook Review Links & Ratings")}
+            </CardTitle>
+          </div>
+          <CardDescription>
+            {t("হোমপেজের রিভিউ সেকশনে 'Google Reviews' এবং 'Facebook Page' কার্ডের সরাসরি রিভিউ লিংক ও রেটিং স্কোর", "Direct review submission links and public trust rating scores displayed on homepage")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2 space-y-1.5">
+              <Label htmlFor="google_review_url" className="text-xs font-semibold font-bengali text-red-600 flex items-center gap-1.5">
+                <Star className="h-3.5 w-3.5" />
+                <span>{t("Google Business Review লিংক (URL)", "Google Review Link (URL)")}</span>
+              </Label>
+              <Input
+                id="google_review_url"
+                value={formData.google_review_url}
+                onChange={(e) => setFormData({ ...formData, google_review_url: e.target.value })}
+                placeholder="https://g.page/r/.../review"
+                className="text-xs sm:text-sm"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="google_rating_score" className="text-xs font-semibold font-bengali">
+                  {t("গুগল রেটিং", "Rating Score")}
+                </Label>
+                <Input
+                  id="google_rating_score"
+                  value={formData.google_rating_score}
+                  onChange={(e) => setFormData({ ...formData, google_rating_score: e.target.value })}
+                  placeholder="4.9"
+                  className="text-xs sm:text-sm font-mono text-center font-bold"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="google_review_count" className="text-xs font-semibold font-bengali">
+                  {t("রিভিউ সংখ্যা", "Count")}
+                </Label>
+                <Input
+                  id="google_review_count"
+                  value={formData.google_review_count}
+                  onChange={(e) => setFormData({ ...formData, google_review_count: e.target.value })}
+                  placeholder="48+"
+                  className="text-xs sm:text-sm font-mono text-center font-bold"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-border/50">
+            <div className="space-y-1.5">
+              <Label htmlFor="facebook_review_url" className="text-xs font-semibold font-bengali text-blue-600">
+                {t("ফেসবুক পেজ রিভিউ / মতামত লিংক (URL)", "Facebook Review / Feedback URL")}
+              </Label>
+              <Input
+                id="facebook_review_url"
+                value={formData.facebook_review_url}
+                onChange={(e) => setFormData({ ...formData, facebook_review_url: e.target.value })}
+                placeholder="https://www.facebook.com/.../reviews"
+                className="text-xs sm:text-sm"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="trustpilot_review_url" className="text-xs font-semibold font-bengali text-emerald-600">
+                {t("ট্রাস্টপাইলট রিভিউ লিংক (ঐচ্ছিক)", "Trustpilot Review URL (Optional)")}
+              </Label>
+              <Input
+                id="trustpilot_review_url"
+                value={formData.trustpilot_review_url}
+                onChange={(e) => setFormData({ ...formData, trustpilot_review_url: e.target.value })}
+                placeholder="https://www.trustpilot.com/review/..."
+                className="text-xs sm:text-sm"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>

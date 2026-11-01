@@ -152,6 +152,14 @@ export interface PaymentAccountItem {
   is_active: boolean;
 }
 
+export interface FeatureGroupItem {
+  id: string;
+  title_bn: string;
+  title_en: string;
+  points_bn: string[];
+  points_en: string[];
+}
+
 export interface SiteSettings {
   id: number;
   institution_name_bn: string;
@@ -243,6 +251,35 @@ export interface SiteSettings {
   vice_principal_image_url?: string | null;
   vice_principal_phone?: string | null;
   vice_principal_email?: string | null;
+
+  // Review Links & Ratings
+  google_review_url?: string | null;
+  facebook_review_url?: string | null;
+  trustpilot_review_url?: string | null;
+  google_rating_score?: string | null;
+  google_review_count?: string | null;
+
+  // Contact Page Details & Schedule
+  office_hours_bn?: string | null;
+  office_hours_en?: string | null;
+  office_friday_hours_bn?: string | null;
+  office_friday_hours_en?: string | null;
+  contact_landmark_bn?: string | null;
+  contact_landmark_en?: string | null;
+  emergency_contact_phone?: string | null;
+
+  // Admission Timeline & Session
+  admission_session_bn?: string | null;
+  admission_session_en?: string | null;
+  admission_start_date?: string | null;
+  admission_end_date?: string | null;
+  admission_deadline_bn?: string | null;
+  admission_deadline_en?: string | null;
+  admission_notice_bn?: string | null;
+  admission_notice_en?: string | null;
+
+  // Institutional Features & Standout Qualities
+  institutional_features?: FeatureGroupItem[] | null;
 
   updated_at: string;
   updated_by?: string | null;
