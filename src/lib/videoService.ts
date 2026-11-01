@@ -9,44 +9,7 @@ export const VIDEOS_UPDATED_EVENT = "oasis_videos_updated";
 /**
  * Default curated video list used for initial display & offline/fallback mode.
  */
-export const defaultVideosList: MediaVideo[] = [
-  {
-    id: "vid-1",
-    title_bn: "শিশু মজলিস - প্রতিভা বিকাশ ও সাংস্কৃতিক অনুষ্ঠানমালা",
-    title_en: "Shishu Mojlish - Cultural & Speech Program",
-    youtube_url: "https://www.youtube.com/watch?v=VFnUBYe9giM&list=PLSKwzh15e_dk",
-    youtube_video_id: "PLSKwzh15e_dk",
-    type: "playlist",
-    is_featured: true,
-    order_index: 1,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "vid-2",
-    title_bn: "পবিত্র কুরআন তিলাওয়াত ও হিফজ সমাপনী মাহফিল",
-    title_en: "Holy Quran Recitation & Hifz Convocation Ceremony",
-    youtube_url: "https://www.youtube.com/watch?v=7X8II6J-6mU",
-    youtube_video_id: "7X8II6J-6mU",
-    type: "video",
-    is_featured: true,
-    order_index: 2,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "vid-3",
-    title_bn: "আননূর তাহফিজুল কুরআন মাদরাসা পরিচিতি ও শিক্ষা কার্যক্রম",
-    title_en: "Annoor Tahfizul Quran Madrasa Documentary & Campus Tour",
-    youtube_url: "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
-    youtube_video_id: "aqz-KE-bpKQ",
-    type: "video",
-    is_featured: false,
-    order_index: 3,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
+export const defaultVideosList: MediaVideo[] = [];
 
 /**
  * Extracts YouTube ID based on whether it is a video, playlist, or livestream.

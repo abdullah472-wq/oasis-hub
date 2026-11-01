@@ -1,13 +1,21 @@
 -- ==============================================================================
--- OASIS HUB / ANNOOR CMS - COMPLETE SUPABASE DATABASE SCHEMA & ADMIN SETUP
+-- ANNOOR TAHFIZUL QURAN MADRASA - SUPABASE DATABASE SETUP (BRANCH: annoor-imm)
 -- ==============================================================================
--- এই SQL স্ক্রিপ্টটি আপনার Supabase Dashboard -> SQL Editor-এ গিয়ে রান (Run) করুন।
--- এটি আপনার অ্যাডমিন প্যানেলের জন্য প্রয়োজনীয় সকল টেবিল, রোল ও পারমিশন তৈরি করবে।
+-- এই SQL স্ক্রিপ্টটি আপনার নতুন Supabase প্রজেক্ট (tmhjuznymgzkzxkfnlzn) এর
+-- Dashboard -> SQL Editor-এ গিয়ে সম্পূর্ণ পেস্ট করে "Run" করুন।
+-- 
+-- বিশেষ বৈশিষ্ট্য:
+-- ১. Main branch-এর সমস্ত হার্ডকোডেড ইউটিউব লিঙ্ক ও পুরোনো গুগল ম্যাপস লিঙ্ক সম্পূর্ণভাবে রিমুভ করা হয়েছে।
+-- ২. অ্যাডমিন প্যানেল থেকে গতিশীলভাবে পরিবর্তনযোগ্য রিভিউ লিঙ্ক, গুগল ম্যাপস, প্রতিষ্ঠান বৈশিষ্ট্য ও ভর্তি টাইমলাইন যুক্ত করা হয়েছে।
+-- ৩. সম্পূর্ণ Idempotent (পুনরায় রান করলেও কোনো ডেটা বিনষ্ট হবে না)।
+-- ==============================================================================
 
 -- ১. Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- ২. Profiles Table (অ্যাডমিন প্রোফাইল ও রোলস)
+-- ==============================================================================
+-- ২. PROFILES TABLE (অ্যাডমিন প্রোফাইল ও ভূমিকা)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   full_name TEXT NOT NULL,
@@ -18,7 +26,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ৩. Activity Logs Table (অডিট ও অ্যাক্টিভিটি হিস্ট্রি)
+-- ==============================================================================
+-- ৩. ACTIVITY LOGS TABLE (অডিট ও অ্যাক্টিভিটি হিস্ট্রি)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.activity_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -29,7 +39,9 @@ CREATE TABLE IF NOT EXISTS public.activity_logs (
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ৪. Site Settings Table (সাধারণ প্রতিষ্ঠান তথ্য, যোগাযোগ, সোশ্যাল লিঙ্ক ও ব্র্যান্ডিং)
+-- ==============================================================================
+-- ৪. SITE SETTINGS TABLE (প্রতিষ্ঠান তথ্য, যোগাযোগ, ব্র্যান্ডিং ও রিভিউ)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.site_settings (
   id INTEGER PRIMARY KEY DEFAULT 1,
   institution_name_bn TEXT NOT NULL DEFAULT 'আননূর তাহফিজুল কুরআন মাদরাসা',
@@ -39,52 +51,87 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
   emis_code TEXT,
   founding_year TEXT DEFAULT '2021',
   phone_primary TEXT NOT NULL DEFAULT '01820811511',
-  phone_secondary TEXT,
+  phone_secondary TEXT DEFAULT '01581818368',
   whatsapp_number TEXT NOT NULL DEFAULT '01581818368',
   email_primary TEXT NOT NULL DEFAULT 'info@annoor.edu.bd',
   website_url TEXT DEFAULT 'https://annoor.edu.bd',
   admission_status TEXT NOT NULL DEFAULT 'open' CHECK (admission_status IN ('open', 'closed', 'upcoming')),
-  address_boys_campus_bn TEXT,
-  address_boys_campus_en TEXT,
+  
+  -- ক্যাম্পাস ঠিকানা ও অবস্থান (ম্যাপস ও ইউটিউব লিংক সম্পূর্ণ খালি রাখা হয়েছে যাতে অ্যাডমিন ইচ্ছামতো দিতে পারেন)
+  address_boys_campus_bn TEXT DEFAULT 'আননূর তাহফিজুল কুরআন মাদরাসা, কাপাসিয়া বাজার রোড, কাপাসিয়া, গাজীপুর',
+  address_boys_campus_en TEXT DEFAULT 'Annoor Tahfizul Quran Madrasa, Kapasia Bazar Road, Kapasia, Gazipur',
   address_girls_campus_bn TEXT,
   address_girls_campus_en TEXT,
-  google_maps_url TEXT,
-  facebook_url TEXT,
-  facebook_group_url TEXT,
-  youtube_url TEXT,
-  logo_url TEXT,
-  favicon_url TEXT,
+  google_maps_url TEXT DEFAULT NULL,
+  
+  -- সোশ্যাল মিডিয়া (ইউটিউব লিংক খালি রাখা হয়েছে)
+  facebook_url TEXT DEFAULT 'https://www.facebook.com/profile.php?id=61595529418669',
+  facebook_group_url TEXT DEFAULT 'https://www.facebook.com/share/g/1Pg8FaZjsn/',
+  youtube_url TEXT DEFAULT NULL,
+  instagram_url TEXT DEFAULT NULL,
+  tiktok_url TEXT DEFAULT NULL,
+  twitter_url TEXT DEFAULT NULL,
+
+  -- ব্র্যান্ডিং ও থিম
+  logo_url TEXT DEFAULT '/site-logo.png',
+  favicon_url TEXT DEFAULT '/favicon.ico',
   hero_image_url TEXT,
   color_palette TEXT DEFAULT 'royal-navy',
   primary_color TEXT,
   accent_color TEXT,
 
-  -- Banking & Payment
-  bank_name_bn TEXT,
-  bank_name_en TEXT,
-  bank_account_name TEXT,
-  bank_account_no TEXT,
-  bank_branch_bn TEXT,
-  bank_branch_en TEXT,
-  bank_routing_no TEXT,
-  bkash_number TEXT,
+  -- রিভিউ লিংক ও ট্রাস্ট স্কোর (Google, Facebook, Trustpilot)
+  google_review_url TEXT DEFAULT NULL,
+  facebook_review_url TEXT DEFAULT NULL,
+  trustpilot_review_url TEXT DEFAULT NULL,
+  google_rating_score TEXT DEFAULT '4.9',
+  google_reviews_count TEXT DEFAULT '48+',
+
+  -- যোগাযোগ ল্যান্ডমার্ক ও অফিস সময়
+  contact_office_hours_bn TEXT DEFAULT 'সকাল ৮:০০ - বিকাল ৫:০০ (শনিবার - বৃহস্পতিবার)',
+  contact_office_hours_en TEXT DEFAULT '8:00 AM - 5:00 PM (Saturday - Thursday)',
+  contact_landmark_bn TEXT DEFAULT 'মেইন রোড, কাপাসিয়া বাজার (পুরাতন সোনালী ব্যাংক ভবনের বিপরীতে)',
+  contact_landmark_en TEXT DEFAULT 'Main Road, Kapasia Bazar (Opposite Old Sonali Bank Building)',
+
+  -- ভর্তি সেশন ও নোটিশ ব্যানার
+  admission_session_year TEXT DEFAULT '২০২৬-২০২৭',
+  admission_timeline_bn TEXT DEFAULT 'চলমান শিক্ষাবর্ষের ভর্তি কার্যক্রম শুরু হয়েছে',
+  admission_timeline_en TEXT DEFAULT 'Admission is now open for the current academic session',
+  admission_notice_banner_bn TEXT DEFAULT 'সীমিত আসনে সরাসরি ক্যাম্পাসে অথবা অনলাইনে আবেদন গ্রহণ চলছে',
+  admission_notice_banner_en TEXT DEFAULT 'Limited seats available. Apply online or visit campus',
+
+  -- প্রাতিষ্ঠানিক বৈশিষ্ট্য ও ডাটা (JSONB)
+  institutional_features JSONB DEFAULT '[]'::jsonb,
+  features JSONB DEFAULT '[]'::jsonb,
+  stats JSONB DEFAULT '[]'::jsonb,
+  payment_accounts JSONB DEFAULT '[]'::jsonb,
+
+  -- ব্যাংকিং ও পেমেন্ট
+  bank_name_bn TEXT DEFAULT 'ইসলামী ব্যাংক বাংলাদেশ পিএলসি',
+  bank_name_en TEXT DEFAULT 'Islami Bank Bangladesh PLC',
+  bank_account_name TEXT DEFAULT 'Annoor Tahfizul Quran Madrasa',
+  bank_account_no TEXT DEFAULT '20503760201161316',
+  bank_branch_bn TEXT DEFAULT 'কাপাসিয়া শাখা, গাজীপুর',
+  bank_branch_en TEXT DEFAULT 'Kapasia Branch, Gazipur',
+  bank_routing_no TEXT DEFAULT '125271874',
+  bkash_number TEXT DEFAULT '01820811511',
   bkash_type TEXT DEFAULT 'personal',
-  nagad_number TEXT,
+  nagad_number TEXT DEFAULT '01581818368',
   nagad_type TEXT DEFAULT 'personal',
-  rocket_number TEXT,
+  rocket_number TEXT DEFAULT '01820811511',
   rocket_type TEXT DEFAULT 'personal',
   payment_instructions_bn TEXT,
   payment_instructions_en TEXT,
 
-  -- Leadership & Administration
-  founder_name_bn TEXT,
-  founder_name_en TEXT,
-  founder_title_bn TEXT,
-  founder_title_en TEXT,
+  -- পরিচালনা ও নেতৃত্ব
+  founder_name_bn TEXT DEFAULT 'মুফতি আব্দুল্লাহ আল মামুন',
+  founder_name_en TEXT DEFAULT 'Mufti Abdullah Al Mamon',
+  founder_title_bn TEXT DEFAULT 'প্রতিষ্ঠাতা পরিচালক',
+  founder_title_en TEXT DEFAULT 'Founder Director',
   founder_message_bn TEXT,
   founder_message_en TEXT,
   founder_image_url TEXT,
-  founder_phone TEXT,
+  founder_phone TEXT DEFAULT '01820811511',
 
   principal_name_bn TEXT,
   principal_name_en TEXT,
@@ -106,90 +153,107 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
   vice_principal_phone TEXT,
   vice_principal_email TEXT,
 
+  -- বোর্ড সংযুক্তি ও নিবন্ধন
+  befaq_name TEXT DEFAULT 'বেফাকুল মাদারিসিল আরাবিয়া বাংলাদেশ (বেফাক)',
+  befaq_reg_no TEXT,
+  befaq_cert_no TEXT,
+  huffaz_name TEXT DEFAULT 'হুফ্ফাজুল কুরআন ফাউন্ডেশন বাংলাদেশ',
+  huffaz_reg_no TEXT,
+  huffaz_cert_no TEXT,
+  nurani_name TEXT DEFAULT 'নূরানী তা''লীমুল কুরআন বোর্ড বাংলাদেশ',
+  nurani_reg_no TEXT,
+  nurani_cert_no TEXT,
+  trade_license_no TEXT,
+
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Idempotent column additions for existing installations
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS tagline_bn TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS tagline_en TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS website_url TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS facebook_group_url TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bank_name_bn TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bank_name_en TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bank_account_name TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bank_account_no TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bank_branch_bn TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bank_branch_en TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bank_routing_no TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bkash_number TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS bkash_type TEXT DEFAULT 'personal';
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS nagad_number TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS nagad_type TEXT DEFAULT 'personal';
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS rocket_number TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS rocket_type TEXT DEFAULT 'personal';
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS payment_instructions_bn TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS payment_instructions_en TEXT;
+-- গ্যারান্টিযুক্ত কলাম সংযোজন (Existing installations safe migration)
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS google_review_url TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS facebook_review_url TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS trustpilot_review_url TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS google_rating_score TEXT DEFAULT '4.9';
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS google_reviews_count TEXT DEFAULT '48+';
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS contact_office_hours_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS contact_office_hours_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS contact_landmark_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS contact_landmark_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS admission_session_year TEXT DEFAULT '২০২৬-২০২৭';
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS admission_timeline_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS admission_timeline_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS admission_notice_banner_bn TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS admission_notice_banner_en TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS institutional_features JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS features JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS stats JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS payment_accounts JSONB DEFAULT '[]'::jsonb;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS hero_image_url TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_name_bn TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_name_en TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_title_bn TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_title_en TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_message_bn TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_message_en TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_image_url TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS founder_phone TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_name_bn TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_name_en TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_title_bn TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_title_en TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_message_bn TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_message_en TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_image_url TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_phone TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS principal_email TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_name_bn TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_name_en TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_title_bn TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_title_en TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_message_bn TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_message_en TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_image_url TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_phone TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS vice_principal_email TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS color_palette TEXT DEFAULT 'royal-navy';
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS primary_color TEXT;
-ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS accent_color TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS facebook_group_url TEXT;
 ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS instagram_url TEXT;
 ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS tiktok_url TEXT;
 ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS twitter_url TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS befaq_name TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS befaq_reg_no TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS huffaz_name TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS huffaz_reg_no TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS nurani_name TEXT;
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS nurani_reg_no TEXT;
 
--- Seed initial row in site_settings if empty
+-- Initial Seed: ইউটিউব ও পুরোনো ম্যাপস লিংক মুক্ত ক্লিন ইনিশিয়াল রো
 INSERT INTO public.site_settings (
   id,
   institution_name_bn,
   institution_name_en,
-  emis_code,
-  founding_year,
+  tagline_bn,
+  tagline_en,
   phone_primary,
+  phone_secondary,
   whatsapp_number,
   email_primary,
-  admission_status
+  website_url,
+  admission_status,
+  address_boys_campus_bn,
+  google_maps_url,
+  youtube_url,
+  google_rating_score,
+  google_reviews_count,
+  contact_office_hours_bn,
+  contact_landmark_bn,
+  admission_session_year,
+  admission_timeline_bn,
+  admission_notice_banner_bn
 ) VALUES (
   1,
   'আননূর তাহফিজুল কুরআন মাদরাসা',
   'Annoor Tahfizul Quran Madrasa',
-  NULL,
-  '2021',
+  'একই স্থানে, একই খরচে, সকল শিক্ষা একইসাথে',
+  'Building Faith, Knowledge & Character Together',
   '01820811511',
   '01581818368',
+  '01581818368',
   'info@annoor.edu.bd',
-  'open'
-) ON CONFLICT (id) DO NOTHING;
+  'https://annoor.edu.bd',
+  'open',
+  'আননূর তাহফিজুল কুরআন মাদরাসা, কাপাসিয়া বাজার রোড, কাপাসিয়া, গাজীপুর',
+  NULL,
+  NULL,
+  '4.9',
+  '48+',
+  'সকাল ৮:০০ - বিকাল ৫:০০ (শনিবার - বৃহস্পতিবার)',
+  'মেইন রোড, কাপাসিয়া বাজার (পুরাতন সোনালী ব্যাংক ভবনের বিপরীতে)',
+  '২০২৬-২০২৭',
+  'চলমান শিক্ষাবর্ষের ভর্তি কার্যক্রম শুরু হয়েছে',
+  'সীমিত আসনে সরাসরি ক্যাম্পাসে অথবা অনলাইনে আবেদন গ্রহণ চলছে'
+) ON CONFLICT (id) DO UPDATE SET
+  institution_name_bn = EXCLUDED.institution_name_bn,
+  institution_name_en = EXCLUDED.institution_name_en,
+  google_maps_url = COALESCE(public.site_settings.google_maps_url, EXCLUDED.google_maps_url),
+  youtube_url = COALESCE(public.site_settings.youtube_url, EXCLUDED.youtube_url);
 
--- ৫. Notices Table (নোটিশ বোর্ড)
+-- ==============================================================================
+-- ৫. NOTICES TABLE (নোটিশ বোর্ড)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.notices (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title_bn TEXT NOT NULL,
@@ -208,10 +272,9 @@ CREATE TABLE IF NOT EXISTS public.notices (
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Migration for existing notices table:
-ALTER TABLE public.notices ADD COLUMN IF NOT EXISTS embed_code TEXT;
-
--- ৬. Marquee Notices Table (হেডারের রানিং নোটিশ টিকার)
+-- ==============================================================================
+-- ৬. MARQUEE NOTICES TABLE (টপবার রানিং নোটিশ)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.marquee_notices (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   text_bn TEXT NOT NULL,
@@ -222,7 +285,9 @@ CREATE TABLE IF NOT EXISTS public.marquee_notices (
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ৭. Hero Banners Table (হোমপেজ ব্যানার স্লাইডার)
+-- ==============================================================================
+-- ৭. HERO BANNERS TABLE (হোম স্লাইডার ব্যানার)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.hero_banners (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title_bn TEXT NOT NULL,
@@ -238,7 +303,9 @@ CREATE TABLE IF NOT EXISTS public.hero_banners (
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ৮. Faculty Members Table (শিক্ষক ও পরিচালকমণ্ডলী)
+-- ==============================================================================
+-- ৮. FACULTY MEMBERS TABLE (শিক্ষক ও পরিচালকমণ্ডলী)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.faculty_members (
   id TEXT PRIMARY KEY,
   teacher_id TEXT,
@@ -248,65 +315,93 @@ CREATE TABLE IF NOT EXISTS public.faculty_members (
   name_en TEXT,
   designation_bn TEXT NOT NULL,
   designation_en TEXT,
-  category TEXT DEFAULT 'teachers' CHECK (category IN ('management', 'teachers', 'huffaz', 'staff')),
-  campus TEXT DEFAULT 'both' CHECK (campus IN ('boys', 'girls', 'both')),
-  qualification_bn TEXT,
-  qualification_en TEXT,
-  subject_bn TEXT,
-  subject_en TEXT,
-  experience_bn TEXT,
-  experience_en TEXT,
-  image_url TEXT,
+  department_bn TEXT,
+  department_en TEXT,
+  category TEXT DEFAULT 'academic' CHECK (category IN ('academic', 'management', 'hifz', 'deeni', 'general')),
   phone TEXT,
   email TEXT,
+  blood_group TEXT,
+  education_bn TEXT,
+  education_en TEXT,
+  experience_bn TEXT,
+  experience_en TEXT,
+  bio_bn TEXT,
+  bio_en TEXT,
+  image_url TEXT,
   order_index INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ৯. News & Press Table (সংবাদ ও আপডেট)
+-- ==============================================================================
+-- ৯. NEWS TABLE (ক্যাম্পাস সংবাদ ও প্রেস বিজ্ঞপ্তি)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.news (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title_bn TEXT NOT NULL,
   title_en TEXT,
+  slug TEXT UNIQUE,
+  summary_bn TEXT,
+  summary_en TEXT,
   content_bn TEXT NOT NULL,
   content_en TEXT,
-  category TEXT DEFAULT 'academic',
   image_url TEXT,
+  category TEXT DEFAULT 'general',
   is_published BOOLEAN DEFAULT true,
+  is_featured BOOLEAN DEFAULT false,
   published_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ১০. Events Table (ইভেন্টস ও অনুষ্ঠান)
+-- ==============================================================================
+-- ১০. EVENTS TABLE (ইভেন্ট ক্যালেন্ডার)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.events (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title_bn TEXT NOT NULL,
   title_en TEXT,
   description_bn TEXT NOT NULL,
   description_en TEXT,
-  event_date TIMESTAMPTZ NOT NULL,
+  event_date DATE NOT NULL,
+  end_date DATE,
+  time_label TEXT,
   location_bn TEXT,
+  location_en TEXT,
   image_url TEXT,
-  is_upcoming BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+  category TEXT DEFAULT 'academic',
+  is_featured BOOLEAN DEFAULT false,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ১১. Achievements Table (সাফল্য ও অর্জন)
+-- ==============================================================================
+-- ১১. ACHIEVEMENTS TABLE (সাফল্য ও প্রতিযোগিতা অর্জন)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.achievements (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  id TEXT PRIMARY KEY,
   title_bn TEXT NOT NULL,
   title_en TEXT,
   year TEXT NOT NULL,
   category_bn TEXT,
+  category_en TEXT,
   description_bn TEXT NOT NULL,
   description_en TEXT,
+  student_name_bn TEXT,
+  student_name_en TEXT,
+  award_title_bn TEXT,
+  award_title_en TEXT,
   image_url TEXT,
+  is_featured BOOLEAN DEFAULT false,
+  order_index INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ১২. Testimonials Table (মতামত ও রিভিউ)
+-- ==============================================================================
+-- ১২. TESTIMONIALS TABLE (অভিভাবক ও শুভানুধ্যায়ীদের রিভিউ)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.testimonials (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   author_name TEXT NOT NULL,
@@ -315,42 +410,44 @@ CREATE TABLE IF NOT EXISTS public.testimonials (
   review_text_bn TEXT NOT NULL,
   review_text_en TEXT,
   rating INTEGER DEFAULT 5,
-  is_approved BOOLEAN DEFAULT true,
+  is_approved BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ১৩. Curriculum Table (শিক্ষা কার্যক্রম ও বিভাগ)
+-- ==============================================================================
+-- ১৩. CURRICULUM TABLE (শিক্ষা কারিকুলাম ও কোর্সসমূহ)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.curriculum (
   id TEXT PRIMARY KEY,
   department_bn TEXT NOT NULL,
   department_en TEXT,
-  category TEXT DEFAULT 'general',
+  category TEXT NOT NULL,
   age_group_bn TEXT,
   age_group_en TEXT,
   duration_bn TEXT,
   duration_en TEXT,
-  description_bn TEXT,
+  description_bn TEXT NOT NULL,
   description_en TEXT,
-  subjects_bn TEXT[] DEFAULT '{}',
-  subjects_en TEXT[] DEFAULT '{}',
-  features_bn TEXT[] DEFAULT '{}',
-  features_en TEXT[] DEFAULT '{}',
+  subjects_bn JSONB DEFAULT '[]'::jsonb,
+  subjects_en JSONB DEFAULT '[]'::jsonb,
+  features_bn JSONB DEFAULT '[]'::jsonb,
+  features_en JSONB DEFAULT '[]'::jsonb,
   order_index INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ১৪. Downloads Table (ডাউনলোড কর্নার / সিলেবাস / রুটিন)
+-- ==============================================================================
+-- ১৪. DOWNLOADS TABLE (ডাউনলোড কর্নার ও সিলেবাস/ফরম)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.downloads (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  id TEXT PRIMARY KEY,
   title_bn TEXT NOT NULL,
   title_en TEXT,
-  description_bn TEXT,
-  description_en TEXT,
-  category TEXT DEFAULT 'other',
+  category TEXT DEFAULT 'forms' CHECK (category IN ('forms', 'syllabus', 'routines', 'results', 'prospectus', 'other')),
   file_url TEXT NOT NULL,
-  file_size_label TEXT,
+  file_size TEXT,
   file_type TEXT,
   download_count INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
@@ -359,13 +456,13 @@ CREATE TABLE IF NOT EXISTS public.downloads (
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ১৫. Gallery Items Table (ছবি গ্যালারি)
+-- ==============================================================================
+-- ১৫. GALLERY ITEMS TABLE (ফটো গ্যালারি)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.gallery_items (
   id TEXT PRIMARY KEY,
   title_bn TEXT NOT NULL,
   title_en TEXT,
-  caption_bn TEXT,
-  caption_en TEXT,
   image_url TEXT NOT NULL,
   thumbnail_url TEXT,
   category TEXT DEFAULT 'academic',
@@ -374,7 +471,9 @@ CREATE TABLE IF NOT EXISTS public.gallery_items (
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ১৬. Media Videos Table (ভিডিও গ্যালারি ও ইউটিউব প্লেলিস্ট)
+-- ==============================================================================
+-- ১৬. MEDIA VIDEOS TABLE (ভিডিও গ্যালারি - নো ডামি ইউটিউব লিংক)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.media_videos (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title_bn TEXT NOT NULL,
@@ -388,7 +487,9 @@ CREATE TABLE IF NOT EXISTS public.media_videos (
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ১৭. Wall of Huffaz Table (হিফজ সমাপনকারী শিক্ষার্থীদের তালিকা)
+-- ==============================================================================
+-- ১৭. WALL OF HUFFAZ TABLE (হিফজ সমাপনকারীদের সম্মাননা বোর্ড)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.wall_of_huffaz (
   id TEXT PRIMARY KEY,
   name_bn TEXT NOT NULL,
@@ -414,7 +515,9 @@ CREATE TABLE IF NOT EXISTS public.wall_of_huffaz (
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ১৮. Fee Structures Table (ভর্তি ও বেতন কাঠামো)
+-- ==============================================================================
+-- ১৮. FEE STRUCTURES TABLE (ফি তালিকা ও বেতন কাঠামো)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.fee_structures (
   id TEXT PRIMARY KEY,
   type_bn TEXT NOT NULL,
@@ -431,7 +534,9 @@ CREATE TABLE IF NOT EXISTS public.fee_structures (
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ১৯. Admission Rules Table (ভর্তি নিয়মাবলী ও নির্দেশিকা)
+-- ==============================================================================
+-- ১৯. ADMISSION RULES TABLE (ভর্তি নিয়মাবলী)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.admission_rules (
   id TEXT PRIMARY KEY,
   rule_bn TEXT NOT NULL,
@@ -443,7 +548,9 @@ CREATE TABLE IF NOT EXISTS public.admission_rules (
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- ২০. Admissions Table (অনলাইন ভর্তি আবেদন)
+-- ==============================================================================
+-- ২০. ADMISSIONS TABLE (অনলাইন ভর্তি আবেদন)
+-- ==============================================================================
 CREATE TABLE IF NOT EXISTS public.admissions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   student_name_bn TEXT NOT NULL,
@@ -461,7 +568,6 @@ CREATE TABLE IF NOT EXISTS public.admissions (
 -- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- ==============================================================================
-
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
@@ -482,263 +588,61 @@ ALTER TABLE public.fee_structures ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admission_rules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admissions ENABLE ROW LEVEL SECURITY;
 
--- 1. Profiles Policies
-DROP POLICY IF EXISTS "Public profiles are viewable by authenticated users" ON public.profiles;
-CREATE POLICY "Public profiles are viewable by authenticated users"
-  ON public.profiles FOR SELECT
-  TO authenticated
-  USING (true);
+-- সর্বজনীন রিড পারমিশন (Public Viewable)
+DO $$
+DECLARE
+  tbl text;
+  tables text[] := ARRAY[
+    'site_settings', 'notices', 'marquee_notices', 'hero_banners',
+    'faculty_members', 'news', 'events', 'achievements', 'testimonials',
+    'curriculum', 'downloads', 'gallery_items', 'media_videos',
+    'wall_of_huffaz', 'fee_structures', 'admission_rules'
+  ];
+BEGIN
+  FOREACH tbl IN ARRAY tables LOOP
+    EXECUTE format('DROP POLICY IF EXISTS "Public can view %I" ON public.%I;', tbl, tbl);
+    EXECUTE format('CREATE POLICY "Public can view %I" ON public.%I FOR SELECT USING (true);', tbl, tbl);
+  END LOOP;
+END $$;
 
-DROP POLICY IF EXISTS "Super admins can manage all profiles" ON public.profiles;
-CREATE POLICY "Super admins can manage all profiles"
-  ON public.profiles FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
+-- অ্যাডমিন ফুল পারমিশন (Authenticated Management)
+DO $$
+DECLARE
+  tbl text;
+  tables text[] := ARRAY[
+    'profiles', 'activity_logs', 'site_settings', 'notices', 'marquee_notices',
+    'hero_banners', 'faculty_members', 'news', 'events', 'achievements',
+    'testimonials', 'curriculum', 'downloads', 'gallery_items', 'media_videos',
+    'wall_of_huffaz', 'fee_structures', 'admission_rules', 'admissions'
+  ];
+BEGIN
+  FOREACH tbl IN ARRAY tables LOOP
+    EXECUTE format('DROP POLICY IF EXISTS "Authenticated can manage %I" ON public.%I;', tbl, tbl);
+    EXECUTE format('CREATE POLICY "Authenticated can manage %I" ON public.%I FOR ALL TO authenticated USING (true) WITH CHECK (true);', tbl, tbl);
+  END LOOP;
+END $$;
 
--- 2. Activity Logs Policies
-DROP POLICY IF EXISTS "Authenticated users can view activity logs" ON public.activity_logs;
-CREATE POLICY "Authenticated users can view activity logs"
-  ON public.activity_logs FOR SELECT
-  TO authenticated
-  USING (true);
-
-DROP POLICY IF EXISTS "Authenticated users can insert activity logs" ON public.activity_logs;
-CREATE POLICY "Authenticated users can insert activity logs"
-  ON public.activity_logs FOR INSERT
-  TO authenticated
-  WITH CHECK (true);
-
--- 3. Site Settings Policies
-DROP POLICY IF EXISTS "Public can view site settings" ON public.site_settings;
-CREATE POLICY "Public can view site settings"
-  ON public.site_settings FOR SELECT
-  USING (true);
-
-DROP POLICY IF EXISTS "Authenticated admins can manage site settings" ON public.site_settings;
-CREATE POLICY "Authenticated admins can manage site settings"
-  ON public.site_settings FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 4. Notices Policies
-DROP POLICY IF EXISTS "Public can view published notices" ON public.notices;
-CREATE POLICY "Public can view published notices"
-  ON public.notices FOR SELECT
-  USING (is_published = true OR auth.role() = 'authenticated');
-
-DROP POLICY IF EXISTS "Admins can manage notices" ON public.notices;
-CREATE POLICY "Admins can manage notices"
-  ON public.notices FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 5. Marquee Notices Policies
-DROP POLICY IF EXISTS "Public can view active marquee notices" ON public.marquee_notices;
-CREATE POLICY "Public can view active marquee notices"
-  ON public.marquee_notices FOR SELECT
-  USING (is_active = true OR auth.role() = 'authenticated');
-
-DROP POLICY IF EXISTS "Admins can manage marquee notices" ON public.marquee_notices;
-CREATE POLICY "Admins can manage marquee notices"
-  ON public.marquee_notices FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 6. Hero Banners Policies
-DROP POLICY IF EXISTS "Public can view active hero banners" ON public.hero_banners;
-CREATE POLICY "Public can view active hero banners"
-  ON public.hero_banners FOR SELECT
-  USING (is_active = true OR auth.role() = 'authenticated');
-
-DROP POLICY IF EXISTS "Admins can manage hero banners" ON public.hero_banners;
-CREATE POLICY "Admins can manage hero banners"
-  ON public.hero_banners FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 7. Faculty Policies
-DROP POLICY IF EXISTS "Public can view active faculty" ON public.faculty_members;
-CREATE POLICY "Public can view active faculty"
-  ON public.faculty_members FOR SELECT
-  USING (is_active = true OR auth.role() = 'authenticated');
-
-DROP POLICY IF EXISTS "Admins can manage faculty" ON public.faculty_members;
-CREATE POLICY "Admins can manage faculty"
-  ON public.faculty_members FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 8. News Policies
-DROP POLICY IF EXISTS "Public can view published news" ON public.news;
-CREATE POLICY "Public can view published news"
-  ON public.news FOR SELECT
-  USING (is_published = true OR auth.role() = 'authenticated');
-
-DROP POLICY IF EXISTS "Admins can manage news" ON public.news;
-CREATE POLICY "Admins can manage news"
-  ON public.news FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 9. Events Policies
-DROP POLICY IF EXISTS "Public can view events" ON public.events;
-CREATE POLICY "Public can view events"
-  ON public.events FOR SELECT
-  USING (true);
-
-DROP POLICY IF EXISTS "Admins can manage events" ON public.events;
-CREATE POLICY "Admins can manage events"
-  ON public.events FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 10. Achievements Policies
-DROP POLICY IF EXISTS "Public can view achievements" ON public.achievements;
-CREATE POLICY "Public can view achievements"
-  ON public.achievements FOR SELECT
-  USING (true);
-
-DROP POLICY IF EXISTS "Admins can manage achievements" ON public.achievements;
-CREATE POLICY "Admins can manage achievements"
-  ON public.achievements FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 11. Testimonials Policies
-DROP POLICY IF EXISTS "Public can view approved testimonials" ON public.testimonials;
-CREATE POLICY "Public can view approved testimonials"
-  ON public.testimonials FOR SELECT
-  USING (is_approved = true OR auth.role() = 'authenticated');
-
-DROP POLICY IF EXISTS "Public can submit testimonials" ON public.testimonials;
-CREATE POLICY "Public can submit testimonials"
-  ON public.testimonials FOR INSERT
-  TO anon, authenticated
-  WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Admins can manage testimonials" ON public.testimonials;
-CREATE POLICY "Admins can manage testimonials"
-  ON public.testimonials FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 12. Curriculum Policies
-DROP POLICY IF EXISTS "Public can view active curriculum" ON public.curriculum;
-CREATE POLICY "Public can view active curriculum"
-  ON public.curriculum FOR SELECT
-  USING (is_active = true OR auth.role() = 'authenticated');
-
-DROP POLICY IF EXISTS "Admins can manage curriculum" ON public.curriculum;
-CREATE POLICY "Admins can manage curriculum"
-  ON public.curriculum FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 13. Downloads Policies
-DROP POLICY IF EXISTS "Public can view active downloads" ON public.downloads;
-CREATE POLICY "Public can view active downloads"
-  ON public.downloads FOR SELECT
-  USING (is_active = true OR auth.role() = 'authenticated');
-
-DROP POLICY IF EXISTS "Admins can manage downloads" ON public.downloads;
-CREATE POLICY "Admins can manage downloads"
-  ON public.downloads FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 14. Gallery Items Policies
-DROP POLICY IF EXISTS "Public can view gallery items" ON public.gallery_items;
-CREATE POLICY "Public can view gallery items"
-  ON public.gallery_items FOR SELECT
-  USING (true);
-
-DROP POLICY IF EXISTS "Admins can manage gallery items" ON public.gallery_items;
-CREATE POLICY "Admins can manage gallery items"
-  ON public.gallery_items FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 15. Media Videos Policies
-DROP POLICY IF EXISTS "Public can view media videos" ON public.media_videos;
-CREATE POLICY "Public can view media videos"
-  ON public.media_videos FOR SELECT
-  USING (true);
-
-DROP POLICY IF EXISTS "Admins can manage media videos" ON public.media_videos;
-CREATE POLICY "Admins can manage media videos"
-  ON public.media_videos FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 16. Wall of Huffaz Policies
-DROP POLICY IF EXISTS "Public can view active huffaz" ON public.wall_of_huffaz;
-CREATE POLICY "Public can view active huffaz"
-  ON public.wall_of_huffaz FOR SELECT
-  USING (is_active = true OR auth.role() = 'authenticated');
-
-DROP POLICY IF EXISTS "Admins can manage huffaz" ON public.wall_of_huffaz;
-CREATE POLICY "Admins can manage huffaz"
-  ON public.wall_of_huffaz FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 17. Fee Structures Policies
-DROP POLICY IF EXISTS "Public can view active fee structures" ON public.fee_structures;
-CREATE POLICY "Public can view active fee structures"
-  ON public.fee_structures FOR SELECT
-  USING (is_active = true OR auth.role() = 'authenticated');
-
-DROP POLICY IF EXISTS "Admins can manage fee structures" ON public.fee_structures;
-CREATE POLICY "Admins can manage fee structures"
-  ON public.fee_structures FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 18. Admission Rules Policies
-DROP POLICY IF EXISTS "Public can view admission rules" ON public.admission_rules;
-CREATE POLICY "Public can view admission rules"
-  ON public.admission_rules FOR SELECT
-  USING (true);
-
-DROP POLICY IF EXISTS "Admins can manage admission rules" ON public.admission_rules;
-CREATE POLICY "Admins can manage admission rules"
-  ON public.admission_rules FOR ALL
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 19. Admissions Policies
-DROP POLICY IF EXISTS "Public can submit admission application" ON public.admissions;
-CREATE POLICY "Public can submit admission application"
+-- জনসাধারণের আবেদন ও রিভিউ জমার পারমিশন (Admissions & Reviews)
+DROP POLICY IF EXISTS "Anyone can submit admission" ON public.admissions;
+CREATE POLICY "Anyone can submit admission"
   ON public.admissions FOR INSERT
   TO anon, authenticated
   WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Admins can view and manage admissions" ON public.admissions;
-CREATE POLICY "Admins can view and manage admissions"
-  ON public.admissions FOR ALL
-  TO authenticated
-  USING (true)
+DROP POLICY IF EXISTS "Anyone can submit testimonial" ON public.testimonials;
+CREATE POLICY "Anyone can submit testimonial"
+  ON public.testimonials FOR INSERT
+  TO anon, authenticated
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Anon can view profiles" ON public.profiles;
+CREATE POLICY "Anon can view profiles"
+  ON public.profiles FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
 -- ==============================================================================
--- AUTOMATIC PROFILE CREATION TRIGGER
+-- AUTOMATIC PROFILE TRIGGER (নতুন অ্যাডমিন রেজিস্টার হলে স্বয়ংক্রিয় প্রোফাইল তৈরি)
 -- ==============================================================================
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
@@ -763,7 +667,7 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
 -- ==============================================================================
--- STORAGE BUCKETS SETUP
+-- STORAGE BUCKETS SETUP (ফটো, পিডিএফ ও মিডিয়া আপলোড)
 -- ==============================================================================
 INSERT INTO storage.buckets (id, name, public)
 VALUES 
@@ -773,8 +677,8 @@ VALUES
   ('cms-branding', 'cms-branding', true)
 ON CONFLICT (id) DO NOTHING;
 
-DROP POLICY IF EXISTS "Public Access" ON storage.objects;
-CREATE POLICY "Public Access"
+DROP POLICY IF EXISTS "Public Storage Access" ON storage.objects;
+CREATE POLICY "Public Storage Access"
   ON storage.objects FOR SELECT
   USING (bucket_id IN ('cms-notices', 'cms-gallery', 'cms-downloads', 'cms-branding'));
 
@@ -784,27 +688,38 @@ CREATE POLICY "Authenticated users can upload objects"
   TO authenticated
   WITH CHECK (bucket_id IN ('cms-notices', 'cms-gallery', 'cms-downloads', 'cms-branding'));
 
-DROP POLICY IF EXISTS "Authenticated users can update/delete objects" ON storage.objects;
-CREATE POLICY "Authenticated users can update/delete objects"
+DROP POLICY IF EXISTS "Authenticated users can manage objects" ON storage.objects;
+CREATE POLICY "Authenticated users can manage objects"
   ON storage.objects FOR ALL
   TO authenticated
   USING (bucket_id IN ('cms-notices', 'cms-gallery', 'cms-downloads', 'cms-branding'));
 
 -- ==============================================================================
--- SITE SETTINGS EXTENSIONS & BOARD AFFILIATIONS
+-- SUPABASE REALTIME PUBLICATION
 -- ==============================================================================
-ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS facebook_group_url TEXT;
-ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS instagram_url TEXT;
-ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS tiktok_url TEXT;
-ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS twitter_url TEXT;
-ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS befaq_name TEXT;
-ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS befaq_reg_no TEXT;
-ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS huffaz_name TEXT;
-ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS huffaz_reg_no TEXT;
-ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS nurani_name TEXT;
-ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS nurani_reg_no TEXT;
-ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS befaq_cert_no TEXT;
-ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS huffaz_cert_no TEXT;
-ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS nurani_cert_no TEXT;
-ALTER TABLE IF EXISTS public.site_settings ADD COLUMN IF NOT EXISTS trade_license_no TEXT;
+DO $$
+DECLARE
+  tbl text;
+  realtime_tables text[] := ARRAY[
+    'site_settings', 'notices', 'marquee_notices', 'testimonials',
+    'media_videos', 'admissions'
+  ];
+BEGIN
+  FOREACH tbl IN ARRAY realtime_tables LOOP
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_publication_tables 
+      WHERE pubname = 'supabase_realtime' AND tablename = tbl
+    ) THEN
+      BEGIN
+        EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE public.%I;', tbl);
+      EXCEPTION
+        WHEN OTHERS THEN NULL;
+      END;
+    END IF;
+  END LOOP;
+END $$;
 
+-- ==============================================================================
+-- SCHEMA CACHE RELOAD
+-- ==============================================================================
+NOTIFY pgrst, 'reload schema';

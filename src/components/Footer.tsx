@@ -34,10 +34,10 @@ const Footer = () => {
   const [copiedBank, setCopiedBank] = useState(false);
 
   const siteLogo = settings.logo_url || DEFAULT_LOGO;
-  const mapsUrl = settings.google_maps_url || DEFAULT_MAPS_URL;
+  const mapsUrl = settings.google_maps_url?.trim() || "";
   const facebookUrl = settings.facebook_url || "https://www.facebook.com/profile.php?id=61595529418669";
   const facebookGroupUrl = settings.facebook_group_url || "https://www.facebook.com/share/g/1Pg8FaZjsn/";
-  const youtubeUrl = settings.youtube_url || "https://www.youtube.com/@ANNOORMADRASA";
+  const youtubeUrl = settings.youtube_url?.trim() || "";
   const hotline = settings.phone_primary || "01820811511";
   const cleanWhatsapp = (settings.whatsapp_number || settings.phone_primary || "01581818368").replace(/[^0-9]/g, "");
   const whatsappUrl = `https://wa.me/88${cleanWhatsapp.startsWith("88") ? cleanWhatsapp.slice(2) : cleanWhatsapp}`;
@@ -178,16 +178,18 @@ const Footer = () => {
                   </a>
                 )}
 
-                <a
-                  href={youtubeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="YouTube Channel"
-                  title={t("ইউটিউব চ্যানেল", "YouTube Channel")}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-red-400/40 hover:bg-red-600 hover:text-white hover:shadow-lg hover:shadow-red-600/30 active:scale-95"
-                >
-                  <Youtube className="h-5 w-5" />
-                </a>
+                {youtubeUrl && (
+                  <a
+                    href={youtubeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="YouTube Channel"
+                    title={t("ইউটিউব চ্যানেল", "YouTube Channel")}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-red-400/40 hover:bg-red-600 hover:text-white hover:shadow-lg hover:shadow-red-600/30 active:scale-95"
+                  >
+                    <Youtube className="h-5 w-5" />
+                  </a>
+                )}
 
                 {settings.instagram_url && (
                   <a
@@ -258,16 +260,18 @@ const Footer = () => {
                   </a>
                 )}
 
-                <a
-                  href={mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Google Maps"
-                  title={t("গুগল ম্যাপে মাদরাসা অবস্থান", "Google Maps Location")}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-accent/40 hover:bg-accent hover:text-slate-950 hover:shadow-lg hover:shadow-accent/30 active:scale-95"
-                >
-                  <MapPin className="h-5 w-5" />
-                </a>
+                {mapsUrl && (
+                  <a
+                    href={mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Google Maps"
+                    title={t("গুগল ম্যাপে মাদরাসা অবস্থান", "Google Maps Location")}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-emerald-100 backdrop-blur-sm transition-all hover:border-accent/40 hover:bg-accent hover:text-slate-950 hover:shadow-lg hover:shadow-accent/30 active:scale-95"
+                  >
+                    <MapPin className="h-5 w-5" />
+                  </a>
+                )}
               </div>
             </div>
           </div>
@@ -355,25 +359,42 @@ const Footer = () => {
             <div className="space-y-3 font-bengali text-sm text-emerald-100/80">
               {/* Address with Map Link */}
               <div className="rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm">
-                <a
-                  href={mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-start gap-2.5 transition-colors hover:text-accent"
-                >
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent transition-transform group-hover:scale-110" />
-                  <div className="text-xs leading-relaxed">
-                    <p className="font-semibold text-white">
-                      {t("ক্যাম্পাস অবস্থান:", "Campus Location:")}
-                    </p>
-                    <p className="text-emerald-100/70">
-                      {t(
-                        settings.address_boys_campus_bn || "মেইন রোড, কলেজ রোড মোড়, কাপাসিয়া বাজার (সিঙ্গার শো-রুম সংলগ্ন), কাপাসিয়া, গাজীপুর।",
-                        settings.address_boys_campus_en || "Main Road, College Road Moor, Kapasia Bazar (Near Singer Showroom), Kapasia, Gazipur."
-                      )}
-                    </p>
+                {mapsUrl ? (
+                  <a
+                    href={mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-start gap-2.5 transition-colors hover:text-accent"
+                  >
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent transition-transform group-hover:scale-110" />
+                    <div className="text-xs leading-relaxed">
+                      <p className="font-semibold text-white">
+                        {t("ক্যাম্পাস অবস্থান:", "Campus Location:")}
+                      </p>
+                      <p className="text-emerald-100/70">
+                        {t(
+                          settings.address_boys_campus_bn || "মেইন রোড, কলেজ রোড মোড়, কাপাসিয়া বাজার (সিঙ্গার শো-রুম সংলগ্ন), কাপাসিয়া, গাজীপুর।",
+                          settings.address_boys_campus_en || "Main Road, College Road Moor, Kapasia Bazar (Near Singer Showroom), Kapasia, Gazipur."
+                        )}
+                      </p>
+                    </div>
+                  </a>
+                ) : (
+                  <div className="flex items-start gap-2.5">
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <div className="text-xs leading-relaxed">
+                      <p className="font-semibold text-white">
+                        {t("ক্যাম্পাস অবস্থান:", "Campus Location:")}
+                      </p>
+                      <p className="text-emerald-100/70">
+                        {t(
+                          settings.address_boys_campus_bn || "মেইন রোড, কলেজ রোড মোড়, কাপাসিয়া বাজার (সিঙ্গার শো-রুম সংলগ্ন), কাপাসিয়া, গাজীপুর।",
+                          settings.address_boys_campus_en || "Main Road, College Road Moor, Kapasia Bazar (Near Singer Showroom), Kapasia, Gazipur."
+                        )}
+                      </p>
+                    </div>
                   </div>
-                </a>
+                )}
               </div>
 
               {/* Direct Personnel Helplines */}
