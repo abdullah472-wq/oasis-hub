@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
   phone_secondary TEXT DEFAULT '01581818368',
   whatsapp_number TEXT NOT NULL DEFAULT '01581818368',
   email_primary TEXT NOT NULL DEFAULT 'info@annoor.edu.bd',
-  website_url TEXT DEFAULT 'https://annoor.edu.bd',
+  website_url TEXT DEFAULT 'https://annoor.readiin.com',
   admission_status TEXT NOT NULL DEFAULT 'open' CHECK (admission_status IN ('open', 'closed', 'upcoming')),
   
   -- ক্যাম্পাস ঠিকানা ও অবস্থান (ম্যাপস ও ইউটিউব লিংক সম্পূর্ণ খালি রাখা হয়েছে যাতে অ্যাডমিন ইচ্ছামতো দিতে পারেন)
@@ -233,7 +233,7 @@ INSERT INTO public.site_settings (
   '01581818368',
   '01581818368',
   'info@annoor.edu.bd',
-  'https://annoor.edu.bd',
+  'https://annoor.readiin.com',
   'open',
   'আননূর তাহফিজুল কুরআন মাদরাসা, কাপাসিয়া বাজার রোড, কাপাসিয়া, গাজীপুর',
   NULL,

@@ -580,8 +580,8 @@ const Sitemap = () => {
               </p>
               <p className="text-[11px] text-muted-foreground/80">
                 {t(
-                  "অনুমোদিত ঠিকানা: https://annoor.codbotbd.com/sitemap.xml",
-                  "Canonical location: https://annoor.codbotbd.com/sitemap.xml",
+                  "অনুমোদিত ঠিকানা: https://annoor.readiin.com/sitemap.xml",
+                  "Canonical location: https://annoor.readiin.com/sitemap.xml",
                 )}
               </p>
             </div>

@@ -226,9 +226,9 @@ const AppShell = () => {
       }
 
       const canonicalBase =
-        typeof window !== "undefined" && window.location.hostname === "annoor.codbotbd.com"
-          ? "https://annoor.codbotbd.com"
-          : (typeof window !== "undefined" && window.location.origin ? window.location.origin : "https://annoor.codbotbd.com");
+        typeof window !== "undefined" && window.location.hostname === "annoor.readiin.com"
+          ? "https://annoor.readiin.com"
+          : (typeof window !== "undefined" && window.location.origin ? window.location.origin : "https://annoor.readiin.com");
 
       // Root URL should strictly end with trailing slash according to canonical standard
       const cleanPath = location.pathname === "/" ? "/" : location.pathname.replace(/\/+$/, "");

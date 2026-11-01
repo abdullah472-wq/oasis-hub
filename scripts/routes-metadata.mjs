@@ -1,4 +1,4 @@
-export const SITE_URL = (process.env.VITE_SITE_URL || "https://annoor.codbotbd.com").replace(/\/+$/, "");
+export const SITE_URL = (process.env.VITE_SITE_URL || "https://annoor.readiin.com").replace(/\/+$/, "");
 export const INSTITUTION_NAME_BN = "আননূর তাহফিজুল কুরআন মাদরাসা";
 export const INSTITUTION_NAME_EN = "Annoor Tahfizul Quran Madrasa";
 

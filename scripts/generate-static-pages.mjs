@@ -219,7 +219,7 @@ function buildRichSemanticHtml(route) {
         <h4 style="color:#ffffff;font-size:1rem;margin-bottom:0.75rem;">যোগাযোগ ও হটলাইন</h4>
         <p style="margin:0 0 0.5rem;color:#cbd5e1;">ফোন: 01820811511 / 01581818368</p>
         <p style="margin:0 0 0.5rem;color:#cbd5e1;">ইমেইল: info@annoor.edu.bd</p>
-        <p style="margin:0;color:#cbd5e1;">ওয়েবসাইট: https://annoor.codbotbd.com</p>
+        <p style="margin:0;color:#cbd5e1;">ওয়েবসাইট: https://annoor.readiin.com</p>
       </div>
     </div>
     <div style="max-width:1100px;margin:2rem auto 0;padding-top:1.5rem;border-top:1px solid #1e293b;text-align:center;color:#64748b;font-size:0.8rem;">

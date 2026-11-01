@@ -94,7 +94,7 @@ export const defaultSiteSettings: SiteSettings = {
   phone_secondary: "01581818368",
   whatsapp_number: "01581818368",
   email_primary: "info@annoor.edu.bd",
-  website_url: "https://annoor.edu.bd",
+  website_url: "https://annoor.readiin.com",
   admission_status: "open",
   address_boys_campus_bn: "আননূর তাহফিজুল কুরআন মাদরাসা, কাপাসিয়া বাজার রোড, কাপাসিয়া, গাজীপুর",
   address_boys_campus_en: "Annoor Tahfizul Quran Madrasa, Kapasia Bazar Road, Kapasia, Gazipur",

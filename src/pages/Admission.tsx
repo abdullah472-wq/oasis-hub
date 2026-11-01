@@ -1111,7 +1111,7 @@ const Admission = () => {
             </div>
             <div className="p-1.5 bg-white rounded border border-slate-200">
               <span className="font-bold text-slate-900 block font-bengali">অনলাইন ভর্তি পোর্টাল</span>
-              <span>annoor.codbotbd.com/admission-form</span>
+              <span>annoor.readiin.com/admission-form</span>
               <span className="block text-[8.5px] text-slate-500 font-bengali">সরাসরি ডিজিটাল আবেদন</span>
             </div>
           </div>
