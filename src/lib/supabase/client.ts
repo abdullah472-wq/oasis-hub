@@ -2,10 +2,10 @@ import { createClient } from "@supabase/supabase-js";
 import type { ActivityLog } from "@/types/cms";
 
 const supabaseUrl =
-  import.meta.env.VITE_SUPABASE_URL || "https://gzxyrfkmkzbehxtehbwn.supabase.co";
+  import.meta.env.VITE_SUPABASE_URL || "https://tmhjuznymgzkzxkfnlzn.supabase.co";
 const supabaseAnonKey =
   import.meta.env.VITE_SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6eHlyZmtta3piZWh4dGVoYnduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NjE2MDEsImV4cCI6MjEwNzUzNzYwMX0.4IIwypCyr8lhwefPRd6oQlmhEcbARXdSqAzUY_8Uox8";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtaGp1em55bWd6a3p4a2ZubHpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1MDY5NDYsImV4cCI6MjEwOTA4Mjk0Nn0.7Hi-ykQrai8ECAO_KlVTO4mtcRLa9X3Rl3X9DTpniow";
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
