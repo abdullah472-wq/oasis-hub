@@ -159,7 +159,7 @@ export const AchievementManager = () => {
             >
               <div>
                 {item.image_url ? (
-                  <div className="relative aspect-16/9 w-full bg-black/5 overflow-hidden">
+                  <div className="relative aspect-video w-full bg-black/5 overflow-hidden">
                     <img
                       src={item.image_url}
                       alt={item.title_bn}

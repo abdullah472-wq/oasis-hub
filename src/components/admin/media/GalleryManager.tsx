@@ -115,15 +115,35 @@ export const GalleryManager = () => {
   const getCategoryBadge = (category: GalleryCategory) => {
     switch (category) {
       case "campus":
-        return <Badge className="bg-blue-500/10 text-blue-600">{t("ক্যাম্পাস", "Campus")}</Badge>;
+        return (
+          <span className="inline-flex items-center rounded-md bg-blue-600/90 text-white px-2 py-0.5 text-[11px] font-medium shadow-xs backdrop-blur-xs">
+            {t("ক্যাম্পাস", "Campus")}
+          </span>
+        );
       case "event":
-        return <Badge className="bg-purple-500/10 text-purple-600">{t("ইভেন্ট", "Event")}</Badge>;
+        return (
+          <span className="inline-flex items-center rounded-md bg-purple-600/90 text-white px-2 py-0.5 text-[11px] font-medium shadow-xs backdrop-blur-xs">
+            {t("ইভেন্ট", "Event")}
+          </span>
+        );
       case "academic":
-        return <Badge className="bg-emerald-500/10 text-emerald-600">{t("একাডেমিক", "Academic")}</Badge>;
+        return (
+          <span className="inline-flex items-center rounded-md bg-emerald-600/90 text-white px-2 py-0.5 text-[11px] font-medium shadow-xs backdrop-blur-xs">
+            {t("একাডেমিক", "Academic")}
+          </span>
+        );
       case "achievement":
-        return <Badge className="bg-amber-500/10 text-amber-600">{t("অর্জন", "Achievement")}</Badge>;
+        return (
+          <span className="inline-flex items-center rounded-md bg-amber-600/90 text-white px-2 py-0.5 text-[11px] font-medium shadow-xs backdrop-blur-xs">
+            {t("অর্জন", "Achievement")}
+          </span>
+        );
       default:
-        return <Badge variant="secondary">{category}</Badge>;
+        return (
+          <span className="inline-flex items-center rounded-md bg-slate-800/90 text-white px-2 py-0.5 text-[11px] font-medium shadow-xs backdrop-blur-xs">
+            {category}
+          </span>
+        );
     }
   };
 
@@ -203,8 +223,8 @@ export const GalleryManager = () => {
           <h4 className="text-base font-semibold">{t("গ্যালারিতে কোনো ছবি পাওয়া যায়নি", "No photos found")}</h4>
           <p className="text-sm text-muted-foreground mt-1 max-w-sm">
             {t(
-              "Supabase Storage-এ ছবি ড্র্যাগ-এন্ড-ড্রপ আপলোড করে পাবলিক গ্যালারিতে প্রদর্শন করুন।",
-              "Upload photos directly to Supabase Storage to show them in the institution gallery."
+              "গ্যালারিতে ছবি আপলোড করে ওয়েবসাইটে প্রদর্শন করুন।",
+              "Upload photos to the gallery to display them on the website."
             )}
           </p>
           <Button
@@ -229,7 +249,7 @@ export const GalleryManager = () => {
               <div>
                 <div
                   onClick={() => setPreviewItem(item)}
-                  className="relative aspect-4/3 w-full bg-black/5 cursor-pointer overflow-hidden"
+                  className="relative aspect-[4/3] w-full bg-muted/40 cursor-pointer overflow-hidden"
                 >
                   <img
                     src={item.image_url}
@@ -247,7 +267,7 @@ export const GalleryManager = () => {
 
                 <div className="p-3">
                   <h4
-                    className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors cursor-pointer"
+                    className="font-medium text-sm line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors cursor-pointer"
                     onClick={() => setPreviewItem(item)}
                     title={item.title_bn}
                   >
@@ -257,7 +277,7 @@ export const GalleryManager = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="p-3 pt-0 border-t border-border/40 mt-1 flex items-center justify-between">
+              <div className="p-3 pt-0 border-t border-border/40 mt-auto flex items-center justify-between">
                 <Button
                   variant="ghost"
                   size="icon"
