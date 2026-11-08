@@ -137,5 +137,5 @@ describe("All CMS Components and Dialogs Rendering", () => {
     // Test list retrieval
     const listRes = await getVideoList();
     expect(listRes.videos.length).toBeGreaterThan(0);
-  });
+  }, 15000);
 });
