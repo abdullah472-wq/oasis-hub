@@ -162,7 +162,7 @@ export const AchievementDialog = ({
             <Label className="font-semibold">{t("অর্জন বা ট্রফির ছবি (ঐচ্ছিক)", "Achievement Photo")}</Label>
             {previewUrl ? (
               <div className="relative rounded-lg border border-border/70 overflow-hidden bg-muted/20">
-                <div className="aspect-16/9 w-full overflow-hidden bg-black/5 flex items-center justify-center">
+                <div className="aspect-video w-full overflow-hidden bg-black/5 flex items-center justify-center">
                   <img
                     src={previewUrl}
                     alt="Preview"
