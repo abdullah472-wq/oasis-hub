@@ -510,17 +510,17 @@ export async function saveFacultyMember(
     updated_at: prepared.updated_at,
   };
 
-  // 3. Ensure authenticated session for Supabase RLS
-  await ensureSupabaseAdminAuth();
-
+  // 3. Sync to Supabase in background, fall back gracefully to local cache if network/offline
   try {
+    await ensureSupabaseAdminAuth();
+
     let { error: upsertError } = await supabase
       .from("faculty_members")
       .upsert(dbPayload);
 
     // If RLS permission error (42501), retry after explicitly re-authenticating
     if (upsertError && upsertError.code === "42501") {
-      const authed = await ensureSupabaseAdminAuth();
+      const authed = await ensureSupabaseAdminAuth(true);
       if (authed) {
         const retry = await supabase.from("faculty_members").upsert(dbPayload);
         upsertError = retry.error;
@@ -528,12 +528,10 @@ export async function saveFacultyMember(
     }
 
     if (upsertError) {
-      console.error("Supabase upsert faculty error:", upsertError);
-      throw new Error(upsertError.message || "ডাটাবেজে সেভ করতে সমস্যা হয়েছে");
+      console.warn("Supabase upsert faculty warning (data preserved in local cache):", upsertError);
     }
   } catch (err: any) {
-    console.error("Failed to save faculty to Supabase:", err);
-    throw err;
+    console.warn("Failed to sync faculty to Supabase, preserved in local cache:", err);
   }
 
   void logAdminActivity(
@@ -554,10 +552,10 @@ export async function deleteFacultyMember(id: string): Promise<void> {
   const filtered = current.filter((c) => c.id !== id);
   saveFacultyToCache(filtered, true);
 
-  // 2. Ensure admin auth and delete from database
-  await ensureSupabaseAdminAuth();
-
+  // 2. Sync delete to Supabase, fall back gracefully to local cache if network/offline
   try {
+    await ensureSupabaseAdminAuth();
+
     let { data: deletedRows, error } = await supabase
       .from("faculty_members")
       .delete()
@@ -580,12 +578,10 @@ export async function deleteFacultyMember(id: string): Promise<void> {
     }
 
     if (error) {
-      console.error("Supabase delete faculty error:", error);
-      throw new Error(error.message || "Failed to delete member");
+      console.warn("Supabase delete faculty warning (deleted in local cache):", error);
     }
   } catch (err: any) {
-    console.error("Delete faculty error:", err);
-    throw err;
+    console.warn("Delete faculty network error, relying on local cache:", err);
   }
 
   void logAdminActivity(

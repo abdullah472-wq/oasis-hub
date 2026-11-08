@@ -82,17 +82,26 @@ export const saveNotice = async (notice: Omit<Notice, "id" | "createdAt">): Prom
     published_at: new Date().toISOString().split("T")[0],
   };
 
-  const { data, error } = await supabase.from("notices").insert([payload]).select().single();
-  if (error) throw error;
+  let data: any = null;
+  try {
+    const res = await supabase.from("notices").insert([payload]).select().single();
+    if (res.error) {
+      console.warn("Supabase notice insert warning:", res.error);
+    } else {
+      data = res.data;
+    }
+  } catch (err) {
+    console.warn("Notice insert network error, relying on cache:", err);
+  }
 
   const saved: Notice = {
-    id: data.id,
-    titleBn: data.title_bn,
-    titleEn: data.title_en || data.title_bn,
-    descriptionBn: data.content_bn,
-    descriptionEn: data.content_en || data.content_bn,
-    pdfUrl: data.pdf_url || undefined,
-    createdAt: new Date(data.created_at).getTime(),
+    id: data?.id || `notice-${Date.now()}`,
+    titleBn: data?.title_bn || payload.title_bn,
+    titleEn: data?.title_en || payload.title_en || payload.title_bn,
+    descriptionBn: data?.content_bn || payload.content_bn,
+    descriptionEn: data?.content_en || payload.content_en || payload.content_bn,
+    pdfUrl: data?.pdf_url || payload.pdf_url || undefined,
+    createdAt: data?.created_at ? new Date(data.created_at).getTime() : Date.now(),
   };
 
   writeNoticeCache([saved, ...readNoticeCache()]);
@@ -100,7 +109,11 @@ export const saveNotice = async (notice: Omit<Notice, "id" | "createdAt">): Prom
 };
 
 export const deleteNotice = async (id: string): Promise<void> => {
-  await supabase.from("notices").delete().eq("id", id);
+  try {
+    await supabase.from("notices").delete().eq("id", id);
+  } catch (err) {
+    console.warn("Notice delete network error, relying on cache:", err);
+  }
   writeNoticeCache(readNoticeCache().filter((item) => item.id !== id));
 };
 

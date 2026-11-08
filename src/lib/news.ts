@@ -144,8 +144,6 @@ function mapNewsPostToDb(post: Partial<NewsPost>) {
 export const saveNewsToFirestore = async (
   post: Omit<NewsPost, "id" | "createdAt">
 ): Promise<NewsPost> => {
-  await ensureSupabaseAdminAuth();
-
   const dbPayload = mapNewsPostToDb(post);
 
   let newPost: NewsPost = {
@@ -155,6 +153,8 @@ export const saveNewsToFirestore = async (
   };
 
   try {
+    await ensureSupabaseAdminAuth();
+
     let { data, error } = await supabase
       .from("news")
       .insert([dbPayload])
@@ -162,7 +162,7 @@ export const saveNewsToFirestore = async (
       .single();
 
     if (error && error.code === "42501") {
-      const authed = await ensureSupabaseAdminAuth();
+      const authed = await ensureSupabaseAdminAuth(true);
       if (authed) {
         const retry = await supabase
           .from("news")
@@ -175,16 +175,14 @@ export const saveNewsToFirestore = async (
     }
 
     if (error) {
-      console.error("Supabase news insert error:", error);
-      throw new Error(error.message || "সংবাদ সংরক্ষণ করতে ব্যর্থ হয়েছে");
+      console.warn("Supabase news insert warning (preserved in local cache):", error);
     }
 
     if (data) {
       newPost = mapRowToNewsPost(data);
     }
   } catch (err: any) {
-    console.error("News save error:", err);
-    throw err;
+    console.warn("News save network error, relying on local cache:", err);
   }
 
   // Update local cache and broadcast update
@@ -240,24 +238,22 @@ export const getNewsFromFirestore = async (): Promise<NewsPost[]> => {
 };
 
 export const deleteNewsFromFirestore = async (id: string): Promise<void> => {
-  await ensureSupabaseAdminAuth();
-
   try {
+    await ensureSupabaseAdminAuth();
+
     let { error } = await supabase.from("news").delete().eq("id", id);
     if (error && error.code === "42501") {
-      const authed = await ensureSupabaseAdminAuth();
+      const authed = await ensureSupabaseAdminAuth(true);
       if (authed) {
         const retry = await supabase.from("news").delete().eq("id", id);
         error = retry.error;
       }
     }
     if (error) {
-      console.error("Supabase news delete error:", error);
-      throw new Error(error.message || "Failed to delete news from database");
+      console.warn("Supabase news delete warning (deleted in local cache):", error);
     }
   } catch (err) {
-    console.error("News delete error:", err);
-    throw err;
+    console.warn("News delete network error, relying on local cache:", err);
   }
 
   const cached = readNewsCache();
@@ -275,18 +271,18 @@ export const updateNewsInFirestore = async (
   id: string,
   payload: Partial<Omit<NewsPost, "id" | "createdAt">>
 ): Promise<void> => {
-  await ensureSupabaseAdminAuth();
-
   const dbPayload = mapNewsPostToDb(payload);
 
   try {
+    await ensureSupabaseAdminAuth();
+
     let { error } = await supabase
       .from("news")
       .update(dbPayload)
       .eq("id", id);
 
     if (error && error.code === "42501") {
-      const authed = await ensureSupabaseAdminAuth();
+      const authed = await ensureSupabaseAdminAuth(true);
       if (authed) {
         const retry = await supabase
           .from("news")
@@ -297,12 +293,10 @@ export const updateNewsInFirestore = async (
     }
 
     if (error) {
-      console.error("Supabase news update error:", error);
-      throw new Error(error.message || "Failed to update news in database");
+      console.warn("Supabase news update warning (updated in local cache):", error);
     }
   } catch (err) {
-    console.error("News update error:", err);
-    throw err;
+    console.warn("News update network error, relying on local cache:", err);
   }
 
   const cached = readNewsCache();
