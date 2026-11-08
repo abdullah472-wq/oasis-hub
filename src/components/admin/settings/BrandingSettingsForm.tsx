@@ -116,9 +116,9 @@ export const BrandingSettingsForm = () => {
       let finalFaviconUrl = faviconUrl;
       let finalHeroImageUrl = heroImageUrl;
 
-      // Upload new logo to Supabase cms-branding bucket
+      // Upload new logo
       if (selectedLogoFile) {
-        toast.info(t("লোগো Supabase Storage-এ আপলোড হচ্ছে...", "Uploading logo..."));
+        toast.info(t("লোগো আপলোড হচ্ছে...", "Uploading logo..."));
         finalLogoUrl = await uploadCmsFile("cms-branding", selectedLogoFile, "logos");
       }
 

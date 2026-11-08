@@ -130,7 +130,7 @@ export const DownloadFormDialog = ({
       let finalFileType = formData.file_type;
 
       if (selectedFile) {
-        toast.info(t("ফাইল Supabase Storage-এ আপলোড হচ্ছে...", "Uploading file to Supabase Storage..."));
+        toast.info(t("ফাইল আপলোড হচ্ছে...", "Uploading file..."));
         finalFileUrl = await uploadCmsFile("cms-downloads", selectedFile, "documents");
         finalFileSize = formatFileSize(selectedFile.size);
         finalFileType = selectedFile.name.split(".").pop()?.toUpperCase() || "PDF";
