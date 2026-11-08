@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { ActivityLog } from "@/types/cms";
+import { uploadImage, uploadDocument, uploadFile } from "../upload";
 
 const supabaseUrl =
   import.meta.env.VITE_SUPABASE_URL || "https://tmhjuznymgzkzxkfnlzn.supabase.co";
@@ -16,31 +17,68 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 /**
- * Upload a file to a specific Supabase storage bucket and return the public URL.
+ * Upload a file with resilient multi-tier fallback:
+ * 1. Supabase Storage (primary cloud storage bucket)
+ * 2. Cloudinary CDN (instant fallback if Supabase is offline/paused)
+ * 3. Base64 Data URL (fail-safe for images under 2MB so admin workflows are never blocked)
  */
 export const uploadCmsFile = async (
   bucket: "cms-notices" | "cms-gallery" | "cms-downloads" | "cms-branding",
   file: File,
   folder = "uploads"
 ): Promise<string> => {
-  const fileExt = file.name.split(".").pop();
-  const cleanBaseName = file.name
-    .replace(/\.[^/.]+$/, "")
-    .replace(/[^a-zA-Z0-9_-]/g, "_")
-    .slice(0, 30);
-  const fileName = `${folder}/${Date.now()}_${cleanBaseName}.${fileExt}`;
+  // 1. Attempt upload to Supabase Storage if reachable
+  try {
+    const fileExt = file.name.split(".").pop();
+    const cleanBaseName = file.name
+      .replace(/\.[^/.]+$/, "")
+      .replace(/[^a-zA-Z0-9_-]/g, "_")
+      .slice(0, 30);
+    const fileName = `${folder}/${Date.now()}_${cleanBaseName}.${fileExt}`;
 
-  const { data, error } = await supabase.storage.from(bucket).upload(fileName, file, {
-    cacheControl: "3600",
-    upsert: false,
-  });
+    const { data, error } = await supabase.storage.from(bucket).upload(fileName, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
 
-  if (error) {
-    throw new Error(`File upload failed: ${error.message}`);
+    if (!error && data?.path) {
+      const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(data.path);
+      if (publicUrlData?.publicUrl) {
+        return publicUrlData.publicUrl;
+      }
+    }
+
+    if (error) {
+      console.warn("Supabase Storage upload warning, falling back to Cloudinary:", error.message);
+    }
+  } catch (err: any) {
+    console.warn("Supabase Storage unreachable, falling back to Cloudinary:", err?.message || err);
   }
 
-  const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(data.path);
-  return publicUrlData.publicUrl;
+  // 2. Fall back to Cloudinary CDN
+  try {
+    if (file.type.startsWith("image/")) {
+      return await uploadImage(file);
+    } else if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
+      return await uploadDocument(file);
+    } else {
+      return await uploadFile(file);
+    }
+  } catch (cloudinaryErr: any) {
+    console.warn("Cloudinary upload failed, checking local Base64 fallback:", cloudinaryErr?.message || cloudinaryErr);
+
+    // 3. For images under 2MB, fallback to Base64 data URL so user is never blocked
+    if (file.type.startsWith("image/") && file.size < 2 * 1024 * 1024) {
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error("ছবি প্রসেস করতে ব্যর্থ হয়েছে"));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    throw new Error(`File upload failed: ${cloudinaryErr?.message || "Upload service unavailable"}`);
+  }
 };
 
 /**

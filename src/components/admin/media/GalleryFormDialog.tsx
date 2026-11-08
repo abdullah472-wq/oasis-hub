@@ -123,9 +123,9 @@ export const GalleryFormDialog = ({
 
       let finalImageUrl = formData.image_url;
 
-      // Upload file to Supabase cms-gallery bucket if new file was chosen
+      // Upload file to cloud storage (Supabase / Cloudinary) if new file was chosen
       if (selectedFile) {
-        toast.info(t("ছবি Supabase Storage-এ আপলোড হচ্ছে...", "Uploading image to Supabase Storage..."));
+        toast.info(t("ছবি আপলোড হচ্ছে...", "Uploading image..."));
         finalImageUrl = await uploadCmsFile("cms-gallery", selectedFile, "gallery");
       }
 
